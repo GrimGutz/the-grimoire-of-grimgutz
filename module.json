@@ -1,0 +1,106 @@
+{
+  "id": "the-grimoire-of-grimgutz",
+  "title": "Гриммуар Мрачного Гатца / The Grimoire of GrimGutz",
+  "description": "Гриммуар престиж-классов и мрачного авторского контента для D&D 5e. Первый выпуск включает престиж-класс «Сокрушитель», его особенности, техники и массивное оружие.",
+  "authors": [
+    {
+      "name": "Lev"
+    }
+  ],
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": "13.347",
+    "verified": "14.364",
+    "maximum": "14"
+  },
+  "esmodules": [
+    "scripts/main.mjs"
+  ],
+  "packFolders": [
+    {
+      "name": "Гриммуар Мрачного Гатца",
+      "sorting": "m",
+      "color": "#5b1717",
+      "packs": [
+        "classes",
+        "features",
+        "equipment"
+      ]
+    }
+  ],
+  "packs": [
+    {
+      "name": "classes",
+      "label": "Престиж-классы",
+      "path": "packs/classes",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "dnd5e": {
+          "types": [
+            "class"
+          ]
+        }
+      }
+    },
+    {
+      "name": "features",
+      "label": "Особенности и техники",
+      "path": "packs/features",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "dnd5e": {
+          "types": [
+            "feat"
+          ]
+        }
+      }
+    },
+    {
+      "name": "equipment",
+      "label": "Массивное оружие",
+      "path": "packs/equipment",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "dnd5e": {
+          "types": [
+            "weapon"
+          ]
+        }
+      }
+    }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "5.3.3"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "dnd5e": {
+      "sourceBooks": {
+        "TGoGG": "The Grimoire of GrimGutz"
+      }
+    }
+  }
+}
+
