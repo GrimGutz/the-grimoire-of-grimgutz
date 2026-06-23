@@ -739,25 +739,6 @@ function crusherPassiveDefinitions(actor) {
     }));
   }
 
-  for (const key of [
-    "cleaving",
-    "crushing",
-    "giant-killer",
-    "momentum",
-    "steel-will",
-    "steel-giant",
-    "adaptability",
-    "superior-control",
-    "powerful-crushing",
-    "powerful-cleaving",
-    "indestructibility",
-    "smithing",
-    "giant-crushing"
-  ]) {
-    const feature = findFeature(actor, key);
-    if (feature) definitions.push(crusherPassiveEffectData({ key, feature }));
-  }
-
   return definitions;
 }
 
@@ -845,34 +826,16 @@ function leaderPassiveDefinitions(actor) {
   if (!leaderClass(actor)) return [];
   const definitions = [];
 
-  for (const key of [
-    "leader-command-stratagems",
-    "moment-of-glory",
-    "glimpse-of-genius",
-    "leadership-expertise",
-    "battlefield-conductor",
-    "formation-master",
-    "frontline-commander",
-    "versatile-communicator",
-    "perfect-coordination",
-    "leader-presence",
-    "calming-presence",
-    "distracting-presence",
-    "tactical-presence",
-    "insightful-presence",
-    "inspiring-presence"
-  ]) {
-    const feature = findFeature(actor, key);
-    if (feature) definitions.push(leaderPassiveEffectData({ key, feature }));
-  }
-
   const boisterous = findFeature(actor, "boisterous-presence");
   if (boisterous) {
-    definitions.push(leaderPassiveEffectData({
-      key: "boisterous-presence",
-      feature: boisterous,
-      changes: leaderMovementBonusChanges(actor, 10)
-    }));
+    const changes = leaderMovementBonusChanges(actor, 10);
+    if (changes.length) {
+      definitions.push(leaderPassiveEffectData({
+        key: "boisterous-presence",
+        feature: boisterous,
+        changes
+      }));
+    }
   }
 
   return definitions;
@@ -948,9 +911,6 @@ function deathKnightPassiveEffectData({ key, feature, name = feature?.name, img 
 function deathKnightPassiveDefinitions(actor) {
   if (!deathKnightClass(actor)) return [];
   const definitions = [];
-
-  const mysticalPower = findFeature(actor, "mystical-power");
-  if (mysticalPower) definitions.push(deathKnightPassiveEffectData({ key: "mystical-power", feature: mysticalPower }));
 
   const undeadNature = findFeature(actor, "undead-nature");
   if (undeadNature) {
@@ -1041,11 +1001,6 @@ function deathKnightPassiveDefinitions(actor) {
         }
       ]
     }));
-  }
-
-  for (const key of ["battle-undead", "death-knight-extra-attack"]) {
-    const feature = findFeature(actor, key);
-    if (feature) definitions.push(deathKnightPassiveEffectData({ key, feature }));
   }
 
   return definitions;
@@ -1220,6 +1175,7 @@ function hereticPassiveDefinitions(actor) {
     if (data.hereticFeature !== true) continue;
     const key = data.feature ?? itemIdentifier(item);
     const changes = (HERETIC_PASSIVE_CHANGES[key] ?? []).map(change => ({ ...change }));
+    if (!changes.length) continue;
     definitions.push(hereticPassiveEffectData({ key, feature: item, changes }));
   }
   return definitions;
