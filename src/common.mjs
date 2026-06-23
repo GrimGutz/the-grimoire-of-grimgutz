@@ -12,9 +12,12 @@ export function uuidFor(pack, key) {
   return `Compendium.${MODULE_ID}.${pack}.Item.${idFor(key)}`;
 }
 
-export function sourceData(page = "") {
+export function sourceData(
+  page = "",
+  custom = "Престиж-класс: Сокрушитель; перевод Айвендил, 26.03.2018"
+) {
   return {
-    custom: "Престиж-класс: Сокрушитель; перевод Айвендил, 26.03.2018",
+    custom,
     book: "TGoGG",
     page,
     license: "",
@@ -37,14 +40,23 @@ export function stats() {
   };
 }
 
-export function baseDocument({ key, name, type, img, system, folder = null }) {
+export function baseDocument({
+  key,
+  name,
+  type,
+  img,
+  system,
+  folder = null,
+  flags = {},
+  effects = []
+}) {
   return {
     name,
     type,
     img,
     system,
-    effects: [],
-    flags: {},
+    effects,
+    flags,
     _id: idFor(key),
     _stats: stats(),
     folder,
@@ -64,7 +76,11 @@ export function feature({
   requirements = "",
   uses = null,
   activities = {},
-  folder = null
+  folder = null,
+  automation = null,
+  effects = [],
+  sourcePage = "2–3",
+  sourceCustom = "Престиж-класс: Сокрушитель; перевод Айвендил, 26.03.2018"
 }) {
   return baseDocument({
     key,
@@ -72,12 +88,18 @@ export function feature({
     type: "feat",
     img,
     folder,
+    effects,
+    flags: automation
+      ? {
+          [MODULE_ID]: automation
+        }
+      : {},
     system: {
       description: {
         value: description,
         chat: ""
       },
-      source: sourceData("2–3"),
+      source: sourceData(sourcePage, sourceCustom),
       uses: uses ?? {
         max: "",
         spent: 0,
@@ -99,20 +121,93 @@ export function feature({
   });
 }
 
+export function activeEffect({
+  key,
+  name,
+  img,
+  changes,
+  transfer = false,
+  flags = {}
+}) {
+  const finalPhase = key => (
+    key.startsWith("system.attributes.ac.")
+    || key.startsWith("system.attributes.movement.")
+    || key.startsWith("system.attributes.senses.")
+    || key.endsWith(".roll.mode")
+  );
+  return {
+    _id: idFor(`effect:${key}`),
+    name,
+    img,
+    type: "base",
+    description: "",
+    origin: null,
+    transfer,
+    disabled: false,
+    showIcon: 1,
+    statuses: [],
+    tint: "#ffffff",
+    start: null,
+    duration: {
+      value: null,
+      units: "seconds",
+      expiry: null,
+      expired: false
+    },
+    sort: 0,
+    flags: {
+      ...flags,
+      [MODULE_ID]: {
+        ...(flags[MODULE_ID] ?? {}),
+        passiveEffect: true
+      }
+    },
+    system: {
+      changes: changes.map(change => ({
+        phase: finalPhase(change.key) ? "final" : "initial",
+        ...change
+      }))
+    }
+  };
+}
+
 export function utilityActivity({
   key,
+  name = "",
+  action = "",
+  actionData = {},
   activation = "special",
   condition = "",
-  consumeItemUse = false
+  consumeItemUse = false,
+  spellSlot = true,
+  rangeValue = null,
+  rangeUnits = "ft",
+  targetType = "",
+  targetCount = "",
+  targetChoice = false,
+  prompt = true,
+  rollFormula = "",
+  rollName = "",
+  rollVisible = false
 }) {
   const activityId = idFor(`activity:${key}`);
   return {
     [activityId]: {
       _id: activityId,
       type: "utility",
+      name,
+      img: "",
+      flags: action
+        ? {
+            [MODULE_ID]: {
+              action,
+              ...actionData
+            }
+          }
+        : {},
       activation: {
         type: activation,
-        value: activation === "action" || activation === "bonus" || activation === "reaction" ? 1 : null,
+        value: activation === "special" || !activation ? null : 1,
         condition,
         override: false
       },
@@ -132,7 +227,7 @@ export function utilityActivity({
           allowed: false,
           max: ""
         },
-        spellSlot: true
+        spellSlot
       },
       description: {
         chatFlavor: ""
@@ -146,9 +241,10 @@ export function utilityActivity({
       },
       effects: [],
       range: {
-        units: "",
+        value: rangeValue,
+        units: rangeValue == null ? "" : rangeUnits,
         special: "",
-        override: false
+        override: rangeValue != null
       },
       target: {
         template: {
@@ -161,12 +257,12 @@ export function utilityActivity({
           units: ""
         },
         affects: {
-          count: "",
-          type: "",
-          choice: false,
+          count: targetCount,
+          type: targetType,
+          choice: targetChoice,
           special: ""
         },
-        prompt: true,
+        prompt,
         override: false
       },
       uses: {
@@ -175,23 +271,49 @@ export function utilityActivity({
         recovery: []
       },
       roll: {
-        formula: "",
-        name: "",
-        prompt: false,
-        visible: false
+        formula: rollFormula,
+        name: rollName,
+        prompt: Boolean(rollFormula),
+        visible: rollVisible
       },
       sort: 0
     }
   };
 }
 
-export function itemGrant({ key, level, items, title = "Особенности" }) {
+export function itemGrant({ key, level, items, title = "Особенности", pack = "features" }) {
   return {
     _id: idFor(`advancement:${key}`),
     type: "ItemGrant",
     configuration: {
       items: items.map(item => ({
-        uuid: uuidFor("features", item),
+        uuid: uuidFor(pack, item),
+        optional: false
+      })),
+      optional: false,
+      spell: {
+        ability: [""],
+        preparation: "",
+        uses: {
+          max: "",
+          per: "",
+          requireSlot: false
+        }
+      }
+    },
+    value: {},
+    level,
+    title
+  };
+}
+
+export function itemGrantUuids({ key, level, uuids, title = "Особенности" }) {
+  return {
+    _id: idFor(`advancement:${key}`),
+    type: "ItemGrant",
+    configuration: {
+      items: uuids.map(uuid => ({
+        uuid,
         optional: false
       })),
       optional: false,
@@ -268,6 +390,121 @@ export function traitAdvancement({ key, level, grants, title }) {
   };
 }
 
+export function traitChoiceAdvancement({
+  key,
+  level,
+  pool,
+  count = 1,
+  mode = "default",
+  title,
+  hint = ""
+}) {
+  return {
+    _id: idFor(`advancement:${key}`),
+    type: "Trait",
+    configuration: {
+      mode,
+      allowReplacements: false,
+      grants: [],
+      choices: [{
+        count,
+        pool
+      }]
+    },
+    level,
+    title,
+    hint,
+    value: {
+      chosen: []
+    }
+  };
+}
+
+export function abilityScoreImprovementAdvancement({
+  key,
+  level,
+  title = "Улучшение характеристик"
+}) {
+  return {
+    _id: idFor(`advancement:${key}`),
+    type: "AbilityScoreImprovement",
+    configuration: {
+      points: 2,
+      fixed: {
+        str: 0,
+        dex: 0,
+        con: 0,
+        int: 0,
+        wis: 0,
+        cha: 0
+      },
+      cap: 2,
+      locked: []
+    },
+    value: {},
+    level,
+    title
+  };
+}
+
+export function fixedAbilityScoreAdvancement({
+  key,
+  level,
+  fixed,
+  max,
+  title
+}) {
+  return {
+    _id: idFor(`advancement:${key}`),
+    type: "AbilityScoreImprovement",
+    configuration: {
+      points: 0,
+      fixed: {
+        str: 0,
+        dex: 0,
+        con: 0,
+        int: 0,
+        wis: 0,
+        cha: 0,
+        ...fixed
+      },
+      cap: Math.max(1, ...Object.values(fixed).map(value => Math.abs(Number(value) || 0))),
+      max,
+      locked: Object.keys(fixed)
+    },
+    value: {
+      type: "asi"
+    },
+    level,
+    title,
+    icon: null
+  };
+}
+
+export function scaleValueAdvancement({
+  key,
+  identifier,
+  scale,
+  title,
+  type = "number"
+}) {
+  return {
+    _id: idFor(`advancement:${key}`),
+    type: "ScaleValue",
+    configuration: {
+      identifier,
+      type,
+      distance: {
+        units: ""
+      },
+      scale
+    },
+    value: {},
+    title,
+    hint: ""
+  };
+}
+
 export function strengthIncreaseAdvancement() {
   return {
     _id: idFor("advancement:steel-giant-strength"),
@@ -295,9 +532,9 @@ export function strengthIncreaseAdvancement() {
   };
 }
 
-export function hitPointsAdvancement() {
+export function hitPointsAdvancement(key = "hit-points") {
   return {
-    _id: idFor("advancement:hit-points"),
+    _id: idFor(`advancement:${key}`),
     type: "HitPoints",
     configuration: {},
     value: {}
@@ -401,15 +638,25 @@ export function weapon({
 }) {
   const massiveRule = "<p><strong>Массивное.</strong> Для эффективного использования оружия требуется Сила 18. Иначе все атаки этим оружием совершаются с помехой.</p>";
   const specialRule = special ? `<p><strong>Особое.</strong> ${special}</p>` : "";
+  const automationRule = key === "odachi"
+    ? "<p><strong>Автоматизация Foundry:</strong> модуль применяет помеху при Силе ниже 18. При использовании Midi-QOL он также применяет помеху, если выбранная цель находится в пределах 5 футов.</p>"
+    : "<p><strong>Автоматизация Foundry:</strong> модуль автоматически применяет помеху к броску атаки, если Сила владельца ниже 18.</p>";
 
   return baseDocument({
     key,
     name,
     type: "weapon",
     img,
+    flags: {
+      [MODULE_ID]: {
+        massiveWeapon: true,
+        weaponKey: key,
+        closeRangeDisadvantage: key === "odachi"
+      }
+    },
     system: {
       description: {
-        value: `${massiveRule}${specialRule}`,
+        value: `${massiveRule}${specialRule}${automationRule}`,
         chat: ""
       },
       source: sourceData("3"),
@@ -514,4 +761,3 @@ export function folder({ key, name, sort }) {
     _stats: stats()
   };
 }
-

@@ -1,17 +1,17 @@
 {
   "id": "the-grimoire-of-grimgutz",
   "title": "Гриммуар Мрачного Гатца / The Grimoire of GrimGutz",
-  "description": "Гриммуар престиж-классов и мрачного авторского контента для D&D 5e. Первый выпуск включает престиж-класс «Сокрушитель», его особенности, техники и массивное оружие.",
+  "description": "Гриммуар престиж-классов и авторского контента для D&D 5e. Включает «Сокрушителя», «Лидера», «Рыцаря смерти», «Еретика», «Лесного владыку» и «Абберанта».",
   "authors": [
     {
       "name": "Lev"
     }
   ],
-  "version": "0.1.0",
+  "version": "0.7.10",
   "compatibility": {
-    "minimum": "13.347",
+    "minimum": "14",
     "verified": "14.364",
-    "maximum": "14"
+    "maximum": "14.999"
   },
   "esmodules": [
     "scripts/main.mjs"
@@ -24,6 +24,7 @@
       "packs": [
         "classes",
         "features",
+        "spells",
         "equipment"
       ]
     }
@@ -49,7 +50,7 @@
     },
     {
       "name": "features",
-      "label": "Особенности и техники",
+      "label": "Особенности, техники и стратагемы",
       "path": "packs/features",
       "type": "Item",
       "system": "dnd5e",
@@ -82,6 +83,24 @@
           ]
         }
       }
+    },
+    {
+      "name": "spells",
+      "label": "Заклинания Гриммуара",
+      "path": "packs/spells",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "dnd5e": {
+          "types": [
+            "spell"
+          ]
+        }
+      }
     }
   ],
   "relationships": {
@@ -91,6 +110,29 @@
         "type": "system",
         "compatibility": {
           "minimum": "5.3.3"
+        }
+      }
+    ],
+    "recommends": [
+      {
+        "id": "midi-qol",
+        "type": "module",
+        "compatibility": {
+          "minimum": "14.0.9"
+        }
+      },
+      {
+        "id": "dae",
+        "type": "module",
+        "compatibility": {
+          "minimum": "14.0.12"
+        }
+      },
+      {
+        "id": "itemacro",
+        "type": "module",
+        "compatibility": {
+          "minimum": "3.0.1"
         }
       }
     ]
@@ -103,4 +145,3 @@
     }
   }
 }
-

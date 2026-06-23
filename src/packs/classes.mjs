@@ -8,6 +8,11 @@ import {
   strengthIncreaseAdvancement,
   traitAdvancement
 } from "../common.mjs";
+import { deathKnightClassDocuments } from "./death-knight-class.mjs";
+import { aberrantClassDocuments } from "./aberrant-class.mjs";
+import { forestLordClassDocuments } from "./forest-lord-class.mjs";
+import { hereticClassDocuments } from "./heretic-class.mjs";
+import { leaderClassDocuments } from "./leader-class.mjs";
 
 const TECHNIQUES = [
   "adaptability",
@@ -31,7 +36,7 @@ const description = `
     <li><strong>Уровень персонажа 5.</strong></li>
     <li><strong>Массивное оружие.</strong> Вы должны найти такое оружие или получить сведения о нём, а затем найти кузнеца либо выковать оружие самостоятельно.</li>
   </ul>
-  <p><strong>Важно:</strong> Foundry не проверяет эти нестандартные требования автоматически. Перед добавлением класса их должен проверить Мастер.</p>
+  <p><strong>Автоматизация Foundry:</strong> при добавлении класса модуль проверяет Силу, общий уровень персонажа, размер, наличие черты «Мастер большого оружия» и массивного оружия. Строгую проверку можно отключить в настройках мира.</p>
 
   <h2>Классовые особенности</h2>
   <p><strong>Кость хитов:</strong> 1к12 за каждый уровень Сокрушителя.</p>
@@ -151,6 +156,10 @@ export const documents = [
       },
       wealth: ""
     }
-  })
+  }),
+  ...leaderClassDocuments,
+  ...deathKnightClassDocuments,
+  ...hereticClassDocuments,
+  ...forestLordClassDocuments,
+  ...aberrantClassDocuments
 ];
-

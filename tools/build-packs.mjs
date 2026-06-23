@@ -2,6 +2,7 @@ import { rm, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ClassicLevel } from "classic-level";
+import { linkDocumentDescriptions } from "./link-descriptions.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packsRoot = path.join(root, "packs");
@@ -14,6 +15,10 @@ const packs = [
   {
     name: "features",
     source: "../src/packs/features.mjs"
+  },
+  {
+    name: "spells",
+    source: "../src/packs/spells.mjs"
   },
   {
     name: "equipment",
@@ -43,13 +48,24 @@ function validateRecords({ name, documents, folders }) {
   }
 }
 
+const loadedPacks = [];
 for (const pack of packs) {
+  const source = await import(new URL(pack.source, import.meta.url));
+  loadedPacks.push({
+    ...pack,
+    documents: source.documents ?? [],
+    folders: source.folders ?? []
+  });
+}
+
+const linksAdded = linkDocumentDescriptions(loadedPacks);
+console.log(`Linked descriptions: ${linksAdded} references`);
+
+for (const pack of loadedPacks) {
   const target = path.join(packsRoot, pack.name);
   assertInsidePacks(target);
 
-  const source = await import(new URL(pack.source, import.meta.url));
-  const documents = source.documents ?? [];
-  const folders = source.folders ?? [];
+  const { documents, folders } = pack;
   validateRecords({
     name: pack.name,
     documents,
@@ -87,4 +103,3 @@ for (const pack of packs) {
 
   console.log(`Built ${pack.name}: ${documents.length} documents, ${folders.length} folders`);
 }
-
