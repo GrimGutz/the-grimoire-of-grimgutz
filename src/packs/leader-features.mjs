@@ -1,6 +1,7 @@
 import { feature, folder, idFor, utilityActivity } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Лидер; Legends of Prestige and Prowess v1.2; предоставленный PDF Leader.pdf";
+const WOW = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack";
 const MAIN_FOLDER = idFor("folder:leader-features");
 const EXPERTISE_FOLDER = idFor("folder:leader-expertise");
 const PRESENCE_FOLDER = idFor("folder:leader-presences");
@@ -166,7 +167,7 @@ export const leaderDocuments = [
   leaderFeature({
     key: "glimpse-of-genius",
     name: "Проблеск гения",
-    img: "icons/magic/light/bulb-beam-yellow.webp",
+    img: `${WOW}/Spells/Brilliance.png`,
     level: 2,
     requirements: "Лидер 2",
     folder: MAIN_FOLDER,
@@ -334,7 +335,7 @@ export const leaderDocuments = [
   leaderFeature({
     key: "tactical-presence",
     name: "Тактическое присутствие",
-    img: "icons/skills/social/diplomacy-strike-together.webp",
+    img: `${WOW}/Abilities/RallyingCry.png`,
     level: 5,
     requirements: "Лидер 5; Присутствие лидера",
     folder: PRESENCE_FOLDER,
@@ -431,7 +432,7 @@ export const leaderDocuments = [
   stratagem({
     key: "stratagem-retreat-regroup",
     name: "Отступить и перегруппироваться",
-    img: "icons/skills/movement/arrow-downward-yellow.webp",
+    img: `${WOW}/Abilities/Dash.png`,
     activation: "bonus",
     body: `
       <p>Один союзник реакцией перемещается на половину скорости к вам и получает к КД против спровоцированных атак возможности бонус, равный вашему уровню Лидера.</p>
@@ -541,7 +542,7 @@ export const leaderDocuments = [
   stratagem({
     key: "stratagem-sound-charge-retreat",
     name: "Протрубить атаку/отступление",
-    img: "icons/tools/instruments/horn-brass.webp",
+    img: `${WOW}/Miscellaneous/Horn_04.png`,
     activation: "action",
     rangeValue: 30,
     body: `

@@ -1,6 +1,7 @@
 import { activeEffect, feature, folder, idFor, utilityActivity } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Еретик; предоставленный PDF PK_Heretic.pdf";
+const WOW = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack";
 const MAIN_FOLDER = idFor("folder:heretic-features");
 const MARK_FOLDER = idFor("folder:heretic-corruption-marks");
 const TALENT_FOLDER = idFor("folder:heretic-forbidden-talents");
@@ -128,7 +129,7 @@ const markDefinitions = [
   {
     key: "mark-shadow-pockets",
     name: "Теневые карманы",
-    img: "icons/magic/unholy/orb-shadow-pink.webp",
+    img: `${WOW}/Abilities/EnvelopingShadows.png`,
     body: "<p>Вы храните предметы в своей тени. Вместимость равна 15 + модификатор Силы фунтов. При вашей смерти содержимое появляется в пространстве тени или вашем пространстве.</p>",
     automation: "используйте контейнер или заметку на листе персонажа; отдельный инвентарь тени системой не поддерживается."
   },
@@ -171,14 +172,14 @@ const markDefinitions = [
   {
     key: "mark-callous",
     name: "Чёрствый",
-    img: "icons/magic/control/fear-fright-monster-purple.webp",
+    img: `${WOW}/Spells/PsychicHorrors.png`,
     body: "<p>Вы совершаете с преимуществом спасброски от очарования.</p>",
     automation: "выбирайте преимущество при спасброске от очарования."
   },
   {
     key: "mark-cynical",
     name: "Циничный",
-    img: "icons/magic/perception/eye-ringed-glow-angry-small-purple.webp",
+    img: `${WOW}/Abilities/BloodyEye.png`,
     body: "<p>Вы совершаете с преимуществом спасброски и проверки характеристик для распознавания истинной природы иллюзий.</p>",
     automation: "преимущество применяется вручную, когда Мастер сообщает, что бросок относится к распознаванию иллюзии."
   },
@@ -192,11 +193,11 @@ const markDefinitions = [
   {
     key: "mark-undead",
     name: "Нежить порчи",
-    img: "icons/magic/death/undead-skeleton-worn-purple.webp",
+    img: `${WOW}/Spells/AnimateDead.png`,
     effects: [activeEffect({
       key: "heretic-mark-undead",
       name: "Нежить порчи",
-      img: "icons/magic/death/undead-skeleton-worn-purple.webp",
+      img: `${WOW}/Spells/AnimateDead.png`,
       changes: [{ key: "system.details.type.value", type: "override", value: "undead", priority: 100 }]
     })],
     body: "<p>Ваш тип существа становится нежитью вместо обычного типа, и вам не нужно дышать.</p>",

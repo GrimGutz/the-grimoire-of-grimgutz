@@ -56,10 +56,34 @@ const INTERNAL_ALIASES = {
   "toxic-blood": ["Токсичной крови", "Токсичной кровью"],
   "vigorous-nature": ["Энергичной природы", "Энергичной природой"],
   "final-changes": ["Финальных изменений", "Финальными изменениями"],
-  "unnatural-traits": ["Неестественных черт", "Неестественными чертами"]
+  "unnatural-traits": ["Неестественных черт", "Неестественными чертами"],
+  "murderspawn-transformation": ["Порождения убийств", "Порождением убийств"],
+  "hollow-transformation": ["Полого", "Полым"],
+  "magic-eradicator": ["Истребителя магии", "Истребителем магии"],
+  "negative-body": ["Негативного тела", "Негативным телом"],
+  "hollow-soul": ["Полой души", "Полой душой"],
+  "masking-aura": ["Ауры маскировки", "Аурой маскировки"],
+  "negative-gaze": ["Негативного взгляда", "Негативным взглядом"],
+  "fortified-soul": ["Укреплённой души", "Укреплённой душой"],
+  "wound-in-magic": ["Раны в магии", "Раной в магии"]
 };
 
+Object.assign(INTERNAL_ALIASES, {
+  "school-of-steel": ["Школы стали", "Школе стали", "Школой стали"],
+  "steel-battle-training": ["Боевой тренировки", "Боевой тренировкой", "Боевую тренировку"],
+  "steel-crippling-strikes": ["Калечащих ударов", "Калечащими ударами"],
+  "steel-master-of-metal": ["Мастера металла", "Мастером металла"],
+  "steel-signature-technique": ["Фирменного приёма", "Фирменным приёмом", "фирменный приём"],
+  "steel-storm": ["Стального шторма", "Стальным штормом"],
+  "steel-imperial-reach": ["Имперской досягаемости", "Имперской досягаемостью"],
+  "steel-metalist": ["Металлиста", "Металлистом"]
+});
+
 const EXTERNAL_LINKS = [
+  {
+    uuid: "Compendium.dnd5e.spells.Item.ATo0Eb63TDtnu6iA",
+    aliases: ["Оживление предметов", "оживление предметов", "Оживление вещей", "оживление вещей"]
+  },
   {
     uuid: "Compendium.dnd5e.classes.Item.gZiUvbXWLs0pOp0c",
     aliases: ["Паладин", "Паладина", "Паладину", "Паладином"]
@@ -319,7 +343,7 @@ function internalUuid(packName, document) {
 function buildTargets(packs) {
   const targets = [];
   for (const pack of packs) {
-    if (!["classes", "features", "spells", "equipment"].includes(pack.name)) continue;
+    if (!["classes", "features", "transformations", "spells", "equipment"].includes(pack.name)) continue;
     for (const document of pack.documents) {
       const identifier = document.system?.identifier;
       targets.push({

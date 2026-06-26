@@ -13,8 +13,16 @@ const packs = [
     source: "../src/packs/classes.mjs"
   },
   {
+    name: "subclasses",
+    source: "../src/packs/subclasses.mjs"
+  },
+  {
     name: "features",
     source: "../src/packs/features.mjs"
+  },
+  {
+    name: "transformations",
+    source: "../src/packs/transformations.mjs"
   },
   {
     name: "spells",
@@ -23,6 +31,11 @@ const packs = [
   {
     name: "equipment",
     source: "../src/packs/equipment.mjs"
+  },
+  {
+    name: "bestiary",
+    source: "../src/packs/bestiary.mjs",
+    documentType: "Actor"
   }
 ];
 
@@ -33,8 +46,16 @@ function assertInsidePacks(target) {
   }
 }
 
+function embeddedRecords(document) {
+  return document._embeddedItems ?? [];
+}
+
 function validateRecords({ name, documents, folders }) {
-  const records = [...documents, ...folders];
+  const records = [
+    ...documents,
+    ...folders,
+    ...documents.flatMap(embeddedRecords)
+  ];
   const ids = new Set();
 
   for (const record of records) {
@@ -46,6 +67,19 @@ function validateRecords({ name, documents, folders }) {
     }
     ids.add(record._id);
   }
+}
+
+function documentCollection(pack) {
+  return pack.documentType === "Actor" ? "actors" : "items";
+}
+
+function storedDocument(pack, document) {
+  if (pack.documentType !== "Actor") return document;
+  const { _embeddedItems, ...stored } = document;
+  return {
+    ...stored,
+    items: (_embeddedItems ?? []).map(item => item._id)
+  };
 }
 
 const loadedPacks = [];
@@ -93,9 +127,16 @@ for (const pack of loadedPacks) {
     })),
     ...documents.map(document => ({
       type: "put",
-      key: `!items!${document._id}`,
-      value: document
-    }))
+      key: `!${documentCollection(pack)}!${document._id}`,
+      value: storedDocument(pack, document)
+    })),
+    ...(pack.documentType === "Actor"
+      ? documents.flatMap(document => (document._embeddedItems ?? []).map(item => ({
+          type: "put",
+          key: `!actors.items!${document._id}.${item._id}`,
+          value: item
+        })))
+      : [])
   ];
 
   await db.batch(operations);

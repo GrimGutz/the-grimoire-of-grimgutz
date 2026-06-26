@@ -1,12 +1,27 @@
-import { access, cp, mkdtemp, readFile, rm } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { access, cp, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ClassicLevel } from "classic-level";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const foundryPublic = "C:\\Program Files\\Foundry Virtual Tabletop\\resources\\app\\public";
 const manifest = JSON.parse(await readFile(path.join(root, "module.json"), "utf8"));
 const errors = [];
+
+async function readTextFilesRecursive(directory, extension = ".mjs") {
+  const chunks = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      chunks.push(await readTextFilesRecursive(fullPath, extension));
+    } else if (entry.isFile() && entry.name.endsWith(extension)) {
+      chunks.push(await readFile(fullPath, "utf8"));
+    }
+  }
+  return chunks.join("\n");
+}
 
 if (manifest.id !== "the-grimoire-of-grimgutz") {
   errors.push(`Unexpected module ID: ${manifest.id}`);
@@ -22,6 +37,7 @@ for (const relativePath of [...(manifest.esmodules ?? []), ...(manifest.styles ?
 
 const documentCounts = {};
 const allDocuments = new Map();
+const embeddedIconDocuments = [];
 const temporaryRoot = await mkdtemp(path.join(os.tmpdir(), "grimgutz-validation-"));
 
 try {
@@ -39,8 +55,16 @@ try {
     try {
       await db.open();
       let count = 0;
+      const documentPrefix = pack.type === "Actor" ? "!actors!" : "!items!";
       for await (const [key, value] of db.iterator()) {
-        if (!key.startsWith("!items!")) continue;
+        if (key.startsWith("!actors.items!")) {
+          embeddedIconDocuments.push({
+            pack: pack.name,
+            document: value
+          });
+          continue;
+        }
+        if (!key.startsWith(documentPrefix)) continue;
         count += 1;
         allDocuments.set(value._id, {
           pack: pack.name,
@@ -61,18 +85,72 @@ try {
   });
 }
 
-if (documentCounts.classes !== 6) errors.push(`Expected 6 classes, got ${documentCounts.classes ?? 0}`);
-if (documentCounts.features !== 151) errors.push(`Expected 151 features, got ${documentCounts.features ?? 0}`);
-if (documentCounts.spells !== 1) errors.push(`Expected 1 spell, got ${documentCounts.spells ?? 0}`);
-if (documentCounts.equipment !== 5) errors.push(`Expected 5 weapons, got ${documentCounts.equipment ?? 0}`);
+if (documentCounts.classes !== 9) errors.push(`Expected 9 prestige classes, got ${documentCounts.classes ?? 0}`);
+if (documentCounts.subclasses !== 1) errors.push(`Expected 1 subclass, got ${documentCounts.subclasses ?? 0}`);
+if (documentCounts.features !== 225) errors.push(`Expected 225 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.transformations !== 2) errors.push(`Expected 2 transformations, got ${documentCounts.transformations ?? 0}`);
+if (documentCounts.spells !== 11) errors.push(`Expected 11 spells, got ${documentCounts.spells ?? 0}`);
+if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
+if (documentCounts.bestiary !== 30) errors.push(`Expected 30 bestiary actors, got ${documentCounts.bestiary ?? 0}`);
+
+function decodedIconPath(iconPath) {
+  try {
+    return decodeURIComponent(iconPath);
+  } catch {
+    return iconPath;
+  }
+}
+
+function iconExists(iconPath) {
+  if (!iconPath || typeof iconPath !== "string") return true;
+  if (iconPath.startsWith("modules/")) {
+    const modulePrefix = `modules/${manifest.id}/`;
+    if (!iconPath.startsWith(modulePrefix)) return true;
+    return existsSync(path.join(root, decodedIconPath(iconPath.slice(modulePrefix.length))));
+  }
+  if (iconPath.startsWith("assets/")) {
+    return existsSync(path.join(root, decodedIconPath(iconPath)));
+  }
+  if (iconPath.startsWith("icons/")) {
+    if (!existsSync(foundryPublic)) return true;
+    return existsSync(path.join(foundryPublic, decodedIconPath(iconPath)));
+  }
+  return true;
+}
+
+for (const { pack, document } of allDocuments.values()) {
+  if (!iconExists(document.img)) errors.push(`Missing icon for ${pack}/${document.name}: ${document.img}`);
+  for (const effect of document.effects ?? []) {
+    if (!iconExists(effect.img)) errors.push(`Missing effect icon for ${pack}/${document.name}/${effect.name}: ${effect.img}`);
+  }
+}
+for (const { pack, document } of embeddedIconDocuments) {
+  if (!iconExists(document.img)) errors.push(`Missing embedded icon for ${pack}/${document.name}: ${document.img}`);
+  for (const effect of document.effects ?? []) {
+    if (!iconExists(effect.img)) errors.push(`Missing embedded effect icon for ${pack}/${document.name}/${effect.name}: ${effect.img}`);
+  }
+}
 
 const recommendedModules = new Set(manifest.relationships?.recommends?.map(relationship => relationship.id));
 for (const moduleId of ["midi-qol", "dae", "itemacro"]) {
   if (!recommendedModules.has(moduleId)) errors.push(`Missing recommended module relationship: ${moduleId}`);
 }
 
+const packFolders = new Map((manifest.packFolders ?? []).map(folder => [folder.name, folder]));
+const playerFolderPacks = packFolders.get("Игроку")?.packs ?? [];
+const gmFolderPacks = packFolders.get("Мастеру")?.packs ?? [];
+for (const packName of ["classes", "subclasses", "transformations", "equipment", "spells"]) {
+  if (!playerFolderPacks.includes(packName)) errors.push(`Player pack folder is missing pack: ${packName}`);
+}
+for (const packName of ["features", "bestiary"]) {
+  if (!gmFolderPacks.includes(packName)) errors.push(`GM pack folder is missing pack: ${packName}`);
+}
+
 const classDocuments = [...allDocuments.values()]
   .filter(entry => entry.document.type === "class")
+  .map(entry => entry.document);
+const subclassDocuments = [...allDocuments.values()]
+  .filter(entry => entry.document.type === "subclass")
   .map(entry => entry.document);
 const classesByIdentifier = new Map(
   classDocuments.map(document => [document.system.identifier, document])
@@ -83,6 +161,10 @@ const deathKnightClass = classesByIdentifier.get("death-knight");
 const hereticClass = classesByIdentifier.get("heretic");
 const forestLordClass = classesByIdentifier.get("forest-lord");
 const aberrantClass = classesByIdentifier.get("aberrant");
+const witchBladeClass = classesByIdentifier.get("witch-blade");
+const juggernautClass = classesByIdentifier.get("juggernaut");
+const soulEaterClass = classesByIdentifier.get("soul-eater");
+const schoolOfSteelSubclass = subclassDocuments.find(document => document.system.identifier === "school-of-steel");
 if (!crusherClass) {
   errors.push("Crusher class document is missing");
 } else {
@@ -159,6 +241,89 @@ if (!aberrantClass) {
     errors.push("Aberrant class automation flag is missing");
   }
 }
+if (!witchBladeClass) {
+  errors.push("Witch Blade class document is missing");
+} else {
+  if (witchBladeClass.system.hitDice !== "d10") errors.push("Witch Blade class must use d10 hit dice");
+  if (witchBladeClass.system.spellcasting?.progression !== "none") {
+    errors.push("Witch Blade custom spell slot table must be stored as scale values, not normal dnd5e progression");
+  }
+  if (!witchBladeClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Witch Blade class description must document prerequisite automation");
+  }
+  if (witchBladeClass.flags?.[manifest.id]?.prestigeClass !== "witch-blade") {
+    errors.push("Witch Blade class automation flag is missing");
+  }
+  for (const identifier of ["rage-points", "known-spells", "spell-slots-1", "spell-slots-5"]) {
+    if (!witchBladeClass.system.advancement.some(advancement => advancement.configuration?.identifier === identifier)) {
+      errors.push(`Witch Blade scale is missing: ${identifier}`);
+    }
+  }
+}
+if (!juggernautClass) {
+  errors.push("Juggernaut class document is missing");
+} else {
+  if (juggernautClass.system.hitDice !== "d12") errors.push("Juggernaut class must use d12 hit dice");
+  if (juggernautClass.system.spellcasting?.progression !== "none") {
+    errors.push("Juggernaut must not provide spell slot progression");
+  }
+  if (!juggernautClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Juggernaut class description must document prerequisite automation");
+  }
+  if (juggernautClass.flags?.[manifest.id]?.prestigeClass !== "juggernaut") {
+    errors.push("Juggernaut class automation flag is missing");
+  }
+  const regenerationScale = juggernautClass.system.advancement.find(
+    advancement => advancement.configuration?.identifier === "regeneration-bonus"
+  );
+  if (!regenerationScale) errors.push("Juggernaut regeneration bonus scale is missing");
+}
+if (!soulEaterClass) {
+  errors.push("Soul Eater class document is missing");
+} else {
+  if (soulEaterClass.system.hitDice !== "d8") errors.push("Soul Eater class must use d8 hit dice");
+  if (soulEaterClass.system.spellcasting?.progression !== "none") {
+    errors.push("Soul Eater must not provide spell slot progression");
+  }
+  if (!soulEaterClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Soul Eater class description must document prerequisite automation");
+  }
+  if (soulEaterClass.flags?.[manifest.id]?.prestigeClass !== "soul-eater") {
+    errors.push("Soul Eater class automation flag is missing");
+  }
+  const soulRendScale = soulEaterClass.system.advancement.find(
+    advancement => advancement.configuration?.identifier === "soul-rend"
+  );
+  if (!soulRendScale) errors.push("Soul Eater soul rend scale is missing");
+}
+
+if (!schoolOfSteelSubclass) {
+  errors.push("School of Steel subclass document is missing");
+} else {
+  if (schoolOfSteelSubclass.system.classIdentifier !== "wizard") {
+    errors.push("School of Steel subclass must be attached to Wizard");
+  }
+  if (schoolOfSteelSubclass.flags?.[manifest.id]?.wizardSubclass !== "school-of-steel") {
+    errors.push("School of Steel subclass automation flag is missing");
+  }
+  const advancementLevels = new Set((schoolOfSteelSubclass.system.advancement ?? []).map(advancement => advancement.level));
+  for (const level of [2, 6, 10, 14]) {
+    if (!advancementLevels.has(level)) errors.push(`School of Steel advancement level is missing: ${level}`);
+  }
+  const martialTrait = schoolOfSteelSubclass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("weapon:mar")
+  );
+  if (!martialTrait) errors.push("School of Steel must grant martial weapon proficiency");
+  const signatureChoice = schoolOfSteelSubclass.system.advancement.find(
+    advancement => advancement.type === "ItemChoice" && advancement.configuration?.choices?.[14]
+  );
+  if (!signatureChoice || signatureChoice.configuration?.pool?.length !== 3) {
+    errors.push("School of Steel must provide 3 signature technique choices at level 14");
+  }
+  const grantsAnimateObjects = JSON.stringify(schoolOfSteelSubclass.system.advancement ?? [])
+    .includes("Compendium.dnd5e.spells.Item.ATo0Eb63TDtnu6iA");
+  if (!grantsAnimateObjects) errors.push("School of Steel must grant Animate Objects at level 10");
+}
 
 const featureIds = new Set(
   [...allDocuments.values()]
@@ -172,7 +337,7 @@ const itemUuids = new Set(
 );
 
 for (const { document } of allDocuments.values()) {
-  if (!["class", "feat"].includes(document.type)) continue;
+  if (!["class", "subclass", "feat"].includes(document.type)) continue;
   const description = document.system.description?.value ?? "";
   for (const match of description.matchAll(/@UUID\[([^\]]+)\]/g)) {
     const uuid = match[1];
@@ -182,15 +347,15 @@ for (const { document } of allDocuments.values()) {
   }
 }
 
-for (const classDocument of classDocuments) {
-  for (const advancement of classDocument.system.advancement) {
+for (const { document } of allDocuments.values()) {
+  for (const advancement of document.system?.advancement ?? []) {
     const uuids = [
       ...(advancement.configuration?.items ?? []).map(item => item.uuid),
       ...(advancement.configuration?.pool ?? []).map(item => item.uuid)
     ];
     for (const uuid of uuids) {
       if (!itemUuids.has(uuid) && !uuid.startsWith("Compendium.dnd5e.")) {
-        errors.push(`Broken advancement UUID: ${uuid}`);
+        errors.push(`Broken advancement UUID on ${document.name}: ${uuid}`);
       }
     }
   }
@@ -202,6 +367,25 @@ const featureDocuments = [...allDocuments.values()]
 const featuresByIdentifier = new Map(
   featureDocuments.map(document => [document.system.identifier, document])
 );
+const transformationDocuments = [...allDocuments.values()]
+  .filter(entry => entry.pack === "transformations")
+  .map(entry => entry.document);
+const transformationsByIdentifier = new Map(
+  transformationDocuments.map(document => [document.system.identifier, document])
+);
+const allItemDocuments = [...allDocuments.values()].map(entry => entry.document);
+const allItemsByIdentifier = new Map(
+  allItemDocuments.map(document => [document.system.identifier, document])
+);
+const transformationIdentifiers = new Set(transformationDocuments.map(document => document.system.identifier));
+for (const identifier of ["murderspawn-transformation", "hollow-transformation"]) {
+  if (!transformationIdentifiers.has(identifier)) errors.push(`Main transformation card is missing from transformations pack: ${identifier}`);
+}
+for (const document of transformationDocuments) {
+  if (!["murderspawn-transformation", "hollow-transformation"].includes(document.system.identifier)) {
+    errors.push(`Transformations pack must contain only main transformation cards, got: ${document.system.identifier}`);
+  }
+}
 
 for (const identifier of [
   "great-weapon-style",
@@ -232,6 +416,65 @@ for (const identifier of [
   }
 }
 
+const juggernautFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.juggernautFeature === true
+);
+if (juggernautFeatureDocuments.length !== 14) {
+  errors.push(`Expected 14 Juggernaut features, got ${juggernautFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "glorious-survival",
+  "regenerating-soul",
+  "regeneration-flaw",
+  "denial-of-death",
+  "unyielding",
+  "what-wound",
+  "embrace-life",
+  "immovable-object",
+  "minor-regeneration",
+  "refusal-of-death",
+  "what-wounds",
+  "embrace-life-improved",
+  "greater-regeneration",
+  "unstoppable-force"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Juggernaut feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Juggernaut feature automation flag is missing: ${identifier}`);
+  }
+}
+const refusalOfDeath = featuresByIdentifier.get("refusal-of-death");
+if (!refusalOfDeath?.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
+  errors.push("Juggernaut Refusal of Death passive effect is missing");
+}
+
+const soulEaterFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.soulEaterFeature === true
+);
+if (soulEaterFeatureDocuments.length !== 5) {
+  errors.push(`Expected 5 Soul Eater features, got ${soulEaterFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "soul-rend",
+  "soul-absorption",
+  "soul-exchange",
+  "soul-shard",
+  "soul-power"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Soul Eater feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Soul Eater feature automation flag is missing: ${identifier}`);
+  }
+}
+
 const leaderFeatureDocuments = featureDocuments.filter(
   document => document.flags?.[manifest.id]?.leaderFeature === true
 );
@@ -258,6 +501,246 @@ if (leaderFeatureDocuments.filter(document => document.flags?.[manifest.id]?.lea
 }
 if (!featuresByIdentifier.has("leader-presence")) {
   errors.push("Leader Presence summary feature is missing");
+}
+
+for (const identifier of ["death-run", "primal-reflexes"]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Murderspawn passive feature: ${identifier}`);
+    continue;
+  }
+  if (!document.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
+    errors.push(`Murderspawn passive effect is missing: ${identifier}`);
+  }
+}
+
+const murderspawnFeatureDocuments = allItemDocuments.filter(
+  document => document.flags?.[manifest.id]?.murderspawnFeature === true
+);
+if (murderspawnFeatureDocuments.length !== 19) {
+  errors.push(`Expected 19 Murderspawn features, got ${murderspawnFeatureDocuments.length}`);
+}
+const murderspawnMain = transformationsByIdentifier.get("murderspawn-transformation");
+if (!murderspawnMain) {
+  errors.push("Murderspawn main transformation is missing");
+} else {
+  const levels = new Set((murderspawnMain.system.advancement ?? []).map(advancement => advancement.level));
+  for (const level of [1, 6, 11, 16]) {
+    if (!levels.has(level)) errors.push(`Murderspawn advancement level is missing: character level ${level}`);
+  }
+  const levelOneGrant = murderspawnMain.system.advancement.find(
+    advancement => advancement.type === "ItemGrant" && advancement.level === 1
+  );
+  const levelOneCount = levelOneGrant?.configuration?.items?.length ?? 0;
+  if (levelOneCount !== 3) errors.push(`Murderspawn level 1 must grant 3 starter items, got ${levelOneCount}`);
+  for (const level of [6, 11, 16]) {
+    const choice = murderspawnMain.system.advancement.find(
+      advancement => advancement.type === "ItemChoice" && advancement.configuration?.choices?.[level]
+    );
+    if (!choice) errors.push(`Murderspawn boon choice is missing at character level ${level}`);
+    const flaw = murderspawnMain.system.advancement.find(
+      advancement => advancement.type === "ItemGrant" && advancement.level === level
+    );
+    if (!flaw) errors.push(`Murderspawn flaw grant is missing at character level ${level}`);
+  }
+  if (murderspawnMain.system.prerequisites?.level !== null) {
+    errors.push("Murderspawn main transformation must not use class-level prerequisite");
+  }
+  const advancementJson = JSON.stringify(murderspawnMain.system.advancement ?? []);
+  if (advancementJson.includes(`${manifest.id}.transformations.Item`)) {
+    errors.push("Murderspawn main advancement must grant features from the features/equipment packs, not transformations");
+  }
+}
+for (const document of murderspawnFeatureDocuments) {
+  const level = document.flags?.[manifest.id]?.transformationLevel;
+  if (document.system.identifier === "murderspawn-transformation") {
+    if (level !== null) errors.push("Murderspawn overview must not be tied to a character level");
+    continue;
+  }
+  if (![1, 2, 3, 4].includes(level)) {
+    errors.push(`Murderspawn transformation level is missing: ${document.name}`);
+  }
+  if (document.system.prerequisites?.level !== null) {
+    errors.push(`Murderspawn feature must not use character-level prerequisite: ${document.name}`);
+  }
+}
+const deathRun = featuresByIdentifier.get("death-run");
+const primalReflexes = featuresByIdentifier.get("primal-reflexes");
+if (!deathRun?.effects?.some(effect => effect.system?.changes?.some(change =>
+  change.key === "system.attributes.movement.walk" && change.phase === "final" && change.value === "10"
+))) {
+  errors.push("Death Run must add +10 walk speed in final phase");
+}
+if (!primalReflexes?.effects?.some(effect => effect.system?.changes?.some(change =>
+  change.key === "system.attributes.init.bonus" && change.phase === "final" && change.value === "10"
+))) {
+  errors.push("Primal Reflexes must add +10 initiative in final phase");
+}
+
+const automationSource = [
+  await readFile(path.join(root, "scripts", "automation.mjs"), "utf8"),
+  await readTextFilesRecursive(path.join(root, "scripts", "automation"))
+].join("\n");
+for (const token of [
+  "syncMurderspawnPassiveEffects",
+  "system.attributes.movement.walk",
+  "system.attributes.init.bonus",
+  "MURDERSPAWN_PASSIVE"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Murderspawn runtime automation is missing token: ${token}`);
+}
+
+for (const identifier of ["negative-body", "fortified-soul"]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Hollow passive feature: ${identifier}`);
+    continue;
+  }
+  if (!document.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
+    errors.push(`Hollow passive effect is missing: ${identifier}`);
+  }
+}
+
+const hollowFeatureDocuments = allItemDocuments.filter(
+  document => document.flags?.[manifest.id]?.hollowFeature === true
+);
+if (hollowFeatureDocuments.length !== 19) {
+  errors.push(`Expected 19 Hollow features, got ${hollowFeatureDocuments.length}`);
+}
+const hollowMain = transformationsByIdentifier.get("hollow-transformation");
+if (!hollowMain) {
+  errors.push("Hollow main transformation is missing");
+} else {
+  const levels = new Set((hollowMain.system.advancement ?? []).map(advancement => advancement.level));
+  for (const level of [1, 6, 11, 16]) {
+    if (!levels.has(level)) errors.push(`Hollow advancement level is missing: character level ${level}`);
+  }
+  const levelOneGrant = hollowMain.system.advancement.find(
+    advancement => advancement.type === "ItemGrant" && advancement.level === 1
+  );
+  const levelOneCount = levelOneGrant?.configuration?.items?.length ?? 0;
+  if (levelOneCount !== 3) errors.push(`Hollow level 1 must grant 3 starter items, got ${levelOneCount}`);
+  for (const level of [6, 11, 16]) {
+    const choice = hollowMain.system.advancement.find(
+      advancement => advancement.type === "ItemChoice" && advancement.configuration?.choices?.[level]
+    );
+    if (!choice) errors.push(`Hollow boon choice is missing at character level ${level}`);
+    const flaw = hollowMain.system.advancement.find(
+      advancement => advancement.type === "ItemGrant" && advancement.level === level
+    );
+    if (!flaw) errors.push(`Hollow flaw grant is missing at character level ${level}`);
+  }
+  if (hollowMain.system.prerequisites?.level !== null) {
+    errors.push("Hollow main transformation must not use class-level prerequisite");
+  }
+  const advancementJson = JSON.stringify(hollowMain.system.advancement ?? []);
+  if (advancementJson.includes(`${manifest.id}.transformations.Item`)) {
+    errors.push("Hollow main advancement must grant features from the features pack, not transformations");
+  }
+}
+for (const document of hollowFeatureDocuments) {
+  const level = document.flags?.[manifest.id]?.transformationLevel;
+  if (document.system.identifier === "hollow-transformation") {
+    if (level !== null) errors.push("Hollow overview must not be tied to a character level");
+    continue;
+  }
+  if (![1, 2, 3, 4].includes(level)) {
+    errors.push(`Hollow transformation level is missing: ${document.name}`);
+  }
+  if (document.system.prerequisites?.level !== null) {
+    errors.push(`Hollow feature must not use character-level prerequisite: ${document.name}`);
+  }
+}
+
+const negativeBody = featuresByIdentifier.get("negative-body");
+const fortifiedSoul = featuresByIdentifier.get("fortified-soul");
+if (!negativeBody?.effects?.some(effect => {
+  const changes = effect.system?.changes ?? [];
+  return changes.some(change => change.key === "system.abilities.con.value" && change.value === "2")
+    && changes.some(change => change.key === "system.abilities.wis.value" && change.value === "1");
+})) {
+  errors.push("Negative Body must include CON +2 and WIS +1 passive changes");
+}
+if (!fortifiedSoul?.effects?.some(effect => effect.system?.changes?.some(change =>
+  change.key === "system.traits.dr.value" && change.value === "spell"
+))) {
+  errors.push("Fortified Soul must include custom spell damage resistance marker");
+}
+
+const magicEradicator = featuresByIdentifier.get("magic-eradicator");
+const magicEradicatorActions = Object.values(magicEradicator?.system?.activities ?? {})
+  .map(activity => activity.flags?.[manifest.id]?.action)
+  .filter(Boolean);
+for (const action of ["gain-hollow-charge", "use-hollow-charges"]) {
+  if (!magicEradicatorActions.includes(action)) errors.push(`Missing Hollow charge activity action: ${action}`);
+}
+for (const token of [
+  "syncHollowPassiveEffects",
+  "useHollowCharges",
+  "gainHollowCharge",
+  "system.abilities.con.value",
+  "HOLLOW_PASSIVE"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Hollow runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "witchBladeClass",
+  "syncWitchBladeRage",
+  "useWitchBladeRage",
+  "use-witch-blade-rage",
+  "witchBladePrerequisiteFailures"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Witch Blade runtime automation is missing token: ${token}`);
+}
+
+const schoolOfSteelFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.schoolOfSteelFeature === true
+);
+if (schoolOfSteelFeatureDocuments.length !== 7) {
+  errors.push(`Expected 7 School of Steel features, got ${schoolOfSteelFeatureDocuments.length}`);
+}
+for (const document of schoolOfSteelFeatureDocuments) {
+  const identifier = document.system.identifier;
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`School of Steel feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`School of Steel automation description is missing: ${identifier}`);
+  }
+}
+for (const identifier of [
+  "steel-battle-training",
+  "steel-crippling-strikes",
+  "steel-master-of-metal",
+  "steel-signature-technique",
+  "steel-storm",
+  "steel-imperial-reach",
+  "steel-metalist"
+]) {
+  if (!featuresByIdentifier.has(identifier)) errors.push(`School of Steel feature is missing: ${identifier}`);
+}
+const steelBattleTraining = featuresByIdentifier.get("steel-battle-training");
+const steelBattleActions = Object.values(steelBattleTraining?.system?.activities ?? {})
+  .map(activity => activity.flags?.[manifest.id]?.action)
+  .filter(Boolean);
+for (const action of ["school-steel-choose-weapons", "school-steel-bonus-attack"]) {
+  if (!steelBattleActions.includes(action)) errors.push(`Missing School of Steel battle training action: ${action}`);
+}
+const steelMetalist = featuresByIdentifier.get("steel-metalist");
+if (!steelMetalist?.effects?.some(effect => effect.system?.changes?.some(change =>
+  change.key === "system.traits.armorProf.value" && change.value === "hvy"
+))) {
+  errors.push("Metalist must include heavy armor proficiency passive effect");
+}
+for (const token of [
+  "schoolOfSteelSubclass",
+  "syncSchoolOfSteel",
+  "chooseSchoolSteelWeapons",
+  "school-steel-choose-weapons",
+  "school-steel-bonus-attack",
+  "SCHOOL_STEEL_WEAPONS"
+]) {
+  if (!automationSource.includes(token)) errors.push(`School of Steel runtime automation is missing token: ${token}`);
 }
 
 const deathKnightFeatureDocuments = featureDocuments.filter(
@@ -346,6 +829,26 @@ if (!treeHealing) {
     errors.push("Tree Healing automation flag is missing");
   }
 }
+const witchBladeSpellDocuments = spellDocuments.filter(document => document.flags?.[manifest.id]?.witchBladeSpell === true);
+if (witchBladeSpellDocuments.length !== 10) {
+  errors.push(`Expected 10 Witch Blade spells, got ${witchBladeSpellDocuments.length}`);
+}
+for (const identifier of [
+  "deus-ex-ferrum",
+  "avenging-flame",
+  "gate-of-infinity",
+  "feather-of-judgement",
+  "jaws-of-the-star-devourer",
+  "chaos-bolt-witch",
+  "blood-lance",
+  "hint",
+  "gift-of-chaos",
+  "cacophonic-scream"
+]) {
+  if (!spellDocuments.some(document => document.system.identifier === identifier)) {
+    errors.push(`Witch Blade spell is missing: ${identifier}`);
+  }
+}
 for (const document of hereticFeatureDocuments) {
   const identifier = document.system.identifier;
   if (document.flags?.[manifest.id]?.feature !== identifier) {
@@ -385,6 +888,25 @@ for (const document of aberrantFeatureDocuments) {
   if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
     errors.push(`Aberrant automation description is missing: ${identifier}`);
   }
+}
+
+const witchBladeFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.witchBladeFeature === true
+);
+if (witchBladeFeatureDocuments.length !== 12) {
+  errors.push(`Expected 12 Witch Blade features, got ${witchBladeFeatureDocuments.length}`);
+}
+for (const document of witchBladeFeatureDocuments) {
+  const identifier = document.system.identifier;
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Witch Blade feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Witch Blade automation description is missing: ${identifier}`);
+  }
+}
+if (witchBladeFeatureDocuments.filter(document => document.flags?.[manifest.id]?.greatDesign).length !== 6) {
+  errors.push("Witch Blade must provide 6 Great Design choices");
 }
 
 const expectedClassFeatureLinks = new Map([
@@ -437,6 +959,14 @@ const expectedClassFeatureLinks = new Map([
     "toxic-blood",
     "vigorous-nature",
     "final-changes"
+  ]],
+  ["witch-blade", [
+    "witch-blade-spellcasting",
+    "witch-hunter",
+    "dead-zone",
+    "witch-blade-seal",
+    "great-design",
+    "immaterial-whirlwind"
   ]]
 ]);
 for (const [classIdentifier, featureIdentifiers] of expectedClassFeatureLinks) {
@@ -502,16 +1032,44 @@ for (const [identifier, action] of aberrantRequiredActions) {
   if (!actions.includes(action)) errors.push(`Missing activity action ${action} on ${identifier}`);
 }
 
-for (const entry of [...allDocuments.values()].filter(entry => entry.pack === "equipment")) {
-  const document = entry.document;
-  if (document.flags?.[manifest.id]?.massiveWeapon !== true) {
-    errors.push(`Massive weapon flag is missing: ${document.name}`);
-  }
+const witchBladeRequiredActions = new Map([
+  ["witch-hunter", "use-witch-blade-rage"],
+  ["dead-zone", "use-witch-blade-rage"],
+  ["witch-blade-seal", "use-witch-blade-rage"],
+  ["ethereal-push", "use-witch-blade-rage"],
+  ["ethereal-storm", "use-witch-blade-rage"],
+  ["immaterial-whirlwind", "use-witch-blade-rage"]
+]);
+for (const [identifier, action] of witchBladeRequiredActions) {
+  const document = featuresByIdentifier.get(identifier);
+  const actions = Object.values(document?.system?.activities ?? {})
+    .map(activity => activity.flags?.[manifest.id]?.action);
+  if (!actions.includes(action)) errors.push(`Missing activity action ${action} on ${identifier}`);
+}
+
+const equipmentDocuments = [...allDocuments.values()]
+  .filter(entry => entry.pack === "equipment")
+  .map(entry => entry.document);
+const massiveWeapons = equipmentDocuments.filter(document => document.flags?.[manifest.id]?.massiveWeapon === true);
+const murderspawnWeapons = equipmentDocuments.filter(document => document.flags?.[manifest.id]?.murderspawnWeapon === true);
+if (massiveWeapons.length !== 5) errors.push(`Expected 5 massive weapons, got ${massiveWeapons.length}`);
+if (murderspawnWeapons.length !== 3) errors.push(`Expected 3 Murderspawn weapons, got ${murderspawnWeapons.length}`);
+
+for (const document of massiveWeapons) {
   if (!document.flags?.[manifest.id]?.weaponKey) {
     errors.push(`Weapon automation key is missing: ${document.name}`);
   }
   if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
     errors.push(`Weapon automation description is missing: ${document.name}`);
+  }
+}
+
+for (const document of murderspawnWeapons) {
+  if (!document.system.identifier?.startsWith("murderspawn-claws-")) {
+    errors.push(`Murderspawn weapon identifier is invalid: ${document.name}`);
+  }
+  if (!document.system.description?.value?.includes("Формы убийцы")) {
+    errors.push(`Murderspawn weapon description is missing transformation context: ${document.name}`);
   }
 }
 

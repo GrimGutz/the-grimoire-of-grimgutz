@@ -1,6 +1,7 @@
 import { activeEffect, feature, folder, idFor, utilityActivity } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Абберант; перевод Айвендил, 16.06.2018";
+const WOW = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack";
 const MAIN_FOLDER = idFor("folder:aberrant-features");
 const TRAIT_FOLDER = idFor("folder:aberrant-unnatural-traits");
 
@@ -75,14 +76,14 @@ const unnaturalTraits = [
   aberrantFeature({
     key: "aberrant-cat-eyes",
     name: "Неестественная черта: Кошачьи глаза",
-    img: "icons/magic/perception/eye-ringed-glow-angry-small-purple.webp",
+    img: `${WOW}/Abilities/BloodyEye.png`,
     requirements: "Абберант; с разрешения Мастера",
     folder: TRAIT_FOLDER,
     automation: { unnaturalTrait: true },
     effects: [activeEffect({
       key: "aberrant-cat-eyes",
       name: "Кошачьи глаза",
-      img: "icons/magic/perception/eye-ringed-glow-angry-small-purple.webp",
+      img: `${WOW}/Abilities/BloodyEye.png`,
       changes: [{ key: "system.attributes.senses.darkvision", type: "add", value: "30", priority: 20 }]
     })],
     description: `<p>Вы получаете тёмное зрение 30 футов либо увеличиваете существующее на 30 футов.</p><hr><p><strong>Автоматизация Foundry:</strong> переносимый эффект добавляет 30 футов тёмного зрения.</p>`
@@ -90,7 +91,7 @@ const unnaturalTraits = [
   aberrantFeature({
     key: "aberrant-scent",
     name: "Неестественная черта: Чутьё",
-    img: "icons/creatures/abilities/nose-toothed-green.webp",
+    img: `${WOW}/Abilities/SkinTeeth.png`,
     requirements: "Абберант; с разрешения Мастера",
     folder: TRAIT_FOLDER,
     automation: { unnaturalTrait: true },
@@ -99,14 +100,14 @@ const unnaturalTraits = [
   aberrantFeature({
     key: "aberrant-albino",
     name: "Неестественная черта: Альбинос",
-    img: "icons/creatures/humanoids/human-elven-white.webp",
+    img: `${WOW}/Characters%20and%20Creatures/undead.png`,
     requirements: "Абберант; с разрешения Мастера",
     folder: TRAIT_FOLDER,
     automation: { unnaturalTrait: true },
     effects: [activeEffect({
       key: "aberrant-albino",
       name: "Альбинос",
-      img: "icons/creatures/humanoids/human-elven-white.webp",
+      img: `${WOW}/Characters%20and%20Creatures/undead.png`,
       changes: [{ key: "system.skills.itm.roll.mode", type: "upgrade", value: "1", priority: 20 }]
     })],
     description: `<p>Вы совершаете с преимуществом проверки Запугивания.</p><hr><p><strong>Автоматизация Foundry:</strong> переносимый эффект включает преимущество на Запугивание.</p>`
@@ -246,7 +247,7 @@ export const aberrantDocuments = [
   aberrantFeature({
     key: "unnatural-traits",
     name: "Вариант: Неестественные черты",
-    img: "icons/magic/control/fear-fright-monster-purple.webp",
+    img: `${WOW}/Spells/PsychicHorrors.png`,
     requirements: "Абберант; с разрешения Мастера",
     folder: MAIN_FOLDER,
     description: `<p>Во время ритуала вы могли приобрести одну или несколько неестественных черт по усмотрению Мастера: Когти, Клыки, Сгоревшие вены, Кошачьи глаза, Чутьё или Альбинос.</p><hr><p><strong>Автоматизация Foundry:</strong> варианты находятся отдельными карточками в папке неестественных черт. Мастер выдаёт разрешённое количество вручную.</p>`

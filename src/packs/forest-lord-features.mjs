@@ -8,6 +8,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Лесной владыка; Мистический гримуар Jorving, стр. 71–76";
+const WOW = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack";
 const MAIN_FOLDER = idFor("folder:forest-lord-features");
 
 export const forestLordFolders = [
@@ -80,13 +81,13 @@ export const forestLordDocuments = [
   forestFeature({
     key: "forest-barkskin",
     name: "Коракожа",
-    img: "icons/magic/nature/armor-hide-green.webp",
+    img: `${WOW}/Spells/SkinofEarth.png`,
     level: 2,
     requirements: "Лесной владыка 2",
     effects: [activeEffect({
       key: "forest-barkskin",
       name: "Коракожа",
-      img: "icons/magic/nature/armor-hide-green.webp",
+      img: `${WOW}/Spells/SkinofEarth.png`,
       changes: [{
         key: "system.attributes.ac.bonus",
         type: "add",
@@ -149,13 +150,13 @@ export const forestLordDocuments = [
   forestFeature({
     key: "oak-heart",
     name: "Сердце дуба",
-    img: "icons/magic/nature/heart-glowing-orange.webp",
+    img: `${WOW}/Spells/NatureTouchGrow.png`,
     level: 5,
     requirements: "Лесной владыка 5",
     effects: [activeEffect({
       key: "oak-heart",
       name: "Сердце дуба",
-      img: "icons/magic/nature/heart-glowing-orange.webp",
+      img: `${WOW}/Spells/NatureTouchGrow.png`,
       changes: [
         { key: "system.details.type.value", type: "override", value: "plant", priority: 100 },
         { key: "system.traits.dr.value", type: "custom", value: "piercing", priority: 20 },
@@ -177,13 +178,13 @@ export const forestLordDocuments = [
   forestFeature({
     key: "forest-might",
     name: "Лесная мощь",
-    img: "icons/magic/nature/strength-muscle-green.webp",
+    img: `${WOW}/Spells/StrengthOfEarthTotem02.png`,
     level: 5,
     requirements: "Лесной владыка 5",
     effects: [activeEffect({
       key: "forest-might-exhaustion",
       name: "Лесная мощь",
-      img: "icons/magic/nature/strength-muscle-green.webp",
+      img: `${WOW}/Spells/StrengthOfEarthTotem02.png`,
       changes: [{ key: "system.attributes.exhaustion", type: "add", value: "-2", priority: 20 }]
     })],
     description: `

@@ -13,6 +13,9 @@ import { aberrantClassDocuments } from "./aberrant-class.mjs";
 import { forestLordClassDocuments } from "./forest-lord-class.mjs";
 import { hereticClassDocuments } from "./heretic-class.mjs";
 import { leaderClassDocuments } from "./leader-class.mjs";
+import { witchBladeClassDocuments } from "./witch-blade-class.mjs";
+import { juggernautClassDocuments } from "./juggernaut-class.mjs";
+import { soulEaterClassDocuments } from "./soul-eater-class.mjs";
 
 const TECHNIQUES = [
   "adaptability",
@@ -161,5 +164,8 @@ export const documents = [
   ...deathKnightClassDocuments,
   ...hereticClassDocuments,
   ...forestLordClassDocuments,
-  ...aberrantClassDocuments
+  ...aberrantClassDocuments,
+  ...witchBladeClassDocuments,
+  ...juggernautClassDocuments,
+  ...soulEaterClassDocuments
 ];

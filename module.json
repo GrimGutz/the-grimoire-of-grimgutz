@@ -1,13 +1,13 @@
 {
   "id": "the-grimoire-of-grimgutz",
   "title": "Гриммуар Мрачного Гатца / The Grimoire of GrimGutz",
-  "description": "Гриммуар престиж-классов и авторского контента для D&D 5e. Включает «Сокрушителя», «Лидера», «Рыцаря смерти», «Еретика», «Лесного владыку» и «Абберанта».",
+  "description": "Гриммуар престиж-классов, трансформаций и авторского контента для D&D 5e. Включает «Сокрушителя», «Лидера», «Рыцаря смерти», «Еретика», «Лесного владыку», «Абберанта» и трансформации «Порождение убийств» и «Полый».",
   "authors": [
     {
       "name": "Lev"
     }
   ],
-  "version": "0.7.11",
+  "version": "0.14.0",
   "compatibility": {
     "minimum": "14",
     "verified": "14.364",
@@ -18,14 +18,24 @@
   ],
   "packFolders": [
     {
-      "name": "Гриммуар Мрачного Гатца",
+      "name": "Игроку",
+      "sorting": "m",
+      "color": "#1f5b2c",
+      "packs": [
+        "classes",
+        "subclasses",
+        "transformations",
+        "equipment",
+        "spells"
+      ]
+    },
+    {
+      "name": "Мастеру",
       "sorting": "m",
       "color": "#5b1717",
       "packs": [
-        "classes",
         "features",
-        "spells",
-        "equipment"
+        "bestiary"
       ]
     }
   ],
@@ -49,8 +59,44 @@
       }
     },
     {
+      "name": "subclasses",
+      "label": "Подклассы",
+      "path": "packs/subclasses",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "dnd5e": {
+          "types": [
+            "subclass"
+          ]
+        }
+      }
+    },
+    {
+      "name": "transformations",
+      "label": "Трансформации",
+      "path": "packs/transformations",
+      "type": "Item",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "dnd5e": {
+          "types": [
+            "feat"
+          ]
+        }
+      }
+    },
+    {
       "name": "features",
-      "label": "Особенности, техники и стратагемы",
+      "label": "Особенности, техники, стратагемы и бонусы трансформаций",
       "path": "packs/features",
       "type": "Item",
       "system": "dnd5e",
@@ -68,7 +114,7 @@
     },
     {
       "name": "equipment",
-      "label": "Массивное оружие",
+      "label": "Массивное оружие и оружие трансформаций",
       "path": "packs/equipment",
       "type": "Item",
       "system": "dnd5e",
@@ -98,6 +144,24 @@
         "dnd5e": {
           "types": [
             "spell"
+          ]
+        }
+      }
+    },
+    {
+      "name": "bestiary",
+      "label": "Бестиарий Гриммуара",
+      "path": "packs/bestiary",
+      "type": "Actor",
+      "system": "dnd5e",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "dnd5e": {
+          "types": [
+            "npc"
           ]
         }
       }

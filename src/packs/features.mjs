@@ -4,6 +4,12 @@ import { aberrantDocuments, aberrantFolders } from "./aberrant-features.mjs";
 import { forestLordDocuments, forestLordFolders } from "./forest-lord-features.mjs";
 import { hereticDocuments, hereticFolders } from "./heretic-features.mjs";
 import { leaderDocuments, leaderFolders } from "./leader-features.mjs";
+import { witchBladeDocuments, witchBladeFolders } from "./witch-blade-features.mjs";
+import { juggernautDocuments, juggernautFolders } from "./juggernaut-features.mjs";
+import { soulEaterDocuments, soulEaterFolders } from "./soul-eater-features.mjs";
+import { schoolOfSteelDocuments, schoolOfSteelFolders } from "./school-of-steel-features.mjs";
+import { hollowFeatureDocuments, hollowFeatureFolders } from "./hollow-transformation.mjs";
+import { murderspawnFeatureDocuments, murderspawnFeatureFolders } from "./murderspawn-transformation.mjs";
 
 const MAIN_FOLDER = idFor("folder:class-features");
 const STYLE_FOLDER = idFor("folder:weapon-styles");
@@ -17,7 +23,13 @@ export const folders = [
   ...deathKnightFolders,
   ...hereticFolders,
   ...forestLordFolders,
-  ...aberrantFolders
+  ...aberrantFolders,
+  ...witchBladeFolders,
+  ...juggernautFolders,
+  ...soulEaterFolders,
+  ...schoolOfSteelFolders,
+  ...murderspawnFeatureFolders,
+  ...hollowFeatureFolders
 ];
 
 export const documents = [
@@ -339,9 +351,15 @@ export const documents = [
       <p><strong>Автоматизация Foundry:</strong> при использовании Midi-QOL модуль добавляет утроенный текущий модификатор Силы к критическому урону по цели, которая имеет больший размер и получает бонусный урон от «Убийцы гигантов».</p>
     `
   }),
+  ...schoolOfSteelDocuments,
   ...leaderDocuments,
   ...deathKnightDocuments,
   ...hereticDocuments,
   ...forestLordDocuments,
-  ...aberrantDocuments
+  ...aberrantDocuments,
+  ...witchBladeDocuments,
+  ...juggernautDocuments,
+  ...soulEaterDocuments,
+  ...murderspawnFeatureDocuments,
+  ...hollowFeatureDocuments
 ];

@@ -1,6 +1,9 @@
 import { weapon } from "../common.mjs";
+import { murderspawnWeaponDocuments, murderspawnWeaponFolders } from "./murderspawn-transformation.mjs";
 
-export const folders = [];
+export const folders = [
+  ...murderspawnWeaponFolders
+];
 
 export const documents = [
   weapon({
@@ -68,6 +71,6 @@ export const documents = [
     },
     damageTypes: ["slashing", "piercing"],
     properties: ["hvy", "two", "rch", "spc"]
-  })
+  }),
+  ...murderspawnWeaponDocuments
 ];
-

@@ -76,6 +76,7 @@ export function feature({
   requirements = "",
   uses = null,
   activities = {},
+  advancement = [],
   folder = null,
   automation = null,
   effects = [],
@@ -115,6 +116,7 @@ export function feature({
       properties: [],
       requirements,
       activities,
+      advancement,
       identifier: key,
       enchant: {}
     }
@@ -131,6 +133,7 @@ export function activeEffect({
 }) {
   const finalPhase = key => (
     key.startsWith("system.attributes.ac.")
+    || key.startsWith("system.attributes.init.")
     || key.startsWith("system.attributes.movement.")
     || key.startsWith("system.attributes.senses.")
     || key.endsWith(".roll.mode")
@@ -339,7 +342,8 @@ export function itemChoice({
   items,
   count = 1,
   title,
-  hint
+  hint,
+  pack = "features"
 }) {
   return {
     _id: idFor(`advancement:${key}`),
@@ -354,7 +358,7 @@ export function itemChoice({
       allowDrops: true,
       type: null,
       pool: items.map(item => ({
-        uuid: uuidFor("features", item)
+        uuid: uuidFor(pack, item)
       })),
       spell: null,
       restriction: {
@@ -747,11 +751,11 @@ export function weapon({
   });
 }
 
-export function folder({ key, name, sort }) {
+export function folder({ key, name, sort, parent = null }) {
   return {
     name,
     sorting: "a",
-    folder: null,
+    folder: parent,
     type: "Item",
     _id: idFor(`folder:${key}`),
     description: "",
