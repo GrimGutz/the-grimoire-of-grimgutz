@@ -1,0 +1,179 @@
+import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
+import {
+  activityActor,
+  activityItem,
+  automationData,
+  enabled,
+  findFeature,
+  hasFeature,
+  isAutomationAuthority,
+  notify
+} from "../shared/helpers.mjs";
+import { leaderClass } from "../shared/selectors.mjs";
+import {
+  flaggedPassiveEffectData,
+  syncFlaggedPassiveEffects
+} from "../effects/passive-helpers.mjs";
+
+const leaderPassiveSyncs = new Set();
+
+export async function armGlimpseOfGenius(actor) {
+  if (!actor || !hasFeature(actor, "glimpse-of-genius")) return false;
+  await actor.setFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED, true);
+  notify(`${actor.name}: следующая стратагема использует «Проблеск гения».`);
+  return true;
+}
+
+function leaderMovementBonusChanges(actor, bonus = 10) {
+  const movement = actor.system.attributes?.movement ?? {};
+  return ["walk", "burrow", "climb", "fly", "swim"]
+    .filter(type => Number(movement[type] ?? 0) > 0)
+    .map(type => ({
+      key: `system.attributes.movement.${type}`,
+      type: "add",
+      value: String(bonus),
+      phase: "final",
+      priority: 20
+    }));
+}
+
+function leaderPassiveDefinitions(actor) {
+  if (!leaderClass(actor)) return [];
+  const definitions = [];
+
+  const boisterous = findFeature(actor, "boisterous-presence");
+  if (boisterous) {
+    const changes = leaderMovementBonusChanges(actor, 10);
+    if (changes.length) {
+      definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.LEADER_PASSIVE, {
+        key: "boisterous-presence",
+        feature: boisterous,
+        changes
+      }));
+    }
+  }
+
+  return definitions;
+}
+
+export async function syncLeaderPassiveEffects(actor) {
+  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
+  return syncFlaggedPassiveEffects(actor, leaderPassiveSyncs, MODULE_ID, FLAGS.LEADER_PASSIVE, leaderPassiveDefinitions);
+}
+
+export function validateStratagemUse(activity) {
+  const item = activityItem(activity);
+  const actor = activityActor(activity);
+  if (automationData(item).stratagem !== true || !game.combat?.started) return true;
+  if (!actor?.getFlag(MODULE_ID, FLAGS.LEADER_STRATAGEM_LOCK)) return true;
+  if (actor.getFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED)) return true;
+  notify(`${actor.name}: новую стратагему можно использовать в начале следующего хода или через «Проблеск гения».`, "warn");
+  return false;
+}
+
+function frontlineCommanderEffect(actor) {
+  return actor?.effects?.find(effect => effect.getFlag(MODULE_ID, FLAGS.FRONTLINE_EFFECT));
+}
+
+async function applyFrontlineCommander(actor) {
+  if (!hasFeature(actor, "frontline-commander") || !actor.isOwner) return;
+  const movement = actor.system.attributes?.movement ?? {};
+  const changes = ["walk", "burrow", "climb", "fly", "swim"]
+    .filter(type => Number(movement[type] ?? 0) > 0)
+    .map(type => ({
+      key: `system.attributes.movement.${type}`,
+      type: "add",
+      value: 10,
+      phase: "final",
+      priority: 20
+    }));
+  if (!changes.length) return;
+
+  const current = frontlineCommanderEffect(actor);
+  const usedDuringOwnTurn = game.combat?.combatant?.actor?.uuid === actor.uuid;
+  if (current) {
+    await current.update({
+      "system.changes": changes,
+      [`flags.${MODULE_ID}.${FLAGS.FRONTLINE_EFFECT}.skipCurrentTurnEnd`]: usedDuringOwnTurn
+    });
+    return;
+  }
+
+  await actor.createEmbeddedDocuments("ActiveEffect", [{
+    name: "Командир на передовой",
+    img: "icons/skills/movement/arrow-upward-yellow.webp",
+    origin: findFeature(actor, "frontline-commander")?.uuid,
+    transfer: false,
+    disabled: false,
+    showIcon: 1,
+    flags: {
+      [MODULE_ID]: {
+        [FLAGS.FRONTLINE_EFFECT]: {
+          skipCurrentTurnEnd: usedDuringOwnTurn
+        }
+      }
+    },
+    system: {
+      changes,
+      duration: {
+        rounds: 1
+      }
+    }
+  }]);
+}
+
+export async function handleStratagemUse(activity) {
+  if (!enabled()) return;
+  const item = activityItem(activity);
+  const actor = activityActor(activity);
+  if (!actor || automationData(item).stratagem !== true) return;
+
+  if (actor.getFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED)) {
+    await actor.unsetFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED);
+    notify(`${actor.name}: стратагема применена через «Проблеск гения».`);
+  } else if (game.combat?.started) {
+    await actor.setFlag(MODULE_ID, FLAGS.LEADER_STRATAGEM_LOCK, {
+      combat: game.combat.id,
+      round: game.combat.round,
+      turn: game.combat.turn
+    });
+  }
+
+  await applyFrontlineCommander(actor);
+}
+
+export async function beginLeaderTurn(actor) {
+  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
+  if (actor.getFlag(MODULE_ID, FLAGS.LEADER_STRATAGEM_LOCK)) {
+    await actor.unsetFlag(MODULE_ID, FLAGS.LEADER_STRATAGEM_LOCK);
+  }
+}
+
+export async function endLeaderTurn(actor) {
+  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
+  if (actor.getFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED)) {
+    await actor.unsetFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED);
+  }
+  const effect = frontlineCommanderEffect(actor);
+  if (!effect) return;
+  const state = effect.getFlag(MODULE_ID, FLAGS.FRONTLINE_EFFECT);
+  if (state?.skipCurrentTurnEnd) {
+    await effect.update({
+      [`flags.${MODULE_ID}.${FLAGS.FRONTLINE_EFFECT}.skipCurrentTurnEnd`]: false
+    });
+  } else {
+    await effect.delete();
+  }
+}
+
+export async function clearLeaderCombatState(actor) {
+  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
+  if (actor.getFlag(MODULE_ID, FLAGS.LEADER_STRATAGEM_LOCK)) {
+    await actor.unsetFlag(MODULE_ID, FLAGS.LEADER_STRATAGEM_LOCK);
+  }
+  if (actor.getFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED)) {
+    await actor.unsetFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED);
+  }
+  const effect = frontlineCommanderEffect(actor);
+  if (effect) await effect.delete();
+}

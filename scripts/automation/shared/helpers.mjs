@@ -37,3 +37,18 @@ export function findFeature(actor, key) {
 export function notify(message, type = "info") {
   ui.notifications?.[type]?.(message);
 }
+
+export function isAutomationAuthority(actor) {
+  const activeGM = game.users?.activeGM;
+  return activeGM ? activeGM.id === game.user.id : actor?.isOwner;
+}
+
+export function itemUses(item) {
+  const maximum = Number(item?.system?.uses?.max ?? 0);
+  const spent = Number(item?.system?.uses?.spent ?? 0);
+  return {
+    maximum: Number.isFinite(maximum) ? maximum : 0,
+    spent: Number.isFinite(spent) ? spent : 0,
+    remaining: Math.max(0, (Number.isFinite(maximum) ? maximum : 0) - (Number.isFinite(spent) ? spent : 0))
+  };
+}

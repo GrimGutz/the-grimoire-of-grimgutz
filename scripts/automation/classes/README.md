@@ -2,10 +2,33 @@
 
 Put prestige-class-specific automation here.
 
-Current split examples:
+Current modules:
 
+- `aberrant.mjs`
+- `blood-mage.mjs`
+- `blinker.mjs`
+- `crusader.mjs`
+- `crusher.mjs`
+- `death-knight.mjs`
+- `fey-warrior.mjs`
+- `fallen-priest.mjs`
+- `forest-lord.mjs`
+- `gambler.mjs`
+- `ghost-walker.mjs`
+- `guardian.mjs`
+- `heretic.mjs`
+- `insect-lord.mjs`
 - `juggernaut.mjs`
+- `keeper.mjs`
+- `leader.mjs`
+- `onmyoji.mjs`
+- `ritualist.mjs`
+- `dark-warrior.mjs`
+- `devil-worshipper.mjs`
+- `netherese-arcanist.mjs`
+- `plague-doctor.mjs`
 - `soul-eater.mjs`
+- `witch-blade.mjs`
 
 Recommended shape for a new file:
 

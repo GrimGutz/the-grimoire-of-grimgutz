@@ -16,6 +16,26 @@ import { leaderClassDocuments } from "./leader-class.mjs";
 import { witchBladeClassDocuments } from "./witch-blade-class.mjs";
 import { juggernautClassDocuments } from "./juggernaut-class.mjs";
 import { soulEaterClassDocuments } from "./soul-eater-class.mjs";
+import { guardianClassDocuments } from "./guardian-class.mjs";
+import { crusaderClassDocuments } from "./crusader-class.mjs";
+import { feyWarriorClassDocuments } from "./fey-warrior-class.mjs";
+import { ghostWalkerClassDocuments } from "./ghost-walker-class.mjs";
+import { blinkerClassDocuments } from "./blinker-class.mjs";
+import { fallenPriestClassDocuments } from "./fallen-priest-class.mjs";
+import { plagueDoctorClassDocuments } from "./plague-doctor-class.mjs";
+import { insectLordClassDocuments } from "./insect-lord-class.mjs";
+import { gamblerClassDocuments } from "./gambler-class.mjs";
+import { keeperClassDocuments } from "./keeper-class.mjs";
+import { bloodMageClassDocuments } from "./blood-mage-class.mjs";
+import { onmyojiClassDocuments } from "./onmyoji-class.mjs";
+import { ritualistClassDocuments } from "./ritualist-class.mjs";
+import { darkWarriorClassDocuments } from "./dark-warrior-class.mjs";
+import { devilWorshipperClassDocuments } from "./devil-worshipper-class.mjs";
+import { nethereseArcanistClassDocuments } from "./netherese-arcanist-class.mjs";
+import { spiritVesselClassDocuments } from "./spirit-vessel-class.mjs";
+import { oracleClassDocuments } from "./oracle-class.mjs";
+import { demonologistClassDocuments } from "./demonologist-class.mjs";
+import { sanguinistClassDocuments } from "./sanguinist-class.mjs";
 
 const TECHNIQUES = [
   "adaptability",
@@ -167,5 +187,25 @@ export const documents = [
   ...aberrantClassDocuments,
   ...witchBladeClassDocuments,
   ...juggernautClassDocuments,
-  ...soulEaterClassDocuments
+  ...soulEaterClassDocuments,
+  ...guardianClassDocuments,
+  ...crusaderClassDocuments,
+  ...feyWarriorClassDocuments,
+  ...ghostWalkerClassDocuments,
+  ...blinkerClassDocuments,
+  ...fallenPriestClassDocuments,
+  ...plagueDoctorClassDocuments,
+  ...insectLordClassDocuments,
+  ...gamblerClassDocuments,
+  ...keeperClassDocuments,
+  ...bloodMageClassDocuments,
+  ...onmyojiClassDocuments,
+  ...ritualistClassDocuments,
+  ...darkWarriorClassDocuments,
+  ...devilWorshipperClassDocuments,
+  ...nethereseArcanistClassDocuments,
+  ...spiritVesselClassDocuments,
+  ...oracleClassDocuments,
+  ...demonologistClassDocuments,
+  ...sanguinistClassDocuments
 ];

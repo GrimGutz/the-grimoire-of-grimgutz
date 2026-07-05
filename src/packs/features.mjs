@@ -7,9 +7,29 @@ import { leaderDocuments, leaderFolders } from "./leader-features.mjs";
 import { witchBladeDocuments, witchBladeFolders } from "./witch-blade-features.mjs";
 import { juggernautDocuments, juggernautFolders } from "./juggernaut-features.mjs";
 import { soulEaterDocuments, soulEaterFolders } from "./soul-eater-features.mjs";
+import { guardianDocuments, guardianFolders } from "./guardian-features.mjs";
+import { crusaderDocuments, crusaderFolders } from "./crusader-features.mjs";
+import { feyWarriorDocuments, feyWarriorFolders } from "./fey-warrior-features.mjs";
+import { ghostWalkerDocuments, ghostWalkerFolders } from "./ghost-walker-features.mjs";
+import { blinkerDocuments, blinkerFolders } from "./blinker-features.mjs";
+import { fallenPriestDocuments, fallenPriestFolders } from "./fallen-priest-features.mjs";
+import { plagueDoctorDocuments, plagueDoctorFolders } from "./plague-doctor-features.mjs";
+import { insectLordDocuments, insectLordFolders } from "./insect-lord-features.mjs";
+import { gamblerDocuments, gamblerFolders } from "./gambler-features.mjs";
+import { keeperDocuments, keeperFolders } from "./keeper-features.mjs";
 import { schoolOfSteelDocuments, schoolOfSteelFolders } from "./school-of-steel-features.mjs";
 import { hollowFeatureDocuments, hollowFeatureFolders } from "./hollow-transformation.mjs";
 import { murderspawnFeatureDocuments, murderspawnFeatureFolders } from "./murderspawn-transformation.mjs";
+import { bloodMageDocuments, bloodMageFolders } from "./blood-mage-features.mjs";
+import { onmyojiDocuments, onmyojiFolders } from "./onmyoji-features.mjs";
+import { ritualistDocuments, ritualistFolders } from "./ritualist-features.mjs";
+import { darkWarriorDocuments, darkWarriorFolders } from "./dark-warrior-features.mjs";
+import { devilWorshipperDocuments, devilWorshipperFolders } from "./devil-worshipper-features.mjs";
+import { nethereseArcanistDocuments, nethereseArcanistFolders } from "./netherese-arcanist-features.mjs";
+import { spiritVesselDocuments, spiritVesselFolders } from "./spirit-vessel-features.mjs";
+import { oracleDocuments, oracleFolders } from "./oracle-features.mjs";
+import { demonologistDocuments, demonologistFolders } from "./demonologist-features.mjs";
+import { sanguinistDocuments, sanguinistFolders } from "./sanguinist-features.mjs";
 
 const MAIN_FOLDER = idFor("folder:class-features");
 const STYLE_FOLDER = idFor("folder:weapon-styles");
@@ -27,6 +47,26 @@ export const folders = [
   ...witchBladeFolders,
   ...juggernautFolders,
   ...soulEaterFolders,
+  ...guardianFolders,
+  ...crusaderFolders,
+  ...feyWarriorFolders,
+  ...ghostWalkerFolders,
+  ...blinkerFolders,
+  ...fallenPriestFolders,
+  ...plagueDoctorFolders,
+  ...insectLordFolders,
+  ...gamblerFolders,
+  ...keeperFolders,
+  ...bloodMageFolders,
+  ...onmyojiFolders,
+  ...ritualistFolders,
+  ...darkWarriorFolders,
+  ...devilWorshipperFolders,
+  ...nethereseArcanistFolders,
+  ...spiritVesselFolders,
+  ...oracleFolders,
+  ...demonologistFolders,
+  ...sanguinistFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -360,6 +400,26 @@ export const documents = [
   ...witchBladeDocuments,
   ...juggernautDocuments,
   ...soulEaterDocuments,
+  ...guardianDocuments,
+  ...crusaderDocuments,
+  ...feyWarriorDocuments,
+  ...ghostWalkerDocuments,
+  ...blinkerDocuments,
+  ...fallenPriestDocuments,
+  ...plagueDoctorDocuments,
+  ...insectLordDocuments,
+  ...gamblerDocuments,
+  ...keeperDocuments,
+  ...bloodMageDocuments,
+  ...onmyojiDocuments,
+  ...ritualistDocuments,
+  ...darkWarriorDocuments,
+  ...devilWorshipperDocuments,
+  ...nethereseArcanistDocuments,
+  ...spiritVesselDocuments,
+  ...oracleDocuments,
+  ...demonologistDocuments,
+  ...sanguinistDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ];

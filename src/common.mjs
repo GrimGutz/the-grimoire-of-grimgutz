@@ -545,6 +545,27 @@ export function hitPointsAdvancement(key = "hit-points") {
   };
 }
 
+export function subclassAdvancement({
+  key,
+  level,
+  title = "Подкласс",
+  hint = ""
+}) {
+  return {
+    _id: idFor(`advancement:${key}`),
+    type: "Subclass",
+    configuration: {},
+    value: {
+      document: null,
+      uuid: null
+    },
+    level,
+    title,
+    hint,
+    icon: null
+  };
+}
+
 export function attackActivity() {
   const activityId = idFor("activity:weapon-attack");
   return {

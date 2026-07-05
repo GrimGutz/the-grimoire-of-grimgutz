@@ -85,11 +85,11 @@ try {
   });
 }
 
-if (documentCounts.classes !== 9) errors.push(`Expected 9 prestige classes, got ${documentCounts.classes ?? 0}`);
-if (documentCounts.subclasses !== 1) errors.push(`Expected 1 subclass, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 225) errors.push(`Expected 225 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.classes !== 29) errors.push(`Expected 29 prestige classes, got ${documentCounts.classes ?? 0}`);
+if (documentCounts.subclasses !== 14) errors.push(`Expected 14 subclasses, got ${documentCounts.subclasses ?? 0}`);
+if (documentCounts.features !== 421) errors.push(`Expected 421 features, got ${documentCounts.features ?? 0}`);
 if (documentCounts.transformations !== 2) errors.push(`Expected 2 transformations, got ${documentCounts.transformations ?? 0}`);
-if (documentCounts.spells !== 11) errors.push(`Expected 11 spells, got ${documentCounts.spells ?? 0}`);
+if (documentCounts.spells !== 20) errors.push(`Expected 20 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
 if (documentCounts.bestiary !== 30) errors.push(`Expected 30 bestiary actors, got ${documentCounts.bestiary ?? 0}`);
 
@@ -136,14 +136,34 @@ for (const moduleId of ["midi-qol", "dae", "itemacro"]) {
   if (!recommendedModules.has(moduleId)) errors.push(`Missing recommended module relationship: ${moduleId}`);
 }
 
-const packFolders = new Map((manifest.packFolders ?? []).map(folder => [folder.name, folder]));
-const playerFolderPacks = packFolders.get("Игроку")?.packs ?? [];
-const gmFolderPacks = packFolders.get("Мастеру")?.packs ?? [];
-for (const packName of ["classes", "subclasses", "transformations", "equipment", "spells"]) {
-  if (!playerFolderPacks.includes(packName)) errors.push(`Player pack folder is missing pack: ${packName}`);
+function findPackFolder(folders, names) {
+  const [name, ...rest] = names;
+  const folder = (folders ?? []).find(candidate => candidate.name === name);
+  if (!folder || !rest.length) return folder;
+  return findPackFolder(folder.folders, rest);
 }
-for (const packName of ["features", "bestiary"]) {
-  if (!gmFolderPacks.includes(packName)) errors.push(`GM pack folder is missing pack: ${packName}`);
+
+const packFolderExpectations = [
+  { path: ["Гримуар Гатца", "Игроку", "Престиж-классы"], packs: ["classes"] },
+  { path: ["Гримуар Гатца", "Игроку", "Подклассы"], packs: ["subclasses"] },
+  { path: ["Гримуар Гатца", "Игроку", "Трансформации"], packs: ["transformations"] },
+  { path: ["Гримуар Гатца", "Игроку", "Оружие"], packs: ["equipment"] },
+  { path: ["Гримуар Гатца", "Игроку", "Заклинания"], packs: ["spells"] },
+  { path: ["Гримуар Гатца", "Мастеру", "Монстры"], packs: ["bestiary"] },
+  { path: ["Гримуар Гатца", "Мастеру", "Способности"], packs: ["features"] }
+];
+
+for (const expectation of packFolderExpectations) {
+  const folder = findPackFolder(manifest.packFolders, expectation.path);
+  if (!folder) {
+    errors.push(`Pack folder is missing: ${expectation.path.join(" -> ")}`);
+    continue;
+  }
+  for (const packName of expectation.packs) {
+    if (!(folder.packs ?? []).includes(packName)) {
+      errors.push(`Pack folder ${expectation.path.join(" -> ")} is missing pack: ${packName}`);
+    }
+  }
 }
 
 const classDocuments = [...allDocuments.values()]
@@ -164,6 +184,29 @@ const aberrantClass = classesByIdentifier.get("aberrant");
 const witchBladeClass = classesByIdentifier.get("witch-blade");
 const juggernautClass = classesByIdentifier.get("juggernaut");
 const soulEaterClass = classesByIdentifier.get("soul-eater");
+const guardianClass = classesByIdentifier.get("guardian");
+const crusaderClass = classesByIdentifier.get("crusader");
+const feyWarriorClass = classesByIdentifier.get("fey-warrior");
+const ghostWalkerClass = classesByIdentifier.get("ghost-walker");
+const blinkerClass = classesByIdentifier.get("blinker");
+const fallenPriestClass = classesByIdentifier.get("fallen-priest");
+const plagueDoctorClass = classesByIdentifier.get("plague-doctor");
+const insectLordClass = classesByIdentifier.get("insect-lord");
+const gamblerClass = classesByIdentifier.get("gambler");
+const keeperClass = classesByIdentifier.get("keeper");
+const bloodMageClass = classesByIdentifier.get("blood-mage");
+const onmyojiClass = classesByIdentifier.get("onmyoji");
+const ritualistClass = classesByIdentifier.get("ritualist");
+const darkWarriorClass = classesByIdentifier.get("dark-warrior");
+const devilWorshipperClass = classesByIdentifier.get("devil-worshipper");
+const nethereseArcanistClass = classesByIdentifier.get("netherese-arcanist");
+const spiritVesselClass = classesByIdentifier.get("spirit-vessel");
+const oracleClass = classesByIdentifier.get("oracle");
+const demonologistClass = classesByIdentifier.get("demonologist");
+const sanguinistClass = classesByIdentifier.get("sanguinist");
+const subclassesByIdentifier = new Map(
+  subclassDocuments.map(document => [document.system.identifier, document])
+);
 const schoolOfSteelSubclass = subclassDocuments.find(document => document.system.identifier === "school-of-steel");
 if (!crusherClass) {
   errors.push("Crusher class document is missing");
@@ -295,6 +338,568 @@ if (!soulEaterClass) {
     advancement => advancement.configuration?.identifier === "soul-rend"
   );
   if (!soulRendScale) errors.push("Soul Eater soul rend scale is missing");
+}
+if (!guardianClass) {
+  errors.push("Guardian class document is missing");
+} else {
+  if (guardianClass.system.hitDice !== "d10") errors.push("Guardian class must use d10 hit dice");
+  if (guardianClass.system.spellcasting?.progression !== "none") {
+    errors.push("Guardian must not provide spell slot progression");
+  }
+  if (!guardianClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Guardian class description must document prerequisite automation");
+  }
+  if (guardianClass.flags?.[manifest.id]?.prestigeClass !== "guardian") {
+    errors.push("Guardian class automation flag is missing");
+  }
+  for (const identifier of ["mark-attacks", "marks"]) {
+    if (!guardianClass.system.advancement.some(advancement => advancement.configuration?.identifier === identifier)) {
+      errors.push(`Guardian scale is missing: ${identifier}`);
+    }
+  }
+}
+if (!crusaderClass) {
+  errors.push("Crusader class document is missing");
+} else {
+  if (crusaderClass.system.hitDice !== "d8") errors.push("Crusader class must use d8 hit dice");
+  if (crusaderClass.system.spellcasting?.progression !== "none") {
+    errors.push("Crusader custom spell slot table must be stored as scale values, not normal dnd5e progression");
+  }
+  if (crusaderClass.system.spellcasting?.ability !== "cha") {
+    errors.push("Crusader spellcasting ability must be Charisma");
+  }
+  if (!crusaderClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Crusader class description must document prerequisite automation");
+  }
+  if (crusaderClass.flags?.[manifest.id]?.prestigeClass !== "crusader") {
+    errors.push("Crusader class automation flag is missing");
+  }
+  for (const identifier of ["rage-reduction", "spell-slots-1", "spell-slots-2", "spell-slots-3"]) {
+    if (!crusaderClass.system.advancement.some(advancement => advancement.configuration?.identifier === identifier)) {
+      errors.push(`Crusader scale is missing: ${identifier}`);
+    }
+  }
+  const armorTrait = crusaderClass.system.advancement.some(
+    advancement => advancement.type === "Trait"
+      && advancement.configuration?.grants?.includes("armor:lgt")
+      && advancement.configuration?.grants?.includes("armor:med")
+      && advancement.configuration?.grants?.includes("armor:shl")
+  );
+  if (!armorTrait) errors.push("Crusader armor and shield proficiencies are missing");
+}
+if (!feyWarriorClass) {
+  errors.push("Fey Warrior class document is missing");
+} else {
+  if (feyWarriorClass.system.hitDice !== "d10") errors.push("Fey Warrior class must use d10 hit dice");
+  if (feyWarriorClass.system.spellcasting?.progression !== "none") {
+    errors.push("Fey Warrior must not provide normal spell slot progression");
+  }
+  if (feyWarriorClass.system.spellcasting?.ability !== "cha") {
+    errors.push("Fey Warrior spellcasting ability must be Charisma");
+  }
+  if (!feyWarriorClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Fey Warrior class description must document prerequisite automation");
+  }
+  if (feyWarriorClass.flags?.[manifest.id]?.prestigeClass !== "fey-warrior") {
+    errors.push("Fey Warrior class automation flag is missing");
+  }
+  const cantripScale = feyWarriorClass.system.advancement.find(
+    advancement => advancement.configuration?.identifier === "cantrips"
+  );
+  if (!cantripScale) errors.push("Fey Warrior cantrip scale is missing");
+  const charismaSave = feyWarriorClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("saves:cha")
+  );
+  if (!charismaSave) errors.push("Fey Warrior Charisma save proficiency is missing");
+}
+if (!ghostWalkerClass) {
+  errors.push("Ghost Walker class document is missing");
+} else {
+  if (ghostWalkerClass.system.hitDice !== "d8") errors.push("Ghost Walker class must use d8 hit dice");
+  if (ghostWalkerClass.system.spellcasting?.progression !== "none") {
+    errors.push("Ghost Walker must not provide spell slot progression");
+  }
+  if (!ghostWalkerClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Ghost Walker class description must document prerequisite automation");
+  }
+  if (ghostWalkerClass.flags?.[manifest.id]?.prestigeClass !== "ghost-walker") {
+    errors.push("Ghost Walker class automation flag is missing");
+  }
+  const spiritFormScale = ghostWalkerClass.system.advancement.find(
+    advancement => advancement.configuration?.identifier === "spirit-form-uses"
+  );
+  if (!spiritFormScale) errors.push("Ghost Walker spirit form use scale is missing");
+}
+if (!blinkerClass) {
+  errors.push("Blinker class document is missing");
+} else {
+  if (blinkerClass.system.hitDice !== "d6") errors.push("Blinker class must use d6 hit dice");
+  if (blinkerClass.system.spellcasting?.progression !== "none") {
+    errors.push("Blinker must not provide spell slot progression");
+  }
+  if (!blinkerClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Blinker class description must document prerequisite automation");
+  }
+  if (blinkerClass.flags?.[manifest.id]?.prestigeClass !== "blinker") {
+    errors.push("Blinker class automation flag is missing");
+  }
+  const blinkScale = blinkerClass.system.advancement.find(
+    advancement => advancement.configuration?.identifier === "blinks"
+  );
+  if (!blinkScale) errors.push("Blinker blink scale is missing");
+  const perceptionTrait = blinkerClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("skills:prc")
+  );
+  if (!perceptionTrait) errors.push("Blinker Perception proficiency is missing");
+}
+if (!fallenPriestClass) {
+  errors.push("Fallen Priest class document is missing");
+} else {
+  if (fallenPriestClass.system.hitDice !== "d8") errors.push("Fallen Priest class must use d8 hit dice");
+  if (fallenPriestClass.system.spellcasting?.progression !== "none") {
+    errors.push("Fallen Priest spellcasting must be merged into Cleric progression by automation");
+  }
+  if (fallenPriestClass.system.spellcasting?.ability !== "wis") {
+    errors.push("Fallen Priest spellcasting ability must be Wisdom");
+  }
+  if (!fallenPriestClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Fallen Priest class description must document prerequisite automation");
+  }
+  if (fallenPriestClass.flags?.[manifest.id]?.prestigeClass !== "fallen-priest") {
+    errors.push("Fallen Priest class automation flag is missing");
+  }
+  const level4Asi = fallenPriestClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 4
+  );
+  if (!level4Asi) errors.push("Fallen Priest level 4 ASI is missing");
+}
+if (!plagueDoctorClass) {
+  errors.push("Plague Doctor class document is missing");
+} else {
+  if (plagueDoctorClass.system.hitDice !== "d10") errors.push("Plague Doctor class must use d10 hit dice");
+  if (plagueDoctorClass.system.spellcasting?.progression !== "none") {
+    errors.push("Plague Doctor must not provide spell slot progression");
+  }
+  if (plagueDoctorClass.system.spellcasting?.ability !== "int") {
+    errors.push("Plague Doctor spellcasting ability must be Intelligence");
+  }
+  if (!plagueDoctorClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Plague Doctor class description must document prerequisite automation");
+  }
+  if (plagueDoctorClass.flags?.[manifest.id]?.prestigeClass !== "plague-doctor") {
+    errors.push("Plague Doctor class automation flag is missing");
+  }
+  const sneakScale = plagueDoctorClass.system.advancement.find(
+    advancement => advancement.configuration?.identifier === "sneak-attack"
+  );
+  if (!sneakScale) errors.push("Plague Doctor sneak attack scale is missing");
+  const lightArmor = plagueDoctorClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("armor:lgt")
+  );
+  if (!lightArmor) errors.push("Plague Doctor light armor proficiency is missing");
+}
+if (!insectLordClass) {
+  errors.push("Insect Lord class document is missing");
+} else {
+  if (insectLordClass.system.hitDice !== "d8") errors.push("Insect Lord class must use d8 hit dice");
+  if (insectLordClass.system.spellcasting?.progression !== "none") {
+    errors.push("Insect Lord must not provide spell slot progression");
+  }
+  if (!insectLordClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Insect Lord class description must document prerequisite automation");
+  }
+  if (insectLordClass.flags?.[manifest.id]?.prestigeClass !== "insect-lord") {
+    errors.push("Insect Lord class automation flag is missing");
+  }
+  const level4Asi = insectLordClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 4
+  );
+  if (!level4Asi) errors.push("Insect Lord level 4 ASI is missing");
+}
+if (!gamblerClass) {
+  errors.push("Gambler class document is missing");
+} else {
+  if (gamblerClass.system.hitDice !== "d8") errors.push("Gambler class must use d8 hit dice");
+  if (gamblerClass.system.spellcasting?.progression !== "none") {
+    errors.push("Gambler must not provide spell slot progression");
+  }
+  if (gamblerClass.system.spellcasting?.ability !== "int") {
+    errors.push("Gambler fallback spellcasting ability must be Intelligence");
+  }
+  if (!gamblerClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Gambler class description must document prerequisite automation");
+  }
+  if (gamblerClass.flags?.[manifest.id]?.prestigeClass !== "gambler") {
+    errors.push("Gambler class automation flag is missing");
+  }
+}
+if (!keeperClass) {
+  errors.push("Keeper class document is missing");
+} else {
+  if (keeperClass.system.hitDice !== "d8") errors.push("Keeper class must use d8 hit dice");
+  if (keeperClass.system.spellcasting?.progression !== "none") {
+    errors.push("Keeper must not provide spell slot progression");
+  }
+  if (!keeperClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Keeper class description must document prerequisite automation");
+  }
+  if (keeperClass.flags?.[manifest.id]?.prestigeClass !== "keeper") {
+    errors.push("Keeper class automation flag is missing");
+  }
+  const allyPointsScale = keeperClass.system.advancement.find(
+    advancement => advancement.configuration?.identifier === "ally-points"
+  );
+  if (!allyPointsScale) errors.push("Keeper ally points scale is missing");
+  const specializationAdvancement = keeperClass.system.advancement.find(
+    advancement => advancement.type === "Subclass" && advancement.level === 1
+  );
+  if (!specializationAdvancement) {
+    errors.push("Keeper specialization must use standard Subclass advancement at level 1");
+  }
+  const level4Asi = keeperClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 4
+  );
+  if (!level4Asi) errors.push("Keeper level 4 ASI is missing");
+}
+if (!bloodMageClass) {
+  errors.push("Blood Mage class document is missing");
+} else {
+  if (bloodMageClass.system.hitDice !== "d8") errors.push("Blood Mage class must use d8 hit dice");
+  if (bloodMageClass.system.spellcasting?.progression !== "full") {
+    errors.push("Blood Mage must use full caster spell slot progression");
+  }
+  if (bloodMageClass.system.spellcasting?.ability !== "con") {
+    errors.push("Blood Mage spellcasting ability must be Constitution");
+  }
+  if (!bloodMageClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Blood Mage class description must document prerequisite automation");
+  }
+  if (bloodMageClass.flags?.[manifest.id]?.prestigeClass !== "blood-mage") {
+    errors.push("Blood Mage class automation flag is missing");
+  }
+  const knownSpellsScale = bloodMageClass.system.advancement.find(
+    advancement => advancement.configuration?.identifier === "known-spells"
+  );
+  if (!knownSpellsScale) errors.push("Blood Mage known spells scale is missing");
+  const constitutionIncrease = bloodMageClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 5
+  );
+  if (!constitutionIncrease) errors.push("Blood Mage Sanguine Strength advancement is missing");
+}
+if (!onmyojiClass) {
+  errors.push("Onmyoji class document is missing");
+} else {
+  if (onmyojiClass.system.hitDice !== "d8") errors.push("Onmyoji class must use d8 hit dice");
+  if (onmyojiClass.system.spellcasting?.progression !== "none") {
+    errors.push("Onmyoji must not provide spell slot progression");
+  }
+  if (onmyojiClass.system.spellcasting?.ability !== "wis") {
+    errors.push("Onmyoji feature DC ability must be Wisdom");
+  }
+  if (!onmyojiClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Onmyoji class description must document prerequisite automation");
+  }
+  if (onmyojiClass.flags?.[manifest.id]?.prestigeClass !== "onmyoji") {
+    errors.push("Onmyoji class automation flag is missing");
+  }
+  const kiScale = onmyojiClass.system.advancement.find(
+    advancement => advancement.configuration?.identifier === "ki-points"
+  );
+  if (!kiScale) errors.push("Onmyoji Ki scale is missing");
+  const level4Asi = onmyojiClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 4
+  );
+  if (!level4Asi) errors.push("Onmyoji level 4 ASI is missing");
+  const spiritChoice = onmyojiClass.system.advancement.find(
+    advancement => advancement.type === "ItemChoice" && advancement.configuration?.choices?.[1]
+  );
+  if (!spiritChoice || spiritChoice.configuration?.choices?.[1]?.count !== 3) {
+    errors.push("Onmyoji must choose 3 World Spirits at level 1");
+  }
+  if (!spiritChoice || spiritChoice.configuration?.pool?.length !== 10) {
+    errors.push("Onmyoji World Spirit choice must provide 10 spirits");
+  }
+}
+if (!ritualistClass) {
+  errors.push("Ritualist class document is missing");
+} else {
+  if (ritualistClass.system.hitDice !== "d8") errors.push("Ritualist class must use d8 hit dice");
+  if (ritualistClass.system.spellcasting?.progression !== "none") {
+    errors.push("Ritualist must not provide spell slot progression");
+  }
+  if (ritualistClass.system.spellcasting?.ability !== "wis") {
+    errors.push("Ritualist spirit DC ability must be Wisdom");
+  }
+  if (!ritualistClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Ritualist class description must document prerequisite automation");
+  }
+  if (ritualistClass.flags?.[manifest.id]?.prestigeClass !== "ritualist") {
+    errors.push("Ritualist class automation flag is missing");
+  }
+  const ritualPointsScale = ritualistClass.system.advancement.find(
+    advancement => advancement.configuration?.identifier === "ritual-points"
+  );
+  if (!ritualPointsScale) errors.push("Ritualist ritual points scale is missing");
+  const conSave = ritualistClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("saves:con")
+  );
+  if (!conSave) errors.push("Ritualist must grant Constitution save proficiency");
+  const simpleWeapons = ritualistClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("weapon:sim")
+  );
+  if (!simpleWeapons) errors.push("Ritualist must grant simple weapon proficiency");
+  const level4Asi = ritualistClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 4
+  );
+  if (!level4Asi) errors.push("Ritualist level 4 ASI is missing");
+}
+if (!darkWarriorClass) {
+  errors.push("Dark Warrior class document is missing");
+} else {
+  if (darkWarriorClass.system.hitDice !== "d10") errors.push("Dark Warrior class must use d10 hit dice");
+  if (darkWarriorClass.system.spellcasting?.progression !== "none") {
+    errors.push("Dark Warrior must not provide spell slot progression");
+  }
+  if (darkWarriorClass.system.spellcasting?.ability !== "cha") {
+    errors.push("Dark Warrior spell DC fallback ability must be Charisma");
+  }
+  if (!darkWarriorClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Dark Warrior class description must document prerequisite automation");
+  }
+  if (darkWarriorClass.flags?.[manifest.id]?.prestigeClass !== "dark-warrior") {
+    errors.push("Dark Warrior class automation flag is missing");
+  }
+  const charismaSave = darkWarriorClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("saves:cha")
+  );
+  if (!charismaSave) errors.push("Dark Warrior must grant Charisma save proficiency");
+  const martialWeapons = darkWarriorClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("weapon:mar")
+  );
+  if (!martialWeapons) errors.push("Dark Warrior must grant martial weapon proficiency");
+  const shields = darkWarriorClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("armor:shl")
+  );
+  if (!shields) errors.push("Dark Warrior must grant shield proficiency");
+  const skillChoice = darkWarriorClass.system.advancement.find(
+    advancement => advancement.type === "Trait" && advancement.configuration?.choices?.[0]?.pool?.includes("skills:ath")
+  );
+  if (!skillChoice || skillChoice.configuration?.choices?.[0]?.count !== 1) {
+    errors.push("Dark Warrior must choose Athletics or Acrobatics");
+  }
+  const level4Asi = darkWarriorClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 4
+  );
+  if (!level4Asi) errors.push("Dark Warrior level 4 ASI is missing");
+}
+if (!devilWorshipperClass) {
+  errors.push("Devil Worshipper class document is missing");
+} else {
+  if (devilWorshipperClass.system.hitDice !== "d6") errors.push("Devil Worshipper class must use d6 hit dice");
+  if (devilWorshipperClass.system.spellcasting?.progression !== "none") {
+    errors.push("Devil Worshipper must not provide spell slot progression");
+  }
+  if (devilWorshipperClass.system.spellcasting?.ability !== "cha") {
+    errors.push("Devil Worshipper fallback spellcasting ability must be Charisma");
+  }
+  if (!devilWorshipperClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Devil Worshipper class description must document prerequisite automation");
+  }
+  if (devilWorshipperClass.flags?.[manifest.id]?.prestigeClass !== "devil-worshipper") {
+    errors.push("Devil Worshipper class automation flag is missing");
+  }
+  const dagger = devilWorshipperClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("weapon:sim:dagger")
+  );
+  if (!dagger) errors.push("Devil Worshipper must grant dagger proficiency");
+  const skillChoice = devilWorshipperClass.system.advancement.find(
+    advancement => advancement.type === "Trait" && advancement.configuration?.choices?.[0]?.pool?.includes("skills:per")
+  );
+  if (!skillChoice || skillChoice.configuration?.choices?.[0]?.count !== 1) {
+    errors.push("Devil Worshipper must choose Persuasion or Intimidation");
+  }
+  const level4Asi = devilWorshipperClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 4
+  );
+  if (!level4Asi) errors.push("Devil Worshipper level 4 ASI is missing");
+}
+if (!nethereseArcanistClass) {
+  errors.push("Netherese Arcanist class document is missing");
+} else {
+  if (nethereseArcanistClass.system.hitDice !== "d6") errors.push("Netherese Arcanist class must use d6 hit dice");
+  if (nethereseArcanistClass.system.spellcasting?.progression !== "none") {
+    errors.push("Netherese Arcanist must not provide spell slot progression");
+  }
+  if (!nethereseArcanistClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Netherese Arcanist class description must document prerequisite automation");
+  }
+  if (nethereseArcanistClass.flags?.[manifest.id]?.prestigeClass !== "netherese-arcanist") {
+    errors.push("Netherese Arcanist class automation flag is missing");
+  }
+  const calligrapher = nethereseArcanistClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("tool:calligrapher")
+  );
+  if (!calligrapher) errors.push("Netherese Arcanist must grant calligrapher tools");
+  const saveChoice = nethereseArcanistClass.system.advancement.find(
+    advancement => advancement.type === "Trait" && advancement.configuration?.choices?.[0]?.pool?.includes("saves:con")
+  );
+  if (!saveChoice || saveChoice.configuration?.choices?.[0]?.count !== 1) {
+    errors.push("Netherese Arcanist must choose Constitution or Intelligence save");
+  }
+  const level4Asi = nethereseArcanistClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 4
+  );
+  if (!level4Asi) errors.push("Netherese Arcanist level 4 ASI is missing");
+}
+if (!spiritVesselClass) {
+  errors.push("Spirit Vessel class document is missing");
+} else {
+  if (spiritVesselClass.system.hitDice !== "d6") errors.push("Spirit Vessel class must use d6 hit dice");
+  if (spiritVesselClass.system.spellcasting?.progression !== "none") {
+    errors.push("Spirit Vessel pact magic must be stored as scale values, not normal dnd5e progression");
+  }
+  if (!spiritVesselClass.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push("Spirit Vessel class description must document prerequisite automation");
+  }
+  if (spiritVesselClass.flags?.[manifest.id]?.prestigeClass !== "spirit-vessel") {
+    errors.push("Spirit Vessel class automation flag is missing");
+  }
+  for (const identifier of ["known-spells", "pact-slots", "pact-slot-level"]) {
+    if (!spiritVesselClass.system.advancement.some(advancement => advancement.configuration?.identifier === identifier)) {
+      errors.push(`Spirit Vessel scale is missing: ${identifier}`);
+    }
+  }
+  const subclassAdvancement = spiritVesselClass.system.advancement.some(
+    advancement => advancement.type === "Subclass" && advancement.level === 1
+  );
+  if (!subclassAdvancement) errors.push("Spirit Vessel subclass advancement is missing");
+  const saveTrait = spiritVesselClass.system.advancement.some(
+    advancement => advancement.type === "Trait"
+      && advancement.configuration?.grants?.includes("saves:int")
+      && advancement.configuration?.grants?.includes("saves:cha")
+  );
+  if (!saveTrait) errors.push("Spirit Vessel Intelligence and Charisma save proficiencies are missing");
+}
+if (!oracleClass) {
+  errors.push("Oracle class document is missing");
+} else {
+  if (oracleClass.system.hitDice !== "d8") errors.push("Oracle class must use d8 hit dice");
+  if (oracleClass.system.spellcasting?.progression !== "none") {
+    errors.push("Oracle spell slots must be stored as scale values, not normal dnd5e progression");
+  }
+  if (oracleClass.system.spellcasting?.ability !== "wis") {
+    errors.push("Oracle spellcasting ability must be Wisdom");
+  }
+  if (!oracleClass.system.description?.value?.includes("Foundry:")) {
+    errors.push("Oracle class description must document prerequisite automation");
+  }
+  if (oracleClass.flags?.[manifest.id]?.prestigeClass !== "oracle") {
+    errors.push("Oracle class automation flag is missing");
+  }
+  for (const identifier of ["max-dissonance", "fate-balance", "spell-slots-1", "spell-slots-2", "spell-slots-3"]) {
+    if (!oracleClass.system.advancement.some(advancement => advancement.configuration?.identifier === identifier)) {
+      errors.push(`Oracle scale is missing: ${identifier}`);
+    }
+  }
+  const weaverTools = oracleClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("tool:weaver")
+  );
+  if (!weaverTools) errors.push("Oracle must grant weaver's tools");
+  const perception = oracleClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.level === 4 && advancement.configuration?.grants?.includes("skills:prc")
+  );
+  if (!perception) errors.push("Oracle must grant Perception at level 4");
+  const level4Asi = oracleClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 4
+  );
+  if (!level4Asi) errors.push("Oracle level 4 ASI is missing");
+}
+
+if (!demonologistClass) {
+  errors.push("Demonologist class document is missing");
+} else {
+  if (demonologistClass.system.hitDice !== "d6") errors.push("Demonologist class must use d6 hit dice");
+  if (demonologistClass.system.spellcasting?.progression !== "none") {
+    errors.push("Demonologist must not use normal dnd5e spellcasting progression");
+  }
+  if (demonologistClass.system.spellcasting?.ability !== "cha") {
+    errors.push("Demonologist spellcasting ability marker must be Charisma");
+  }
+  if (!demonologistClass.system.description?.value?.includes("Foundry:")) {
+    errors.push("Demonologist class description must document prerequisite automation");
+  }
+  if (demonologistClass.flags?.[manifest.id]?.prestigeClass !== "demonologist") {
+    errors.push("Demonologist class automation flag is missing");
+  }
+  const charismaSave = demonologistClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.configuration?.grants?.includes("saves:cha")
+  );
+  if (!charismaSave) errors.push("Demonologist must grant Charisma saving throw proficiency");
+  const skillChoice = demonologistClass.system.advancement.some(
+    advancement => advancement.type === "Trait"
+      && advancement.configuration?.choices?.some(choice =>
+        choice.count === 1
+        && choice.pool?.includes("skills:dec")
+        && choice.pool?.includes("skills:itm")
+      )
+  );
+  if (!skillChoice) errors.push("Demonologist must choose Deception or Intimidation");
+  const abyssal = demonologistClass.system.advancement.some(
+    advancement => advancement.type === "Trait" && advancement.level === 2 && advancement.configuration?.grants?.includes("languages:abyssal")
+  );
+  if (!abyssal) errors.push("Demonologist must grant Abyssal at level 2");
+  const level4Asi = demonologistClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 4
+  );
+  if (!level4Asi) errors.push("Demonologist level 4 ASI is missing");
+}
+
+if (!sanguinistClass) {
+  errors.push("Sanguinist class document is missing");
+} else {
+  if (sanguinistClass.system.hitDice !== "d8") errors.push("Sanguinist class must use d8 hit dice");
+  if (sanguinistClass.system.spellcasting?.progression !== "none") {
+    errors.push("Sanguinist custom spell slots must be stored as scale values");
+  }
+  if (!sanguinistClass.system.description?.value?.includes("Foundry:")) {
+    errors.push("Sanguinist class description must document prerequisite automation");
+  }
+  if (sanguinistClass.flags?.[manifest.id]?.prestigeClass !== "sanguinist") {
+    errors.push("Sanguinist class automation flag is missing");
+  }
+  const skillChoice = sanguinistClass.system.advancement.some(
+    advancement => advancement.type === "Trait"
+      && advancement.configuration?.choices?.some(choice =>
+        choice.count === 1
+        && choice.pool?.includes("skills:arc")
+        && choice.pool?.includes("skills:itm")
+        && choice.pool?.includes("skills:med")
+        && choice.pool?.includes("skills:nat")
+        && choice.pool?.includes("skills:rel")
+      )
+  );
+  if (!skillChoice) errors.push("Sanguinist must choose one listed skill");
+  for (const identifier of ["blood-magic-uses", "known-blood-spells", "spell-slots-1", "spell-slots-2", "spell-slots-3"]) {
+    if (!sanguinistClass.system.advancement.some(advancement => advancement.configuration?.identifier === identifier)) {
+      errors.push(`Sanguinist scale is missing: ${identifier}`);
+    }
+  }
+  const compatibilityChoice = sanguinistClass.system.advancement.some(
+    advancement => advancement.type === "ItemChoice"
+      && advancement.configuration?.choices?.[3]?.count === 1
+      && advancement.configuration?.pool?.length === 2
+  );
+  if (!compatibilityChoice) errors.push("Sanguinist level 3 blood compatibility choice is missing");
+  const masteryChoice = sanguinistClass.system.advancement.some(
+    advancement => advancement.type === "ItemChoice"
+      && advancement.configuration?.choices?.[5]?.count === 2
+      && advancement.configuration?.pool?.length === 8
+  );
+  if (!masteryChoice) errors.push("Sanguinist level 5 crimson mastery choice is missing");
+  const level4Asi = sanguinistClass.system.advancement.some(
+    advancement => advancement.type === "AbilityScoreImprovement" && advancement.level === 4
+  );
+  if (!level4Asi) errors.push("Sanguinist level 4 ASI is missing");
 }
 
 if (!schoolOfSteelSubclass) {
@@ -472,6 +1077,869 @@ for (const identifier of [
   }
   if (document.flags?.[manifest.id]?.feature !== identifier) {
     errors.push(`Soul Eater feature automation flag is missing: ${identifier}`);
+  }
+}
+
+const guardianFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.guardianFeature === true
+);
+if (guardianFeatureDocuments.length !== 17) {
+  errors.push(`Expected 17 Guardian features, got ${guardianFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "guardian-calling",
+  "guardian-mark",
+  "protection-specialization",
+  "sacrificial-throw",
+  "protective-magic",
+  "endure-pain",
+  "powerful-retribution",
+  "divine-retribution",
+  "furious-retribution",
+  "leaping-retribution",
+  "martial-retribution",
+  "planar-retribution",
+  "spellcasting-retribution",
+  "threatening-retribution",
+  "steadfastness",
+  "powerful-retribution-improved",
+  "guardian-unyielding"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Guardian feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Guardian feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Guardian automation description is missing: ${identifier}`);
+  }
+}
+if (guardianFeatureDocuments.filter(document => document.flags?.[manifest.id]?.guardianSpecialization).length !== 2) {
+  errors.push("Guardian must provide 2 protection specializations");
+}
+if (guardianFeatureDocuments.filter(document => document.flags?.[manifest.id]?.guardianRetribution).length !== 7) {
+  errors.push("Guardian must provide 7 powerful retributions");
+}
+
+const crusaderFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.crusaderFeature === true
+);
+if (crusaderFeatureDocuments.length !== 6) {
+  errors.push(`Expected 6 Crusader features, got ${crusaderFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "crusader-miracles",
+  "crusader-rage",
+  "crusader-aegis",
+  "divine-devotion",
+  "consecration",
+  "condemnation"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Crusader feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Crusader feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Crusader automation description is missing: ${identifier}`);
+  }
+}
+const divineDevotion = featuresByIdentifier.get("divine-devotion");
+if (!divineDevotion?.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
+  errors.push("Crusader Divine Devotion passive effect is missing");
+}
+
+const feyWarriorFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.feyWarriorFeature === true
+);
+if (feyWarriorFeatureDocuments.length !== 17) {
+  errors.push(`Expected 17 Fey Warrior features, got ${feyWarriorFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "fey-transformation",
+  "fey-warrior-cantrips",
+  "call-of-feywild",
+  "charming-defense",
+  "chimeric-weapon",
+  "permanent-manifestation",
+  "fey-magic",
+  "fey-skin",
+  "fey-mask",
+  "fey-blood",
+  "fey-eyes",
+  "fey-appearance",
+  "fey-speed",
+  "irresistible-charms",
+  "fey-indomitable-life",
+  "healing-adept",
+  "graceful-fighter"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Fey Warrior feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Fey Warrior feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Fey Warrior automation description is missing: ${identifier}`);
+  }
+}
+if (feyWarriorFeatureDocuments.filter(document => document.flags?.[manifest.id]?.feyTrait).length !== 9) {
+  errors.push("Fey Warrior must provide 9 fey traits including Mask");
+}
+for (const identifier of ["fey-eyes", "fey-speed", "irresistible-charms"]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document?.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
+    errors.push(`Fey Warrior passive effect is missing: ${identifier}`);
+  }
+}
+
+const ghostWalkerFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.ghostWalkerFeature === true
+);
+if (ghostWalkerFeatureDocuments.length !== 8) {
+  errors.push(`Expected 8 Ghost Walker features, got ${ghostWalkerFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "touched-by-death",
+  "spirit-form",
+  "possession",
+  "ghost-step",
+  "otherworldly-presence",
+  "drain-soul",
+  "kindred-spirit",
+  "unfinished-business"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Ghost Walker feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Ghost Walker feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Ghost Walker automation description is missing: ${identifier}`);
+  }
+}
+const touchedByDeath = featuresByIdentifier.get("touched-by-death");
+if (!touchedByDeath?.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
+  errors.push("Ghost Walker Touched by Death passive effect is missing");
+}
+
+const blinkerFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.blinkerFeature === true
+);
+if (blinkerFeatureDocuments.length !== 10) {
+  errors.push(`Expected 10 Blinker features, got ${blinkerFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "inner-blink",
+  "turnaround-blink",
+  "sideways-shift",
+  "blinking-step",
+  "improved-technique",
+  "blinking-wrist",
+  "outer-blink",
+  "shift-sense",
+  "disappearance",
+  "miraculous-homecoming"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Blinker feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Blinker feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Blinker automation description is missing: ${identifier}`);
+  }
+}
+
+const fallenPriestFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.fallenPriestFeature === true
+);
+if (fallenPriestFeatureDocuments.length !== 7) {
+  errors.push(`Expected 7 Fallen Priest features, got ${fallenPriestFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "fallen-priest-heretic",
+  "fallen-priest-spellcasting",
+  "fallen-priest-turn-undead",
+  "divine-resistance",
+  "absorb-power",
+  "divine-copying",
+  "arcane-copying"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Fallen Priest feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Fallen Priest feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Fallen Priest automation description is missing: ${identifier}`);
+  }
+}
+
+const plagueDoctorFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.plagueDoctorFeature === true
+);
+if (plagueDoctorFeatureDocuments.length !== 7) {
+  errors.push(`Expected 7 Plague Doctor features, got ${plagueDoctorFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "plague-sneak-attack",
+  "disease-carrier",
+  "ragged-armor",
+  "touch-of-disease",
+  "smart-infection",
+  "infect-wounds",
+  "disease-form"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Plague Doctor feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Plague Doctor feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Plague Doctor automation description is missing: ${identifier}`);
+  }
+}
+const diseaseCarrier = featuresByIdentifier.get("disease-carrier");
+if (!diseaseCarrier?.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
+  errors.push("Plague Doctor Disease Carrier passive effect is missing");
+}
+
+const insectLordFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.insectLordFeature === true
+);
+if (insectLordFeatureDocuments.length !== 8) {
+  errors.push(`Expected 8 Insect Lord features, got ${insectLordFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "chitinous-carapace",
+  "insect-familiar",
+  "insect-natural-weapons",
+  "blood-drain",
+  "crawling-armor",
+  "spew-insects",
+  "swarm-mind",
+  "crawling-eye"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Insect Lord feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Insect Lord feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Insect Lord automation description is missing: ${identifier}`);
+  }
+}
+
+const gamblerFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.gamblerFeature === true
+);
+if (gamblerFeatureDocuments.length !== 5) {
+  errors.push(`Expected 5 Gambler features, got ${gamblerFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "astral-deck",
+  "deal-them",
+  "rogues-are-lucky",
+  "up-the-sleeve",
+  "aces-beat"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Gambler feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Gambler feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Gambler automation description is missing: ${identifier}`);
+  }
+}
+
+const keeperFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.keeperFeature === true
+);
+if (keeperFeatureDocuments.length !== 10) {
+  errors.push(`Expected 10 Keeper features, got ${keeperFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "keeper-ward-and-warded",
+  "keeper-ally-talents",
+  "golem-maker",
+  "myth-seeker-keeper",
+  "spirit-medium-keeper",
+  "wild-tamer-keeper",
+  "strategy-and-synergy",
+  "united-and-protected",
+  "rest-and-recovery",
+  "might-and-magic"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Keeper feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Keeper feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Keeper automation description is missing: ${identifier}`);
+  }
+}
+if (keeperFeatureDocuments.filter(document => document.flags?.[manifest.id]?.keeperSpecialization).length !== 4) {
+  errors.push("Keeper must provide 4 specialization features");
+}
+const bloodMageFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.bloodMageFeature === true
+);
+if (bloodMageFeatureDocuments.length !== 10) {
+  errors.push(`Expected 10 Blood Mage features, got ${bloodMageFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "blood-mage-spellcasting",
+  "blood-magic",
+  "flesh-canvas",
+  "feast-of-the-fallen",
+  "blood-transfer",
+  "sanguine-fortitude",
+  "blood-mage-sacrifice",
+  "blood-thrall",
+  "maleficar",
+  "sanguine-strength"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Blood Mage feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Blood Mage feature automation flag is missing: ${identifier}`);
+  }
+}
+const bloodMagic = featuresByIdentifier.get("blood-magic");
+const bloodMagicActions = Object.values(bloodMagic?.system?.activities ?? {})
+  .filter(activity => activity.flags?.[manifest.id]?.action === "apply-blood-magic-cost");
+if (bloodMagicActions.length !== 5) {
+  errors.push(`Blood Magic must provide 5 blood cost activities, got ${bloodMagicActions.length}`);
+}
+const sanguineFortitude = featuresByIdentifier.get("sanguine-fortitude");
+if (!sanguineFortitude?.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
+  errors.push("Blood Mage Sanguine Fortitude passive effect is missing");
+}
+const sacrifice = featuresByIdentifier.get("blood-mage-sacrifice");
+if (!Object.values(sacrifice?.system?.activities ?? {}).some(
+  activity => activity.flags?.[manifest.id]?.action === "roll-blood-mage-sacrifice"
+)) {
+  errors.push("Blood Mage Sacrifice action is missing");
+}
+const onmyojiFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.onmyojiFeature === true
+);
+if (onmyojiFeatureDocuments.length !== 15) {
+  errors.push(`Expected 15 Onmyoji features, got ${onmyojiFeatureDocuments.length}`);
+}
+const onmyojiSpiritIdentifiers = [
+  "spirit-alcohol",
+  "spirit-book",
+  "spirit-fire",
+  "spirit-food",
+  "spirit-mountain",
+  "spirit-steel",
+  "spirit-water",
+  "spirit-wood",
+  "spirit-wealth",
+  "spirit-wind"
+];
+for (const identifier of [
+  "onmyoji-ki",
+  "shikigami-talisman",
+  "purification-rite",
+  "shikigami-ghost-hunter",
+  "spirit-place",
+  ...onmyojiSpiritIdentifiers
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Onmyoji feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Onmyoji feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Onmyoji automation description is missing: ${identifier}`);
+  }
+}
+const onmyojiSpiritFeatureDocuments = onmyojiFeatureDocuments.filter(
+  document => document.flags?.[manifest.id]?.onmyojiSpiritFeature === true
+);
+if (onmyojiSpiritFeatureDocuments.length !== 10) {
+  errors.push(`Expected 10 Onmyoji World Spirit features, got ${onmyojiSpiritFeatureDocuments.length}`);
+}
+const onmyojiKi = featuresByIdentifier.get("onmyoji-ki");
+if (!Object.values(onmyojiKi?.system?.activities ?? {}).some(
+  activity => activity.flags?.[manifest.id]?.action === "sync-onmyoji-resources"
+)) {
+  errors.push("Onmyoji Ki sync action is missing");
+}
+for (const document of onmyojiSpiritFeatureDocuments) {
+  const actions = Object.values(document.system?.activities ?? {})
+    .map(activity => activity.flags?.[manifest.id]?.action);
+  const kiActions = actions.filter(action => action === "use-onmyoji-ki");
+  if (kiActions.length !== 2) {
+    errors.push(`Onmyoji spirit ${document.system.identifier} must provide minor and great Ki activities`);
+  }
+}
+const ritualistFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.ritualistFeature === true
+);
+if (ritualistFeatureDocuments.length !== 6) {
+  errors.push(`Expected 6 Ritualist features, got ${ritualistFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "binding-ritual",
+  "spirit-sight",
+  "mind-body-and-soul",
+  "protective-ritual",
+  "spirit-channel",
+  "ethereal-wanderer"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Ritualist feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Ritualist feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Ritualist automation description is missing: ${identifier}`);
+  }
+}
+const bindingRitual = featuresByIdentifier.get("binding-ritual");
+const bindingRitualActions = Object.values(bindingRitual?.system?.activities ?? {})
+  .map(activity => activity.flags?.[manifest.id]?.action)
+  .filter(Boolean);
+for (const action of [
+  "sync-ritualist-resources",
+  "show-ritualist-spirit-dc",
+  "roll-ritualist-spirit-agony",
+  "roll-ritualist-spirit-life",
+  "roll-ritualist-spirit-protection",
+  "roll-ritualist-spirit-sorrow",
+  "roll-ritualist-spirit-destruction-die"
+]) {
+  if (!bindingRitualActions.includes(action)) {
+    errors.push(`Missing Ritualist Binding Ritual action: ${action}`);
+  }
+}
+const ritualPointActions = bindingRitualActions.filter(action => action === "use-ritualist-ritual-points");
+if (ritualPointActions.length !== 3) {
+  errors.push(`Binding Ritual must provide 3 ritual point spend activities, got ${ritualPointActions.length}`);
+}
+const spiritChannel = featuresByIdentifier.get("spirit-channel");
+if (!Object.values(spiritChannel?.system?.activities ?? {}).some(
+  activity => activity.flags?.[manifest.id]?.action === "show-ritualist-spirit-channel"
+)) {
+  errors.push("Ritualist Spirit Channel summary action is missing");
+}
+const darkWarriorFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.darkWarriorFeature === true
+);
+if (darkWarriorFeatureDocuments.length !== 6) {
+  errors.push(`Expected 6 Dark Warrior features, got ${darkWarriorFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "black-magic-oil",
+  "black-magic-elixir",
+  "improved-black-oil",
+  "improved-black-elixir",
+  "dark-resistance",
+  "blackening-weapon"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Dark Warrior feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Dark Warrior feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Dark Warrior automation description is missing: ${identifier}`);
+  }
+}
+const blackMagicOil = featuresByIdentifier.get("black-magic-oil");
+const blackMagicOilActions = Object.values(blackMagicOil?.system?.activities ?? {})
+  .map(activity => activity.flags?.[manifest.id]?.action)
+  .filter(Boolean);
+for (const action of ["apply-black-magic-oil", "sync-dark-warrior-resources"]) {
+  if (!blackMagicOilActions.includes(action)) errors.push(`Missing Dark Warrior Black Magic Oil action: ${action}`);
+}
+const blackMagicElixir = featuresByIdentifier.get("black-magic-elixir");
+const blackMagicElixirActions = Object.values(blackMagicElixir?.system?.activities ?? {})
+  .map(activity => activity.flags?.[manifest.id]?.action)
+  .filter(Boolean);
+const elixirActions = blackMagicElixirActions.filter(action => action === "drink-dark-warrior-elixir");
+if (elixirActions.length !== 4) {
+  errors.push(`Black Magic Elixir must provide 4 elixir activities, got ${elixirActions.length}`);
+}
+const darkResistance = featuresByIdentifier.get("dark-resistance");
+if (!darkResistance?.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
+  errors.push("Dark Warrior Dark Resistance passive effect is missing");
+}
+const devilWorshipperFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.devilWorshipperFeature === true
+);
+if (devilWorshipperFeatureDocuments.length !== 10) {
+  errors.push(`Expected 10 Devil Worshipper features, got ${devilWorshipperFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "devil-spellcasting-ability",
+  "hellfire",
+  "imp-familiar",
+  "devil-sight",
+  "dark-luck",
+  "quiet-whisper",
+  "empowered-charms",
+  "hellfire-fury",
+  "devilish-glaive",
+  "aura-of-devastated-souls"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Devil Worshipper feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Devil Worshipper feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Devil Worshipper automation description is missing: ${identifier}`);
+  }
+}
+const devilSight = featuresByIdentifier.get("devil-sight");
+if (!devilSight?.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
+  errors.push("Devil Worshipper Devil Sight passive effect is missing");
+}
+const devilAbility = featuresByIdentifier.get("devil-spellcasting-ability");
+if (!Object.values(devilAbility?.system?.activities ?? {}).some(
+  activity => activity.flags?.[manifest.id]?.action === "choose-devil-worshipper-ability"
+)) {
+  errors.push("Devil Worshipper ability choice action is missing");
+}
+const devilGlaive = featuresByIdentifier.get("devilish-glaive");
+const devilGlaiveActions = Object.values(devilGlaive?.system?.activities ?? {})
+  .map(activity => activity.flags?.[manifest.id]?.action)
+  .filter(Boolean);
+for (const action of ["summon-devil-glaive", "roll-devil-glaive-damage", "roll-devil-glaive-grapple-damage"]) {
+  if (!devilGlaiveActions.includes(action)) errors.push(`Missing Devil Worshipper glaive action: ${action}`);
+}
+const devilAura = featuresByIdentifier.get("aura-of-devastated-souls");
+const devilAuraActions = Object.values(devilAura?.system?.activities ?? {})
+  .map(activity => activity.flags?.[manifest.id]?.action)
+  .filter(action => action === "gain-devil-soul-aura-temp-hp");
+if (devilAuraActions.length !== 5) {
+  errors.push(`Devil Worshipper aura must provide 5 temp HP activities, got ${devilAuraActions.length}`);
+}
+const nethereseArcanistFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.nethereseArcanistFeature === true
+);
+if (nethereseArcanistFeatureDocuments.length !== 5) {
+  errors.push(`Expected 5 Netherese Arcanist features, got ${nethereseArcanistFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "scholar-arcanist",
+  "netherese-grimoire",
+  "mini-mythal",
+  "ancient-knowledge",
+  "great-spells"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Netherese Arcanist feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Netherese Arcanist feature automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Netherese Arcanist automation description is missing: ${identifier}`);
+  }
+}
+const miniMythal = featuresByIdentifier.get("mini-mythal");
+const miniMythalActions = Object.values(miniMythal?.system?.activities ?? {})
+  .map(activity => activity.flags?.[manifest.id]?.action)
+  .filter(Boolean);
+for (const action of ["activate-mini-mythal", "teleport-in-mini-mythal", "overload-mini-mythal"]) {
+  if (!miniMythalActions.includes(action)) errors.push(`Missing Netherese Arcanist Mini-Mythal action: ${action}`);
+}
+const greatSpells = featuresByIdentifier.get("great-spells");
+const greatSpellActions = Object.values(greatSpells?.system?.activities ?? {})
+  .map(activity => activity.flags?.[manifest.id]?.action)
+  .filter(action => action === "cast-netherese-great-spell");
+if (greatSpellActions.length !== 7) {
+  errors.push(`Netherese Arcanist Great Spells must provide 7 cast activities, got ${greatSpellActions.length}`);
+}
+for (const identifier of [
+  "halved-ego",
+  "pact-magic-spirit-vessel",
+  "spirit-type",
+  "concentrated-strike",
+  "spirit-ability-improvement",
+  "flow-state",
+  "metaphysical-incarnation",
+  "spirit-aberration",
+  "spirit-celestial",
+  "spirit-elemental-earth",
+  "spirit-elemental-air",
+  "spirit-elemental-fire",
+  "spirit-elemental-water",
+  "spirit-fey",
+  "spirit-fiend",
+  "spirit-undead"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Spirit Vessel feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Spirit Vessel feature automation flag is missing: ${identifier}`);
+  }
+  if (document.flags?.[manifest.id]?.spiritVesselFeature !== true) {
+    errors.push(`Spirit Vessel feature marker is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Spirit Vessel automation description is missing: ${identifier}`);
+  }
+}
+const oracleFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.oracleFeature === true
+);
+if (oracleFeatureDocuments.length !== 5) {
+  errors.push(`Expected 5 Oracle features, got ${oracleFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "influence-fates",
+  "oracle-first-secret",
+  "weaving-connections",
+  "sense-fate",
+  "oracle-great-secret"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Oracle feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Oracle feature automation flag is missing: ${identifier}`);
+  }
+  if (document.flags?.[manifest.id]?.oracleFeature !== true) {
+    errors.push(`Oracle feature marker is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Foundry:")) {
+    errors.push(`Oracle automation description is missing: ${identifier}`);
+  }
+}
+const demonologistFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.demonologistFeature === true
+);
+if (demonologistFeatureDocuments.length !== 9) {
+  errors.push(`Expected 9 Demonologist features, got ${demonologistFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "demon-charm",
+  "infernal-familiar",
+  "master-summoner",
+  "dark-knowledge",
+  "demonic-resistance",
+  "demonic-vitality",
+  "demonic-mind",
+  "double-summon",
+  "domination"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Demonologist feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Demonologist feature automation flag is missing: ${identifier}`);
+  }
+  if (document.flags?.[manifest.id]?.demonologistFeature !== true) {
+    errors.push(`Demonologist feature marker is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Foundry:")) {
+    errors.push(`Demonologist automation description is missing: ${identifier}`);
+  }
+}
+const demonicResistanceChanges = featuresByIdentifier.get("demonic-resistance")
+  ?.effects?.flatMap(effect => effect.system?.changes ?? []) ?? [];
+for (const [path, value] of [
+  ["system.traits.dr.value", "fire"],
+  ["system.traits.dr.value", "acid"],
+  ["system.traits.di.value", "poison"],
+  ["system.traits.ci.value", "poisoned"]
+]) {
+  if (!demonicResistanceChanges.some(change => change.key === path && change.value === value)) {
+    errors.push(`Demonic Resistance passive change is missing: ${path} ${value}`);
+  }
+}
+const demonicMindChanges = featuresByIdentifier.get("demonic-mind")
+  ?.effects?.flatMap(effect => effect.system?.changes ?? []) ?? [];
+if (!demonicMindChanges.some(change => change.key === "system.traits.dr.value" && change.value === "psychic")) {
+  errors.push("Demonic Mind must add psychic resistance");
+}
+if (!demonicMindChanges.some(change => change.key === "system.attributes.senses.ranges.telepathy" && change.value === "60")) {
+  errors.push("Demonic Mind must add 60 ft telepathy");
+}
+const sanguinistFeatureDocuments = featureDocuments.filter(
+  document => document.flags?.[manifest.id]?.sanguinistFeature === true
+);
+if (sanguinistFeatureDocuments.length !== 19) {
+  errors.push(`Expected 19 Sanguinist features, got ${sanguinistFeatureDocuments.length}`);
+}
+for (const identifier of [
+  "sanguinist-blood-magic",
+  "hematurgy",
+  "sanguinist-spellcasting",
+  "student-of-blood",
+  "sanguine-power",
+  "vital-restoration",
+  "blood-compatibility",
+  "my-own-blood",
+  "blood-of-others",
+  "ritual-sacrifice",
+  "crimson-mastery",
+  "arterial-puppetry",
+  "blood-backlash",
+  "bloodletting",
+  "contusion",
+  "crimson-fury",
+  "sanguine-storm",
+  "transfusion",
+  "vampirism"
+]) {
+  const document = featuresByIdentifier.get(identifier);
+  if (!document) {
+    errors.push(`Missing Sanguinist feature: ${identifier}`);
+    continue;
+  }
+  if (document.flags?.[manifest.id]?.feature !== identifier) {
+    errors.push(`Sanguinist feature automation flag is missing: ${identifier}`);
+  }
+  if (document.flags?.[manifest.id]?.sanguinistFeature !== true) {
+    errors.push(`Sanguinist feature marker is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Foundry:")) {
+    errors.push(`Sanguinist automation description is missing: ${identifier}`);
+  }
+}
+const expectedKeeperSubclasses = new Map([
+  ["keeper-golem-maker", ["golem", "golem-maker"]],
+  ["keeper-myth-seeker", ["myth", "myth-seeker-keeper"]],
+  ["keeper-spirit-medium", ["spirit", "spirit-medium-keeper"]],
+  ["keeper-wild-tamer", ["wild", "wild-tamer-keeper"]]
+]);
+const keeperSubclassDocuments = subclassDocuments.filter(document => document.system.classIdentifier === "keeper");
+if (keeperSubclassDocuments.length !== 4) {
+  errors.push(`Expected 4 Keeper subclasses, got ${keeperSubclassDocuments.length}`);
+}
+for (const [identifier, [specialization, featureIdentifier]] of expectedKeeperSubclasses) {
+  const document = subclassesByIdentifier.get(identifier);
+  const featureDocument = featuresByIdentifier.get(featureIdentifier);
+  if (!document) {
+    errors.push(`Missing Keeper subclass: ${identifier}`);
+    continue;
+  }
+  if (document.system.classIdentifier !== "keeper") {
+    errors.push(`Keeper subclass ${identifier} must be attached to Keeper`);
+  }
+  if (document.flags?.[manifest.id]?.keeperSubclass !== specialization) {
+    errors.push(`Keeper subclass automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Keeper subclass automation description is missing: ${identifier}`);
+  }
+  const expectedUuid = featureDocument
+    ? `Compendium.${manifest.id}.features.Item.${featureDocument._id}`
+    : "";
+  const grantsFeature = (document.system.advancement ?? []).some(advancement =>
+    advancement.type === "ItemGrant"
+      && advancement.level === 1
+      && advancement.configuration?.items?.some(item => item.uuid === expectedUuid)
+  );
+  if (!expectedUuid || !grantsFeature) {
+    errors.push(`Keeper subclass ${identifier} must grant feature ${featureIdentifier} at level 1`);
+  }
+}
+const expectedSpiritVesselSubclasses = new Map([
+  ["spirit-vessel-aberration", ["aberration", "spirit-aberration"]],
+  ["spirit-vessel-celestial", ["celestial", "spirit-celestial"]],
+  ["spirit-vessel-elemental-earth", ["elemental-earth", "spirit-elemental-earth"]],
+  ["spirit-vessel-elemental-air", ["elemental-air", "spirit-elemental-air"]],
+  ["spirit-vessel-elemental-fire", ["elemental-fire", "spirit-elemental-fire"]],
+  ["spirit-vessel-elemental-water", ["elemental-water", "spirit-elemental-water"]],
+  ["spirit-vessel-fey", ["fey", "spirit-fey"]],
+  ["spirit-vessel-fiend", ["fiend", "spirit-fiend"]],
+  ["spirit-vessel-undead", ["undead", "spirit-undead"]]
+]);
+const spiritVesselSubclassDocuments = subclassDocuments.filter(document => document.system.classIdentifier === "spirit-vessel");
+if (spiritVesselSubclassDocuments.length !== 9) {
+  errors.push(`Expected 9 Spirit Vessel subclasses, got ${spiritVesselSubclassDocuments.length}`);
+}
+for (const [identifier, [spirit, featureIdentifier]] of expectedSpiritVesselSubclasses) {
+  const document = subclassesByIdentifier.get(identifier);
+  const featureDocument = featuresByIdentifier.get(featureIdentifier);
+  if (!document) {
+    errors.push(`Missing Spirit Vessel subclass: ${identifier}`);
+    continue;
+  }
+  if (document.system.classIdentifier !== "spirit-vessel") {
+    errors.push(`Spirit Vessel subclass ${identifier} must be attached to Spirit Vessel`);
+  }
+  if (document.flags?.[manifest.id]?.spiritVesselSubclass !== spirit) {
+    errors.push(`Spirit Vessel subclass automation flag is missing: ${identifier}`);
+  }
+  if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
+    errors.push(`Spirit Vessel subclass automation description is missing: ${identifier}`);
+  }
+  const expectedUuid = featureDocument
+    ? `Compendium.${manifest.id}.features.Item.${featureDocument._id}`
+    : "";
+  const grantsFeature = (document.system.advancement ?? []).some(advancement =>
+    advancement.type === "ItemGrant"
+      && advancement.level === 1
+      && advancement.configuration?.items?.some(item => item.uuid === expectedUuid)
+  );
+  if (!expectedUuid || !grantsFeature) {
+    errors.push(`Spirit Vessel subclass ${identifier} must grant feature ${featureIdentifier} at level 1`);
   }
 }
 
@@ -692,6 +2160,237 @@ for (const token of [
 ]) {
   if (!automationSource.includes(token)) errors.push(`Witch Blade runtime automation is missing token: ${token}`);
 }
+for (const token of [
+  "guardianClass",
+  "syncGuardianResources",
+  "guardianPrerequisiteFailures",
+  "validateGuardianFeaturePrerequisites"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Guardian runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "crusaderClass",
+  "syncCrusaderResources",
+  "activateCrusaderRage",
+  "crusaderPrerequisiteFailures",
+  "validateCrusaderFeaturePrerequisites"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Crusader runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "feyWarriorClass",
+  "syncFeyWarriorPassiveEffects",
+  "syncFeyWarriorResources",
+  "applyFeyWarriorDamageAutomation",
+  "feyWarriorPrerequisiteFailures",
+  "validateFeyWarriorFeaturePrerequisites"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Fey Warrior runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "ghostWalkerClass",
+  "syncGhostWalkerPassiveEffects",
+  "syncGhostWalkerResources",
+  "activateSpiritForm",
+  "endSpiritForm",
+  "ghostWalkerPrerequisiteFailures",
+  "validateGhostWalkerFeaturePrerequisites",
+  "GHOST_WALKER_PASSIVE",
+  "SPIRIT_FORM_EFFECT"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Ghost Walker runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "blinkerClass",
+  "syncBlinkerResources",
+  "useInnerBlink",
+  "useOuterBlink",
+  "activateSidewaysShift",
+  "applyBlinkerDamageAutomation",
+  "blinkerPrerequisiteFailures",
+  "validateBlinkerFeaturePrerequisites",
+  "BLINKER_SIDE_SHIFT_EFFECT"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Blinker runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "fallenPriestClass",
+  "syncFallenPriestSpellcasting",
+  "applyFallenPriestSpellProgression",
+  "fallenPriestPrerequisiteFailures",
+  "validateFallenPriestFeaturePrerequisites",
+  "FALLEN_PRIEST_ORIGINAL_PREPARATION"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Fallen Priest runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "plagueDoctorClass",
+  "syncPlagueDoctorResources",
+  "rollPlagueSneakAttack",
+  "createSmartInfection",
+  "clearSmartInfections",
+  "activateDiseaseForm",
+  "plagueDoctorPrerequisiteFailures",
+  "validatePlagueDoctorFeaturePrerequisites",
+  "SMART_INFECTION_EFFECT",
+  "DISEASE_FORM_EFFECT"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Plague Doctor runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "insectLordClass",
+  "syncInsectLordResources",
+  "syncInsectLordPassiveEffects",
+  "rollInsectTailSting",
+  "rollInsectBoneBlades",
+  "rollInsectSpew",
+  "detachCrawlingEye",
+  "insectLordPrerequisiteFailures",
+  "validateInsectLordFeaturePrerequisites",
+  "INSECT_LORD_PASSIVE",
+  "CREEPING_EYE_EFFECT"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Insect Lord runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "gamblerClass",
+  "syncGamblerResources",
+  "drawAstralCard",
+  "useHeldAstralCard",
+  "dealThem",
+  "storeSleevedCard",
+  "acesBeat",
+  "gamblerPrerequisiteFailures",
+  "validateGamblerFeaturePrerequisites",
+  "GAMBLER_HELD_CARD_EFFECT",
+  "GAMBLER_SLEEVED_CARD_EFFECT",
+  "GAMBLER_ACES_COOLDOWN_EFFECT"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Gambler runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "keeperClass",
+  "keeperAllyPoints",
+  "syncKeeperResources",
+  "syncKeeperAllyPoints",
+  "rollKeeperAllyStrike",
+  "rollKeeperRestRecovery",
+  "rollKeeperMightDamage",
+  "keeperPrerequisiteFailures",
+  "keeperSubclassPrerequisiteFailures",
+  "validateKeeperSubclassPrerequisites",
+  "validateKeeperFeaturePrerequisites"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Keeper runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "bloodMageClass",
+  "bloodMagePrerequisiteFailures",
+  "validateBloodMageFeaturePrerequisites",
+  "applyBloodMagicCost",
+  "validateBloodMagicCostUse",
+  "clearBloodMagicCosts",
+  "rollBloodMageSacrifice",
+  "BLOOD_MAGIC_COST_EFFECT"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Blood Mage runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "onmyojiClass",
+  "onmyojiPrerequisiteFailures",
+  "validateOnmyojiFeaturePrerequisites",
+  "syncOnmyojiResources",
+  "useOnmyojiKi",
+  "validateOnmyojiKiUse"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Onmyoji runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "ritualistClass",
+  "ritualistRitualPoints",
+  "syncRitualistResources",
+  "useRitualistRitualPoints",
+  "validateRitualistRitualPointUse",
+  "ritualistPrerequisiteFailures",
+  "validateRitualistFeaturePrerequisites",
+  "rollRitualistSpiritAgony",
+  "showRitualistSpiritChannel"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Ritualist runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "darkWarriorClass",
+  "darkWarriorPrerequisiteFailures",
+  "validateDarkWarriorFeaturePrerequisites",
+  "syncDarkWarriorResources",
+  "applyBlackMagicOil",
+  "drinkDarkWarriorElixir",
+  "applyDarkWarriorDamageAutomation",
+  "DARK_WARRIOR_OIL_EFFECT",
+  "DARK_WARRIOR_ELIXIR_EFFECT"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Dark Warrior runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "devilWorshipperClass",
+  "devilWorshipperPrerequisiteFailures",
+  "validateDevilWorshipperFeaturePrerequisites",
+  "chooseDevilWorshipperAbility",
+  "applyHellfireDamageAutomation",
+  "applyHellfireFury",
+  "summonDevilGlaive",
+  "rollDevilGlaiveDamage",
+  "gainDevilSoulAuraTempHp",
+  "DEVIL_WORSHIPPER_ABILITY",
+  "DEVIL_GLAIVE_EFFECT"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Devil Worshipper runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "nethereseArcanistClass",
+  "nethereseArcanistPrerequisiteFailures",
+  "validateNethereseArcanistFeaturePrerequisites",
+  "activateMiniMythal",
+  "overloadMiniMythal",
+  "useAncientKnowledge",
+  "castNethereseGreatSpell",
+  "NETHERIL_MINI_MYTHAL_EFFECT",
+  "NETHERIL_WEAVE_SEVERED_EFFECT"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Netherese Arcanist runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "oracleClass",
+  "syncOracleResources",
+  "syncOraclePassiveEffects",
+  "oraclePrerequisiteFailures",
+  "validateOracleFeaturePrerequisites",
+  "ORACLE_DISSONANCE",
+  "ORACLE_PASSIVE"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Oracle runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "demonologistClass",
+  "demonologistPrerequisiteFailures",
+  "validateDemonologistFeaturePrerequisites",
+  "activateDemonicVitality",
+  "beginDemonologistTurn",
+  "DEMONOLOGIST_VITALITY_EFFECT"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Demonologist runtime automation is missing token: ${token}`);
+}
+for (const token of [
+  "sanguinistClass",
+  "sanguinistPrerequisiteFailures",
+  "validateSanguinistFeaturePrerequisites",
+  "syncSanguinistResources",
+  "clearSanguinistRestState",
+  "SANGUINIST_BLOOD_POINTS",
+  "SANGUINIST_CRIMSON_FURY_EFFECT"
+]) {
+  if (!automationSource.includes(token)) errors.push(`Sanguinist runtime automation is missing token: ${token}`);
+}
 
 const schoolOfSteelFeatureDocuments = featureDocuments.filter(
   document => document.flags?.[manifest.id]?.schoolOfSteelFeature === true
@@ -849,6 +2548,47 @@ for (const identifier of [
     errors.push(`Witch Blade spell is missing: ${identifier}`);
   }
 }
+const bloodMageSpellDocuments = spellDocuments.filter(document => document.flags?.[manifest.id]?.bloodMageSpell === true);
+if (bloodMageSpellDocuments.length !== 2) {
+  errors.push(`Expected 2 Blood Mage spells, got ${bloodMageSpellDocuments.length}`);
+}
+for (const [identifier, level] of [
+  ["blood-transfer-spell", 3],
+  ["blood-thrall-spell", 5]
+]) {
+  const document = spellDocuments.find(document => document.system.identifier === identifier);
+  if (!document) {
+    errors.push(`Blood Mage spell is missing: ${identifier}`);
+    continue;
+  }
+  if (document.system.level !== level) errors.push(`Blood Mage spell ${identifier} must be level ${level}`);
+  if (document.flags?.[manifest.id]?.bloodMageSpell !== true) {
+    errors.push(`Blood Mage spell automation flag is missing: ${identifier}`);
+  }
+}
+const nethereseGreatSpellDocuments = spellDocuments.filter(document => document.flags?.[manifest.id]?.nethereseGreatSpell === true);
+if (nethereseGreatSpellDocuments.length !== 7) {
+  errors.push(`Expected 7 Netherese Arcanist great spells, got ${nethereseGreatSpellDocuments.length}`);
+}
+for (const identifier of [
+  "proctivs-floating-island",
+  "amaunators-eternal-sun",
+  "fiery-cataract",
+  "diluvial-torrent",
+  "horrible-drought",
+  "tolodines-killing-wind",
+  "beast-of-a-thousand-legs"
+]) {
+  const document = spellDocuments.find(document => document.system.identifier === identifier);
+  if (!document) {
+    errors.push(`Netherese Arcanist great spell is missing: ${identifier}`);
+    continue;
+  }
+  if (document.system.level !== 9) errors.push(`Netherese Arcanist great spell ${identifier} must be stored as level 9 for dnd5e compatibility`);
+  if (document.flags?.[manifest.id]?.nethereseGreatSpell !== true) {
+    errors.push(`Netherese Arcanist great spell automation flag is missing: ${identifier}`);
+  }
+}
 for (const document of hereticFeatureDocuments) {
   const identifier = document.system.identifier;
   if (document.flags?.[manifest.id]?.feature !== identifier) {
@@ -967,6 +2707,201 @@ const expectedClassFeatureLinks = new Map([
     "witch-blade-seal",
     "great-design",
     "immaterial-whirlwind"
+  ]],
+  ["guardian", [
+    "guardian-calling",
+    "guardian-mark",
+    "protection-specialization",
+    "endure-pain",
+    "powerful-retribution",
+    "steadfastness",
+    "powerful-retribution-improved",
+    "guardian-unyielding"
+  ]],
+  ["crusader", [
+    "crusader-miracles",
+    "crusader-rage",
+    "crusader-aegis",
+    "divine-devotion",
+    "consecration",
+    "condemnation"
+  ]],
+  ["fey-warrior", [
+    "fey-transformation",
+    "fey-warrior-cantrips",
+    "call-of-feywild",
+    "charming-defense",
+    "chimeric-weapon",
+    "permanent-manifestation",
+    "fey-magic",
+    "fey-skin"
+  ]],
+  ["ghost-walker", [
+    "touched-by-death",
+    "spirit-form",
+    "possession",
+    "ghost-step",
+    "otherworldly-presence",
+    "drain-soul",
+    "kindred-spirit",
+    "unfinished-business"
+  ]],
+  ["blinker", [
+    "inner-blink",
+    "turnaround-blink",
+    "sideways-shift",
+    "blinking-step",
+    "improved-technique",
+    "blinking-wrist",
+    "outer-blink",
+    "shift-sense",
+    "disappearance",
+    "miraculous-homecoming"
+  ]],
+  ["fallen-priest", [
+    "fallen-priest-heretic",
+    "fallen-priest-spellcasting",
+    "fallen-priest-turn-undead",
+    "divine-resistance",
+    "absorb-power",
+    "divine-copying",
+    "arcane-copying"
+  ]],
+  ["plague-doctor", [
+    "plague-sneak-attack",
+    "disease-carrier",
+    "ragged-armor",
+    "touch-of-disease",
+    "smart-infection",
+    "infect-wounds",
+    "disease-form"
+  ]],
+  ["insect-lord", [
+    "chitinous-carapace",
+    "insect-familiar",
+    "insect-natural-weapons",
+    "blood-drain",
+    "crawling-armor",
+    "spew-insects",
+    "swarm-mind",
+    "crawling-eye"
+  ]],
+  ["gambler", [
+    "astral-deck",
+    "deal-them",
+    "rogues-are-lucky",
+    "up-the-sleeve",
+    "aces-beat"
+  ]],
+  ["keeper", [
+    "keeper-ward-and-warded",
+    "keeper-ally-talents",
+    "strategy-and-synergy",
+    "united-and-protected",
+    "rest-and-recovery",
+    "might-and-magic"
+  ]],
+  ["blood-mage", [
+    "blood-mage-spellcasting",
+    "blood-magic",
+    "flesh-canvas",
+    "feast-of-the-fallen",
+    "blood-transfer",
+    "sanguine-fortitude",
+    "blood-mage-sacrifice",
+    "blood-thrall",
+    "maleficar",
+    "sanguine-strength"
+  ]],
+  ["onmyoji", [
+    "onmyoji-ki",
+    "shikigami-talisman",
+    "purification-rite",
+    "shikigami-ghost-hunter",
+    "spirit-place",
+    "spirit-alcohol",
+    "spirit-book",
+    "spirit-fire",
+    "spirit-food",
+    "spirit-mountain",
+    "spirit-steel",
+    "spirit-water",
+    "spirit-wood",
+    "spirit-wealth",
+    "spirit-wind"
+  ]],
+  ["ritualist", [
+    "binding-ritual",
+    "spirit-sight",
+    "mind-body-and-soul",
+    "protective-ritual",
+    "spirit-channel",
+    "ethereal-wanderer"
+  ]],
+  ["dark-warrior", [
+    "black-magic-oil",
+    "black-magic-elixir",
+    "improved-black-oil",
+    "improved-black-elixir",
+    "dark-resistance",
+    "blackening-weapon"
+  ]],
+  ["devil-worshipper", [
+    "devil-spellcasting-ability",
+    "hellfire",
+    "imp-familiar",
+    "devil-sight",
+    "dark-luck",
+    "quiet-whisper",
+    "empowered-charms",
+    "hellfire-fury",
+    "devilish-glaive",
+    "aura-of-devastated-souls"
+  ]],
+  ["netherese-arcanist", [
+    "scholar-arcanist",
+    "netherese-grimoire",
+    "mini-mythal",
+    "ancient-knowledge",
+    "great-spells"
+  ]],
+  ["spirit-vessel", [
+    "halved-ego",
+    "pact-magic-spirit-vessel",
+    "spirit-type",
+    "concentrated-strike",
+    "spirit-ability-improvement",
+    "flow-state",
+    "metaphysical-incarnation"
+  ]],
+  ["oracle", [
+    "influence-fates",
+    "oracle-first-secret",
+    "weaving-connections",
+    "sense-fate",
+    "oracle-great-secret"
+  ]],
+  ["demonologist", [
+    "demon-charm",
+    "infernal-familiar",
+    "master-summoner",
+    "dark-knowledge",
+    "demonic-resistance",
+    "demonic-vitality",
+    "demonic-mind",
+    "double-summon",
+    "domination"
+  ]],
+  ["sanguinist", [
+    "sanguinist-blood-magic",
+    "hematurgy",
+    "sanguinist-spellcasting",
+    "student-of-blood",
+    "sanguine-power",
+    "vital-restoration",
+    "blood-compatibility",
+    "ritual-sacrifice",
+    "crimson-mastery"
   ]]
 ]);
 for (const [classIdentifier, featureIdentifiers] of expectedClassFeatureLinks) {
@@ -982,6 +2917,69 @@ for (const [classIdentifier, featureIdentifiers] of expectedClassFeatureLinks) {
     }
   }
 }
+const keeperClassDescription = keeperClass?.system.description?.value ?? "";
+for (const identifier of [
+  "keeper-golem-maker",
+  "keeper-myth-seeker",
+  "keeper-spirit-medium",
+  "keeper-wild-tamer"
+]) {
+  const document = subclassesByIdentifier.get(identifier);
+  const expectedUuid = document
+    ? `@UUID[Compendium.${manifest.id}.subclasses.Item.${document._id}]`
+    : "";
+  if (!expectedUuid || !keeperClassDescription.includes(expectedUuid)) {
+    errors.push(`Keeper class is missing description link to subclass ${identifier}`);
+  }
+}
+const spiritVesselClassDescription = spiritVesselClass?.system.description?.value ?? "";
+for (const identifier of [
+  "spirit-vessel-aberration",
+  "spirit-vessel-celestial",
+  "spirit-vessel-elemental-earth",
+  "spirit-vessel-elemental-air",
+  "spirit-vessel-elemental-fire",
+  "spirit-vessel-elemental-water",
+  "spirit-vessel-fey",
+  "spirit-vessel-fiend",
+  "spirit-vessel-undead"
+]) {
+  const document = subclassesByIdentifier.get(identifier);
+  const expectedUuid = document
+    ? `@UUID[Compendium.${manifest.id}.subclasses.Item.${document._id}]`
+    : "";
+  if (!expectedUuid || !spiritVesselClassDescription.includes(expectedUuid)) {
+    errors.push(`Spirit Vessel class is missing description link to subclass ${identifier}`);
+  }
+}
+const bloodMageClassDescription = bloodMageClass?.system.description?.value ?? "";
+for (const identifier of ["blood-transfer-spell", "blood-thrall-spell"]) {
+  const document = spellDocuments.find(document => document.system.identifier === identifier);
+  const expectedUuid = document
+    ? `@UUID[Compendium.${manifest.id}.spells.Item.${document._id}]`
+    : "";
+  if (!expectedUuid || !bloodMageClassDescription.includes(expectedUuid)) {
+    errors.push(`Blood Mage class is missing description link to spell ${identifier}`);
+  }
+}
+const nethereseArcanistClassDescription = nethereseArcanistClass?.system.description?.value ?? "";
+for (const identifier of [
+  "proctivs-floating-island",
+  "amaunators-eternal-sun",
+  "fiery-cataract",
+  "diluvial-torrent",
+  "horrible-drought",
+  "tolodines-killing-wind",
+  "beast-of-a-thousand-legs"
+]) {
+  const document = spellDocuments.find(document => document.system.identifier === identifier);
+  const expectedUuid = document
+    ? `@UUID[Compendium.${manifest.id}.spells.Item.${document._id}]`
+    : "";
+  if (!expectedUuid || !nethereseArcanistClassDescription.includes(expectedUuid)) {
+    errors.push(`Netherese Arcanist class is missing description link to spell ${identifier}`);
+  }
+}
 
 const requiredActions = new Map([
   ["great-weapon-style", "toggle-gwm"],
@@ -991,7 +2989,84 @@ const requiredActions = new Map([
   ["steel-giant", "sync-steel-giant"],
   ["adaptability", "toggle-style"],
   ["smithing", "smithing"],
-  ["glimpse-of-genius", "arm-glimpse-of-genius"]
+  ["glimpse-of-genius", "arm-glimpse-of-genius"],
+  ["crusader-rage", "activate-crusader-rage"],
+  ["spirit-form", "activate-spirit-form"],
+  ["inner-blink", "use-inner-blink"],
+  ["sideways-shift", "activate-sideways-shift"],
+  ["outer-blink", "use-outer-blink"],
+  ["fallen-priest-spellcasting", "sync-fallen-priest-spellcasting"],
+  ["plague-sneak-attack", "roll-plague-sneak-attack"],
+  ["smart-infection", "create-smart-infection"],
+  ["disease-form", "activate-disease-form"],
+  ["insect-natural-weapons", "roll-insect-tail-sting"],
+  ["blood-drain", "roll-insect-blood-drain"],
+  ["crawling-armor", "use-crawling-armor"],
+  ["spew-insects", "roll-insect-spew"],
+  ["crawling-eye", "detach-crawling-eye"],
+  ["astral-deck", "draw-astral-card"],
+  ["deal-them", "deal-them"],
+  ["rogues-are-lucky", "rogues-are-lucky"],
+  ["up-the-sleeve", "store-sleeved-card"],
+  ["aces-beat", "aces-beat"],
+  ["keeper-ward-and-warded", "sync-keeper-ally-points"],
+  ["rest-and-recovery", "roll-keeper-rest-recovery"],
+  ["might-and-magic", "roll-keeper-might-damage"],
+  ["blood-magic", "apply-blood-magic-cost"],
+  ["blood-mage-sacrifice", "roll-blood-mage-sacrifice"],
+  ["onmyoji-ki", "sync-onmyoji-resources"],
+  ["binding-ritual", "sync-ritualist-resources"],
+  ["spirit-channel", "show-ritualist-spirit-channel"],
+  ["black-magic-oil", "apply-black-magic-oil"],
+  ["black-magic-elixir", "drink-dark-warrior-elixir"],
+  ["devil-spellcasting-ability", "choose-devil-worshipper-ability"],
+  ["dark-luck", "show-dark-luck"],
+  ["empowered-charms", "show-empowered-charms"],
+  ["devilish-glaive", "summon-devil-glaive"],
+  ["aura-of-devastated-souls", "gain-devil-soul-aura-temp-hp"],
+  ["scholar-arcanist", "show-scholar-arcanist"],
+  ["mini-mythal", "activate-mini-mythal"],
+  ["ancient-knowledge", "use-ancient-knowledge"],
+  ["great-spells", "cast-netherese-great-spell"],
+  ["pact-magic-spirit-vessel", "choose-spirit-vessel-ability"],
+  ["concentrated-strike", "roll-spirit-vessel-concentrated-strike"],
+  ["spirit-ability-improvement", "show-spirit-vessel-ability-improvement"],
+  ["flow-state", "activate-spirit-flow"],
+  ["spirit-aberration", "spirit-vessel-aberration-charm"],
+  ["spirit-fey", "spirit-vessel-fey-charm"],
+  ["spirit-fiend", "spirit-vessel-fiend-flames"],
+  ["spirit-undead", "spirit-vessel-undead-frighten"],
+  ["influence-fates", "sync-oracle-resources"],
+  ["oracle-first-secret", "oracle-free-scrying"],
+  ["weaving-connections", "oracle-remove-dissonance-slot"],
+  ["sense-fate", "oracle-danger"],
+  ["oracle-great-secret", "oracle-astral-projection"],
+  ["demon-charm", "show-demonologist-demon-charm"],
+  ["infernal-familiar", "show-demonologist-infernal-familiar"],
+  ["master-summoner", "use-demonologist-master-summoner"],
+  ["dark-knowledge", "cast-demonologist-protection"],
+  ["demonic-vitality", "activate-demonic-vitality"],
+  ["demonic-mind", "cast-demonologist-detect-thoughts"],
+  ["double-summon", "use-demonologist-double-summon"],
+  ["domination", "show-demonologist-domination"],
+  ["sanguinist-blood-magic", "sync-sanguinist-resources"],
+  ["hematurgy", "use-hematurgy"],
+  ["sanguinist-spellcasting", "show-sanguinist-spellcasting"],
+  ["student-of-blood", "cast-blood-reading"],
+  ["sanguine-power", "sanguine-power-hit-die"],
+  ["vital-restoration", "show-vital-restoration"],
+  ["blood-compatibility", "show-blood-compatibility"],
+  ["my-own-blood", "use-my-own-blood-recovery"],
+  ["blood-of-others", "gain-sanguinist-blood-points-others"],
+  ["ritual-sacrifice", "show-ritual-sacrifice"],
+  ["arterial-puppetry", "use-arterial-puppetry"],
+  ["blood-backlash", "use-blood-backlash"],
+  ["bloodletting", "use-bloodletting"],
+  ["contusion", "use-contusion"],
+  ["crimson-fury", "use-crimson-fury"],
+  ["sanguine-storm", "use-sanguine-storm"],
+  ["transfusion", "use-transfusion"],
+  ["vampirism", "use-vampirism"]
 ]);
 for (const [identifier, action] of requiredActions) {
   const document = featuresByIdentifier.get(identifier);
@@ -1005,6 +3080,70 @@ const occultActions = Object.values(occultGift?.system?.activities ?? {})
   .map(activity => activity.flags?.[manifest.id]?.action);
 for (const action of ["choose-occult-ability", "use-occult-points"]) {
   if (!occultActions.includes(action)) errors.push(`Missing activity action ${action} on occult-gifts`);
+}
+
+const oracleRequiredActions = new Map([
+  ["influence-fates", ["sync-oracle-resources", "oracle-fate-miss", "oracle-mysterious-guidance", "oracle-balancing-ritual"]],
+  ["oracle-first-secret", ["oracle-free-scrying", "oracle-read-threads"]],
+  ["weaving-connections", ["oracle-remove-dissonance-slot", "oracle-restore-slot-dissonance"]],
+  ["sense-fate", ["oracle-danger"]],
+  ["oracle-great-secret", ["oracle-astral-projection", "oracle-exchange-fates", "oracle-fate-scissors"]]
+]);
+for (const [identifier, expectedActions] of oracleRequiredActions) {
+  const document = featuresByIdentifier.get(identifier);
+  const actions = Object.values(document?.system?.activities ?? {})
+    .map(activity => activity.flags?.[manifest.id]?.action);
+  for (const action of expectedActions) {
+    if (!actions.includes(action)) errors.push(`Missing Oracle activity action ${action} on ${identifier}`);
+  }
+}
+
+const demonologistRequiredActions = new Map([
+  ["demon-charm", ["show-demonologist-demon-charm"]],
+  ["infernal-familiar", ["show-demonologist-infernal-familiar"]],
+  ["master-summoner", ["use-demonologist-master-summoner"]],
+  ["dark-knowledge", ["cast-demonologist-protection", "cast-demonologist-spirit-guardians"]],
+  ["demonic-vitality", ["activate-demonic-vitality"]],
+  ["demonic-mind", ["cast-demonologist-detect-thoughts"]],
+  ["double-summon", ["use-demonologist-double-summon"]],
+  ["domination", ["show-demonologist-domination"]]
+]);
+for (const [identifier, expectedActions] of demonologistRequiredActions) {
+  const document = featuresByIdentifier.get(identifier);
+  const actions = Object.values(document?.system?.activities ?? {})
+    .map(activity => activity.flags?.[manifest.id]?.action);
+  for (const action of expectedActions) {
+    if (!actions.includes(action)) errors.push(`Missing Demonologist activity action ${action} on ${identifier}`);
+  }
+}
+
+const sanguinistRequiredActions = new Map([
+  ["sanguinist-blood-magic", ["sync-sanguinist-resources", "gain-sanguinist-blood-point", "spend-sanguinist-blood-points"]],
+  ["hematurgy", ["use-hematurgy"]],
+  ["sanguinist-spellcasting", ["show-sanguinist-spellcasting"]],
+  ["student-of-blood", ["cast-blood-reading", "mark-sanguinist-blood-spell"]],
+  ["sanguine-power", ["sanguine-power-hit-die", "sanguine-power-blood-point"]],
+  ["vital-restoration", ["show-vital-restoration"]],
+  ["blood-compatibility", ["show-blood-compatibility"]],
+  ["my-own-blood", ["use-my-own-blood-recovery"]],
+  ["blood-of-others", ["gain-sanguinist-blood-points-others"]],
+  ["ritual-sacrifice", ["show-ritual-sacrifice"]],
+  ["arterial-puppetry", ["use-arterial-puppetry"]],
+  ["blood-backlash", ["use-blood-backlash"]],
+  ["bloodletting", ["use-bloodletting"]],
+  ["contusion", ["use-contusion"]],
+  ["crimson-fury", ["use-crimson-fury"]],
+  ["sanguine-storm", ["use-sanguine-storm"]],
+  ["transfusion", ["use-transfusion"]],
+  ["vampirism", ["use-vampirism"]]
+]);
+for (const [identifier, expectedActions] of sanguinistRequiredActions) {
+  const document = featuresByIdentifier.get(identifier);
+  const actions = Object.values(document?.system?.activities ?? {})
+    .map(activity => activity.flags?.[manifest.id]?.action);
+  for (const action of expectedActions) {
+    if (!actions.includes(action)) errors.push(`Missing Sanguinist activity action ${action} on ${identifier}`);
+  }
 }
 
 const forestRequiredActions = new Map([

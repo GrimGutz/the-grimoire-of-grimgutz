@@ -1,0 +1,218 @@
+import {
+  activeEffect,
+  feature,
+  folder,
+  idFor,
+  utilityActivity
+} from "../common.mjs";
+
+const SOURCE = "Престиж-класс: Крестоносец; предоставленный PDF PK_Krestonosets (1).pdf";
+const WOW = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack";
+const MAIN_FOLDER = idFor("folder:crusader-features");
+
+export const crusaderFolders = [
+  folder({ key: "crusader-features", name: "Крестоносец: классовые особенности", sort: 1000000 })
+];
+
+function description(body, automation) {
+  return `${body}<hr><p><strong>Автоматизация Foundry:</strong> ${automation}</p>`;
+}
+
+function crusaderFeature({
+  key,
+  name,
+  img,
+  level,
+  description: value,
+  uses = null,
+  activities = {},
+  effects = [],
+  automation = {}
+}) {
+  return feature({
+    key,
+    name,
+    img,
+    level,
+    requirements: `Крестоносец ${level}`,
+    folder: MAIN_FOLDER,
+    uses,
+    activities,
+    effects,
+    automation: {
+      feature: key,
+      crusaderFeature: true,
+      minimumLevel: level,
+      ...automation
+    },
+    sourcePage: "1–2",
+    sourceCustom: SOURCE,
+    description: value
+  });
+}
+
+export const crusaderDocuments = [
+  crusaderFeature({
+    key: "crusader-miracles",
+    name: "Чудеса Крестоносца",
+    img: `${WOW}/Spells/Crusade.png`,
+    level: 1,
+    activities: utilityActivity({
+      key: "crusader-spell-slots",
+      name: "Таблица ячеек Крестоносца",
+      activation: "special"
+    }),
+    description: description(`
+      <p>Вы подготавливаете список заклинаний Крестоносца, равный модификатору Харизмы + вашему уровню Крестоносца. Уровень заклинаний не должен превышать уровень самой высокой имеющейся у вас ячейки Крестоносца. Заклинательная характеристика — Харизма.</p>
+      <p><strong>Сл спасброска:</strong> 8 + бонус мастерства + модификатор Харизмы. <strong>Атака заклинанием:</strong> бонус мастерства + модификатор Харизмы.</p>
+      <table><thead><tr><th>Уровень Крестоносца</th><th>1-й круг</th><th>2-й круг</th><th>3-й круг</th></tr></thead><tbody>
+        <tr><td>1</td><td>2</td><td>—</td><td>—</td></tr>
+        <tr><td>2</td><td>3</td><td>—</td><td>—</td></tr>
+        <tr><td>3</td><td>4</td><td>2</td><td>—</td></tr>
+        <tr><td>4</td><td>4</td><td>3</td><td>—</td></tr>
+        <tr><td>5</td><td>4</td><td>3</td><td>2</td></tr>
+      </tbody></table>
+      <p><strong>1 круг:</strong> Порча, Приказ, Вызов на дуэль, Благословение, Лечение ран, Обнаружение добра и зла, Божественное благоволение, Героизм, Защита от добра и зла, Убежище, Палящая кара, Щит веры, Громовая кара, Гневная кара, Жаждущее лезвие, Боевой клич, Благостность.</p>
+      <p><strong>2 круг:</strong> Подмога, Гадание, Клеймящая кара, Вечный огонь, Поиск скакуна, Нетленные останки, Удержание личности, Малое восстановление, Магическое оружие, Молебен лечения, Божественное оружие, Охраняющая связь, Область истины.</p>
+      <p><strong>3 круг:</strong> Аура живучести, Маяк надежды, Ослепляющая кара, Опутывающая кара, Солнечный взгляд, Мантия крестоносца, Дневной свет, Магический круг, Множественное лечащее слово, Снятие проклятья, Возрождение, Разговор с мёртвыми, Духовные стражи, Видения Ада.</p>
+    `, "класс добавляет ScaleValue для ячеек 1–3 круга и формулу подготовки. У dnd5e нет штатной прогрессии с этой нестандартной 5-уровневой таблицей, поэтому ячейки отслеживаются по таблице/ScaleValue, а не через обычную прогрессию заклинателя.")
+  }),
+  crusaderFeature({
+    key: "crusader-rage",
+    name: "Ярость",
+    img: `${WOW}/Abilities/SanctifiedWrath.png`,
+    level: 1,
+    uses: {
+      max: "1",
+      spent: 0,
+      recovery: [
+        { period: "sr", type: "recoverAll" },
+        { period: "lr", type: "recoverAll" }
+      ]
+    },
+    activities: {
+      ...utilityActivity({
+        key: "activate-crusader-rage",
+        name: "Войти в Ярость",
+        action: "activate-crusader-rage",
+        activation: "bonus",
+        consumeItemUse: true
+      }),
+      ...utilityActivity({
+        key: "crusader-rage-reduction",
+        name: "Снизить стихийный урон",
+        activation: "special",
+        condition: "Пока вы в Ярости и получаете урон огнём, холодом, звуком, электричеством или излучением",
+        rollFormula: "@scale.crusader.rage-reduction",
+        rollName: "Снижение урона Яростью",
+        rollVisible: true
+      })
+    },
+    description: description(`
+      <p>В свой ход вы можете бонусным действием войти в состояние ярости на 1 минуту. Она прекращается раньше, если вы потеряли сознание, если закончили ход, не атаковав враждебное существо с момента окончания прошлого хода, или если с момента окончания прошлого хода не получили урон. Также вы можете прекратить ярость бонусным действием.</p>
+      <p>Пока вы в ярости, вы совершаете с преимуществом проверки и спасброски Харизмы.</p>
+      <p>Если вы совершаете рукопашную атаку оружием, используя Силу, вы получаете бонус к броску урона, равный количеству врагов в радиусе 30 футов от вас, максимум равный модификатору Харизмы.</p>
+      <p>Когда вы получаете урон огнём, холодом, звуком, электричеством или излучением, вы можете бросить кость Ярости и уменьшить урон на результат. Кость: к6 на 1–2 уровне, к8 на 3–4 уровне, к10 на 5 уровне.</p>
+      <p>После окончания ярости вы должны совершить короткий отдых, прежде чем сможете использовать её вновь.</p>
+    `, "активность «Войти в Ярость» тратит использование и накладывает временный эффект преимущества на проверки и спасброски Харизмы на 1 минуту. Активность снижения урона бросает текущую кость из ScaleValue. Бонус к урону от числа врагов применяется вручную.")
+  }),
+  crusaderFeature({
+    key: "crusader-aegis",
+    name: "Эгида крестоносца",
+    img: `${WOW}/Spells/DevineAegis.png`,
+    level: 1,
+    activities: utilityActivity({
+      key: "crusader-aegis",
+      name: "Принять урон на себя",
+      activation: "reaction",
+      condition: "Существо в пределах 5 футов от вас получает урон",
+      rangeValue: 5,
+      targetType: "ally",
+      targetCount: "1",
+      targetChoice: true
+    }),
+    description: description(`
+      <p>Когда существо в пределах 5 футов от вас получает урон, вы можете использовать реакцию, чтобы получить этот урон вместо него. Этот урон игнорирует все ваши сопротивления и иммунитеты.</p>
+    `, "карточка отмечает реакцию. Перенос урона выполняется вручную, потому что требует выбора момента до/во время применения урона и должен игнорировать ваши сопротивления и иммунитеты.")
+  }),
+  crusaderFeature({
+    key: "divine-devotion",
+    name: "Божественная преданность",
+    img: `${WOW}/Spells/DEVOTIONAURA.png`,
+    level: 2,
+    effects: [
+      activeEffect({
+        key: "divine-devotion",
+        name: "Божественная преданность",
+        img: `${WOW}/Spells/DEVOTIONAURA.png`,
+        changes: [
+          { key: "system.traits.ci.value", type: "custom", value: "frightened", priority: 20 },
+          { key: "system.traits.ci.value", type: "custom", value: "charmed", priority: 20 }
+        ],
+        transfer: false
+      })
+    ],
+    description: description(`
+      <p>Ваше присутствие вдохновляет тех, кто предан вашему делу.</p>
+      <ul>
+        <li>Вы можете использовать <em>Обнаружение болезней и яда</em> и <em>Очищение пищи и питья</em> как ритуалы.</li>
+        <li>Ваши союзники получают преимущество на спасброски от смерти, находясь в пределах 30 футов от вас.</li>
+        <li>Вы получаете иммунитет к страху и очарованию.</li>
+      </ul>
+    `, "модуль накладывает пассивный эффект иммунитета к испугу и очарованию. Ритуалы и преимущество союзников на спасброски от смерти применяются вручную по ситуации.")
+  }),
+  crusaderFeature({
+    key: "consecration",
+    name: "Освящение",
+    img: `${WOW}/Spells/GreaterBlessingofSanctuary.png`,
+    level: 3,
+    activities: utilityActivity({
+      key: "consecration",
+      name: "Освятить землю",
+      activation: "action",
+      condition: "Потратьте одну ячейку заклинания Крестоносца",
+      rangeValue: 30,
+      targetType: "creature",
+      rollFormula: "@abilities.cha.mod + @classes.crusader.levels",
+      rollName: "Урон излучением / временные хиты",
+      rollVisible: true
+    }),
+    description: description(`
+      <p>Действием вы можете использовать одну ячейку заклинания Крестоносца, чтобы освятить землю вокруг себя. Каждое враждебное существо в радиусе 30 футов должно совершить спасбросок Харизмы. При провале существо получает урон излучением, равный вашему модификатору Харизмы + уровню Крестоносца.</p>
+      <p>Союзники в том же радиусе получают временные хиты, равные вашему модификатору Харизмы + уровню Крестоносца. Эта способность также очищает осквернённую землю.</p>
+    `, "активность бросает общую величину урона/временных хитов. Спасброски, трата нестандартной ячейки Крестоносца, выбор врагов/союзников и очищение земли применяются вручную.")
+  }),
+  crusaderFeature({
+    key: "condemnation",
+    name: "Осуждение",
+    img: `${WOW}/Abilities/EnlightenedJudgements.png`,
+    level: 5,
+    uses: {
+      max: "1",
+      spent: 0,
+      recovery: [
+        { period: "lr", type: "recoverAll" }
+      ]
+    },
+    activities: utilityActivity({
+      key: "condemnation",
+      name: "Осудить цель",
+      activation: "bonus",
+      condition: "В свой ход, когда вы попадаете по существу атакой оружием",
+      consumeItemUse: true,
+      rangeValue: 60,
+      targetType: "creature",
+      targetCount: "1",
+      targetChoice: true,
+      rollFormula: "8 + @prof + @abilities.cha.mod",
+      rollName: "Сл спасброска Мудрости",
+      rollVisible: true
+    }),
+    description: description(`
+      <p>В свой ход, когда вы попадаете по существу атакой оружием, вы можете осудить его бонусным действием. Цель должна преуспеть в спасброске Мудрости, иначе становится осуждённой на 1 минуту и светится ярким контуром.</p>
+      <p>Осуждённое существо излучает тусклый свет в радиусе 10 футов. Все броски атаки по нему совершаются с преимуществом, если атакующий видит цель, и цель не получает преимуществ от невидимости.</p>
+      <p>Также цель привязана к текущему плану и не может использовать экстрапланарное перемещение, включая телепортацию.</p>
+      <p>Вы можете использовать эту способность число раз, равное модификатору Харизмы, минимум один раз, и восстанавливаете все использования после продолжительного отдыха.</p>
+    `, "модуль синхронизирует максимум использований по модификатору Харизмы. Активность тратит использование и показывает Сл спасброска. Состояние осуждения, преимущество атак и запрет телепортации применяются вручную к цели.")
+  })
+];
