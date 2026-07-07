@@ -8,6 +8,15 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { applyTargetEffect } from "../shared/target-effects.mjs";
+import {
+  applyTemporaryHp,
+  createCircleTemplate,
+  groupTokensByDisposition,
+  postZoneSummary,
+  sourceTokenForActor,
+  tokensWithinRadius
+} from "../shared/zones.mjs";
 
 const crusaderSyncs = new Set();
 
@@ -134,6 +143,82 @@ export async function activateCrusaderRage(actor) {
   return true;
 }
 
+function proficiencyBonus(actor) {
+  const value = Number(actor?.system?.attributes?.prof ?? actor?.system?.prof ?? 0);
+  return Number.isFinite(value) ? value : 0;
+}
+
+function crusaderSpellSaveDc(actor) {
+  return 8 + proficiencyBonus(actor) + abilityMod(actor, "cha");
+}
+
+export async function useCrusaderConsecration(actor) {
+  if (!validateCrusaderConsecrationUse(actor)) return false;
+
+  const sourceToken = sourceTokenForActor(actor);
+  if (!sourceToken) {
+    notify("Для автоматизации «Освящения» нужен токен Крестоносца на активной сцене.", "warn");
+    return false;
+  }
+
+  const radius = 30;
+  const amount = Math.max(0, abilityMod(actor, "cha") + crusaderLevel(actor));
+  await createCircleTemplate({
+    actor,
+    originToken: sourceToken,
+    radius,
+    label: "Освящение",
+    color: "#f8d878"
+  });
+
+  const tokens = tokensWithinRadius(sourceToken, radius, { includeOrigin: true });
+  const groups = groupTokensByDisposition(sourceToken, tokens);
+  const tempHp = await applyTemporaryHp(groups.allies, amount);
+  const saveDc = crusaderSpellSaveDc(actor);
+
+  const notes = [
+    `Союзникам в радиусе применены временные хиты: ${amount}.`,
+    `Враги из списка должны пройти спасбросок Харизмы СЛ ${saveDc}; при провале получают ${amount} урона излучением.`,
+    "Трата нестандартной ячейки Крестоносца и очищение осквернённой земли остаются ручными."
+  ];
+  if (tempHp.failed.length) notes.push("Часть временных хитов не удалось применить автоматически: проверьте права на актёров.");
+
+  await postZoneSummary({
+    actor,
+    sourceToken,
+    title: "Освящение",
+    radius,
+    originToken: sourceToken,
+    rows: [
+      { label: "Величина", value: `${amount} временных хитов / урона излучением` },
+      { label: "Союзники", tokens: tempHp.applied },
+      { label: "Враги", tokens: groups.enemies },
+      ...(groups.neutral.length ? [{ label: "Нейтральные токены", tokens: groups.neutral }] : [])
+    ],
+    notes
+  });
+  return true;
+}
+
+export async function condemnCrusaderTarget(actor) {
+  if (!validateCrusaderCondemnationUse(actor)) return false;
+  const feature = findFeature(actor, "condemnation");
+  const saveDc = crusaderSpellSaveDc(actor);
+  return applyTargetEffect({
+    sourceActor: actor,
+    sourceItem: feature,
+    key: "crusader-condemnation",
+    name: "Осуждён",
+    img: feature?.img,
+    statusLabel: "Осуждён",
+    duration: { seconds: 60 },
+    title: "Осуждение",
+    saveText: `Мудрость СЛ ${saveDc}; накладывайте эффект только на цели, провалившие спасбросок.`,
+    note: "Маркер напоминает: атаки по цели совершаются с преимуществом, цель не получает преимуществ от невидимости и не может использовать телепортацию/экстрапланарное перемещение. Механически эти части проверяются вручную.",
+    description: `<p>Осуждённая цель светится тусклым контуром 1 минуту. Атаки по ней совершаются с преимуществом, если атакующий видит цель; цель не получает преимуществ от невидимости и не может использовать телепортацию или экстрапланарное перемещение.</p>`
+  });
+}
+
 export function validateCrusaderRageUse(actor) {
   if (!actor || !crusaderClass(actor)) {
     notify("Эта активность требует класс «Крестоносец».", "warn");
@@ -144,6 +229,30 @@ export function validateCrusaderRageUse(actor) {
   if (rage && uses.remaining > 0) return true;
   notify("Недостаточно использований «Ярости». Завершите короткий или продолжительный отдых.", "warn");
   return false;
+}
+
+export function validateCrusaderConsecrationUse(actor) {
+  if (!actor || !crusaderClass(actor)) {
+    notify("Эта активность требует класс «Крестоносец».", "warn");
+    return false;
+  }
+  if (!findFeature(actor, "consecration")) {
+    notify("Для автоматизации требуется особенность «Освящение».", "warn");
+    return false;
+  }
+  return true;
+}
+
+export function validateCrusaderCondemnationUse(actor) {
+  if (!actor || !crusaderClass(actor)) {
+    notify("Эта активность требует класс «Крестоносец».", "warn");
+    return false;
+  }
+  if (!findFeature(actor, "condemnation")) {
+    notify("Для автоматизации требуется особенность «Осуждение».", "warn");
+    return false;
+  }
+  return true;
 }
 
 function currentMax(item) {

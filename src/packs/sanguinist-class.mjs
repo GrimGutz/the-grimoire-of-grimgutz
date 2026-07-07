@@ -12,7 +12,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Сангвинист; предоставленный PDF САНГВИНИСТ_PK (1).pdf";
-const ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Blood_mage.png";
+const ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/BloodTap.png";
 
 const FEATURE_LABELS = {
   "sanguinist-blood-magic": "Кровавая магия",

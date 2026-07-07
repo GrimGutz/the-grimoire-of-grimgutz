@@ -12,6 +12,8 @@ import {
   flaggedPassiveEffectData,
   syncFlaggedPassiveEffects
 } from "../effects/passive-helpers.mjs";
+import { createSummonedCreature } from "../shared/summons.mjs";
+import { ghostWalkerSpiritSummon } from "../shared/summon-templates.mjs";
 
 const ghostWalkerSyncs = new Set();
 const ghostWalkerPassiveSyncs = new Set();
@@ -187,6 +189,28 @@ export function validateSpiritFormUse(actor, activity) {
   if (feature && uses.remaining > 0) return true;
   notify("Недостаточно использований «Формы Духа». Завершите продолжительный отдых.", "warn");
   return false;
+}
+
+function selectedTargetActor() {
+  const targets = [...(game.user?.targets ?? [])];
+  return targets[0]?.actor ?? null;
+}
+
+export function validateGhostWalkerSummonUse(actor, activity) {
+  if (!actor || !ghostWalkerClass(actor)) {
+    notify("Эта активность требует класс «Призрачный странник».", "warn");
+    return false;
+  }
+  const feature = activity?.item ?? activity?.parent ?? findFeature(actor, "unfinished-business");
+  const uses = itemUses(feature);
+  if (feature && uses.remaining > 0) return true;
+  notify("Недостаточно использований «Незавершённого дела». Завершите продолжительный отдых.", "warn");
+  return false;
+}
+
+export async function summonUnfinishedBusinessSpirit(actor, activity) {
+  if (!validateGhostWalkerSummonUse(actor, activity)) return false;
+  return createSummonedCreature(actor, ghostWalkerSpiritSummon(actor, selectedTargetActor()));
 }
 
 function ghostWalkerPassiveDefinitions(actor) {

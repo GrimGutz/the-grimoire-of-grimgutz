@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { idFor, MODULE_ID, stats } from "../common.mjs";
+import { idFor, MODULE_ID, stats, withAutomationConfig } from "../common.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const statblocksPath = path.join(root, "Statblocks.md");
@@ -997,11 +997,11 @@ function baseEmbeddedItem({ actorKey, key, name, type, img, system }) {
     ownership: {
       default: 0
     },
-    flags: {
+    flags: withAutomationConfig({
       [MODULE_ID]: {
         bestiary: true
       }
-    },
+    }, { key, type: "bestiary-item" }),
     _stats: stats()
   };
 }
@@ -1909,12 +1909,12 @@ function actorFromBlock(block) {
     ownership: {
       default: 0
     },
-    flags: {
+    flags: withAutomationConfig({
       [MODULE_ID]: {
         bestiaryNpc: true,
         source: "Statblocks.md"
       }
-    },
+    }, { key, type: "npc" }),
     system,
     prototypeToken: prototypeToken(title, img, system.traits.size),
     _stats: stats(),

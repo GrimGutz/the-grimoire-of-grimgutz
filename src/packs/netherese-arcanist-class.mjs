@@ -11,7 +11,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Нетерильский арканист; предоставленный PDF PK_NeterilArkanist.pdf";
-const CLASS_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Netheril_arcanist.png";
+const CLASS_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/StudentOfMagic.png";
 
 function featureLink(identifier, label) {
   return `@UUID[${uuidFor("features", identifier)}]{${label}}`;

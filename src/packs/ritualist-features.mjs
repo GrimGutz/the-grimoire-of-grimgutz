@@ -72,10 +72,8 @@ function ritualPointActivity({ key, name, cost, activation = "action" }) {
   return utilityActivity({
     key,
     name,
-    action: "use-ritualist-ritual-points",
-    actionData: {
-      ritualistRitualPointCost: cost
-    },
+    action: "summon-ritualist-spirits",
+    actionData: cost ? { ritualistRitualPointCost: cost } : {},
     activation,
     spellSlot: false
   });
@@ -110,19 +108,8 @@ export const ritualistDocuments = [
         spellSlot: false
       }),
       ...ritualPointActivity({
-        key: "ritualist-summon-one-spirit",
-        name: "Призвать 1 духа",
-        cost: 1
-      }),
-      ...ritualPointActivity({
-        key: "ritualist-summon-two-spirits",
-        name: "Призвать 2 духов",
-        cost: 2
-      }),
-      ...ritualPointActivity({
-        key: "ritualist-summon-three-spirits",
-        name: "Призвать 3 духов",
-        cost: 3
+        key: "ritualist-summon-spirits",
+        name: "Призвать духов"
       }),
       ...utilityActivity({
         key: "ritualist-spirit-dc",
@@ -175,7 +162,7 @@ export const ritualistDocuments = [
         <li><strong>Дух скорбной песни.</strong> Существо в пределах 30 футов совершает спасбросок Телосложения или получает 1к4 урона силовым полем и становится ослепшим или оглохшим на число раундов, равное вашему модификатору Мудрости. В конце каждого своего хода цель повторяет спасбросок.</li>
       </ul>
       <p>СЛ способностей духа: 8 + бонус мастерства + модификатор Мудрости Ритуалиста.</p>
-    `, "карточка хранит ритуальные очки как uses.max и синхронизирует их по уровню Ритуалиста: 2/3/3/4/5. Активности призыва списывают 1–3 ритуальных очка. Отдельные активности бросают стабильные формулы духов: урон Духа агонии, лечение Духа жизни, 1к10 защиты, 1к4 скорбной песни и 1к6 за один раунд Духа разрушения. Создание актёров духов, концентрация, потеря контроля и позиционирование выполняются Мастером вручную.")
+    `, "карточка хранит ритуальные очки как uses.max и синхронизирует их по уровню Ритуалиста: 2/3/3/4/5. Активность призыва открывает диалог выбора количества духов, создаёт 1–3 NPC-духов рядом с владельцем и списывает соответствующие ритуальные очки. Отдельные активности бросают стабильные формулы духов: урон Духа агонии, лечение Духа жизни, 1к10 защиты, 1к4 скорбной песни и 1к6 за один раунд Духа разрушения. Концентрация, потеря контроля и выбор варианта духа отслеживаются игроком/Мастером.")
   }),
   ritualistFeature({
     key: "spirit-sight",

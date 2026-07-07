@@ -11,6 +11,8 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod, clamp } from "../shared/dnd5e.mjs";
+import { choiceDialog } from "../shared/dialogs.mjs";
+import { applyTargetEffect } from "../shared/target-effects.mjs";
 import {
   flaggedPassiveEffectData,
   syncFlaggedPassiveEffects
@@ -371,42 +373,9 @@ export async function syncSpiritVesselResources(actor, { notifyResult = false } 
   }
 }
 
-async function chooseOption({ title, label, options }) {
-  const htmlOptions = options
-    .map(([value, optionLabel]) => `<option value="${value}">${foundry.utils.escapeHTML(optionLabel)}</option>`)
-    .join("");
-  return foundry.applications.api.DialogV2.wait({
-    window: { title },
-    position: { width: 420 },
-    content: `
-      <div class="form-group">
-        <label>${label}</label>
-        <div class="form-fields">
-          <select name="choice">${htmlOptions}</select>
-        </div>
-      </div>
-    `,
-    buttons: [
-      {
-        action: "choose",
-        label: "Выбрать",
-        icon: "fa-solid fa-check",
-        default: true,
-        callback: (_event, _button, dialog) => dialog.element.querySelector('select[name="choice"]')?.value
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => null
-      }
-    ]
-  });
-}
-
 export async function chooseSpiritVesselAbility(actor) {
   if (!actor || !spiritVesselClass(actor)) return false;
-  const ability = await chooseOption({
+  const ability = await choiceDialog({
     title: "Магия договора Сосуда Духа",
     label: "Заклинательная характеристика",
     options: [["int", "Интеллект"], ["wis", "Мудрость"], ["cha", "Харизма"]]
@@ -444,7 +413,7 @@ export async function chooseSpiritVesselStrikeDamage(actor) {
     notify(`${actor.name}: тип урона Концентрированного удара — ${options[0][1]}.`);
     return true;
   }
-  const damageType = await chooseOption({
+  const damageType = await choiceDialog({
     title: "Концентрированный удар",
     label: "Тип урона",
     options
@@ -527,6 +496,37 @@ async function showSpiritSave(actor, title, saveAbility, extra = "") {
   await chat(actor, `<p><strong>${actor.name}: ${title}.</strong> Цель совершает спасбросок ${saveAbility} против СЛ <strong>${spiritVesselSaveDC(actor)}</strong>. ${extra}</p>`);
 }
 
+async function applySpiritTargetCondition(actor, {
+  featureKey,
+  key,
+  title,
+  name,
+  status,
+  statusLabel,
+  saveAbility,
+  duration = {},
+  note = "",
+  description = ""
+}) {
+  const feature = findFeature(actor, featureKey) ?? spiritFeature(actor);
+  const applied = await applyTargetEffect({
+    sourceActor: actor,
+    sourceItem: feature,
+    key,
+    name,
+    img: feature?.img,
+    status,
+    statusLabel,
+    duration,
+    title,
+    saveText: `${saveAbility} СЛ ${spiritVesselSaveDC(actor)}; выбирайте только цели, провалившие спасбросок.`,
+    note,
+    description
+  });
+  if (!applied) await showSpiritSave(actor, title, saveAbility, note);
+  return applied;
+}
+
 async function activateFiendFlames(actor) {
   const feature = findFeature(actor, "spirit-fiend");
   if (!actor || !feature) return false;
@@ -570,13 +570,45 @@ export async function handleSpiritVesselAction(actor, activity, action) {
     case "activate-spirit-flow":
       return activateSpiritFlow(actor);
     case "spirit-vessel-aberration-charm":
-      return showSpiritSave(actor, "Телепатическое очарование", "Мудрости", "Цель должна недавно общаться с вами телепатически; состояние очарования и лимит целей применяются вручную.");
+      return applySpiritTargetCondition(actor, {
+        featureKey: "spirit-aberration",
+        key: "spirit-vessel-aberration-charmed",
+        title: "Телепатическое очарование",
+        name: "Очарован: Телепатическое очарование",
+        status: "charmed",
+        statusLabel: "Очарован",
+        saveAbility: "Мудрость",
+        note: "Цель должна недавно общаться с вами телепатически. Эффект не имеет фиксированной длительности: снимите его вручную, когда вы причините цели вред или перестанете поддерживать эффект.",
+        description: "<p>Цель очарована Сосудом духа после провала спасброска Мудрости. Снимите эффект вручную, если Сосуд причинит цели вред или перестанет поддерживать эффект.</p>"
+      });
     case "spirit-vessel-fey-charm":
-      return showSpiritSave(actor, "Очарование феи", "Харизмы", "Цель должна видеть вас. Очарование, лимиты и 24-часовая невосприимчивость применяются вручную.");
+      return applySpiritTargetCondition(actor, {
+        featureKey: "spirit-fey",
+        key: "spirit-vessel-fey-charmed",
+        title: "Очарование феи",
+        name: "Очарован: Очарование феи",
+        status: "charmed",
+        statusLabel: "Очарован",
+        saveAbility: "Харизма",
+        duration: { seconds: 86400 },
+        note: "Цель должна видеть вас. Лимиты целей и 24-часовая невосприимчивость после успеха/окончания эффекта отслеживаются вручную.",
+        description: "<p>Цель очарована Сосудом духа на 24 часа после провала спасброска Харизмы, пока Сосуд не умрёт, не перейдёт на другой план или не окончит эффект.</p>"
+      });
     case "spirit-vessel-fiend-flames":
       return activateFiendFlames(actor);
     case "spirit-vessel-undead-frighten":
-      return showSpiritSave(actor, "Ужасающая старость", "Мудрости", "При провале на 5+ цель стареет на 1к4×10 лет. Испуг, повторные спасброски и старение применяются вручную.");
+      return applySpiritTargetCondition(actor, {
+        featureKey: "spirit-undead",
+        key: "spirit-vessel-undead-frightened",
+        title: "Ужасающая старость",
+        name: "Испуган: Ужасающая старость",
+        status: "frightened",
+        statusLabel: "Испуган",
+        saveAbility: "Мудрость",
+        duration: { seconds: 60 },
+        note: "Цель повторяет спасбросок в конце каждого хода. Старение при провале на 5+ и 24-часовая невосприимчивость отслеживаются вручную.",
+        description: "<p>Цель испугана Сосудом духа на 1 минуту после провала спасброска Мудрости. Повторяйте спасбросок в конце каждого хода цели.</p>"
+      });
     default:
       return false;
   }

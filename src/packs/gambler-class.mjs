@@ -8,7 +8,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Харроуер; предоставленный PDF PK_Gambler.pdf";
-const GAMBLER_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Gambler.png";
+const GAMBLER_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Miscellaneous/Ticket_Tarot_Stack_01.png";
 
 function featureLink(identifier, label) {
   return `@UUID[${uuidFor("features", identifier)}]{${label}}`;

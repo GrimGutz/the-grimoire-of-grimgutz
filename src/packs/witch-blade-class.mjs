@@ -64,7 +64,7 @@ export const witchBladeClassDocuments = [
     key: "witch-blade-class",
     name: "Ведьмин клинок",
     type: "class",
-    img: "modules/the-grimoire-of-grimgutz/assets/character%20arts/Witch_blade.png",
+    img: "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/ConsumeMagic.png",
     flags: {
       [MODULE_ID]: {
         prestigeClass: "witch-blade"

@@ -9,6 +9,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod, baseAbilityValue } from "../shared/dnd5e.mjs";
+import { numberDialog } from "../shared/dialogs.mjs";
 import { passiveEffectSignature } from "../effects/passive-helpers.mjs";
 
 const hollowPassiveSyncs = new Set();
@@ -49,35 +50,15 @@ async function chooseHollowCost(activity, available) {
   );
   if (maximum < minimum) return null;
 
-  const selected = await foundry.applications.api.DialogV2.wait({
-    window: { title: "Заряды Анти-Магии" },
-    position: { width: 420 },
-    content: `
-      <div class="form-group">
-        <label>Потратить зарядов</label>
-        <div class="form-fields">
-          <input type="number" name="cost" value="${minimum}" min="${minimum}" max="${maximum}" step="1">
-        </div>
-        <p class="hint">Доступно: ${available}. Допустимый расход: ${minimum}–${maximum}.</p>
-      </div>
-    `,
-    buttons: [
-      {
-        action: "spend",
-        label: "Потратить",
-        icon: "fa-solid fa-bolt",
-        default: true,
-        callback: (_event, _button, dialog) => {
-          return Number(dialog.element.querySelector('input[name="cost"]')?.value);
-        }
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => null
-      }
-    ]
+  const selected = await numberDialog({
+    title: "Заряды Анти-Магии",
+    label: "Потратить зарядов",
+    min: minimum,
+    max: maximum,
+    defaultValue: minimum,
+    hint: `Доступно: ${available}. Допустимый расход: ${minimum}–${maximum}.`,
+    confirmLabel: "Потратить",
+    confirmIcon: "fa-solid fa-bolt"
   });
   const cost = Number(selected);
   if (!Number.isInteger(cost) || cost < minimum || cost > maximum) return null;

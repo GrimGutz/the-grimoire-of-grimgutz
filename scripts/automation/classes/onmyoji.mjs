@@ -8,6 +8,8 @@ import {
   notify,
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { createSummonedCreature } from "../shared/summons.mjs";
+import { shikigamiSummon } from "../shared/summon-templates.mjs";
 
 const onmyojiSyncs = new Set();
 
@@ -152,4 +154,15 @@ export async function useOnmyojiKi(actor, activity) {
   }
   notify(`${actor.name}: потрачено ${cost} Ки, осталось ${Math.max(0, ki.remaining - cost)}.`);
   return true;
+}
+
+export function validateOnmyojiShikigamiUse(actor) {
+  if (actor && onmyojiClass(actor) && findFeature(actor, "shikigami-talisman")) return true;
+  notify("Призыв Шикигами требует класс «Онмёджи» и особенность «Талисман Шикигами».", "warn");
+  return false;
+}
+
+export async function summonOnmyojiShikigami(actor) {
+  if (!validateOnmyojiShikigamiUse(actor)) return false;
+  return createSummonedCreature(actor, shikigamiSummon(actor));
 }

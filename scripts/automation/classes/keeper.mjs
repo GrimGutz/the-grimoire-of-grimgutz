@@ -7,6 +7,8 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { choiceDialog } from "../shared/dialogs.mjs";
+import { createSummonedCreature } from "../shared/summons.mjs";
 
 const keeperSyncs = new Set();
 
@@ -169,6 +171,10 @@ export function keeperAllyPoints(actor) {
   return 0;
 }
 
+function characterLevel(actor) {
+  return Math.max(1, Number(actor?.system?.details?.level ?? 1));
+}
+
 function allyDamageDie(actor) {
   const level = keeperLevel(actor);
   if (level >= 5) return "d8";
@@ -229,6 +235,89 @@ export async function syncKeeperAllyPoints(actor) {
   const changed = await syncKeeperResources(actor, { notifyResult: true });
   if (!changed && actor) notify(`${actor.name}: максимум очков союзника уже равен ${keeperAllyPoints(actor)}.`);
   return true;
+}
+
+const KEEPER_ALLY_FORMS = {
+  base: "Базовый союзник",
+  flying: "Летающий союзник"
+};
+
+async function chooseKeeperAllyForm(defaultForm = "base") {
+  return choiceDialog({
+    title: "Союзник Хранителя",
+    label: "Форма союзника",
+    choices: Object.entries(KEEPER_ALLY_FORMS).map(([value, label]) => ({
+      value,
+      label,
+      selected: value === defaultForm
+    })),
+    defaultValue: defaultForm,
+    confirmLabel: "Создать",
+    confirmIcon: "fa-solid fa-shield-heart"
+  });
+}
+
+function keeperAllySummon(actor, form) {
+  const level = Math.max(1, keeperLevel(actor));
+  const totalLevel = characterLevel(actor);
+  const flying = form === "flying";
+  const hp = flying
+    ? 8 + (4 * level) + (2 * totalLevel)
+    : 10 + (5 * level) + (3 * totalLevel);
+  const ac = (flying ? 11 : 12) + level;
+  const damageDie = allyDamageDie(actor);
+  return {
+    kind: `keeper-ally-${flying ? "flying" : "base"}`,
+    unique: true,
+    name: `${actor.name}: ${flying ? "Летающий союзник Хранителя" : "Союзник Хранителя"}`,
+    img: flying
+      ? "icons/creatures/mammals/bat-movement-flying-purple.webp"
+      : "icons/creatures/abilities/paw-print-orange.webp",
+    source: "keeper-ward-and-warded",
+    size: "med",
+    type: "custom",
+    customType: "союзник Хранителя",
+    ac,
+    hp,
+    hpFormula: "",
+    abilities: flying
+      ? { str: 8, dex: 10, con: 10, int: 6, wis: 10, cha: 6 }
+      : { str: 10, dex: 10, con: 12, int: 6, wis: 10, cha: 6 },
+    movement: flying
+      ? { walk: 15, fly: 30 }
+      : { walk: 30 },
+    languages: {
+      custom: "понимает языки владельца"
+    },
+    description: `
+      <p><strong>Союзник Хранителя.</strong> Создан автоматически по особенности «Страж и подопечный».</p>
+      <ul>
+        <li><strong>КД:</strong> ${ac}; <strong>хиты:</strong> ${hp}.</li>
+        <li><strong>Удар:</strong> бонус атаки +${Number(actor?.system?.attributes?.prof ?? 0) + level}, урон 1${damageDie} − 1 + ${level} дробящий, колющий или рубящий.</li>
+        <li><strong>Кость хитов:</strong> ${totalLevel + (2 * level)}к8.</li>
+        <li><strong>Спасброски:</strong> получают бонус, равный уровню Хранителя (${level}).</li>
+      </ul>
+      <p>Таланты, специализацию, тип существа и команды союзника применяйте по выбранной сборке Хранителя.</p>
+    `,
+    features: [{
+      name: "Удар союзника",
+      description: `<p>Бонус атаки +${Number(actor?.system?.attributes?.prof ?? 0) + level}; урон 1${damageDie} − 1 + ${level}. Для автоматического броска можно использовать активность «Удар союзника» на карточке Хранителя.</p>`
+    }],
+    note: "Таланты союзника не выбираются автоматически: добавьте их на лист союзника после создания."
+  };
+}
+
+export async function summonKeeperAlly(actor, activity) {
+  if (!actor || !keeperClass(actor)) {
+    notify("Эта активность требует класс «Хранитель».", "warn");
+    return false;
+  }
+  const configured = automationData(activity).keeperAllyForm;
+  const form = KEEPER_ALLY_FORMS[configured]
+    ? configured
+    : await chooseKeeperAllyForm();
+  if (!form) return false;
+  return createSummonedCreature(actor, keeperAllySummon(actor, form));
 }
 
 export async function rollKeeperRestRecovery(actor) {

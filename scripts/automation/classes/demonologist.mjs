@@ -7,6 +7,8 @@ import {
   itemUses,
   notify
 } from "../shared/helpers.mjs";
+import { createSummonedCreature } from "../shared/summons.mjs";
+import { quasitFamiliarSummon } from "../shared/summon-templates.mjs";
 
 const DEMONOLOGIST_ACTIONS = new Set([
   "show-demonologist-demon-charm",
@@ -223,6 +225,18 @@ async function showDemonCharm(actor) {
   return true;
 }
 
+export async function summonDemonologistInfernalFamiliar(actor) {
+  if (!actor || !demonologistClass(actor)) {
+    notify("Эта активность требует класс «Демонолог».", "warn");
+    return false;
+  }
+  if (!findFeature(actor, "infernal-familiar")) {
+    notify("Для призыва нужен «Инфернальный фамильяр».", "warn");
+    return false;
+  }
+  return createSummonedCreature(actor, quasitFamiliarSummon(actor));
+}
+
 async function showInfernalFamiliar(actor) {
   await chat(actor, `<p><strong>${actor.name}: Инфернальный фамильяр.</strong> Вы получаете квазита-фамильяра. Если фамильяр уже был, квазит пожирает его и занимает его место. Создание/замена актёра выполняется вручную.</p>`);
   return true;
@@ -263,7 +277,7 @@ export async function handleDemonologistAction(actor, activity, action) {
     case "show-demonologist-demon-charm":
       return showDemonCharm(actor);
     case "show-demonologist-infernal-familiar":
-      return showInfernalFamiliar(actor);
+      return summonDemonologistInfernalFamiliar(actor);
     case "use-demonologist-master-summoner":
       return useMasterSummoner(actor);
     case "cast-demonologist-protection":

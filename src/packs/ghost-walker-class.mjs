@@ -9,7 +9,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Призрачный Странник; предоставленный PDF PK_-Prizrachny_strannik (1).pdf";
-const GHOST_WALKER_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Soul_traveler.png";
+const GHOST_WALKER_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/SpectralTransformation.png";
 
 function featureLink(identifier, label) {
   return `@UUID[${uuidFor("features", identifier)}]{${label}}`;

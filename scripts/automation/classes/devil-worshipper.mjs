@@ -11,6 +11,9 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { choiceDialog } from "../shared/dialogs.mjs";
+import { createSummonedCreature } from "../shared/summons.mjs";
+import { impFamiliarSummon } from "../shared/summon-templates.mjs";
 
 const DEVIL_ABILITIES = {
   int: "Интеллект",
@@ -116,35 +119,12 @@ export async function chooseDevilWorshipperAbility(actor) {
     return false;
   }
   const current = devilWorshipperAbility(actor);
-  const options = Object.entries(DEVIL_ABILITIES)
-    .map(([key, label]) => `<option value="${key}"${key === current ? " selected" : ""}>${label}</option>`)
-    .join("");
-  const selected = await foundry.applications.api.DialogV2.wait({
-    window: { title: "Характеристика Дьяволопоклонника" },
-    position: { width: 420 },
-    content: `
-      <div class="form-group">
-        <label>Характеристика</label>
-        <div class="form-fields">
-          <select name="ability">${options}</select>
-        </div>
-      </div>
-    `,
-    buttons: [
-      {
-        action: "choose",
-        label: "Выбрать",
-        icon: "fa-solid fa-file-signature",
-        default: true,
-        callback: (_event, _button, dialog) => dialog.element.querySelector('select[name="ability"]')?.value
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => null
-      }
-    ]
+  const selected = await choiceDialog({
+    title: "Характеристика Дьяволопоклонника",
+    label: "Характеристика",
+    choices: Object.entries(DEVIL_ABILITIES).map(([key, label]) => ({ value: key, label, selected: key === current })),
+    defaultValue: current,
+    confirmIcon: "fa-solid fa-file-signature"
   });
   if (!(selected in DEVIL_ABILITIES)) return false;
   await actor.setFlag(MODULE_ID, FLAGS.DEVIL_WORSHIPPER_ABILITY, selected);
@@ -289,6 +269,18 @@ export function validateDevilWorshipperActivityUse(actor, activity, action) {
     }
   }
   return true;
+}
+
+export async function summonImpFamiliar(actor) {
+  if (!actor || !devilWorshipperClass(actor)) {
+    notify("Эта активность требует класс «Дьяволопоклонник».", "warn");
+    return false;
+  }
+  if (!findFeature(actor, "imp-familiar")) {
+    notify("Для призыва нужен «Бесовский фамильяр».", "warn");
+    return false;
+  }
+  return createSummonedCreature(actor, impFamiliarSummon(actor));
 }
 
 export async function summonDevilGlaive(actor) {

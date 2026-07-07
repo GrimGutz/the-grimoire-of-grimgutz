@@ -10,6 +10,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { choiceDialog, numberDialog } from "../shared/dialogs.mjs";
 import { hereticClass } from "../shared/selectors.mjs";
 import {
   flaggedPassiveEffectData,
@@ -55,37 +56,12 @@ function occultPoints(gift) {
 export async function chooseOccultAbility(actor) {
   if (!actor || !hereticClass(actor)) return false;
   const current = occultAbility(actor);
-  const options = Object.entries(OCCULT_ABILITIES)
-    .map(([key, label]) => `<option value="${key}"${key === current ? " selected" : ""}>${label}</option>`)
-    .join("");
-  const selected = await foundry.applications.api.DialogV2.wait({
-    window: { title: "Характеристика оккультизма" },
-    position: { width: 420 },
-    content: `
-      <div class="form-group">
-        <label>Характеристика</label>
-        <div class="form-fields">
-          <select name="ability">${options}</select>
-        </div>
-      </div>
-    `,
-    buttons: [
-      {
-        action: "choose",
-        label: "Выбрать",
-        icon: "fa-solid fa-wand-magic-sparkles",
-        default: true,
-        callback: (_event, _button, dialog) => {
-          return dialog.element.querySelector('select[name="ability"]')?.value;
-        }
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => null
-      }
-    ]
+  const selected = await choiceDialog({
+    title: "Характеристика оккультизма",
+    label: "Характеристика",
+    choices: Object.entries(OCCULT_ABILITIES).map(([key, label]) => ({ value: key, label, selected: key === current })),
+    defaultValue: current,
+    confirmIcon: "fa-solid fa-wand-magic-sparkles"
   });
   if (!(selected in OCCULT_ABILITIES)) return false;
   await actor.setFlag(MODULE_ID, FLAGS.OCCULT_ABILITY, selected);
@@ -106,35 +82,15 @@ async function chooseOccultCost(activity, available) {
   );
   if (maximum < minimum) return null;
 
-  const selected = await foundry.applications.api.DialogV2.wait({
-    window: { title: "Очки оккультизма" },
-    position: { width: 420 },
-    content: `
-      <div class="form-group">
-        <label>Потратить очков</label>
-        <div class="form-fields">
-          <input type="number" name="cost" value="${minimum}" min="${minimum}" max="${maximum}" step="1">
-        </div>
-        <p class="hint">Доступно: ${available}. Допустимый расход: ${minimum}–${maximum}.</p>
-      </div>
-    `,
-    buttons: [
-      {
-        action: "spend",
-        label: "Потратить",
-        icon: "fa-solid fa-fire-flame-curved",
-        default: true,
-        callback: (_event, _button, dialog) => {
-          return Number(dialog.element.querySelector('input[name="cost"]')?.value);
-        }
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => null
-      }
-    ]
+  const selected = await numberDialog({
+    title: "Очки оккультизма",
+    label: "Потратить очков",
+    min: minimum,
+    max: maximum,
+    defaultValue: minimum,
+    hint: `Доступно: ${available}. Допустимый расход: ${minimum}–${maximum}.`,
+    confirmLabel: "Потратить",
+    confirmIcon: "fa-solid fa-fire-flame-curved"
   });
   const cost = Number(selected);
   if (!Number.isInteger(cost) || cost < minimum || cost > maximum) return null;

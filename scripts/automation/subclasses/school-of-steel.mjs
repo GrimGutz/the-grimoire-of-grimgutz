@@ -7,6 +7,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { choiceDialog, multiChoiceDialog } from "../shared/dialogs.mjs";
 import {
   schoolOfSteelLevel,
   schoolOfSteelSubclass
@@ -106,73 +107,27 @@ export async function syncSchoolOfSteel(actor, { notifyResult = false } = {}) {
 
 async function chooseSingleSchoolSteelWeapon(actor, weapons, current) {
   if (weapons.length === 1) return [weapons[0].id];
-  const options = weapons
-    .map(weapon => `<option value="${weapon.id}"${current.has(weapon.id) ? " selected" : ""}>${foundry.utils.escapeHTML(weapon.name)}</option>`)
-    .join("");
-  const selectedId = await foundry.applications.api.DialogV2.wait({
-    window: { title: "Боевая тренировка" },
-    position: { width: 420 },
-    content: `
-      <div class="form-group">
-        <label>Зачарованное оружие</label>
-        <div class="form-fields">
-          <select name="weapon">${options}</select>
-        </div>
-      </div>
-    `,
-    buttons: [
-      {
-        action: "choose",
-        label: "Зачаровать",
-        icon: "fa-solid fa-wand-magic-sparkles",
-        default: true,
-        callback: (_event, _button, dialog) => dialog.element.querySelector('select[name="weapon"]')?.value
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => null
-      }
-    ]
+  const selectedId = await choiceDialog({
+    title: "Боевая тренировка",
+    label: "Зачарованное оружие",
+    choices: weapons.map(weapon => ({ value: weapon.id, label: weapon.name, selected: current.has(weapon.id) })),
+    confirmLabel: "Зачаровать",
+    confirmIcon: "fa-solid fa-wand-magic-sparkles"
   });
   return selectedId ? [selectedId] : [];
 }
 
 async function chooseMultipleSchoolSteelWeapons(actor, weapons, current, limit) {
-  const options = weapons
-    .map(weapon => `
-      <label class="checkbox">
-        <input type="checkbox" name="weapon" value="${weapon.id}"${current.has(weapon.id) ? " checked" : ""}>
-        ${foundry.utils.escapeHTML(weapon.name)}
-      </label>
-    `)
-    .join("");
-  const selectedIds = await foundry.applications.api.DialogV2.wait({
-    window: { title: "Боевая тренировка" },
-    position: { width: 460 },
-    content: `
-      <p>Выберите до ${limit} зачарованных оружий.</p>
-      <div class="form-group stacked">${options}</div>
-    `,
-    buttons: [
-      {
-        action: "choose",
-        label: "Зачаровать",
-        icon: "fa-solid fa-wand-magic-sparkles",
-        default: true,
-        callback: (_event, _button, dialog) => {
-          return [...dialog.element.querySelectorAll('input[name="weapon"]:checked')]
-            .map(input => input.value);
-        }
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => []
-      }
-    ]
+  const selectedIds = await multiChoiceDialog({
+    title: "Боевая тренировка",
+    label: "Зачарованное оружие",
+    choices: weapons.map(weapon => ({ value: weapon.id, label: weapon.name })),
+    selected: [...current],
+    max: limit,
+    hint: `Выберите до ${limit} зачарованных оружий.`,
+    confirmLabel: "Зачаровать",
+    confirmIcon: "fa-solid fa-wand-magic-sparkles",
+    inputName: "weapon"
   });
   return selectedIds ?? [];
 }

@@ -11,7 +11,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Страж; предоставленный PDF PK_Guardian.pdf";
-const GUARDIAN_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Guardian.png";
+const GUARDIAN_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/GuardianSpirit.png";
 
 function featureLink(identifier, label) {
   return `@UUID[${uuidFor("features", identifier)}]{${label}}`;

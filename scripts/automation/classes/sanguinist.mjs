@@ -9,6 +9,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod, clamp } from "../shared/dnd5e.mjs";
+import { numberDialog } from "../shared/dialogs.mjs";
 
 const BLOOD_MAGIC_USES = { 1: 2, 2: 3, 3: 5, 4: 7, 5: 10 };
 const KNOWN_BLOOD_SPELLS = { 1: 2, 2: 2, 3: 3, 4: 3, 5: 4 };
@@ -223,40 +224,7 @@ async function promptNumber({
   max = 1,
   defaultValue = min
 }) {
-  const safeMin = Math.max(0, Math.floor(Number(min) || 0));
-  const safeMax = Math.max(safeMin, Math.floor(Number(max) || safeMin));
-  const value = clamp(Math.floor(Number(defaultValue) || safeMin), safeMin, safeMax);
-  const options = Array.from({ length: safeMax - safeMin + 1 }, (_, index) => {
-    const option = safeMin + index;
-    return `<option value="${option}"${option === value ? " selected" : ""}>${option}</option>`;
-  }).join("");
-  const selected = await foundry.applications.api.DialogV2.wait({
-    window: { title },
-    position: { width: 420 },
-    content: `
-      <div class="form-group">
-        <label>${foundry.utils.escapeHTML(label)}</label>
-        <div class="form-fields"><select name="value">${options}</select></div>
-      </div>
-    `,
-    buttons: [
-      {
-        action: "choose",
-        label: "Выбрать",
-        icon: "fa-solid fa-check",
-        default: true,
-        callback: (_event, _button, dialog) => Number(dialog.element.querySelector('select[name="value"]')?.value ?? 0)
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => null
-      }
-    ]
-  });
-  if (!Number.isFinite(selected)) return null;
-  return clamp(selected, safeMin, safeMax);
+  return numberDialog({ title, label, min, max, defaultValue });
 }
 
 async function rollToChat(actor, formula, flavor) {
@@ -394,6 +362,50 @@ async function handleSpendBloodPoints(actor) {
   return true;
 }
 
+function classHitDiceAvailable(actor) {
+  return actor?.items
+    ?.filter(item => item.type === "class")
+    .reduce((sum, item) => {
+      const levels = Math.max(0, Number(item.system?.levels ?? 0));
+      const used = Math.max(0, Number(item.system?.hitDiceUsed ?? 0));
+      return sum + Math.max(0, levels - used);
+    }, 0) ?? 0;
+}
+
+function classHitDiceSpendUpdates(actor, amount) {
+  let remaining = Math.max(0, amount);
+  let spent = 0;
+  const updates = [];
+  for (const item of actor?.items ?? []) {
+    if (item.type !== "class" || remaining <= 0) continue;
+    const levels = Math.max(0, Number(item.system?.levels ?? 0));
+    const used = Math.max(0, Number(item.system?.hitDiceUsed ?? 0));
+    const available = Math.max(0, levels - used);
+    if (available <= 0) continue;
+    const toSpend = Math.min(available, remaining);
+    updates.push({ _id: item.id, "system.hitDiceUsed": used + toSpend });
+    remaining -= toSpend;
+    spent += toSpend;
+  }
+  return { updates, spent };
+}
+
+async function spendHitDice(actor, amount) {
+  const requested = Math.max(0, amount);
+  if (requested <= 0) return true;
+  if (classHitDiceAvailable(actor) < requested) {
+    notify(`${actor.name}: недостаточно доступных костей хитов для траты ${requested}.`, "warn");
+    return false;
+  }
+  const { updates, spent } = classHitDiceSpendUpdates(actor, requested);
+  if (spent < requested) {
+    notify(`${actor.name}: не удалось списать ${requested} костей хитов.`, "warn");
+    return false;
+  }
+  if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
+  return true;
+}
+
 async function handleHematurgy(actor) {
   const level = sanguinistLevel(actor);
   const spent = Number(actor.getFlag(MODULE_ID, FLAGS.SANGUINIST_HEMATURGY_SPENT) ?? 0);
@@ -402,16 +414,23 @@ async function handleHematurgy(actor) {
     notify(`${actor.name}: лимит костей хитов Гематургии до продолжительного отдыха уже исчерпан.`, "warn");
     return false;
   }
+  const availableHitDice = classHitDiceAvailable(actor);
+  const maxDice = Math.min(5, remainingLimit, availableHitDice);
+  if (maxDice <= 0) {
+    notify(`${actor.name}: нет доступных костей хитов для Гематургии.`, "warn");
+    return false;
+  }
   const dice = await promptNumber({
     title: "Гематургия",
     label: "Сколько костей хитов потратить",
     min: 1,
-    max: Math.min(5, remainingLimit)
+    max: maxDice
   });
   if (!dice) return false;
+  if (!await spendHitDice(actor, dice)) return false;
   await selfBloodDamage(actor, `${dice}d8`, "Гематургия");
   await actor.setFlag(MODULE_ID, FLAGS.SANGUINIST_HEMATURGY_SPENT, spent + dice);
-  await chat(actor, `<p><strong>${actor.name}: Гематургия.</strong> До продолжительного отдыха потрачено ${spent + dice}/${level * 2} костей хитов на Гематургию. Следующее заклинание в этом ходу считается Кровавым и может быть наложено без ячейки, если его уровень не выше ${dice}. Фактические кости хитов на листе спишите вручную.</p>`);
+  await chat(actor, `<p><strong>${actor.name}: Гематургия.</strong> Автоматически списано ${dice} кост. хитов. До продолжительного отдыха потрачено ${spent + dice}/${level * 2} костей хитов на Гематургию. Следующее заклинание в этом ходу считается Кровавым и может быть наложено без ячейки, если его уровень не выше ${dice}.</p>`);
   return true;
 }
 
@@ -453,9 +472,10 @@ async function chooseSpellLevel(title) {
 async function handleSanguinePowerHitDie(actor) {
   const spellLevel = await chooseSpellLevel("Багровая сила: кость хитов");
   if (spellLevel == null) return false;
+  if (!await spendHitDice(actor, 1)) return false;
   await rollToChat(actor, "1d8", "Багровая сила: бонусный урон от потраченной кости хитов");
   await applyDirectDamage(actor, 1 + spellLevel);
-  await chat(actor, `<p><strong>${actor.name}: Багровая сила.</strong> Получено ${1 + spellLevel} некротического самоповреждения. Добавьте результат 1к8 к одному броску урона заклинания. Фактическую кость хитов спишите вручную.</p>`);
+  await chat(actor, `<p><strong>${actor.name}: Багровая сила.</strong> Автоматически списана 1 кость хитов. Получено ${1 + spellLevel} некротического самоповреждения. Добавьте результат 1к8 к одному броску урона заклинания.</p>`);
   return true;
 }
 

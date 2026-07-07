@@ -7,10 +7,12 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { choiceDialog } from "../shared/dialogs.mjs";
 import {
   flaggedPassiveEffectData,
   syncFlaggedPassiveEffects
 } from "../effects/passive-helpers.mjs";
+import { createSummonedCreature } from "../shared/summons.mjs";
 
 const insectLordSyncs = new Set();
 const insectLordPassiveSyncs = new Set();
@@ -222,6 +224,163 @@ export async function rollInsectSpew(actor) {
   return true;
 }
 
+const FAMILIAR_FORMS = {
+  spider: {
+    label: "Гигантский паук",
+    img: "icons/creatures/invertebrates/spider-green.webp",
+    size: "lg",
+    ac: 14,
+    hp: 26,
+    hpFormula: "4d10 + 4",
+    abilities: { str: 14, dex: 16, con: 12, int: 2, wis: 11, cha: 4 },
+    movement: { walk: 30, climb: 30 },
+    senses: { darkvision: 60, blindsight: 10 },
+    note: "Используйте статы гигантского паука или настройте лист под бестиарий мира."
+  },
+  scorpion: {
+    label: "Гигантский скорпион",
+    img: "icons/creatures/invertebrates/scorpion-hairy-red.webp",
+    size: "lg",
+    ac: 15,
+    hp: 52,
+    hpFormula: "7d10 + 14",
+    abilities: { str: 15, dex: 13, con: 15, int: 1, wis: 9, cha: 3 },
+    movement: { walk: 40 },
+    senses: { blindsight: 60 },
+    note: "Используйте статы гигантского скорпиона или настройте лист под бестиарий мира."
+  },
+  wasp: {
+    label: "Гигантская оса",
+    img: "icons/creatures/invertebrates/wasp-swarm-movement.webp",
+    size: "med",
+    ac: 12,
+    hp: 13,
+    hpFormula: "3d8",
+    abilities: { str: 10, dex: 14, con: 10, int: 1, wis: 10, cha: 3 },
+    movement: { walk: 10, fly: 50 },
+    note: "Используйте статы гигантской осы или настройте лист под бестиарий мира."
+  }
+};
+
+async function chooseInsectFamiliarForm(defaultForm = "spider") {
+  return choiceDialog({
+    title: "Насекомое-фамильяр",
+    label: "Форма фамильяра",
+    choices: Object.entries(FAMILIAR_FORMS).map(([value, form]) => ({
+      value,
+      label: form.label,
+      selected: value === defaultForm
+    })),
+    defaultValue: defaultForm,
+    confirmLabel: "Призвать",
+    confirmIcon: "fa-solid fa-spider"
+  });
+}
+
+function insectFamiliarSummon(actor, formKey) {
+  const form = FAMILIAR_FORMS[formKey] ?? FAMILIAR_FORMS.spider;
+  return {
+    kind: `insect-familiar-${formKey}`,
+    unique: true,
+    name: `${actor.name}: ${form.label}-фамильяр`,
+    img: form.img,
+    source: "insect-familiar",
+    size: form.size,
+    type: "beast",
+    ac: form.ac,
+    hp: form.hp,
+    hpFormula: form.hpFormula,
+    abilities: form.abilities,
+    movement: form.movement,
+    senses: form.senses,
+    description: `
+      <p><strong>Насекомое-фамильяр.</strong> Призвано особенностью Владыки насекомых. Оно следует ограничениям «Поиска фамильяра» и выбранной форме: ${form.label}.</p>
+      <p>Если в мире есть более точный актёр бестиария, замените созданный шаблон на него.</p>
+    `,
+    note: form.note
+  };
+}
+
+export async function summonInsectFamiliar(actor, activity) {
+  if (!actor || !findFeature(actor, "insect-familiar")) {
+    notify("Для призыва требуется особенность «Насекомое-фамильяр».", "warn");
+    return false;
+  }
+  const configured = automationData(activity).insectFamiliarForm;
+  const form = FAMILIAR_FORMS[configured]
+    ? configured
+    : await chooseInsectFamiliarForm();
+  if (!form) return false;
+  return createSummonedCreature(actor, insectFamiliarSummon(actor, form));
+}
+
+function insectSwarmSummon(actor) {
+  return {
+    kind: "insect-swarm-mind",
+    unique: true,
+    name: `${actor.name}: Разумный рой`,
+    img: "icons/creatures/invertebrates/beetle-swarm-green.webp",
+    source: "swarm-mind",
+    size: "lg",
+    type: "beast",
+    customType: "рой паразитов",
+    ac: 13,
+    hp: 110,
+    abilities: { str: 5, dex: 17, con: 12, int: 2, wis: 7, cha: 1 },
+    movement: { walk: 30, climb: 30 },
+    senses: { blindsight: 30 },
+    dr: { value: ["bludgeoning", "piercing", "slashing"], custom: "магический урон, направленный против одиночных целей" },
+    description: `
+      <p><strong>Разум роя.</strong> Рой связан с Владыкой насекомых телепатически на расстоянии до 1 мили.</p>
+      <ul>
+        <li><strong>Хиты:</strong> 110; <strong>размер:</strong> Большой; <strong>слепое зрение:</strong> 30 фт.</li>
+        <li><strong>Поглощение:</strong> если в начале своего хода рой занимает пространство другого существа, цель совершает спасбросок Телосложения. При провале получает 4к6 + 3 колющего урона и считается ослеплённой, оглохшей и неспособной говорить; при успехе получает половину урона.</li>
+        <li><strong>Призыв к еде:</strong> один раз между короткими отдыхами рой может вызвать 2к4 роя насекомых; поглощение призванных роёв лечит 2к10 хитов за каждый.</li>
+      </ul>
+    `,
+    features: [{
+      name: "Поглощение",
+      description: `<p>Спасбросок Телосложения против СЛ ${insectLordSaveDc(actor)}. Провал: 4к6 + 3 колющего урона и сенсорные ограничения; успех: половина урона.</p>`
+    }],
+    note: "Недельную перезарядку после уничтожения роя отметьте вручную."
+  };
+}
+
+export async function summonInsectSwarm(actor) {
+  if (!actor || !findFeature(actor, "swarm-mind")) {
+    notify("Для призыва требуется особенность «Разум роя».", "warn");
+    return false;
+  }
+  return createSummonedCreature(actor, insectSwarmSummon(actor));
+}
+
+function crawlingEyeSummon(actor) {
+  return {
+    kind: "crawling-eye",
+    unique: true,
+    name: `${actor.name}: Ползучий глаз`,
+    img: "icons/creatures/eyes/humanoid-single-blue.webp",
+    source: "crawling-eye",
+    size: "tiny",
+    type: "monstrosity",
+    customType: "отделённый глаз",
+    ac: 16,
+    hp: 1,
+    abilities: { str: 1, dex: 14, con: 10, int: 1, wis: 10, cha: 1 },
+    movement: { walk: 20, climb: 20 },
+    senses: { darkvision: 60 },
+    description: `
+      <p><strong>Ползучий глаз.</strong> Не атакует. Может использовать Рывок, Уклонение, Выход из боя и Спрятаться. Владыка насекомых видит всё, что видит глаз.</p>
+      <p>Если глаз уничтожен, владелец частично теряет зрение на неделю, пока глаз не вырастет заново.</p>
+    `,
+    note: "Эффект −2 к максимуму хитов накладывается на владельца отдельно этой же активностью."
+  };
+}
+
+export async function summonCrawlingEye(actor) {
+  return createSummonedCreature(actor, crawlingEyeSummon(actor));
+}
+
 function crawlingEyeEffect(actor) {
   return actor?.effects?.find(effect => effect.getFlag(MODULE_ID, FLAGS.CREEPING_EYE_EFFECT));
 }
@@ -258,6 +417,7 @@ export async function detachCrawlingEye(actor) {
   const current = crawlingEyeEffect(actor);
   if (current) await current.update(data);
   else await actor.createEmbeddedDocuments("ActiveEffect", [data]);
+  await summonCrawlingEye(actor);
   notify(`${actor.name}: Ползучий глаз отделён, максимум хитов снижен на 2.`);
   return true;
 }

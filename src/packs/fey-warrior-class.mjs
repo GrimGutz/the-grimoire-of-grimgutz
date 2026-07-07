@@ -13,7 +13,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Воитель фей; предоставленный PDF PK_Feyskiy_voitel (1).pdf";
-const FEY_WARRIOR_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Fej_warrior.png";
+const FEY_WARRIOR_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/GiftoftheWild.png";
 
 const FEY_TRAITS = [
   "fey-blood",

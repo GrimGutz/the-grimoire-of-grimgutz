@@ -11,7 +11,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Оракул; предоставленный PDF Orakul_-_PK.pdf";
-const ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Oracle.png";
+const ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Miscellaneous/Thread_Eternium.png";
 
 const spellSlotScales = {
   1: { 1: 2, 2: 3, 3: 4, 4: 4, 5: 4 },

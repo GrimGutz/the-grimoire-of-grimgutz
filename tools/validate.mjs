@@ -9,6 +9,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const foundryPublic = "C:\\Program Files\\Foundry Virtual Tabletop\\resources\\app\\public";
 const manifest = JSON.parse(await readFile(path.join(root, "module.json"), "utf8"));
 const errors = [];
+const AUTOMATION_CONFIG_VERSION = 1;
 
 async function readTextFilesRecursive(directory, extension = ".mjs") {
   const chunks = [];
@@ -131,6 +132,38 @@ for (const { pack, document } of embeddedIconDocuments) {
   }
 }
 
+function validateAutomationSchema(label, flags) {
+  const moduleFlags = flags?.[manifest.id];
+  if (!moduleFlags) return;
+  if (moduleFlags.schemaVersion !== AUTOMATION_CONFIG_VERSION) {
+    errors.push(`${label}: automation schemaVersion must be ${AUTOMATION_CONFIG_VERSION}`);
+  }
+  const config = moduleFlags.automation;
+  if (!config || typeof config !== "object") {
+    errors.push(`${label}: nested automation config is missing`);
+    return;
+  }
+  if (config.version !== AUTOMATION_CONFIG_VERSION) {
+    errors.push(`${label}: automation.version must be ${AUTOMATION_CONFIG_VERSION}`);
+  }
+  if (!config.kind) errors.push(`${label}: automation.kind is missing`);
+  if (!config.id && !config.action?.id) errors.push(`${label}: automation.id or automation.action.id is missing`);
+  const legacyAction = moduleFlags.action ?? moduleFlags.moduleAction;
+  if (legacyAction && config.action?.id !== legacyAction) {
+    errors.push(`${label}: automation.action.id does not match legacy action ${legacyAction}`);
+  }
+}
+
+for (const { pack, document } of allDocuments.values()) {
+  validateAutomationSchema(`${pack}/${document.name}`, document.flags);
+  for (const activity of Object.values(document.system?.activities ?? {})) {
+    validateAutomationSchema(`${pack}/${document.name}/activity:${activity.name ?? activity._id}`, activity.flags);
+  }
+  for (const effect of document.effects ?? []) {
+    validateAutomationSchema(`${pack}/${document.name}/effect:${effect.name}`, effect.flags);
+  }
+}
+
 const recommendedModules = new Set(manifest.relationships?.recommends?.map(relationship => relationship.id));
 for (const moduleId of ["midi-qol", "dae", "itemacro"]) {
   if (!recommendedModules.has(moduleId)) errors.push(`Missing recommended module relationship: ${moduleId}`);
@@ -172,6 +205,13 @@ const classDocuments = [...allDocuments.values()]
 const subclassDocuments = [...allDocuments.values()]
   .filter(entry => entry.document.type === "subclass")
   .map(entry => entry.document);
+for (const document of classDocuments) {
+  const icon = String(document.img ?? "");
+  const decoded = decodedIconPath(icon);
+  if (decoded.includes("assets/character arts") || decoded.includes("assets/character%20arts")) {
+    errors.push(`Class ${document.system?.identifier ?? document.name} must use an icon, not character art: ${icon}`);
+  }
+}
 const classesByIdentifier = new Map(
   classDocuments.map(document => [document.system.identifier, document])
 );
@@ -1558,9 +1598,9 @@ for (const action of [
     errors.push(`Missing Ritualist Binding Ritual action: ${action}`);
   }
 }
-const ritualPointActions = bindingRitualActions.filter(action => action === "use-ritualist-ritual-points");
-if (ritualPointActions.length !== 3) {
-  errors.push(`Binding Ritual must provide 3 ritual point spend activities, got ${ritualPointActions.length}`);
+const ritualPointActions = bindingRitualActions.filter(action => action === "summon-ritualist-spirits");
+if (ritualPointActions.length !== 1) {
+  errors.push(`Binding Ritual must provide 1 dialog-based ritual spirit summon activity, got ${ritualPointActions.length}`);
 }
 const spiritChannel = featuresByIdentifier.get("spirit-channel");
 if (!Object.values(spiritChannel?.system?.activities ?? {}).some(
@@ -2049,6 +2089,14 @@ const automationSource = [
   await readFile(path.join(root, "scripts", "automation.mjs"), "utf8"),
   await readTextFilesRecursive(path.join(root, "scripts", "automation"))
 ].join("\n");
+for (const document of featureDocuments) {
+  for (const activity of Object.values(document.system?.activities ?? {})) {
+    const action = activity.flags?.[manifest.id]?.action;
+    if (action && !automationSource.includes(action)) {
+      errors.push(`Feature ${document.system?.identifier ?? document.name} has unhandled activity action: ${action}`);
+    }
+  }
+}
 for (const token of [
   "syncMurderspawnPassiveEffects",
   "system.attributes.movement.walk",
@@ -2155,6 +2203,7 @@ for (const token of [
   "witchBladeClass",
   "syncWitchBladeRage",
   "useWitchBladeRage",
+  "openImmaterialWhirlwind",
   "use-witch-blade-rage",
   "witchBladePrerequisiteFailures"
 ]) {
@@ -2172,6 +2221,7 @@ for (const token of [
   "crusaderClass",
   "syncCrusaderResources",
   "activateCrusaderRage",
+  "useCrusaderConsecration",
   "crusaderPrerequisiteFailures",
   "validateCrusaderFeaturePrerequisites"
 ]) {
@@ -2991,6 +3041,7 @@ const requiredActions = new Map([
   ["smithing", "smithing"],
   ["glimpse-of-genius", "arm-glimpse-of-genius"],
   ["crusader-rage", "activate-crusader-rage"],
+  ["consecration", "use-crusader-consecration"],
   ["spirit-form", "activate-spirit-form"],
   ["inner-blink", "use-inner-blink"],
   ["sideways-shift", "activate-sideways-shift"],
@@ -3172,12 +3223,13 @@ for (const [identifier, action] of aberrantRequiredActions) {
 }
 
 const witchBladeRequiredActions = new Map([
-  ["witch-hunter", "use-witch-blade-rage"],
+  ["witch-hunter", "activate-witch-hunter-empower"],
   ["dead-zone", "use-witch-blade-rage"],
   ["witch-blade-seal", "use-witch-blade-rage"],
+  ["witch-crystallization", "activate-witch-crystallization"],
   ["ethereal-push", "use-witch-blade-rage"],
-  ["ethereal-storm", "use-witch-blade-rage"],
-  ["immaterial-whirlwind", "use-witch-blade-rage"]
+  ["ethereal-storm", "activate-ethereal-storm"],
+  ["immaterial-whirlwind", "open-immaterial-whirlwind"]
 ]);
 for (const [identifier, action] of witchBladeRequiredActions) {
   const document = featuresByIdentifier.get(identifier);

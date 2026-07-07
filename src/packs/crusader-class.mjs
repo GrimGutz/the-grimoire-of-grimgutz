@@ -12,7 +12,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Крестоносец; предоставленный PDF PK_Krestonosets (1).pdf";
-const CRUSADER_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Crusader.png";
+const CRUSADER_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/Crusade.png";
 
 const spellSlotScales = {
   1: { 1: 2, 2: 3, 3: 4, 4: 4, 5: 4 },

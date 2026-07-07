@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 export const MODULE_ID = "the-grimoire-of-grimgutz";
 export const CORE_VERSION = "14.364";
 export const SYSTEM_VERSION = "5.3.3";
+export const AUTOMATION_CONFIG_VERSION = 1;
 
 export function idFor(key) {
   return createHash("sha256").update(`${MODULE_ID}:${key}`).digest("hex").slice(0, 16);
@@ -23,6 +24,114 @@ export function sourceData(
     license: "",
     revision: 1,
     rules: "2014"
+  };
+}
+
+function omitAutomationMeta(data = {}) {
+  return Object.fromEntries(Object.entries(data).filter(([key]) => ![
+    "automation",
+    "automationConfig",
+    "schemaVersion"
+  ].includes(key)));
+}
+
+function automationActionId(data = {}) {
+  return data.action ?? data.moduleAction ?? "";
+}
+
+function inferAutomationKind(data = {}, context = {}) {
+  if (automationActionId(data)) return "activity";
+  if (data.passiveEffect === true) return "effect";
+  if (data.prestigeClass) return "prestige-class";
+  if (data.wizardSubclass || data.keeperSubclass || data.spiritVesselSubclass) return "subclass";
+  if (data.transformation && data.transformationFeature !== true) return "transformation";
+  if (data.transformationFeature === true || data.hollowFeature === true || data.murderspawnFeature === true) return "transformation-feature";
+  if (data.massiveWeapon === true || data.murderspawnWeapon === true || data.weaponKey) return "equipment";
+  if (data.forestLordSpell || data.witchBladeSpell || data.bloodMageSpell || data.nethereseGreatSpell) return "spell";
+  if (data.feature) return "feature";
+  return context.type ?? "document";
+}
+
+function inferAutomationId(data = {}, context = {}) {
+  return automationActionId(data)
+    || data.feature
+    || data.prestigeClass
+    || data.wizardSubclass
+    || data.keeperSubclass
+    || data.spiritVesselSubclass
+    || data.transformation
+    || data.weaponKey
+    || context.key
+    || "";
+}
+
+function automationTags(data = {}) {
+  return Object.entries(data)
+    .filter(([_key, value]) => value === true)
+    .map(([key]) => key)
+    .sort();
+}
+
+function automationRequirements(data = {}) {
+  const requirements = {};
+  if (data.minimumLevel !== undefined && data.minimumLevel !== null) requirements.minimumLevel = Number(data.minimumLevel);
+  if (data.transformationLevel !== undefined && data.transformationLevel !== null) requirements.transformationLevel = Number(data.transformationLevel);
+  if (data.prerequisiteLevel !== undefined && data.prerequisiteLevel !== null) requirements.prerequisiteLevel = Number(data.prerequisiteLevel);
+  return Object.fromEntries(Object.entries(requirements).filter(([_key, value]) => Number.isFinite(value)));
+}
+
+export function automationConfig(data = {}, context = {}) {
+  const legacy = omitAutomationMeta(data);
+  const action = automationActionId(legacy);
+  const kind = inferAutomationKind(legacy, context);
+  const id = inferAutomationId(legacy, context);
+  const actionData = action
+    ? Object.fromEntries(Object.entries(legacy).filter(([key]) => !["action", "moduleAction"].includes(key)))
+    : {};
+
+  return {
+    version: AUTOMATION_CONFIG_VERSION,
+    kind,
+    id,
+    ...(action ? {
+      action: {
+        id: action,
+        data: actionData
+      }
+    } : {}),
+    document: {
+      type: context.type ?? null,
+      key: context.key ?? id,
+      feature: legacy.feature ?? null,
+      prestigeClass: legacy.prestigeClass ?? null,
+      subclass: legacy.wizardSubclass ?? legacy.keeperSubclass ?? legacy.spiritVesselSubclass ?? null,
+      transformation: legacy.transformation ?? null,
+      equipment: legacy.weaponKey ?? null
+    },
+    requirements: automationRequirements(legacy),
+    tags: automationTags(legacy),
+    data: legacy
+  };
+}
+
+export function withAutomationConfig(flags = {}, context = {}) {
+  const moduleFlags = flags?.[MODULE_ID];
+  if (!moduleFlags) return flags;
+  const legacy = omitAutomationMeta(moduleFlags);
+  const existing = moduleFlags.automation && typeof moduleFlags.automation === "object"
+    ? moduleFlags.automation
+    : {};
+  return {
+    ...flags,
+    [MODULE_ID]: {
+      schemaVersion: AUTOMATION_CONFIG_VERSION,
+      ...moduleFlags,
+      automation: {
+        ...automationConfig(legacy, context),
+        ...existing,
+        version: AUTOMATION_CONFIG_VERSION
+      }
+    }
   };
 }
 
@@ -50,13 +159,14 @@ export function baseDocument({
   flags = {},
   effects = []
 }) {
+  const normalizedFlags = withAutomationConfig(flags, { key, type });
   return {
     name,
     type,
     img,
     system,
     effects,
-    flags,
+    flags: normalizedFlags,
     _id: idFor(key),
     _stats: stats(),
     folder,
@@ -131,6 +241,13 @@ export function activeEffect({
   transfer = false,
   flags = {}
 }) {
+  const normalizedFlags = withAutomationConfig({
+    ...flags,
+    [MODULE_ID]: {
+      ...(flags[MODULE_ID] ?? {}),
+      passiveEffect: true
+    }
+  }, { key, type: "effect" });
   const finalPhase = key => (
     key.startsWith("system.attributes.ac.")
     || key.startsWith("system.attributes.init.")
@@ -158,13 +275,7 @@ export function activeEffect({
       expired: false
     },
     sort: 0,
-    flags: {
-      ...flags,
-      [MODULE_ID]: {
-        ...(flags[MODULE_ID] ?? {}),
-        passiveEffect: true
-      }
-    },
+    flags: normalizedFlags,
     system: {
       changes: changes.map(change => ({
         phase: finalPhase(change.key) ? "final" : "initial",
@@ -194,20 +305,21 @@ export function utilityActivity({
   rollVisible = false
 }) {
   const activityId = idFor(`activity:${key}`);
+  const flags = action
+    ? withAutomationConfig({
+        [MODULE_ID]: {
+          action,
+          ...actionData
+        }
+      }, { key, type: "activity" })
+    : {};
   return {
     [activityId]: {
       _id: activityId,
       type: "utility",
       name,
       img: "",
-      flags: action
-        ? {
-            [MODULE_ID]: {
-              action,
-              ...actionData
-            }
-          }
-        : {},
+      flags,
       activation: {
         type: activation,
         value: activation === "special" || !activation ? null : 1,

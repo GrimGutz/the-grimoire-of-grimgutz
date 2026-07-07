@@ -28,6 +28,7 @@ Use this order so transformation cards, feature cards, and automation stay separ
    - Runtime behavior belongs under `scripts/automation/transformations/`.
    - Passive effects should use stable dnd5e paths only.
    - Conditional benefits should be an active item, macro, or Midi-QOL hook instead of a permanent passive effect.
+   - Pack source should use simple `automation` / `actionData`; the canonical nested config is generated automatically. See `docs/AUTOMATION_CONFIG.md`.
 
 6. Update validation and linking.
    - Expected transformation and feature counts in `tools/validate.mjs`.

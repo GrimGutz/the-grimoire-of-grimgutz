@@ -26,6 +26,7 @@ Use this order to keep actor statblocks, images, embedded items, and automation 
    - Runtime behavior should go under the smallest matching folder in `scripts/automation/`.
    - Midi-QOL hooks belong under `scripts/automation/midi/`.
    - Do not automate tactical choices that require GM judgement.
+   - Pack source should use simple `automation` / `actionData`; the canonical nested config is generated automatically when the source goes through `src/common.mjs`. See `docs/AUTOMATION_CONFIG.md`.
 
 6. Wire pack aggregators and folders.
    - Add actor documents to the bestiary export.

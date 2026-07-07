@@ -10,7 +10,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Мерцающий; предоставленный PDF PK-_Mertsayuschiy (1).pdf";
-const BLINKER_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Blinker.png";
+const BLINKER_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/Blink.png";
 
 function featureLink(identifier, label) {
   return `@UUID[${uuidFor("features", identifier)}]{${label}}`;

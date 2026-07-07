@@ -10,6 +10,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod, strengthValue } from "../shared/dnd5e.mjs";
+import { choiceDialog } from "../shared/dialogs.mjs";
 import { crusherClass, crusherLevel } from "../shared/selectors.mjs";
 import {
   flaggedPassiveEffectData,
@@ -434,37 +435,12 @@ export async function syncSteelGiant(actor, { notifyResult = false } = {}) {
 
 async function chooseWeaponForSmithing(weapons) {
   if (weapons.length === 1) return weapons[0];
-  const options = weapons
-    .map(weapon => `<option value="${weapon.id}">${foundry.utils.escapeHTML(weapon.name)}</option>`)
-    .join("");
-  const selectedId = await foundry.applications.api.DialogV2.wait({
-    window: { title: "Кузнечное ремесло" },
-    position: { width: 420 },
-    content: `
-      <div class="form-group">
-        <label>Массивное оружие</label>
-        <div class="form-fields">
-          <select name="weapon">${options}</select>
-        </div>
-      </div>
-    `,
-    buttons: [
-      {
-        action: "apply",
-        label: "Облегчить",
-        icon: "fa-solid fa-hammer",
-        default: true,
-        callback: (_event, _button, dialog) => {
-          return dialog.element.querySelector('select[name="weapon"]')?.value;
-        }
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => null
-      }
-    ]
+  const selectedId = await choiceDialog({
+    title: "Кузнечное ремесло",
+    label: "Массивное оружие",
+    choices: weapons.map(weapon => [weapon.id, weapon.name]),
+    confirmLabel: "Облегчить",
+    confirmIcon: "fa-solid fa-hammer"
   });
   return weapons.find(weapon => weapon.id === selectedId);
 }

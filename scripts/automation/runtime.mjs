@@ -6,6 +6,7 @@ import {
 } from "./shared/constants.mjs";
 import {
   activityActor,
+  automationAction,
   automationData,
   enabled,
   isAutomationAuthority,
@@ -38,8 +39,12 @@ import {
 } from "./classes/guardian.mjs";
 import {
   activateCrusaderRage,
+  condemnCrusaderTarget,
   crusaderPrerequisiteFailures,
   syncCrusaderResources,
+  useCrusaderConsecration,
+  validateCrusaderCondemnationUse,
+  validateCrusaderConsecrationUse,
   validateCrusaderFeaturePrerequisites,
   validateCrusaderPrerequisites,
   validateCrusaderRageUse
@@ -56,10 +61,12 @@ import {
   activateSpiritForm,
   endSpiritForm,
   ghostWalkerPrerequisiteFailures,
+  summonUnfinishedBusinessSpirit,
   syncGhostWalkerPassiveEffects,
   syncGhostWalkerResources,
   validateGhostWalkerFeaturePrerequisites,
   validateGhostWalkerPrerequisites,
+  validateGhostWalkerSummonUse,
   validateSpiritFormUse
 } from "./classes/ghost-walker.mjs";
 import {
@@ -100,6 +107,8 @@ import {
   rollInsectBoneBlades,
   rollInsectSpew,
   rollInsectTailSting,
+  summonInsectFamiliar,
+  summonInsectSwarm,
   syncInsectLordPassiveEffects,
   syncInsectLordResources,
   useCrawlingArmor,
@@ -126,6 +135,7 @@ import {
   rollKeeperAllyStrike,
   rollKeeperMightDamage,
   rollKeeperRestRecovery,
+  summonKeeperAlly,
   syncKeeperAllyPoints,
   syncKeeperResources,
   validateKeeperFeaturePrerequisites,
@@ -144,10 +154,12 @@ import {
 } from "./classes/blood-mage.mjs";
 import {
   onmyojiPrerequisiteFailures,
+  summonOnmyojiShikigami,
   syncOnmyojiResources,
   useOnmyojiKi,
   validateOnmyojiFeaturePrerequisites,
   validateOnmyojiKiUse,
+  validateOnmyojiShikigamiUse,
   validateOnmyojiPrerequisites
 } from "./classes/onmyoji.mjs";
 import {
@@ -159,6 +171,7 @@ import {
   rollRitualistSpiritSorrow,
   showRitualistSpiritChannel,
   showRitualistSpiritDC,
+  summonRitualistSpirits,
   syncRitualistResources,
   useRitualistRitualPoints,
   validateRitualistFeaturePrerequisites,
@@ -186,6 +199,7 @@ import {
   showDarkLuck,
   showEmpoweredCharms,
   summonDevilGlaive,
+  summonImpFamiliar,
   validateDevilWorshipperActivityUse,
   validateDevilWorshipperFeaturePrerequisites,
   validateDevilWorshipperPrerequisites
@@ -269,6 +283,19 @@ import {
   moduleItemSources,
   syncModulePassiveEffects
 } from "./effects/module-passives.mjs";
+import { installMidiQolHooks } from "./midi/hooks.mjs";
+import { installSummonSocket } from "./shared/summons.mjs";
+import {
+  auraDefinitions,
+  installAuraHooks,
+  scheduleAuraSync,
+  syncSceneAuras
+} from "./shared/auras.mjs";
+import {
+  applyMidiWeaponBuffAttackAutomation,
+  applyWeaponBuffAttackAutomation,
+  applyWeaponBuffDamageAutomation
+} from "./shared/weapon-buffs.mjs";
 import {
   applyCrusherDamageAutomation,
   applyCrusherNativeAttackAutomation,
@@ -300,7 +327,12 @@ import {
   validateHereticActivityUse
 } from "./classes/heretic.mjs";
 import {
+  activateEtherealStorm,
+  activateWitchCrystallization,
+  activateWitchHunterEmpower,
+  openImmaterialWhirlwind,
   syncWitchBladeRage,
+  useWitchBladeSealEvil,
   useWitchBladeRage,
   validateWitchBladeRageUse
 } from "./classes/witch-blade.mjs";
@@ -355,6 +387,11 @@ export {
   activateSpiritForm,
   activateSoulShard,
   activateCrusaderRage,
+  activateWitchHunterEmpower,
+  activateWitchCrystallization,
+  activateEtherealStorm,
+  condemnCrusaderTarget,
+  useCrusaderConsecration,
   activateSidewaysShift,
   activateDiseaseForm,
   acesBeat,
@@ -376,6 +413,7 @@ export {
   chooseOccultAbility,
   chooseSchoolSteelWeapons,
   endSpiritForm,
+  summonUnfinishedBusinessSpirit,
   gainHollowCharge,
   rollForestUnarmedDamage,
   rollRoguesAreLucky,
@@ -384,10 +422,14 @@ export {
   rollInsectBoneBlades,
   rollInsectSpew,
   rollInsectTailSting,
+  summonInsectFamiliar,
+  summonInsectSwarm,
+  summonKeeperAlly,
   rollKeeperAllyStrike,
   rollKeeperMightDamage,
   rollKeeperRestRecovery,
   rollBloodMageSacrifice,
+  summonOnmyojiShikigami,
   syncOnmyojiResources,
   rollRitualistSpiritAgony,
   rollRitualistSpiritDestructionDie,
@@ -396,6 +438,7 @@ export {
   rollRitualistSpiritSorrow,
   showRitualistSpiritChannel,
   showRitualistSpiritDC,
+  summonRitualistSpirits,
   syncRitualistResources,
   applyBlackMagicOil,
   drinkDarkWarriorElixir,
@@ -404,6 +447,7 @@ export {
   showDarkLuck,
   showEmpoweredCharms,
   summonDevilGlaive,
+  summonImpFamiliar,
   rollDevilGlaiveDamage,
   rollDevilGlaiveGrappleDamage,
   gainDevilSoulAuraTempHp,
@@ -464,6 +508,8 @@ export {
   useSleevedCard,
   useVigorousNature,
   useWitchBladeRage,
+  useWitchBladeSealEvil,
+  openImmaterialWhirlwind,
   useOnmyojiKi,
   useRitualistRitualPoints,
   useHollowCharges,
@@ -473,7 +519,7 @@ export {
 };
 
 function actionFromActivity(activity) {
-  return automationData(activity).action;
+  return automationAction(activity);
 }
 
 async function handleActivityAction(activity) {
@@ -562,11 +608,35 @@ async function handleActivityAction(activity) {
     case "use-witch-blade-rage":
       await useWitchBladeRage(actor, activity);
       break;
+    case "activate-witch-hunter-empower":
+      await activateWitchHunterEmpower(actor, activity);
+      break;
+    case "activate-witch-crystallization":
+      await activateWitchCrystallization(actor);
+      break;
+    case "activate-ethereal-storm":
+      await activateEtherealStorm(actor, activity);
+      break;
+    case "open-immaterial-whirlwind":
+      await openImmaterialWhirlwind(actor, activity);
+      break;
+    case "use-witch-blade-seal-evil":
+      await useWitchBladeSealEvil(actor, activity);
+      break;
     case "activate-crusader-rage":
       await activateCrusaderRage(actor);
       break;
+    case "use-crusader-consecration":
+      await useCrusaderConsecration(actor);
+      break;
+    case "condemn-crusader-target":
+      await condemnCrusaderTarget(actor);
+      break;
     case "activate-spirit-form":
       await activateSpiritForm(actor);
+      break;
+    case "summon-ghost-walker-spirit":
+      await summonUnfinishedBusinessSpirit(actor, activity);
       break;
     case "end-spirit-form":
       await endSpiritForm(actor);
@@ -622,6 +692,9 @@ async function handleActivityAction(activity) {
     case "aces-beat":
       await acesBeat(actor);
       break;
+    case "summon-keeper-ally":
+      await summonKeeperAlly(actor, activity);
+      break;
     case "sync-keeper-ally-points":
       await syncKeeperAllyPoints(actor);
       break;
@@ -643,11 +716,17 @@ async function handleActivityAction(activity) {
     case "sync-onmyoji-resources":
       await syncOnmyojiResources(actor, { notifyResult: true });
       break;
+    case "summon-onmyoji-shikigami":
+      await summonOnmyojiShikigami(actor);
+      break;
     case "use-onmyoji-ki":
       await useOnmyojiKi(actor, activity);
       break;
     case "sync-ritualist-resources":
       await syncRitualistResources(actor, { notifyResult: true });
+      break;
+    case "summon-ritualist-spirits":
+      await summonRitualistSpirits(actor, activity);
       break;
     case "use-ritualist-ritual-points":
       await useRitualistRitualPoints(actor, activity);
@@ -694,6 +773,9 @@ async function handleActivityAction(activity) {
     case "summon-devil-glaive":
       await summonDevilGlaive(actor);
       break;
+    case "summon-devil-imp-familiar":
+      await summonImpFamiliar(actor);
+      break;
     case "roll-devil-glaive-damage":
       await rollDevilGlaiveDamage(actor);
       break;
@@ -724,6 +806,9 @@ async function handleActivityAction(activity) {
     case "roll-insect-tail-sting":
       await rollInsectTailSting(actor);
       break;
+    case "summon-insect-familiar":
+      await summonInsectFamiliar(actor, activity);
+      break;
     case "roll-insect-bone-blades":
       await rollInsectBoneBlades(actor);
       break;
@@ -738,6 +823,9 @@ async function handleActivityAction(activity) {
       break;
     case "roll-insect-spew":
       await rollInsectSpew(actor);
+      break;
+    case "summon-insect-swarm":
+      await summonInsectSwarm(actor);
       break;
     case "detach-crawling-eye":
       await detachCrawlingEye(actor);
@@ -762,14 +850,22 @@ function validateActivityUse(activity) {
   }
   if (isTransformationAction(action)) return validateTransformationActivityUse(activity, action);
   if (action === "use-witch-blade-rage") return validateWitchBladeRageUse(actor, activity);
+  if (action === "activate-witch-hunter-empower") return validateWitchBladeRageUse(actor, activity);
+  if (action === "activate-ethereal-storm") return validateWitchBladeRageUse(actor, activity);
+  if (action === "open-immaterial-whirlwind") return validateWitchBladeRageUse(actor, activity);
+  if (action === "use-witch-blade-seal-evil") return validateWitchBladeRageUse(actor, activity);
   if (action === "activate-crusader-rage") return validateCrusaderRageUse(actor);
+  if (action === "use-crusader-consecration") return validateCrusaderConsecrationUse(actor);
+  if (action === "condemn-crusader-target") return validateCrusaderCondemnationUse(actor);
   if (action === "activate-spirit-form") return validateSpiritFormUse(actor, activity);
+  if (action === "summon-ghost-walker-spirit") return validateGhostWalkerSummonUse(actor, activity);
   if (action === "use-inner-blink" || action === "use-outer-blink") return validateBlinkUse(actor);
   if (action === "arm-steel-will") return validateSteelWillUse(actor);
   if (action === "apply-blood-magic-cost") return validateBloodMagicCostUse(actor, activity);
   if (action === "roll-blood-mage-sacrifice") return validateBloodMageSacrificeUse(actor);
   if (action === "use-onmyoji-ki") return validateOnmyojiKiUse(actor, activity);
-  if (action === "use-ritualist-ritual-points") return validateRitualistRitualPointUse(actor, activity);
+  if (action === "summon-onmyoji-shikigami") return validateOnmyojiShikigamiUse(actor);
+  if (action === "use-ritualist-ritual-points" || action === "summon-ritualist-spirits") return validateRitualistRitualPointUse(actor, activity);
   if (["apply-black-magic-oil", "drink-dark-warrior-elixir"].includes(action)) {
     return validateDarkWarriorActivityUse(actor, activity, action);
   }
@@ -777,6 +873,7 @@ function validateActivityUse(activity) {
     "choose-devil-worshipper-ability",
     "show-dark-luck",
     "show-empowered-charms",
+    "summon-devil-imp-familiar",
     "summon-devil-glaive",
     "roll-devil-glaive-damage",
     "roll-devil-glaive-grapple-damage",
@@ -852,11 +949,13 @@ function recalculateDamageItem(token, damageItem, rawDamage) {
 
 function applyNativeAttackAutomation(config) {
   if (!enabled()) return;
+  applyWeaponBuffAttackAutomation(config);
   applyAberrantNativeAttackAutomation(config);
   applyCrusherNativeAttackAutomation(config);
 }
 
 function applyDamageAutomation(config) {
+  applyWeaponBuffDamageAutomation(config);
   applyCrusherDamageAutomation(config);
   applyFeyWarriorDamageAutomation(config);
   applyBlinkerDamageAutomation(config);
@@ -1063,6 +1162,14 @@ function hasModuleAction(item) {
   return activitiesOf(item).some(activity => Boolean(actionFromActivity(activity)));
 }
 
+function moduleActionSignature(item) {
+  return activitiesOf(item)
+    .map(activity => actionFromActivity(activity))
+    .filter(Boolean)
+    .sort()
+    .join("|");
+}
+
 async function migrateOwnedItems(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
   const sources = await moduleItemSources();
@@ -1086,7 +1193,7 @@ async function migrateOwnedItems(actor) {
       update[`flags.${MODULE_ID}`] = sourceData.flags?.[MODULE_ID] ?? {};
       changed = true;
     }
-    if (hasModuleAction(source) && !hasModuleAction(item)) {
+    if (hasModuleAction(source) && moduleActionSignature(source) !== moduleActionSignature(item)) {
       update["system.activities"] = sourceData.system.activities;
       changed = true;
     }
@@ -1127,6 +1234,8 @@ async function migrateOwnedItems(actor) {
 }
 
 function installHooks() {
+  installSummonSocket();
+  installAuraHooks();
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateAdvancement);
   Hooks.on("dnd5e.preUseActivity", validateActivityUse);
   Hooks.on("dnd5e.postUseActivity", activity => {
@@ -1153,14 +1262,17 @@ function installHooks() {
     void clearPendingSteelWill(subject);
   });
 
-  Hooks.on("midi-qol.preAttackRollConfig", applyMidiAttackDisadvantage);
-  Hooks.on("midi-qol.DamageRollComplete", applyPowerfulCleaving);
-  Hooks.on("midi-qol.preTargetDamageApplication", applyGiantKillerHook);
-  Hooks.on("midi-qol.preTargetDamageApplication", applyDeathKnightHealingRestriction);
-  Hooks.on("midi-qol.preTargetDamageApplication", markForestRootFireDamageHook);
-  Hooks.on("midi-qol.preTargetDamageApplication", applyHellfireFuryHook);
-  Hooks.on("midi-qol.preCheckSaves", prepareMidiSteelWill);
-  Hooks.on("midi-qol.postCheckSaves", finishMidiSteelWill);
+  installMidiQolHooks({
+    applyMidiAttackDisadvantage,
+    applyPowerfulCleaving,
+    applyGiantKillerHook,
+    applyDeathKnightHealingRestriction,
+    markForestRootFireDamageHook,
+    applyHellfireFuryHook,
+    applyMidiWeaponBuffAttackAutomation,
+    prepareMidiSteelWill,
+    finishMidiSteelWill
+  });
 
   Hooks.on("preCreateItem", (item, _data, options, userId) => {
     if (!enabled()) return true;
@@ -1326,13 +1438,18 @@ export function exposeApi() {
     armDeadlyPrecision,
     useVigorousNature,
     activateCrusaderRage,
+    condemnCrusaderTarget,
+    useCrusaderConsecration,
     activateSpiritForm,
+    summonUnfinishedBusinessSpirit,
     activateSidewaysShift,
     activateDiseaseForm,
     endSpiritForm,
     endDiseaseForm,
     activateSoulShard,
     useWitchBladeRage,
+    useWitchBladeSealEvil,
+    openImmaterialWhirlwind,
     useInnerBlink,
     useOuterBlink,
     rollPlagueSneakAttack,
@@ -1346,16 +1463,19 @@ export function exposeApi() {
     storeSleevedCard,
     useSleevedCard,
     acesBeat,
+    summonKeeperAlly,
     syncKeeperAllyPoints,
     rollKeeperAllyStrike,
     rollKeeperRestRecovery,
     rollKeeperMightDamage,
+    summonInsectFamiliar,
     rollInsectTailSting,
     rollInsectBoneBlades,
     rollInsectBite,
     rollInsectBloodDrain,
     useCrawlingArmor,
     rollInsectSpew,
+    summonInsectSwarm,
     detachCrawlingEye,
     returnCrawlingEye,
     applyBloodMagicCost,
@@ -1363,6 +1483,8 @@ export function exposeApi() {
     rollBloodMageSacrifice,
     syncOnmyojiResources,
     useOnmyojiKi,
+    summonOnmyojiShikigami,
+    summonRitualistSpirits,
     useRitualistRitualPoints,
     showRitualistSpiritDC,
     rollRitualistSpiritAgony,
@@ -1377,6 +1499,7 @@ export function exposeApi() {
     showDarkLuck,
     showEmpoweredCharms,
     summonDevilGlaive,
+    summonImpFamiliar,
     rollDevilGlaiveDamage,
     rollDevilGlaiveGrappleDamage,
     gainDevilSoulAuraTempHp,
@@ -1431,7 +1554,12 @@ export function exposeApi() {
     gainHollowCharge,
     useHollowCharges,
     syncDarkGuard,
-    applySmithing
+    syncSceneAuras,
+    scheduleAuraSync,
+    auraDefinitions,
+    applySmithing,
+    applyWeaponBuffAttackAutomation,
+    applyWeaponBuffDamageAutomation
   };
 }
 
@@ -1478,6 +1606,7 @@ export async function initializeOwnedActors() {
     await syncTransformations(actor);
     await syncDarkGuard(actor);
   }
+  scheduleAuraSync();
 
   if (!game.modules.get("midi-qol")?.active) {
     notify("Для полной автоматизации престиж-классов включите Midi-QOL.", "warn");

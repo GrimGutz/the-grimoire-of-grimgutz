@@ -8,6 +8,8 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { numberDialog } from "../shared/dialogs.mjs";
+import { createSummonedCreature } from "../shared/summons.mjs";
 
 const ritualistSyncs = new Set();
 
@@ -104,9 +106,32 @@ function bindingRitualResource(actor) {
   };
 }
 
+function fixedRitualistRitualPointCost(activity) {
+  const fixed = Number(automationData(activity).ritualistRitualPointCost);
+  return Number.isFinite(fixed) && fixed > 0 ? Math.floor(fixed) : null;
+}
+
+async function chooseRitualistRitualPointCost(actor, activity, { title = "Ритуал привязки" } = {}) {
+  const fixed = fixedRitualistRitualPointCost(activity);
+  if (fixed) return fixed;
+  const resource = bindingRitualResource(actor);
+  const maximum = Math.min(3, resource.remaining);
+  if (maximum < 1) return null;
+  return numberDialog({
+    title,
+    label: "Сколько духов призвать / очков потратить",
+    min: 1,
+    max: maximum,
+    defaultValue: 1,
+    hint: `Доступно ритуальных очков: ${resource.remaining}. За раз можно потратить максимум 3.`,
+    confirmLabel: "Применить",
+    confirmIcon: "fa-solid fa-ghost"
+  });
+}
+
 export function validateRitualistRitualPointUse(actor, activity) {
   const data = automationData(activity);
-  const cost = Math.max(1, Number(data.ritualistRitualPointCost ?? 1));
+  const cost = Math.max(1, fixedRitualistRitualPointCost(activity) ?? 1);
   if (!actor || !ritualistClass(actor)) {
     notify("Эта активность требует класс «Ритуалист».", "warn");
     return false;
@@ -127,16 +152,29 @@ export function validateRitualistRitualPointUse(actor, activity) {
   return true;
 }
 
-export async function useRitualistRitualPoints(actor, activity) {
-  if (!validateRitualistRitualPointUse(actor, activity)) return false;
-  const data = automationData(activity);
-  const cost = Math.max(1, Number(data.ritualistRitualPointCost ?? 1));
+async function spendRitualistRitualPoints(actor, cost) {
   const resource = bindingRitualResource(actor);
   await resource.feature.update({
     "system.uses.max": String(resource.maximum),
     "system.uses.spent": resource.spent + cost
   });
   notify(`${actor.name}: потрачено ${cost} ритуальных очков, осталось ${Math.max(0, resource.remaining - cost)}.`);
+}
+
+export async function useRitualistRitualPoints(actor, activity) {
+  if (!validateRitualistRitualPointUse(actor, activity)) return false;
+  const cost = await chooseRitualistRitualPointCost(actor, activity);
+  if (!cost || !validateRitualistRitualPointUse(actor, {
+    ...activity,
+    flags: {
+      ...(activity.flags ?? {}),
+      [MODULE_ID]: {
+        ...automationData(activity),
+        ritualistRitualPointCost: cost
+      }
+    }
+  })) return false;
+  await spendRitualistRitualPoints(actor, cost);
   return true;
 }
 
@@ -167,6 +205,62 @@ export async function showRitualistSpiritDC(actor) {
   }
   await chat(actor, `<p><strong>${actor.name}: СЛ способностей духа.</strong> ${ritualistSpiritSaveDC(actor)} = 8 + бонус мастерства + модификатор Мудрости.</p>`);
   return true;
+}
+
+function ritualistSpiritSummon(actor, index, total) {
+  const suffix = total > 1 ? ` ${index + 1}` : "";
+  return {
+    kind: "ritualist-spirit",
+    unique: false,
+    name: `${actor.name}: Призванный дух${suffix}`,
+    img: "icons/magic/death/undead-ghost-scream-teal.webp",
+    source: "binding-ritual",
+    size: "med",
+    type: "undead",
+    ac: 11,
+    hp: 28,
+    hpFormula: "5d8 + 5",
+    abilities: { str: 7, dex: 13, con: 10, int: 10, wis: 12, cha: 15 },
+    movement: { walk: 0, fly: 30, hover: true },
+    senses: { darkvision: 60 },
+    dr: { value: ["thunder", "acid", "fire", "lightning", "bludgeoning", "piercing", "slashing"], custom: "дробящий, колющий и рубящий урон только от немагических атак" },
+    di: { value: ["necrotic", "cold", "poison"] },
+    ci: { value: ["grappled", "frightened", "exhaustion", "petrified", "restrained", "poisoned", "charmed", "paralyzed", "prone"] },
+    description: `
+      <p><strong>Призванный дух Ритуалиста.</strong> Существует до 10 минут, пока Ритуалист концентрируется, или пока его хиты не упадут до 0.</p>
+      <ul>
+        <li><strong>КД:</strong> 11; <strong>хиты:</strong> 28 (5к8 + 5); <strong>скорость:</strong> полёт 30 фт. (парит).</li>
+        <li><strong>Эфирное зрение:</strong> дух видит на 60 фт. на Эфирный План с Материального и наоборот.</li>
+        <li><strong>Бестелесное перемещение:</strong> может проходить сквозь существ и предметы как через труднопроходимую местность; получает 1к10 урона силовым полем, если заканчивает ход внутри предмета.</li>
+        <li><strong>СЛ способностей духа:</strong> ${ritualistSpiritSaveDC(actor)}.</li>
+      </ul>
+      <p>Вариант духа выберите по карточке «Ритуал привязки». Броски способностей духа есть отдельными активностями на этой карточке.</p>
+    `,
+    features: [{
+      name: "Варианты духов",
+      description: "<p>Выберите вариант: Дух агонии, Кровавой песни, Разрушения, Великих возможностей, Жизни, Защиты или Скорбной песни. Автоматические броски находятся на карточке Ритуалиста.</p>"
+    }],
+    note: "Если концентрация Ритуалиста нарушена, дух не исчезает автоматически: отметьте потерю контроля вручную."
+  };
+}
+
+export async function summonRitualistSpirits(actor, activity) {
+  if (!validateRitualistRitualPointUse(actor, activity)) return false;
+  const cost = await chooseRitualistRitualPointCost(actor, activity, { title: "Призвать духов Ритуалиста" });
+  if (!cost) return false;
+  const resource = bindingRitualResource(actor);
+  if (cost > resource.remaining || cost > 3) {
+    notify(`${actor.name}: недостаточно ритуальных очков или превышен максимум 3 духов за раз.`, "warn");
+    return false;
+  }
+  const created = [];
+  for (let index = 0; index < cost; index += 1) {
+    const result = await createSummonedCreature(actor, ritualistSpiritSummon(actor, index, cost));
+    if (!result) return false;
+    created.push(result);
+  }
+  await spendRitualistRitualPoints(actor, cost);
+  return created.length > 0;
 }
 
 export async function rollRitualistSpiritAgony(actor) {

@@ -11,7 +11,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Воин тьмы; предоставленный PDF PK_DarkWarrior (1).pdf";
-const CLASS_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Dark_warrior.png";
+const CLASS_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Abilities/EbonBlade.png";
 
 function featureLink(identifier, label) {
   return `@UUID[${uuidFor("features", identifier)}]{${label}}`;

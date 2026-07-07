@@ -11,7 +11,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Сосуд Духа; предоставленный PDF PK-_Sosud_Dukha (2).pdf";
-const ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Sosud_ducha.png";
+const ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/SpiritLink.png";
 
 const SPIRIT_SUBCLASSES = [
   ["spirit-vessel-aberration", "Абберация"],

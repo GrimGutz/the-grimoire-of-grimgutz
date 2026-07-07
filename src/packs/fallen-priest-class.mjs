@@ -9,7 +9,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Падший жрец; предоставленный PDF PK_FallenPriest (1).pdf";
-const FALLEN_PRIEST_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Fallen_priest.png";
+const FALLEN_PRIEST_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/TwistedFaith.png";
 
 function featureLink(identifier, label) {
   return `@UUID[${uuidFor("features", identifier)}]{${label}}`;

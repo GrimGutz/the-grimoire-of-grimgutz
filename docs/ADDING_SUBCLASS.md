@@ -26,6 +26,7 @@ Use this order to keep subclasses compatible with dnd5e advancement and module a
    - Temporary effects and passive-effect helpers belong under `scripts/automation/effects/`.
    - Midi-QOL hooks belong under `scripts/automation/midi/`.
    - Conditional reactions, rerolls, and choices should stay as item actions/macros unless fully triggerable.
+   - Pack source should use simple `automation` / `actionData`; the canonical nested config is generated automatically. See `docs/AUTOMATION_CONFIG.md`.
 
 6. Update validation.
    - Expected subclass and feature counts in `tools/validate.mjs`.

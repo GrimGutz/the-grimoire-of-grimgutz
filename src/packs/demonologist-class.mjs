@@ -11,7 +11,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Демонолог; предоставленный PDF PK_demonolog (1).pdf";
-const ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Demonolog.png";
+const ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/DemonicPact.png";
 
 function featureLink(identifier, label) {
   return `@UUID[${uuidFor("features", identifier)}]{${label}}`;

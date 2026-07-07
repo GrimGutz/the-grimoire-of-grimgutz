@@ -46,11 +46,11 @@ function witchBladeFeature(options) {
   });
 }
 
-function spendRageActivity({ key, name, activation = "special", condition = "", cost = 1, rangeValue = null, targetType = "", targetCount = "", targetChoice = false, rollFormula = "", rollName = name }) {
+function spendRageActivity({ key, name, action = "use-witch-blade-rage", activation = "special", condition = "", cost = 1, rangeValue = null, targetType = "", targetCount = "", targetChoice = false, rollFormula = "", rollName = name }) {
   return utilityActivity({
     key,
     name,
-    action: "use-witch-blade-rage",
+    action,
     actionData: { witchBladeRageCost: cost },
     activation,
     condition,
@@ -100,7 +100,7 @@ export const witchBladeDocuments = [
       recovery: [{ period: "lr", type: "recoverAll" }]
     },
     activities: activities(
-      spendRageActivity({ key: "witch-hunter-empower", name: "Вспыхивающее оружие", activation: "bonus", cost: 1 }),
+      spendRageActivity({ key: "witch-hunter-empower", name: "Вспыхивающее оружие", action: "activate-witch-hunter-empower", activation: "bonus", cost: 1 }),
       utilityActivity({
         key: "witch-hunter-slot-damage",
         name: "Дополнительный урон ячейкой",
@@ -115,7 +115,7 @@ export const witchBladeDocuments = [
       <p>Вы получаете пул Очков Гнева по таблице Ведьминого клинка и восстанавливаете все потраченные Очки Гнева после продолжительного отдыха.</p>
       <p>Потратьте 1 Очко Гнева, чтобы оружие вспыхнуло магической энергией. В этом состоянии вы получаете преимущество на атаки оружием против существ, у которых есть ячейки заклинаний.</p>
       <p>Первый раз, когда вы успешно попадаете усиленным рукопашным оружием, вы можете потратить ячейку заклинания и нанести дополнительный урон: число к6 равно уровню потраченной ячейки. Для доброго мировоззрения это урон излучением; для злого — некротический урон.</p>
-    `, "карточка хранит общий пул Очков Гнева. Модуль синхронизирует максимум по уровню Ведьминого клинка и списывает Очки Гнева с этой карточки при использовании активностей Witch Blade. Преимущество против целей с ячейками заклинаний применяется по ситуации.")
+    `, "карточка хранит общий пул Очков Гнева. Модуль синхронизирует максимум по уровню Ведьминого клинка и списывает Очки Гнева с этой карточки при использовании активностей Witch Blade. «Вспыхивающее оружие» создаёт 1-минутный weapon-buff: атаки оружием получают преимущество против выбранных целей с ячейками заклинаний.")
   }),
   witchBladeFeature({
     key: "dead-zone",
@@ -139,7 +139,7 @@ export const witchBladeDocuments = [
       spendRageActivity({ key: "witch-blade-seal-lawful", name: "Печать: Законный", activation: "action", cost: 1, rangeValue: 60, targetType: "creature", targetCount: "1", targetChoice: true }),
       spendRageActivity({ key: "witch-blade-seal-good", name: "Печать: Добрый", activation: "action", cost: 1, rangeValue: 60, targetType: "creature", targetCount: "1", targetChoice: true, rollFormula: "2d8", rollName: "Исцеление Печати" }),
       spendRageActivity({ key: "witch-blade-seal-chaotic", name: "Печать: Хаотичный", activation: "action", cost: 1, rangeValue: 60 }),
-      spendRageActivity({ key: "witch-blade-seal-evil", name: "Печать: Злой", activation: "action", cost: 1 }),
+      spendRageActivity({ key: "witch-blade-seal-evil", name: "Печать: Злой", action: "use-witch-blade-seal-evil", activation: "action", cost: 1, targetType: "creature", targetChoice: true }),
       spendRageActivity({ key: "witch-blade-seal-neutral", name: "Печать: Нейтральный", activation: "action", cost: 1 })
     ),
     description: description(`
@@ -151,7 +151,7 @@ export const witchBladeDocuments = [
         <li><strong>Злой:</strong> все существа в 30-футовом конусе совершают спасбросок Харизмы; при провале они ошеломлены на 1 раунд.</li>
         <li><strong>Нейтральный:</strong> вы создаёте круг защиты от добра и зла с центром в вашем местоположении.</li>
       </ul>
-    `, "каждая активность списывает 1 Очко Гнева. Исцеление доброй Печати бросается автоматически; остальные эффекты применяются по ситуации.")
+    `, "каждая активность списывает 1 Очко Гнева. Исцеление доброй Печати бросается автоматически. Печать: Злой накладывает состояние «Ошеломлён» на выбранные цели на 1 раунд; выбирайте только цели, провалившие спасбросок. Остальные эффекты применяются по ситуации.")
   }),
   witchBladeFeature({
     key: "great-design",
@@ -187,8 +187,8 @@ export const witchBladeDocuments = [
     requirements: "Ведьмин клинок 4; Великий замысел",
     folder: DESIGN_FOLDER,
     automation: { greatDesign: true },
-    activities: utilityActivity({ key: "witch-crystallization", name: "Покрыть оружие кристаллом", activation: "special", condition: "Держите рукопашное оружие в одной руке и не держите другое оружие" }),
-    description: description("<p>Когда вы держите рукопашное оружие в одной руке и не держите другое оружие, вы можете потратить ячейку заклинания, чтобы покрыть оружие кристаллом. Результат критического удара уменьшается на 1 за каждые два уровня потраченной ячейки.</p>", "активность отмечает применение. Критический диапазон зависит от оружия и ячейки, поэтому выставляется на оружии вручную или временным DAE-эффектом.")
+    activities: utilityActivity({ key: "witch-crystallization", name: "Покрыть оружие кристаллом", action: "activate-witch-crystallization", activation: "special", condition: "Держите рукопашное оружие в одной руке и не держите другое оружие" }),
+    description: description("<p>Когда вы держите рукопашное оружие в одной руке и не держите другое оружие, вы можете потратить ячейку заклинания, чтобы покрыть оружие кристаллом. Результат критического удара уменьшается на 1 за каждые два уровня потраченной ячейки.</p>", "активность спрашивает уровень потраченной ячейки и создаёт 1-минутный weapon-buff. Пока он активен, melee weapon attacks уменьшают критический порог на floor(уровень ячейки / 2). Условие одного рукопашного оружия подтверждается игроком/Мастером.")
   }),
   witchBladeFeature({
     key: "ethereal-push",
@@ -217,8 +217,8 @@ export const witchBladeDocuments = [
     requirements: "Ведьмин клинок 4; Великий замысел",
     folder: DESIGN_FOLDER,
     automation: { greatDesign: true },
-    activities: spendRageActivity({ key: "ethereal-storm", name: "Удлинить клинки эфирной бурей", activation: "special", condition: "Когда вы сражаетесь двумя оружиями", cost: 1 }),
-    description: description("<p>Когда вы сражаетесь двумя оружиями, вы можете потратить 1 Очко Гнева, чтобы увеличить досягаемость вашего оружия до 30 футов. Эти лезвия наносят урон так, как если бы оружие поразило врага.</p>", "активность списывает 1 Очко Гнева. Досягаемость и атаки меняются вручную на время применения.")
+    activities: spendRageActivity({ key: "ethereal-storm", name: "Удлинить клинки эфирной бурей", action: "activate-ethereal-storm", activation: "special", condition: "Когда вы сражаетесь двумя оружиями", cost: 1 }),
+    description: description("<p>Когда вы сражаетесь двумя оружиями, вы можете потратить 1 Очко Гнева, чтобы увеличить досягаемость вашего оружия до 30 футов. Эти лезвия наносят урон так, как если бы оружие поразило врага.</p>", "активность списывает 1 Очко Гнева и создаёт 1-минутный marker-эффект досягаемости 30 футов. Foundry не может безопасно изменить reach только для конкретной пары оружий, поэтому атаки двумя оружиями и подходящее оружие подтверждаются вручную.")
   }),
   witchBladeFeature({
     key: "immaterial-whirlwind",
@@ -226,7 +226,7 @@ export const witchBladeDocuments = [
     img: `${WOW}/Spells/ArcaneTorrent.png`,
     level: 5,
     requirements: "Ведьмин клинок 5",
-    activities: spendRageActivity({ key: "immaterial-whirlwind", name: "Открыть Нематериальный вихрь", activation: "action", cost: 3, rollFormula: "8d8", rollName: "Урон Нематериального вихря" }),
-    description: description("<p>Действием вы можете потратить 3 Очка Гнева и обозначить куб со стороной 5 футов. Сырая энергия опустошает всех существ и безнадзорные предметы в радиусе 30 футов. Существо в области совершает спасбросок Ловкости или получает 8к8 урона того же типа, что и дайс Охотника на ведьм: излучение для Добра или некротический урон для Зла. Зона длится до 1 минуты с концентрацией; существо, закончившее ход в Вихре, снова совершает спасбросок.</p>", "активность списывает 3 Очка Гнева и бросает 8к8. Тип урона, спасброски и повторный урон применяются по ситуации.")
+    activities: spendRageActivity({ key: "immaterial-whirlwind", name: "Открыть Нематериальный вихрь", action: "open-immaterial-whirlwind", activation: "action", cost: 3 }),
+    description: description("<p>Действием вы можете потратить 3 Очка Гнева и обозначить куб со стороной 5 футов. Сырая энергия опустошает всех существ и безнадзорные предметы в радиусе 30 футов. Существо в области совершает спасбросок Ловкости или получает 8к8 урона того же типа, что и дайс Охотника на ведьм: излучение для Добра или некротический урон для Зла. Зона длится до 1 минуты с концентрацией; существо, закончившее ход в Вихре, снова совершает спасбросок.</p>", "активность списывает 3 Очка Гнева, бросает 8к8, создаёт круговой шаблон 30 футов по выбранной цели или вашему токену и пишет список токенов в зоне. Спасброски и повторный урон в конце хода применяются по ситуации.")
   })
 ];

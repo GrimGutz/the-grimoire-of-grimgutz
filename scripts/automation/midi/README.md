@@ -1,10 +1,8 @@
 # Midi-QOL automation
 
-Put Midi-QOL hook handlers here.
+`hooks.mjs` registers all Midi-QOL hooks used by the module.
 
-Examples:
-
-- attack roll configuration hooks;
-- damage roll post-processing;
-- target damage application hooks;
-- save replacement or save-result handlers.
+Keep hook names and registration here. Class-specific calculations can stay in
+`scripts/automation/classes/*`, but new Midi-QOL integration should be exposed
+through this folder instead of adding more direct `Hooks.on("midi-qol...")`
+calls to `runtime.mjs`.

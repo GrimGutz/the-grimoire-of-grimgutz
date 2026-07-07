@@ -11,7 +11,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Дьяволопоклонник; предоставленный PDF PK_DevilContract (1).pdf";
-const CLASS_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Devil_contracter.png";
+const CLASS_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/DemonicPact.png";
 
 function featureLink(identifier, label) {
   return `@UUID[${uuidFor("features", identifier)}]{${label}}`;

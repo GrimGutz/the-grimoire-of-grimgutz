@@ -9,6 +9,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod, clamp } from "../shared/dnd5e.mjs";
+import { selectFormDialog, slotLevelDialog } from "../shared/dialogs.mjs";
 import {
   flaggedPassiveEffectData,
   syncFlaggedPassiveEffects
@@ -338,47 +339,26 @@ async function handleMysteriousGuidance(actor, activity) {
 
 async function chooseBalancingRitual(actor) {
   const current = oracleDissonance(actor);
-  const pointOptions = Array.from({ length: current }, (_, index) => {
-    const value = index + 1;
-    return `<option value="${value}">${value}</option>`;
-  }).join("");
-  const costOptions = [
+  return selectFormDialog({
+    title: "Балансирующий ритуал Оракула",
+    width: 520,
+    fields: [{
+      name: "points",
+      label: "Сколько Диссонанса снять",
+      choices: Array.from({ length: current }, (_entry, index) => {
+        const value = index + 1;
+        return [value, String(value)];
+      })
+    }, {
+      name: "cost",
+      label: "Цена ритуала",
+      choices: [
     ["doomed-thread", "2к10 психического урона за пункт"],
     ["hp-maximum", "−3 текущих и максимальных хита за пункт до длительного отдыха"],
     ["sensory", "слепота или глухота на 2 часа за пункт"],
     ["vulnerability", "уязвимость к дробящему/колющему/рубящему на 2 часа за пункт"]
-  ].map(([value, label]) => `<option value="${value}">${foundry.utils.escapeHTML(label)}</option>`).join("");
-  return foundry.applications.api.DialogV2.wait({
-    window: { title: "Балансирующий ритуал Оракула" },
-    position: { width: 520 },
-    content: `
-      <div class="form-group">
-        <label>Сколько Диссонанса снять</label>
-        <div class="form-fields"><select name="points">${pointOptions}</select></div>
-      </div>
-      <div class="form-group">
-        <label>Цена ритуала</label>
-        <div class="form-fields"><select name="cost">${costOptions}</select></div>
-      </div>
-    `,
-    buttons: [
-      {
-        action: "choose",
-        label: "Применить",
-        icon: "fa-solid fa-check",
-        default: true,
-        callback: (_event, _button, dialog) => ({
-          points: Number(dialog.element.querySelector('select[name="points"]')?.value ?? 0),
-          cost: dialog.element.querySelector('select[name="cost"]')?.value
-        })
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => null
-      }
-    ]
+      ]
+    }]
   });
 }
 
@@ -418,40 +398,11 @@ async function handleReadThreads(actor, activity) {
   return true;
 }
 
-async function chooseSlotLevel(title, minimum = 1) {
-  const options = Array.from({ length: 10 - minimum }, (_, index) => {
-    const value = minimum + index;
-    return `<option value="${value}">${value}</option>`;
-  }).join("");
-  return foundry.applications.api.DialogV2.wait({
-    window: { title },
-    position: { width: 360 },
-    content: `
-      <div class="form-group">
-        <label>Уровень ячейки</label>
-        <div class="form-fields"><select name="slot">${options}</select></div>
-      </div>
-    `,
-    buttons: [
-      {
-        action: "choose",
-        label: "Выбрать",
-        icon: "fa-solid fa-check",
-        default: true,
-        callback: (_event, _button, dialog) => Number(dialog.element.querySelector('select[name="slot"]')?.value ?? 0)
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => null
-      }
-    ]
-  });
-}
-
 async function handleRemoveDissonanceBySlot(actor) {
-  const slot = await chooseSlotLevel("Переплетение связей: снять Диссонанс", 3);
+  const slot = await slotLevelDialog({
+    title: "Переплетение связей: снять Диссонанс",
+    minimum: 3
+  });
   if (!slot) return false;
   const current = oracleDissonance(actor);
   const removed = Math.min(current, Math.floor(slot / 3));
@@ -461,7 +412,10 @@ async function handleRemoveDissonanceBySlot(actor) {
 }
 
 async function handleRestoreSlotByDissonance(actor) {
-  const slot = await chooseSlotLevel("Переплетение связей: восстановить ячейку", 1);
+  const slot = await slotLevelDialog({
+    title: "Переплетение связей: восстановить ячейку",
+    minimum: 1
+  });
   if (!slot) return false;
   const gained = slot * 2;
   const before = oracleDissonance(actor);

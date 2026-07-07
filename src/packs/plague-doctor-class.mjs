@@ -10,7 +10,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Чумной маг; предоставленный PDF PK_PlagueDoc (1).pdf";
-const PLAGUE_DOCTOR_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Plague_doctor.png";
+const PLAGUE_DOCTOR_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/BlackPlague.png";
 
 function featureLink(identifier, label) {
   return `@UUID[${uuidFor("features", identifier)}]{${label}}`;

@@ -7,6 +7,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { choiceDialog } from "../shared/dialogs.mjs";
 import {
   druidClass,
   forestLordClass,
@@ -49,40 +50,19 @@ export async function chooseForestBaseClass(actor) {
     druid: "Друид",
     ranger: "Следопыт"
   };
-  const options = candidates
-    .map(cls => {
+  const selected = await choiceDialog({
+    title: "Базовый природный класс",
+    label: "Продолжить прогрессию",
+    choices: candidates.map(cls => {
       const identifier = itemIdentifier(cls);
-      return `<option value="${identifier}"${identifier === current ? " selected" : ""}>${labels[identifier] ?? cls.name} ${cls.system.levels}</option>`;
-    })
-    .join("");
-  const selected = await foundry.applications.api.DialogV2.wait({
-    window: { title: "Базовый природный класс" },
-    position: { width: 420 },
-    content: `
-      <div class="form-group">
-        <label>Продолжить прогрессию</label>
-        <div class="form-fields">
-          <select name="baseClass">${options}</select>
-        </div>
-      </div>
-    `,
-    buttons: [
-      {
-        action: "choose",
-        label: "Выбрать",
-        icon: "fa-solid fa-leaf",
-        default: true,
-        callback: (_event, _button, dialog) => {
-          return dialog.element.querySelector('select[name="baseClass"]')?.value;
-        }
-      },
-      {
-        action: "cancel",
-        label: "Отмена",
-        icon: "fa-solid fa-xmark",
-        callback: () => null
-      }
-    ]
+      return {
+        value: identifier,
+        label: `${labels[identifier] ?? cls.name} ${cls.system.levels}`,
+        selected: identifier === current
+      };
+    }),
+    defaultValue: current,
+    confirmIcon: "fa-solid fa-leaf"
   });
   if (!candidates.some(cls => itemIdentifier(cls) === selected)) return false;
   await actor.setFlag(MODULE_ID, FLAGS.FOREST_BASE_CLASS, selected);

@@ -9,7 +9,7 @@ import {
 } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Владыка насекомых; предоставленный PDF PK_Insect_lord (1).pdf";
-const INSECT_LORD_ART = "modules/the-grimoire-of-grimgutz/assets/character%20arts/Insect_lord.png";
+const INSECT_LORD_ART = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack/Spells/InsectSwarm.png";
 
 function featureLink(identifier, label) {
   return `@UUID[${uuidFor("features", identifier)}]{${label}}`;
