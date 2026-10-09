@@ -22,6 +22,9 @@ import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostic
 import { installZoneHooks } from "./shared/zones.mjs";
 import { installPeriodicZoneHooks } from "./shared/periodic-zones.mjs";
 import { resolvePendingAutomation } from "./shared/event-ledger.mjs";
+import { installOwnerPromptHooks } from "./shared/owner-prompts.mjs";
+import { installCombatBenefitHooks, prepareCombatAttackBenefits, commitCombatAttackBenefits } from "./shared/combat-benefits.mjs";
+import { installDamageEventHooks, prepareConfirmedDamage } from "./shared/damage-events.mjs";
 import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
@@ -981,6 +984,9 @@ function installHooks() {
   installSummonCombatHooks();
   installRepeatedSaveHooks();
   installPeriodicZoneHooks();
+  installOwnerPromptHooks();
+  installCombatBenefitHooks();
+  installDamageEventHooks();
   installAuraHooks();
   installZoneHooks();
   installAreaActivityHooks({ validate: validateActivityUse });
@@ -994,7 +1000,7 @@ function installHooks() {
     usageConfig[MODULE_ID] = { ...(usageConfig[MODULE_ID] ?? {}), managedSummonResource: true };
   });
   Hooks.on("dnd5e.postUseActivity", (activity, usageConfig, results) => {
-    if (automationData(activity).areaResolved) return;
+    if (automationData(activity).areaResolved || automationData(activity).leaderResolved) return;
     const deltas = results?.message?.system?.deltas?.item?.[activity.item?.id] ?? [];
     const nativeSummonConsumption = !usageConfig?.[MODULE_ID]?.managedSummonResource
       && deltas.some(delta => delta.keyPath === "system.uses.spent" && delta.delta > 0);
@@ -1153,7 +1159,8 @@ function installHooks() {
 }
 
 export function getMidiHookHandlers() {
-  return { applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
+  return { prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage,
+    applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
     applySpellSourceResistance, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
     applyMidiWeaponBuffAttackAutomation, prepareMidiSteelWill, finishMidiSteelWill };

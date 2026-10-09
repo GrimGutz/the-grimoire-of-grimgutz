@@ -27,15 +27,20 @@ export function createEventLedger({ read, write, authority = isGmAuthority }) {
     const completed = records.filter(event => ["completed", "skipped", "cancelled"].includes(event.state)).slice(-500);
     await write([...records.filter(event => !["completed", "skipped", "cancelled"].includes(event.state)), ...completed]);
   };
-  async function execute(record, records, operation) {
-    record.state = "running"; await save(records); // Persist BEFORE native rolls or resource changes.
+  async function execute(record, operation) {
+    // Native Midi can invoke another automation event while resolving this one.
+    // Serialize reservations/writes, never hold the ledger lock across a roll.
     try {
       const result = await operation(record);
       record.state = result === undefined || result?.status === "pending" || result?.status === "needs-review"
         ? "needs-review" : result === false || result?.aborted ? "cancelled" : "completed";
       record.result = { status: record.state };
     } catch (error) { record.state = "needs-review"; record.error = error.message; }
-    await save(records);
+    await serial(async () => {
+      const records = await read(), current = records.find(event => event.id === record.id);
+      if (current) Object.assign(current, record);
+      await save(records);
+    });
     return { status: record.state, eventId: record.id };
   }
   return {
@@ -46,8 +51,9 @@ export function createEventLedger({ read, write, authority = isGmAuthority }) {
         const entry = { ...structuredClone(record), state: queued ? "queued" : "running" };
         records.push(entry);
         if (queued) { await save(records); return { status: "queued", eventId: entry.id }; }
-        return execute(entry, records, operation);
-      });
+        await save(records);
+        return { execute: entry };
+      }).then(result => result.execute ? execute(result.execute, operation) : result);
     },
     resolve(id, decision, operation) {
       return serial(async () => {
@@ -56,8 +62,9 @@ export function createEventLedger({ read, write, authority = isGmAuthority }) {
         if (!record) throw Error("Событие не найдено.");
         if (record.state !== "queued") return { status: record.state, eventId: id };
         if (decision === "skip") { record.state = "skipped"; await save(records); return { status: "skipped", eventId: id }; }
-        return execute(record, records, operation);
-      });
+        record.state = "running"; await save(records);
+        return { execute: record };
+      }).then(result => result.execute ? execute(result.execute, operation) : result);
     },
     async list() { return structuredClone(await read()); }
   };

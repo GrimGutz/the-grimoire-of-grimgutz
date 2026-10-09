@@ -22,3 +22,8 @@ test("unknown completion and inherited running events are never replayed", async
 test("another GM cannot create or resolve ledger entries", async () => {
   const f = fixture(); f.authority(false); assert.equal((await f.ledger.run(f.record, f.operation)).status, "forbidden"); assert.equal(f.calls(), 0);
 });
+test("a native workflow can await a nested event without deadlocking the ledger", async () => {
+  const f = fixture();
+  await f.ledger.run(f.record, () => f.ledger.run({ ...f.record, id: "nested" }, f.operation));
+  assert.equal(f.calls(), 1); assert.equal((await f.ledger.list()).filter(event => event.state === "completed").length, 2);
+});
