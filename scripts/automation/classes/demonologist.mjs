@@ -5,10 +5,12 @@ import {
   findFeature,
   itemIdentifier,
   itemUses,
+  isAutomationAuthority,
   notify
 } from "../shared/helpers.mjs";
 import { createSummonedCreature } from "../shared/summons.mjs";
 import { quasitFamiliarSummon } from "../shared/summon-templates.mjs";
+import { isEffectActive } from "../effects/temporary-effects.mjs";
 
 const DEMONOLOGIST_ACTIONS = new Set([
   "show-demonologist-demon-charm",
@@ -212,7 +214,7 @@ export async function activateDemonicVitality(actor) {
 }
 
 export async function beginDemonologistTurn(actor) {
-  if (!actor || !demonicVitalityEffect(actor)) return false;
+  if (!actor || !isAutomationAuthority(actor) || !isEffectActive(demonicVitalityEffect(actor))) return false;
   return ensureDemonicVitalityTempHp(actor);
 }
 

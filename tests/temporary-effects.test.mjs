@@ -92,6 +92,7 @@ test("native timing supports turns and a specified end-of-turn event", () => {
   assert.equal(timing.duration.units, "turns");
   assert.equal(timing.duration.expiry, "turnEnd");
   assert.equal(timing.start.time, 120);
+  assert.equal(isEffectActive(effect({ value: 0, units: "turns", expiry: "turnEnd" })), true);
 });
 
 test("cleanup covers synthetic actors, deduplicates linked actors and keeps permanent effects", async () => {

@@ -13,6 +13,7 @@ import {
 import { abilityMod, clamp } from "../shared/dnd5e.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
 import { applyTargetEffect } from "../shared/target-effects.mjs";
+import { isEffectActive, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import {
   flaggedPassiveEffectData,
   syncFlaggedPassiveEffects
@@ -148,23 +149,22 @@ function spiritVesselSaveDC(actor) {
   return 8 + Number(actor?.system?.attributes?.prof ?? 0) + spiritVesselSpellModifier(actor);
 }
 
+function flaggedEffects(actor, flag) {
+  return [...(actor?.effects ?? [])].filter(effect => effect.getFlag(MODULE_ID, flag));
+}
+
 function flowEffect(actor) {
-  return actor?.effects?.find(effect => effect.getFlag(MODULE_ID, FLAGS.SPIRIT_VESSEL_FLOW_EFFECT));
+  return flaggedEffects(actor, FLAGS.SPIRIT_VESSEL_FLOW_EFFECT).find(isEffectActive);
 }
 
 function fiendFlamesEffect(actor) {
-  return actor?.effects?.find(effect => effect.getFlag(MODULE_ID, FLAGS.SPIRIT_VESSEL_FIEND_FLAMES_EFFECT));
+  return flaggedEffects(actor, FLAGS.SPIRIT_VESSEL_FIEND_FLAMES_EFFECT).find(isEffectActive);
 }
 
-function effectDuration(seconds = 60) {
-  return {
-    seconds,
-    startTime: game.time?.worldTime ?? 0,
-    value: seconds / 60,
-    units: "minute",
-    expiry: null,
-    expired: false
-  };
+async function replaceFlaggedEffect(actor, flag, data) {
+  const existing = flaggedEffects(actor, flag).map(effect => effect.id);
+  if (existing.length) await actor.deleteEmbeddedDocuments("ActiveEffect", existing);
+  await actor.createEmbeddedDocuments("ActiveEffect", [data]);
 }
 
 async function chat(actor, content) {
@@ -459,7 +459,7 @@ export async function activateSpiritFlow(actor) {
         [FLAGS.SPIRIT_VESSEL_FLOW_EFFECT]: true
       }
     },
-    duration: effectDuration(60),
+    ...temporaryEffectTiming({ seconds: 60 }),
     system: {
       changes: [
         change("system.abilities.dex.check.roll.mode", "upgrade", "1", "final"),
@@ -467,9 +467,7 @@ export async function activateSpiritFlow(actor) {
       ]
     }
   };
-  const current = flowEffect(actor);
-  if (current) await current.update(data);
-  else await actor.createEmbeddedDocuments("ActiveEffect", [data]);
+  await replaceFlaggedEffect(actor, FLAGS.SPIRIT_VESSEL_FLOW_EFFECT, data);
   notify(`${actor.name}: Поток активирован на 1 минуту.`);
   return true;
 }
@@ -484,7 +482,7 @@ export function applySpiritVesselDamageAutomation(config) {
 }
 
 export async function beginSpiritVesselTurn(actor) {
-  if (!enabled() || !actor || !flowEffect(actor)) return;
+  if (!enabled() || !actor || !isAutomationAuthority(actor) || !flowEffect(actor)) return;
   const bonus = spiritVesselSpellModifier(actor);
   if (bonus <= 0) return;
   const current = Number(actor.system?.attributes?.hp?.temp ?? 0);
@@ -543,12 +541,10 @@ async function activateFiendFlames(actor) {
         [FLAGS.SPIRIT_VESSEL_FIEND_FLAMES_EFFECT]: true
       }
     },
-    duration: effectDuration(60),
+    ...temporaryEffectTiming({ seconds: 60 }),
     system: { changes: [] }
   };
-  const current = fiendFlamesEffect(actor);
-  if (current) await current.update(data);
-  else await actor.createEmbeddedDocuments("ActiveEffect", [data]);
+  await replaceFlaggedEffect(actor, FLAGS.SPIRIT_VESSEL_FIEND_FLAMES_EFFECT, data);
   const roll = await new Roll("1d6", actor.getRollData(), { flavor: "Пламя исчадия" }).evaluate();
   await roll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor }),

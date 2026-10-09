@@ -1,4 +1,5 @@
 import { FLAGS, MODULE_ID } from "./constants.mjs";
+import { isEffectActive, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import {
   activityActor,
   activityItem,
@@ -6,34 +7,15 @@ import {
   notify
 } from "./helpers.mjs";
 
-function effectDuration({ seconds = 60, rounds = null, turns = null } = {}) {
-  const duration = {
-    seconds: Number(seconds),
-    startTime: game.time?.worldTime ?? 0
-  };
-  if (rounds != null) {
-    duration.rounds = Number(rounds);
-    duration.startRound = game.combat?.round ?? null;
-    duration.startTurn = game.combat?.turn ?? null;
-  }
-  if (turns != null) {
-    duration.turns = Number(turns);
-    duration.startRound = game.combat?.round ?? null;
-    duration.startTurn = game.combat?.turn ?? null;
-  }
-  return duration;
-}
-
 function weaponBuffEffect(actor, key) {
   return actor?.effects?.find(effect =>
-    !effect.disabled
-    && effect.getFlag?.(MODULE_ID, FLAGS.WEAPON_BUFF_EFFECT) === key
+    effect.getFlag?.(MODULE_ID, FLAGS.WEAPON_BUFF_EFFECT) === key
   );
 }
 
 export function activeWeaponBuffs(actor) {
   return [...(actor?.effects ?? [])]
-    .filter(effect => !effect.disabled && effect.getFlag?.(MODULE_ID, FLAGS.WEAPON_BUFF_EFFECT))
+    .filter(effect => isEffectActive(effect) && effect.getFlag?.(MODULE_ID, FLAGS.WEAPON_BUFF_EFFECT))
     .map(effect => ({
       effect,
       key: effect.getFlag(MODULE_ID, FLAGS.WEAPON_BUFF_EFFECT),
@@ -68,7 +50,7 @@ export async function createWeaponBuff(actor, {
         [FLAGS.WEAPON_BUFF_DATA]: data
       }
     },
-    duration: effectDuration(duration),
+    ...temporaryEffectTiming({ seconds: 60, ...duration }),
     system: { changes }
   };
   const current = replace ? weaponBuffEffect(actor, key) : null;

@@ -90,12 +90,15 @@ export function prepareModuleTemporaryEffectExpiry(effect, update = null, option
   if (!update) effect.updateSource(target);
 }
 
-export function isExpiredTemporaryEffect(effect) {
+export function isExpiredTemporaryEffect(effect, { elapsed = false } = {}) {
   const raw = sourceData(effect).duration ?? {};
   if (!durationSpec(raw)) return false;
   if (raw.expired === true) return true;
   const duration = effect.updateDuration?.() ?? effect.duration ?? raw;
   if (duration.expired === true) return true;
+  // A zero-turn effect may remain active until turnEnd/sourceEnd. The native
+  // registry or cleanup event, not a damage roll, decides that boundary.
+  if (!elapsed && !TIME_UNITS.has(raw.units) && raw.expiry) return false;
   const remaining = duration.secondsRemaining ?? duration.remaining;
   return remaining != null && Number.isFinite(Number(remaining)) && Number(remaining) <= 0;
 }
@@ -131,7 +134,7 @@ async function cleanupPass(event, context) {
     // Only disposable actor-owned module effects. Item passives are never deleted here.
     const ids = [...(actor.effects ?? [])]
       .filter(effect => hasModuleFlag(effect) && effect.transfer !== true
-        && isExpiredTemporaryEffect(effect) && expiryEventReached(effect, event, context))
+        && isExpiredTemporaryEffect(effect, { elapsed: true }) && expiryEventReached(effect, event, context))
       .map(effect => effect.id);
     if (!ids.length) continue;
     try {

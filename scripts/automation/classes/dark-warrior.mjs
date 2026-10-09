@@ -1,4 +1,5 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
+import { isEffectActive } from "../effects/temporary-effects.mjs";
 import {
   activityActor,
   activityItem,
@@ -284,7 +285,7 @@ export function applyDarkWarriorDamageAutomation(config) {
   const item = activityItem(activity);
   const actor = activityActor(activity);
   if (!actor || !item || item.type !== "weapon") return;
-  if (!darkWarriorClass(actor) || !existingOilEffect(actor)) return;
+  if (!darkWarriorClass(actor) || !isEffectActive(existingOilEffect(actor))) return;
   const bonus = abilityMod(actor, "cha");
   if (bonus <= 0) return;
   appendRollPart(config.rolls?.[0], `${bonus}[necrotic]`);

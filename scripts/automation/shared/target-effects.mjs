@@ -1,4 +1,5 @@
 import { FLAGS, MODULE_ID } from "./constants.mjs";
+import { temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { notify } from "./helpers.mjs";
 
 function escapeHtml(value) {
@@ -21,26 +22,6 @@ function statusIcon(status) {
   if (!status) return null;
   const statuses = CONFIG.statusEffects ?? [];
   return statuses.find(effect => effect.id === status)?.img ?? null;
-}
-
-function durationData({ seconds = null, rounds = null, turns = null } = {}) {
-  const data = {
-    startTime: game.time?.worldTime ?? 0
-  };
-  if (seconds != null) {
-    data.seconds = Number(seconds);
-  }
-  if (rounds != null) {
-    data.rounds = Number(rounds);
-    data.startRound = game.combat?.round ?? null;
-    data.startTurn = game.combat?.turn ?? null;
-  }
-  if (turns != null) {
-    data.turns = Number(turns);
-    data.startRound = game.combat?.round ?? null;
-    data.startTurn = game.combat?.turn ?? null;
-  }
-  return data;
 }
 
 function targetEffectFlag(effect, key) {
@@ -79,7 +60,7 @@ function targetEffectData({
         [FLAGS.TARGET_KEY]: `${key}:${sourceActor?.uuid ?? "unknown"}`
       }
     },
-    duration: durationData(duration),
+    ...temporaryEffectTiming(duration),
     system: { changes }
   };
 }

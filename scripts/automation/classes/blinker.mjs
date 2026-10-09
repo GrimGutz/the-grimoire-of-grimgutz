@@ -1,4 +1,5 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
+import { isEffectActive, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import {
   activityActor,
   activityItem,
@@ -160,23 +161,6 @@ function sideShiftEffect(actor) {
   return actor?.effects?.find(effect => effect.getFlag(MODULE_ID, FLAGS.BLINKER_SIDE_SHIFT_EFFECT));
 }
 
-function combatDuration() {
-  const combat = game.combat;
-  if (combat?.started) {
-    return {
-      rounds: 1,
-      turns: 1,
-      startRound: combat.round,
-      startTurn: combat.turn,
-      startTime: game.time?.worldTime ?? 0
-    };
-  }
-  return {
-    seconds: 6,
-    startTime: game.time?.worldTime ?? 0
-  };
-}
-
 export async function activateSidewaysShift(actor) {
   if (!actor || !blinkerClass(actor)) {
     notify("Эта активность требует класс «Мерцающий».", "warn");
@@ -201,7 +185,7 @@ export async function activateSidewaysShift(actor) {
         [FLAGS.BLINKER_SIDE_SHIFT_EFFECT]: true
       }
     },
-    duration: combatDuration(),
+    ...temporaryEffectTiming(game.combat?.started ? { turns: 0, expiry: "turnEnd" } : { seconds: 6 }),
     system: {
       changes: [{
         key: "flags.midi-qol.advantage.attack.all",
@@ -236,7 +220,7 @@ export function applyBlinkerDamageAutomation(config) {
   const activity = config?.subject;
   const actor = activityActor(activity);
   const item = activityItem(activity);
-  if (!actor || !sideShiftEffect(actor) || !isAttackActivity(activity, item)) return;
+  if (!actor || !isEffectActive(sideShiftEffect(actor)) || !isAttackActivity(activity, item)) return;
   const bonus = Number(actor.system?.attributes?.prof ?? 0);
   if (!Number.isFinite(bonus) || bonus <= 0) return;
   appendRollPart(config.rolls?.[0], `${bonus}`);
