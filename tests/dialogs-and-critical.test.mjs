@@ -15,7 +15,7 @@ function actor() {
   return {
     uuid: "Actor.one", items: [
       { type: "class", system: { identifier: "spirit-vessel" }, async update(data) { writes.push(data); } },
-      { type: "subclass", system: { classIdentifier: "spirit-vessel" }, flags: { [MODULE_ID]: { spiritVesselSubclass: "elemental-air" } } }
+      { type: "subclass", system: { classIdentifier: "spirit-vessel" }, flags: { [MODULE_ID]: { schemaVersion: 1, spiritVesselSubclass: "elemental-air" } } }
     ], async setFlag(module, key, value) { writes.push({ key, value }); }
   };
 }
