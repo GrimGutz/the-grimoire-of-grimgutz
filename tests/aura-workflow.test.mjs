@@ -40,6 +40,7 @@ test("aura damage uses native Midi, its attached Region, and no further costs or
   assert.equal(activity.flags[MODULE_ID].areaResolved, true); assert.equal(activity.midiProperties.forceDamageDialog, "never");
   assert.deepEqual(usage.consume, { resources: false, spellSlot: false, action: false }); assert.equal(dialog.configure, false);
   assert.equal(usage.create.measuredTemplate, false); assert.equal(usage.midiOptions.workflowOptions.templateUuid, "Scene.one.Region.aura");
+  assert.equal(usage.midiOptions.workflowOptions.noOnUseMacro, true);
   assert.deepEqual(usage.midiOptions.targetUuids, [targets[0].document.uuid]); assert.ok(usage.workflow instanceof MidiQOL.TrapWorkflow);
   assert.equal(sourceItem.toObject().system.uses.spent, 1); assert.equal(sourceItem.toObject().system.activities.first.type, "utility");
   assert.deepEqual(restored.at(-1), ["previous"]);
@@ -49,6 +50,20 @@ test("a pulse clone must not inherit its already consumed activation action", as
   await pulse({ damage: [{ formula: "1d6", type: "fire" }] });
   assert.equal(automationAction(calls[0][0]), "");
   assert.equal(automationAction(sourceItem.system.activities.get("first")), "spirit-vessel-fiend-flames");
+});
+
+test("timed pulses never expire the source's pending action, spell or weapon-hit effects", async () => {
+  await pulse({ damage: [{ formula: "1d6", type: "fire" }] });
+  const workflow = calls[0][1].workflow; workflow.activity.hasDamage = true;
+  const native = [];
+  for (const name of ["WorkflowState_SavesComplete", "WorkflowState_WaitForDamageRoll", "WorkflowState_DamageRollComplete"])
+    MidiQOL.Workflow.prototype[name] = () => { throw Error("Normal action/hit expiry stage must not run"); };
+  MidiQOL.TrapWorkflow.prototype.WorkflowState_WaitForDamageRoll = async () => { native.push("damage"); };
+  MidiQOL.TrapWorkflow.prototype.WorkflowState_DamageRollComplete = async () => { native.push("complete"); };
+  workflow.callMidiHooks = async name => native.push(name);
+  assert.equal(await workflow.WorkflowState_SavesComplete(), workflow.WorkflowState_WaitForDamageRoll);
+  await workflow.WorkflowState_WaitForDamageRoll(); await workflow.WorkflowState_DamageRollComplete();
+  assert.deepEqual(native, ["damage", "midi-qol.DamageRollComplete", "complete"]);
 });
 
 test("plague pulse links a permanent latent condition to failed native saves only", async () => {

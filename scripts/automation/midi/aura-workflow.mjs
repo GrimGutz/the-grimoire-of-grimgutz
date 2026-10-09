@@ -44,7 +44,8 @@ export async function useAuraPulse({ sourceToken, sourceItem, template, targets,
   const item = sourceItem.clone({ system: { activities: { [id]: activity } }, effects, "flags.midi-qol.syntheticItem": true }, { keepId: true });
   const resolved = item.system.activities.get(id), oldTargets = [...(game.user.targets ?? [])].map(token => token.id);
   const workflowOptions = { ignoreUserTargets: true, targetConfirmation: "none", checkTargets: false, autoRollDamage: "always",
-    fastForwardDamage: true, forceCompletion: true, ...(template?.uuid ? { templateUuid: template.uuid } : {}) };
+    fastForwardDamage: true, forceCompletion: true, noOnUseMacro: true, grimgutzAuraPulse: true,
+    ...(template?.uuid ? { templateUuid: template.uuid } : {}) };
   const Workflow = getAreaWorkflowClass();
   const workflow = new Workflow(actor, resolved, ChatMessage.getSpeaker({ actor, token: sourceToken.document }), new Set(targets), { workflowOptions });
   try {

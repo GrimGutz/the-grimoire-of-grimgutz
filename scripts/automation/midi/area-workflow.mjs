@@ -36,7 +36,9 @@ export function getAreaWorkflowClass() {
       return result;
     }
     async WorkflowState_SavesComplete(context = {}) {
-      await base.WorkflowState_SavesComplete.call(this, context);
+      // A timed aura pulse is not an action, spell or weapon hit. The normal
+      // stages expire 1Action/1Spell/1Hit effects, so use native trap stages here.
+      if (!this.workflowOptions.grimgutzAuraPulse) await base.WorkflowState_SavesComplete.call(this, context);
       if (this.aborted) return this.WorkflowState_Abort;
       return this.activity.hasDamage || this.activity.hasHealing || this.otherActivity?.hasDamage || this.otherActivity?.hasHealing
         ? this.WorkflowState_WaitForDamageRoll : this.WorkflowState_AllRollsComplete;
@@ -44,9 +46,14 @@ export function getAreaWorkflowClass() {
     async WorkflowState_WaitForDamageRoll(context = {}) {
       if (context.noDamage || !(this.activity.hasDamage || this.activity.hasHealing || this.otherActivity?.hasDamage || this.otherActivity?.hasHealing))
         return this.WorkflowState_AllRollsComplete;
+      if (this.workflowOptions.grimgutzAuraPulse) return trap.WorkflowState_WaitForDamageRoll.call(this, context);
       return base.WorkflowState_WaitForDamageRoll.call(this, context);
     }
     async WorkflowState_DamageRollComplete(context = {}) {
+      if (this.workflowOptions.grimgutzAuraPulse) {
+        await this.callMidiHooks("midi-qol.DamageRollComplete");
+        return this.aborted ? this.WorkflowState_Abort : trap.WorkflowState_DamageRollComplete.call(this, context);
+      }
       const next = await base.WorkflowState_DamageRollComplete.call(this, context);
       return next === this.WorkflowState_WaitForSaves ? this.WorkflowState_AllRollsComplete : next;
     }

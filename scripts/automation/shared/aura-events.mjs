@@ -60,6 +60,7 @@ export function createAuraEventEngine({ synchronize, framesForScene, tokensForSc
     const condition = event.condition?.key;
     if (condition) targets = targets.filter(token => ![...(token.actor.effects ?? [])]
       .some(effect => isEffectActive(effect) && flag(effect, "auraPersistentCondition") === condition)
+      && !flag(token.actor, "auraDiseaseImmune")
       && ![...(token.actor.system?.traits?.ci?.value ?? [])].some(type => ["disease", "diseased"].includes(type)));
     if (!targets.length) return false;
     const claimKey = `${frame.definition.id}:${tokenUuid(frame.sourceToken)}:${key}`;
@@ -106,7 +107,7 @@ export function createAuraEventEngine({ synchronize, framesForScene, tokensForSc
   }
   function seed(actor) {
     health.set(actor.uuid, Number(actor.system?.attributes?.hp?.value ?? 0));
-    if (actor.statuses?.has?.("dead") || (actor.type === "npc" && health.get(actor.uuid) <= 0)) deadActors.add(actor.uuid);
+    if (actor.statuses?.has?.("dead") || (actor.type === "npc" && !flag(actor, "auraDeathRequiresStatus") && health.get(actor.uuid) <= 0)) deadActors.add(actor.uuid);
   }
   async function death(actor) {
     if (!isAuthority() || !enabled() || deadActors.has(actor.uuid) || flag(actor, "auraDeathProcessed")) return false;
