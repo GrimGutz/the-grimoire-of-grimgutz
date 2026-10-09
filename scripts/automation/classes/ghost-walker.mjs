@@ -204,9 +204,14 @@ export function validateGhostWalkerSummonUse(actor, activity) {
   return false;
 }
 
-export async function summonUnfinishedBusinessSpirit(actor, activity) {
-  if (!validateGhostWalkerSummonUse(actor, activity)) return false;
-  return createSummonedCreature(actor, ghostWalkerSpiritSummon(actor, selectedTargetActor()));
+export async function summonUnfinishedBusinessSpirit(actor, activity, { consumed = false } = {}) {
+  if (!actor || !ghostWalkerClass(actor)) return false;
+  if (!consumed && !validateGhostWalkerSummonUse(actor, activity)) return false;
+  const feature = activity?.item ?? activity?.parent ?? findFeature(actor, "unfinished-business");
+  if (!feature) return false;
+  return createSummonedCreature(actor, ghostWalkerSpiritSummon(actor, selectedTargetActor()), {
+    requireScene: true, resource: { itemUuid: feature.uuid, cost: 1, consumed }
+  });
 }
 
 function ghostWalkerPassiveDefinitions(actor) {

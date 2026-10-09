@@ -9,7 +9,7 @@ import {
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
 import { numberDialog } from "../shared/dialogs.mjs";
-import { createSummonedCreature } from "../shared/summons.mjs";
+import { createSummonedGroup } from "../shared/summons.mjs";
 
 const ritualistSyncs = new Set();
 
@@ -253,14 +253,10 @@ export async function summonRitualistSpirits(actor, activity) {
     notify(`${actor.name}: недостаточно ритуальных очков или превышен максимум 3 духов за раз.`, "warn");
     return false;
   }
-  const created = [];
-  for (let index = 0; index < cost; index += 1) {
-    const result = await createSummonedCreature(actor, ritualistSpiritSummon(actor, index, cost));
-    if (!result) return false;
-    created.push(result);
-  }
-  await spendRitualistRitualPoints(actor, cost);
-  return created.length > 0;
+  const result = await createSummonedGroup(actor, Array.from({ length: cost }, (_value, index) => ritualistSpiritSummon(actor, index, cost)), {
+    requireScene: true, resource: { itemUuid: resource.feature.uuid, cost }
+  });
+  return result.status === "success";
 }
 
 export async function rollRitualistSpiritAgony(actor) {

@@ -8,7 +8,7 @@ import {
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
-import { createSummonedCreature } from "../shared/summons.mjs";
+import { createSummonedCreature, registerSummonRecipe } from "../shared/summons.mjs";
 
 const keeperSyncs = new Set();
 
@@ -274,6 +274,7 @@ function keeperAllySummon(actor, form) {
       ? "icons/creatures/mammals/bat-movement-flying-purple.webp"
       : "icons/creatures/abilities/paw-print-orange.webp",
     source: "keeper-ward-and-warded",
+    form,
     size: "med",
     type: "custom",
     customType: "союзник Хранителя",
@@ -319,6 +320,8 @@ export async function summonKeeperAlly(actor, activity) {
   if (!form) return false;
   return createSummonedCreature(actor, keeperAllySummon(actor, form));
 }
+
+registerSummonRecipe("keeper-ward-and-warded", (owner, template) => keeperAllySummon(owner, template.form ?? (template.kind.endsWith("flying") ? "flying" : "base")));
 
 export async function rollKeeperRestRecovery(actor) {
   if (!actor || !keeperClass(actor)) {

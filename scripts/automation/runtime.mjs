@@ -17,6 +17,7 @@ import { clamp } from "./shared/dnd5e.mjs";
 import { installTemporaryEffectHooks } from "./effects/temporary-effects.mjs";
 import { automationActors } from "./effects/temporary-effects.mjs";
 import { createActorSynchronizer } from "./shared/actor-sync.mjs";
+import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import {
   deathKnightClass,
   deathKnightLevel,
@@ -525,7 +526,7 @@ function actionFromActivity(activity) {
   return automationAction(activity);
 }
 
-async function handleActivityAction(activity) {
+async function handleActivityAction(activity, context = {}) {
   if (!enabled()) return;
   const actor = activityActor(activity);
   const action = actionFromActivity(activity);
@@ -639,7 +640,7 @@ async function handleActivityAction(activity) {
       await activateSpiritForm(actor);
       break;
     case "summon-ghost-walker-spirit":
-      await summonUnfinishedBusinessSpirit(actor, activity);
+      await summonUnfinishedBusinessSpirit(actor, activity, { consumed: context.nativeSummonConsumption === true });
       break;
     case "end-spirit-form":
       await endSpiritForm(actor);
@@ -1123,7 +1124,7 @@ const actorSynchronizer = createActorSynchronizer([
   syncFeyWarriorPassiveEffects, syncGhostWalkerResources, syncGhostWalkerPassiveEffects,
   syncBlinkerResources, syncSpiritVesselResources, syncSpiritVesselPassiveEffects,
   syncOracleResources, syncOraclePassiveEffects, syncSanguinistResources,
-  syncSchoolOfSteel, syncTransformations, syncDarkGuard
+  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons
 ]);
 const schedulePassiveSync = actorSynchronizer.schedule;
 
@@ -1215,8 +1216,17 @@ function installHooks() {
   installTemporaryEffectHooks();
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateAdvancement);
   Hooks.on("dnd5e.preUseActivity", validateActivityUse);
-  Hooks.on("dnd5e.postUseActivity", activity => {
-    void handleActivityAction(activity).catch(error => console.error(`${MODULE_ID} | Activity automation failed`, error));
+  Hooks.on("dnd5e.preActivityConsumption", (activity, usageConfig) => {
+    if (!enabled() || actionFromActivity(activity) !== "summon-ghost-walker-spirit") return;
+    // The GM reserves and refunds this resource as part of the summon transaction.
+    usageConfig.consume = { ...(typeof usageConfig.consume === "object" ? usageConfig.consume : {}), resources: false };
+    usageConfig[MODULE_ID] = { ...(usageConfig[MODULE_ID] ?? {}), managedSummonResource: true };
+  });
+  Hooks.on("dnd5e.postUseActivity", (activity, usageConfig, results) => {
+    const deltas = results?.message?.system?.deltas?.item?.[activity.item?.id] ?? [];
+    const nativeSummonConsumption = !usageConfig?.[MODULE_ID]?.managedSummonResource
+      && deltas.some(delta => delta.keyPath === "system.uses.spent" && delta.delta > 0);
+    void handleActivityAction(activity, { nativeSummonConsumption }).catch(error => console.error(`${MODULE_ID} | Activity automation failed`, error));
     void handleStratagemUse(activity).catch(error => console.error(`${MODULE_ID} | Stratagem automation failed`, error));
   });
   Hooks.on("dnd5e.preRollAttack", applyNativeAttackAutomation);
@@ -1407,6 +1417,7 @@ export function exposeApi() {
   const module = game.modules.get(MODULE_ID);
   if (!module) return;
   module.api = {
+    summonRequestResult,
     setStyle,
     toggleStyle,
     toggleGreatWeaponMaster,

@@ -1,5 +1,6 @@
 import { MODULE_ID } from "./constants.mjs";
-import { notify } from "./helpers.mjs";
+import { itemUses, notify } from "./helpers.mjs";
+import { gmRequestResult, installGmRequests, registerGmRequest, requestGm } from "./gm-requests.mjs";
 
 const SOCKET_TYPE = "create-summon";
 const OWNERSHIP = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS ?? {
@@ -9,9 +10,11 @@ const OWNERSHIP = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS ?? {
   OWNER: 3
 };
 
-let socketInstalled = false;
-const pendingUniqueSummons = new Map();
-const handledSummonRequests = new Set();
+const ownerOperations = new Map();
+const recipes = new Map();
+
+export function registerSummonRecipe(source, recipe) { recipes.set(source, recipe); }
+export function summonRequestResult(requestId) { return gmRequestResult(requestId); }
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -19,17 +22,6 @@ function escapeHtml(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
-}
-
-function canCreateActors() {
-  if (game.user?.isGM) return true;
-  try {
-    if (typeof game.user?.can === "function" && game.user.can("ACTOR_CREATE")) return true;
-    if (typeof game.user?.hasPermission === "function" && game.user.hasPermission("ACTOR_CREATE")) return true;
-  } catch {
-    return false;
-  }
-  return false;
 }
 
 function abilityData(values = {}) {
@@ -404,7 +396,16 @@ function actorData(owner, summon, requestedBy) {
         summoned: true,
         summonedBy: owner.uuid,
         summonKind: summon.kind,
-        summonSource: summon.source ?? ""
+        summonSource: summon.source ?? "",
+        summonFamily: summon.uniqueGroup ?? summon.source ?? summon.kind,
+        summonTemplate: summon,
+        summonManaged: managedValues(summon),
+        summonLifecycle: summon.lifecycle ? {
+          ...summon.lifecycle,
+          createdAt: game.time?.worldTime ?? 0,
+          expiresAt: (game.time?.worldTime ?? 0) + Number(summon.lifecycle.seconds ?? 0),
+          controlled: true
+        } : null
       }
     },
     system: actorSystem(summon),
@@ -412,11 +413,12 @@ function actorData(owner, summon, requestedBy) {
   };
 }
 
-function summonedActor(owner, kind) {
+function summonedActor(owner, summon) {
   return game.actors?.find(actor => (
     actor.getFlag(MODULE_ID, "summoned") === true
     && actor.getFlag(MODULE_ID, "summonedBy") === owner.uuid
-    && actor.getFlag(MODULE_ID, "summonKind") === kind
+    && (actor.getFlag(MODULE_ID, "summonFamily") === (summon.uniqueGroup ?? summon.source ?? summon.kind)
+      || actor.getFlag(MODULE_ID, "summonKind") === summon.kind)
   ));
 }
 
@@ -426,41 +428,43 @@ function firstTokenDocument(actor) {
   return token?.document ?? token ?? null;
 }
 
-function ownerTokenDocument(owner) {
-  const direct = firstTokenDocument(owner);
-  if (direct) return direct;
-  return canvas?.tokens?.controlled?.find(token => token.actor?.uuid === owner.uuid)?.document ?? null;
+function sceneTokens(scene) { return [...(scene?.tokens ?? [])]; }
+
+function ownerTokenDocument(owner, scene, sourceTokenId) {
+  return scene?.tokens?.get?.(sourceTokenId)
+    ?? sceneTokens(scene).find(token => token.actor?.uuid === owner.uuid || token.actorId === owner.id)
+    ?? (canvas?.scene === scene ? canvas?.tokens?.controlled?.find(token => token.actor?.uuid === owner.uuid)?.document : null);
 }
 
-function tokenPosition(owner) {
-  const token = ownerTokenDocument(owner);
-  const grid = canvas?.grid?.size ?? canvas?.scene?.grid?.size ?? 100;
+function tokenPosition(owner, scene, sourceTokenId, index = 0) {
+  const token = ownerTokenDocument(owner, scene, sourceTokenId);
+  const grid = scene?.grid?.size ?? 100;
   if (!token) return { x: 0, y: 0 };
   const width = Math.max(1, Number(token.width ?? 1));
   return {
     x: Number(token.x ?? 0) + (width * grid),
-    y: Number(token.y ?? 0)
+    y: Number(token.y ?? 0) + index * grid
   };
 }
 
-async function createToken(actor, owner, summon) {
-  const scene = canvas?.scene;
+async function createToken(actor, owner, summon, scene, sourceTokenId, index) {
   if (!scene) return null;
-  const existingToken = summon.unique ? firstTokenDocument(actor) : null;
+  const existingToken = summon.unique ? sceneTokens(scene).find(token => token.actorId === actor.id) : null;
   if (existingToken) return existingToken;
 
   const token = actor.prototypeToken?.toObject?.() ?? foundry.utils.deepClone(actor.prototypeToken ?? {});
-  const ownerToken = ownerTokenDocument(owner);
-  const position = tokenPosition(owner);
+  const ownerToken = ownerTokenDocument(owner, scene, sourceTokenId);
+  const position = tokenPosition(owner, scene, sourceTokenId, index);
   const tokenData = foundry.utils.mergeObject(token, {
     actorId: actor.id,
-    actorLink: false,
+    actorLink: summon.unique === true,
     x: position.x,
     y: position.y,
     disposition: Number(ownerToken?.disposition ?? 1)
   }, { inplace: false });
   const created = await scene.createEmbeddedDocuments("Token", [tokenData]);
-  return created[0] ?? null;
+  if (!created[0]) throw new Error("Не удалось создать токен призыва.");
+  return created[0];
 }
 
 async function announceSummon(owner, actor, summon, token) {
@@ -473,98 +477,149 @@ async function announceSummon(owner, actor, summon, token) {
   });
 }
 
-async function performSummonCreation(owner, summon, requestedBy) {
-  const existing = summon.unique ? summonedActor(owner, summon.kind) : null;
-  const actor = existing ?? await Actor.create(actorData(owner, summon, requestedBy), { renderSheet: false });
-  if (!actor) throw new Error(`Actor.create returned no document for summon kind "${summon.kind}".`);
-  let token = null;
-  try {
-    token = await createToken(actor, owner, summon);
-  } catch (error) {
-    console.warn(`${MODULE_ID} | Summon actor created but token placement failed`, error);
-    notify(`Актёр «${actor.name}» создан, но токен не удалось разместить на сцене. Проверьте права на сцену или разместите токен вручную.`, "warn");
-  }
-  await announceSummon(owner, actor, summon, token);
-  return actor;
+function managedValues(summon) {
+  const system = actorSystem(summon);
+  const values = { name: summon.name, img: summon.img, "system.attributes.ac.flat": system.attributes.ac.flat,
+    "system.attributes.hp.max": system.attributes.hp.max, "system.attributes.hp.formula": system.attributes.hp.formula };
+  for (const [key, value] of Object.entries(system.attributes.movement)) values[`system.attributes.movement.${key}`] = value;
+  for (const [key, value] of Object.entries(system.abilities)) values[`system.abilities.${key}.value`] = value.value;
+  return values;
 }
 
-function createSummonLocally(owner, summon, requestedBy) {
-  if (!summon.unique) return performSummonCreation(owner, summon, requestedBy);
-  const key = `${owner.uuid}:${summon.kind}`;
-  const pending = pendingUniqueSummons.get(key);
-  if (pending) return pending;
-  const creation = performSummonCreation(owner, summon, requestedBy)
-    .finally(() => { pendingUniqueSummons.delete(key); });
-  pendingUniqueSummons.set(key, creation);
-  return creation;
-}
-
-async function emitSummonRequest(owner, summon) {
-  const gm = game.users?.activeGM ?? [...(game.users ?? [])].find(user => user.active && user.isGM);
-  if (!gm) {
-    notify("Нужен активный GM или право игрока создавать актёров, чтобы создать призванное существо.", "warn");
-    return false;
+export async function updateManagedSummon(actor, summon) {
+  const previous = actor.getFlag(MODULE_ID, "summonManaged");
+  if (!previous) return false; // Old or ambiguous actors are reported, never silently overwritten.
+  const desired = managedValues(summon), update = {};
+  for (const [key, value] of Object.entries(desired)) {
+    const current = foundry.utils.getProperty(actor, key);
+    if (JSON.stringify(current) === JSON.stringify(previous[key]) && JSON.stringify(current) !== JSON.stringify(value)) update[key] = value;
   }
-  game.socket.emit(`module.${MODULE_ID}`, {
-    type: SOCKET_TYPE,
-    requestId: foundry.utils.randomID(),
-    ownerUuid: owner.uuid,
-    summon,
-    userId: game.user.id
-  });
-  notify("Запрос на создание призванного существа отправлен активному GM.");
+  if (update["system.attributes.hp.max"] !== undefined) {
+    const hp = actor.system.attributes.hp;
+    update["system.attributes.hp.value"] = hp.value <= 0 ? 0 : Math.max(0, update["system.attributes.hp.max"] - Math.max(0, hp.max - hp.value));
+  }
+  if (!Object.keys(update).length && actor.getFlag(MODULE_ID, "summonKind") === summon.kind) return false;
+  update[`flags.${MODULE_ID}.summonManaged`] = desired;
+  update[`flags.${MODULE_ID}.summonTemplate`] = summon;
+  update[`flags.${MODULE_ID}.summonKind`] = summon.kind;
+  await actor.update(update);
   return true;
 }
 
-export async function createSummonedCreature(owner, summon, { localOnly = false, requestedBy = game.user?.id } = {}) {
-  if (!owner || !summon?.kind) {
-    notify("Не удалось создать призванное существо: нет владельца или типа призыва.", "warn");
-    return false;
+export async function syncUniqueSummons(owner) {
+  for (const actor of game.actors ?? []) {
+    if (actor.getFlag?.(MODULE_ID, "summonedBy") !== owner.uuid) continue;
+    const template = actor.getFlag(MODULE_ID, "summonTemplate");
+    const recipe = recipes.get(actor.getFlag(MODULE_ID, "summonSource"));
+    if (template?.unique && recipe) await updateManagedSummon(actor, recipe(owner, template));
   }
+}
 
-  if (!localOnly && !canCreateActors()) {
-    return emitSummonRequest(owner, summon);
-  }
+function serializeOwner(owner, task) {
+  const previous = ownerOperations.get(owner.uuid) ?? Promise.resolve();
+  const operation = previous.catch(() => {}).then(task);
+  ownerOperations.set(owner.uuid, operation);
+  void operation.finally(() => { if (ownerOperations.get(owner.uuid) === operation) ownerOperations.delete(owner.uuid); }).catch(() => {});
+  return operation;
+}
 
+async function storeRequest(owner, requestId, result) {
+  if (!owner.setFlag) return;
+  const records = { ...(owner.getFlag(MODULE_ID, "summonRequests") ?? {}), [requestId]: { ...result, updatedAt: game.time?.worldTime ?? 0 } };
+  for (const key of Object.keys(records).slice(0, Math.max(0, Object.keys(records).length - 100))) delete records[key];
+  await owner.setFlag(MODULE_ID, "summonRequests", records);
+}
+
+async function performSummonGroup(owner, data, { requesterId, requestId }) {
+  const previous = owner.getFlag?.(MODULE_ID, "summonRequests")?.[requestId];
+  if (previous && previous.status !== "pending") return previous;
+  const summons = data.summons ?? (data.summon ? [data.summon] : []);
+  if (!summons.length || summons.length > 3 || summons.some(summon => !summon.kind)) throw Error("Неверная группа призывов.");
+  const scene = data.sceneId ? game.scenes?.get?.(data.sceneId) ?? (canvas?.scene?.id === data.sceneId ? canvas.scene : null) : null;
+  if (data.sceneId && !scene) throw Error("Сцена призыва не найдена.");
+  if (data.requireScene && !scene) throw Error("Для призыва нужна сцена.");
+  const actors = [], tokens = [], newActors = [], newTokens = [];
+  let resourceItem, charged = 0;
+  await storeRequest(owner, requestId, { status: "pending" });
   try {
-    return await createSummonLocally(owner, summon, requestedBy);
+    if (data.resource?.itemUuid) {
+      resourceItem = await fromUuid(data.resource.itemUuid);
+      if (!resourceItem || resourceItem.parent?.uuid !== owner.uuid) throw Error("Ресурс призыва не принадлежит владельцу.");
+      const cost = Number(data.resource.cost ?? summons.length);
+      if (!Number.isInteger(cost) || cost < 1) throw Error("Неверный расход призыва.");
+      const uses = itemUses(resourceItem);
+      if (data.resource.consumed === true) {
+        if (uses.spent < cost) throw Error("Предыдущий расход не подтверждён.");
+      } else {
+        if (uses.remaining < cost) throw Error("Недостаточно использований/очков призыва.");
+        await resourceItem.update({ "system.uses.spent": uses.spent + cost });
+      }
+      charged = cost;
+    }
+    for (const [index, summon] of summons.entries()) {
+      let actor = summon.unique ? summonedActor(owner, summon) : null;
+      if (!actor) {
+        const definition = actorData(owner, summon, requesterId);
+        definition.flags[MODULE_ID].summonRequestId = requestId;
+        actor = await Actor.create(definition, { renderSheet: false });
+        if (!actor) throw Error(`Actor.create returned no document for summon kind "${summon.kind}".`);
+        newActors.push(actor);
+      } else await updateManagedSummon(actor, summon);
+      const existed = sceneTokens(scene).some(token => token.actorId === actor.id);
+      const token = await createToken(actor, owner, summon, scene, data.sourceTokenId, index);
+      if (token && !existed) newTokens.push({ scene, id: token.id ?? token._id });
+      actors.push(actor); if (token) tokens.push(token);
+    }
+    const result = { status: "success", actorUuids: actors.map(actor => actor.uuid ?? `Actor.${actor.id}`), tokenUuids: tokens.map(token => token.uuid ?? token.id), requestId };
+    await storeRequest(owner, requestId, result);
+    for (const [index, actor] of actors.entries()) {
+      try { await announceSummon(owner, actor, summons[index], tokens[index]); }
+      catch (error) { console.warn(`${MODULE_ID} | Summon announcement failed`, error); }
+    }
+    return result;
   } catch (error) {
-    if (!localOnly && !game.user?.isGM) return emitSummonRequest(owner, summon);
-    console.error(`${MODULE_ID} | Summon creation failed`, error);
-    notify("Не удалось создать призванное существо. Подробности в консоли Foundry.", "error");
-    return false;
+    const rollbackErrors = [];
+    for (const { scene, id } of newTokens) {
+      try { await scene.deleteEmbeddedDocuments("Token", [id]); } catch (failure) { rollbackErrors.push(failure.message); }
+    }
+    for (const actor of newActors) {
+      try { await actor.delete(); } catch (failure) { rollbackErrors.push(failure.message); }
+    }
+    // Refund only after a confirmed rollback. Never infer this from a client timeout.
+    if (!rollbackErrors.length && charged) {
+      try { await resourceItem.update({ "system.uses.spent": Math.max(0, itemUses(resourceItem).spent - charged) }); }
+      catch (failure) { rollbackErrors.push(`Расход не возвращён: ${failure.message}`); }
+    }
+    const result = { status: rollbackErrors.length ? "needs-review" : "failed", error: error.message, rollbackErrors, requestId };
+    await storeRequest(owner, requestId, result);
+    return result;
   }
 }
 
-export function installSummonSocket() {
-  if (socketInstalled || !game.socket) return;
-  socketInstalled = true;
-  game.socket.on(`module.${MODULE_ID}`, payload => {
-    if (payload?.type !== SOCKET_TYPE || !game.user?.isGM) return;
-    if (game.users?.activeGM && game.users.activeGM.id !== game.user.id) return;
-    if (payload.requestId) {
-      if (handledSummonRequests.has(payload.requestId)) return;
-      handledSummonRequests.add(payload.requestId);
-      if (handledSummonRequests.size > 100) handledSummonRequests.delete(handledSummonRequests.values().next().value);
-    }
-    void (async () => {
-      const owner = await fromUuid(payload.ownerUuid);
-      if (!owner) {
-        notify("Не удалось выполнить призыв: владелец не найден.", "warn");
-        return;
-      }
-      const requester = game.users?.get?.(payload.userId);
-      if (!requester || (!requester.isGM && !owner.testUserPermission?.(requester, "OWNER"))) {
-        console.warn(`${MODULE_ID} | Summon request ignored: requester does not own ${payload.ownerUuid}`);
-        return;
-      }
-      await createSummonedCreature(owner, payload.summon, {
-        localOnly: true,
-        requestedBy: payload.userId
-      });
-    })().catch(error => {
-      console.error(`${MODULE_ID} | Socket summon failed`, error);
-      notify("Не удалось выполнить призыв через GM-клиент. Подробности в консоли Foundry.", "error");
-    });
-  });
+registerGmRequest(SOCKET_TYPE, (owner, data, context) => serializeOwner(owner, () => performSummonGroup(owner, data, context)));
+registerGmRequest("inspect-summon-request", async (owner, data) => owner.getFlag?.(MODULE_ID, "summonRequests")?.[data.requestId] ?? { status: "pending", requestId: data.requestId });
+
+export async function createSummonedGroup(owner, summons, options = {}) {
+  if (!owner || !summons?.length) return { status: "failed", error: "Нет владельца или существ." };
+  const scene = options.scene ?? canvas?.scene;
+  const result = await requestGm(SOCKET_TYPE, owner, {
+    summons, sceneId: options.sceneId ?? scene?.id ?? null, sourceTokenId: options.sourceTokenId ?? ownerTokenDocument(owner, scene)?.id ?? null,
+    resource: options.resource ?? null, requireScene: options.requireScene === true
+  }, options);
+  if (result.status === "failed" || result.status === "needs-review") notify(result.error ?? "Призыв не выполнен.", "warn");
+  return result;
 }
+
+export async function createSummonedCreature(owner, summon, options = {}) {
+  const result = await createSummonedGroup(owner, [summon], options);
+  if (result.status === "pending") {
+    const error = new Error(`Результат призыва ${result.requestId} ещё неизвестен.`);
+    error.name = "SummonPendingError"; error.requestId = result.requestId;
+    throw error;
+  }
+  if (result.status !== "success") return false;
+  const uuid = result.actorUuids[0];
+  return game.actors?.get?.(uuid.split(".").at(-1)) ?? game.actors?.find(actor => (actor.uuid ?? `Actor.${actor.id}`) === uuid) ?? await fromUuid(uuid);
+}
+
+export function installSummonSocket() { installGmRequests(); }

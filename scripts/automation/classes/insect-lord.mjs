@@ -12,7 +12,7 @@ import {
   flaggedPassiveEffectData,
   syncFlaggedPassiveEffects
 } from "../effects/passive-helpers.mjs";
-import { createSummonedCreature } from "../shared/summons.mjs";
+import { createSummonedCreature, registerSummonRecipe } from "../shared/summons.mjs";
 
 const insectLordSyncs = new Set();
 const insectLordPassiveSyncs = new Set();
@@ -285,6 +285,7 @@ function insectFamiliarSummon(actor, formKey) {
     name: `${actor.name}: ${form.label}-фамильяр`,
     img: form.img,
     source: "insect-familiar",
+    form: formKey,
     size: form.size,
     type: "beast",
     ac: form.ac,
@@ -380,6 +381,10 @@ function crawlingEyeSummon(actor) {
 export async function summonCrawlingEye(actor) {
   return createSummonedCreature(actor, crawlingEyeSummon(actor));
 }
+
+registerSummonRecipe("insect-familiar", (owner, template) => insectFamiliarSummon(owner, template.form ?? "spider"));
+registerSummonRecipe("swarm-mind", owner => insectSwarmSummon(owner));
+registerSummonRecipe("crawling-eye", owner => crawlingEyeSummon(owner));
 
 function crawlingEyeEffect(actor) {
   return actor?.effects?.find(effect => effect.getFlag(MODULE_ID, FLAGS.CREEPING_EYE_EFFECT));

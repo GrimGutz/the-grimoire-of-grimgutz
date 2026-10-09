@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
 import { MODULE_ID } from "../scripts/automation/shared/constants.mjs";
-import { createSummonedCreature, installSummonSocket } from "../scripts/automation/shared/summons.mjs";
+import { createSummonedCreature, createSummonedGroup, installSummonSocket, updateManagedSummon } from "../scripts/automation/shared/summons.mjs";
+import { receiveGmRequest } from "../scripts/automation/shared/gm-requests.mjs";
+import { summonUnfinishedBusinessSpirit, validateGhostWalkerSummonUse } from "../scripts/automation/classes/ghost-walker.mjs";
 
 let creations;
 let tokenCreations;
@@ -14,20 +16,38 @@ beforeEach(() => {
   const users = [gm, player];
   users.activeGM = gm;
   users.get = id => users.find(user => user.id === id);
-  globalThis.game = { user: gm, users, actors: [], socket: { on: (_channel, listener) => { socketListener = listener; } } };
-  globalThis.canvas = { scene: {
-    grid: { size: 100 }, async createEmbeddedDocuments(type, data) { tokenCreations.push(...data); return data; }
-  } };
+  let sequence = 0;
+  const scene = { id: "scene", tokens: [], grid: { size: 100 },
+    async createEmbeddedDocuments(type, data) {
+      const documents = data.map(value => ({ ...value, id: `token${++sequence}`, uuid: `Scene.scene.Token.token${sequence}` }));
+      tokenCreations.push(...documents); this.tokens.push(...documents); return documents;
+    }, async deleteEmbeddedDocuments(type, ids) { this.tokens = this.tokens.filter(token => !ids.includes(token.id)); }
+  };
+  const scenes = [scene]; scenes.get = id => scenes.find(s => s.id === id);
+  globalThis.game = { user: gm, users, actors: [], scenes, time: { worldTime: 0 }, socket: { on: (_channel, listener) => { socketListener = listener; }, emit() {} } };
+  globalThis.canvas = { scene };
   globalThis.ui = { notifications: { info() {}, warn() {}, error() {} } };
   globalThis.ChatMessage = { getSpeaker: () => ({}), create: async () => {} };
-  globalThis.foundry = { utils: { deepClone: structuredClone, mergeObject: (base, patch) => ({ ...base, ...patch }) } };
+  globalThis.foundry = { utils: { randomID: () => `request${++sequence}`, deepClone: structuredClone, mergeObject: (base, patch) => ({ ...base, ...patch }),
+    getProperty: (object, path) => path.split('.').reduce((value, key) => value?.[key], object) } };
   globalThis.Actor = { async create(data) {
     creations.push(data);
     await new Promise(resolve => setImmediate(resolve));
-    const actor = { ...data, id: "summonActor", getFlag: (module, key) => data.flags[module]?.[key] };
+    const id = `summon${++sequence}`;
+    const actor = { ...data, id, uuid: `Actor.${id}`, getFlag: (module, key) => data.flags[module]?.[key],
+      async delete() { game.actors = game.actors.filter(value => value !== actor); },
+      async update(update) {
+        for (const [path, value] of Object.entries(update)) {
+          const keys = path.split('.'), key = keys.pop(); let target = actor;
+          for (const part of keys) target = target[part] ??= {};
+          target[key] = value;
+        }
+      }
+    };
     game.actors.push(actor);
     return actor;
   } };
+  globalThis.fromUuid = async uuid => game.actors.find(actor => actor.uuid === uuid) ?? (uuid === owner.uuid ? owner : null);
 });
 
 const owner = { uuid: "Actor.owner", name: "Owner", testUserPermission: user => user.id === "player" };
@@ -59,16 +79,66 @@ test("failed actor creation does not attempt token placement and permits a retry
 test("only the active GM processes a socket request, and repeated requests are ignored", async () => {
   installSummonSocket();
   globalThis.fromUuid = async () => owner;
-  const request = { type: "create-summon", requestId: "once", ownerUuid: owner.uuid, userId: "player", summon };
+  const request = { type: "create-summon", requestId: "once", ownerUuid: owner.uuid, userId: "player", data: { summons: [summon], sceneId: "scene" } };
   game.user = { id: "secondGM", isGM: true };
-  socketListener(request);
+  socketListener(request, "player");
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(creations.length, 0);
   game.user = game.users.activeGM;
-  socketListener(request);
-  socketListener(request);
-  await new Promise(resolve => setImmediate(() => setImmediate(resolve)));
+  await Promise.all([receiveGmRequest(request, "player"), receiveGmRequest(request, "player")]);
   assert.equal(creations.length, 1);
   assert.equal(tokenCreations.length, 1);
   assert.ok(creations[0].flags[MODULE_ID].summoned);
+});
+
+test("requested scene is used even when GM views a different scene", async () => {
+  const target = { id: "player-scene", tokens: [], grid: { size: 100 }, async createEmbeddedDocuments(type, data) {
+    const token = { ...data[0], id: "other-token", uuid: "Scene.player-scene.Token.other-token" }; this.tokens.push(token); return [token];
+  } };
+  game.scenes.push(target);
+  await createSummonedCreature(owner, summon, { sceneId: target.id });
+  assert.equal(target.tokens.length, 1);
+  assert.equal(canvas.scene.tokens.length, 0);
+});
+
+test("a partially failed group removes its documents and refunds only its resource cost", async () => {
+  const resource = { uuid: "Actor.owner.Item.points", parent: owner, system: { uses: { max: "3", spent: 0 } },
+    async update(update) { this.system.uses.spent = update["system.uses.spent"]; } };
+  const originalFromUuid = fromUuid;
+  globalThis.fromUuid = async uuid => uuid === resource.uuid ? resource : originalFromUuid(uuid);
+  const originalCreate = Actor.create;
+  let attempts = 0;
+  Actor.create = async data => ++attempts === 2 ? undefined : originalCreate(data);
+  const result = await createSummonedGroup(owner, [{ ...summon, unique: false }, { ...summon, unique: false }], {
+    resource: { itemUuid: resource.uuid, cost: 2 }
+  });
+  assert.equal(result.status, "failed");
+  assert.equal(game.actors.length, 0);
+  assert.equal(canvas.scene.tokens.length, 0);
+  assert.equal(resource.system.uses.spent, 0);
+});
+
+test("unique summon updates preserve wounds and never heal a dead ally", async () => {
+  const actor = await createSummonedCreature(owner, summon);
+  actor.system.attributes.hp.value = 12;
+  await updateManagedSummon(actor, { ...summon, hp: 30 });
+  assert.equal(actor.system.attributes.hp.value, 22);
+  actor.system.attributes.hp.value = 0;
+  await updateManagedSummon(actor, { ...summon, hp: 40 });
+  assert.equal(actor.system.attributes.hp.value, 0);
+  actor.system.attributes.ac.flat = 25;
+  await updateManagedSummon(actor, { ...summon, hp: 40, ac: 12 });
+  assert.equal(actor.system.attributes.ac.flat, 25);
+});
+
+test("a native consumed ghost summon is not rejected or charged twice", async () => {
+  const caster = { ...owner, items: [{ type: "class", system: { identifier: "ghost-walker", levels: 5 } }] };
+  const feature = { id: "spirit-use", uuid: "Actor.owner.Item.spirit-use", parent: caster,
+    system: { uses: { max: "1", spent: 0 } }, async update(update) { this.system.uses.spent = update["system.uses.spent"]; } };
+  const original = fromUuid;
+  globalThis.fromUuid = async uuid => uuid === feature.uuid ? feature : original(uuid);
+  assert.equal(validateGhostWalkerSummonUse(caster, { item: feature }), true);
+  feature.system.uses.spent = 1;
+  assert.ok(await summonUnfinishedBusinessSpirit(caster, { item: feature }, { consumed: true }));
+  assert.equal(feature.system.uses.spent, 1);
 });
