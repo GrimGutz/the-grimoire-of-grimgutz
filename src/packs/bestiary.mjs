@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { idFor, MODULE_ID, stats, withAutomationConfig } from "../common.mjs";
+import { configureNpcAuraCards } from "../auras.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const statblocksPath = path.join(root, "Statblocks.md");
@@ -1932,3 +1933,4 @@ if (blocks.length !== 28) {
 export const documents = blocks.map(actorFromBlock);
 documents.push(actorFromBlock(gutzText.trim()));
 documents.push(actorFromBlock(gutzPhaseTwoText.trim()));
+configureNpcAuraCards(documents);
