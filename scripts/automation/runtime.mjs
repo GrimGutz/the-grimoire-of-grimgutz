@@ -30,6 +30,7 @@ import { installLeaderEventHooks, prepareLeaderTargetSave, finishLeaderSaves, fi
 import { installLeaderPresenceHooks, chooseLeaderPresenceTargets, handleLeaderCritical, handleDistractingPresence, prepareLeaderHealing } from "./classes/leader-presences.mjs";
 import { installSanguinistCombatHooks, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves } from "./classes/sanguinist-combat.mjs";
 import { installInsectCombatHooks, handleInsectBiteHit, useInsectBloodDrain, endInsectBloodDrain } from "./classes/insect-combat.mjs";
+import { installDefenseHooks, handleGuardianWeaponHit, prepareArmorSave, finishDefenseReactions } from "./classes/defensive-reactions.mjs";
 import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
@@ -998,6 +999,7 @@ function installHooks() {
   installLeaderPresenceHooks();
   installSanguinistCombatHooks();
   installInsectCombatHooks();
+  installDefenseHooks();
   installAuraHooks();
   installZoneHooks();
   installAreaActivityHooks({ validate: validateActivityUse });
@@ -1170,7 +1172,7 @@ function installHooks() {
 }
 
 export function getMidiHookHandlers() {
-  return { handleInsectBiteHit, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
+  return { handleGuardianWeaponHit, prepareArmorSave, finishDefenseReactions, handleInsectBiteHit, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
     prepareLeaderHealing, handleLeaderCritical, handleDistractingPresence, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
     prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,

@@ -5,6 +5,7 @@ import { isGmAuthority, registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { isForwardTurn } from "./combat-flow.mjs";
 import { tokenSceneDistance, feetToSceneUnits } from "./spatial.mjs";
 import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
+import { isAuraIncapacitated } from "./aura-conditions.mjs";
 
 export const benefitData = effect => effect?.getFlag?.(MODULE_ID, "combatBenefit") ?? effect?.flags?.[MODULE_ID]?.combatBenefit;
 export const activeBenefits = actor => [...(actor?.effects ?? [])].filter(effect => isEffectActive(effect) && benefitData(effect));
@@ -12,14 +13,28 @@ const attackProviders = new Set();
 export function onPrepareAttack(provider) { attackProviders.add(provider); }
 export const tokenRef = token => token?.document ?? token;
 export const turnKey = combat => combat?.started ? `${combat.id}:${combat.round}:${combat.turn}` : null;
+export function combatForScene(scene) { return game.combats?.find?.(combat => combat.started && combat.scene?.id === scene?.id)
+  ?? (game.combat?.started && game.combat.scene?.id === scene?.id ? game.combat : null); }
 export function sceneToken(scene, uuid) { return [...(scene?.tokens ?? [])].find(token => token.uuid === uuid); }
 export function inFeet(a, b, feet, scene) { return tokenSceneDistance(a?.object ?? a, b?.object ?? b, scene) <= feetToSceneUnits(feet, scene); }
 export function meleeReach(actor) {
-  return Math.max(5, ...[...(actor.items ?? [])].filter(item => item.type === "weapon").map(item => Number(item.system?.range?.reach ?? item.system?.range?.value ?? 5)));
+  return Math.max(5, ...[...(actor.items ?? [])].filter(item => item.type === "weapon"
+    && [...(item.system?.activities?.values?.() ?? [])].some(activity => activity.attack?.type?.value === "melee"))
+    .map(item => Number(item.system?.range?.reach ?? (item.system?.range?.units === "ft" ? item.system.range.value : 5) ?? 5)));
 }
 export function canReact(actor) {
+  const own = actor.getFlag?.(MODULE_ID, "reactionUse");
+  const active = own?.combatId ? [...(game.combats ?? [game.combat])].some(combat => combat?.started && combat.id === own.combatId)
+    : own && Number(game.time?.worldTime ?? 0) - own.time < 6;
+  const used = active ? Number(own?.used ?? 0) : 0, maximum = Number(actor.getFlag?.("midi-qol", "actions")?.reactionsMax ?? 1);
   return !["incapacitated", "unconscious", "stunned", "paralyzed", "petrified"].some(status => actor.statuses?.has?.(status))
-    && !globalThis.MidiQOL?.hasUsedReaction?.(actor);
+    && used < maximum && !globalThis.MidiQOL?.hasUsedReaction?.(actor);
+}
+export async function recordModuleReaction(actor, scene) {
+  const own = actor.getFlag(MODULE_ID, "reactionUse"), combat = combatForScene(scene);
+  const used = own?.combatId === combat?.id ? Number(own?.used ?? 0) : 0;
+  await actor.setFlag(MODULE_ID, "reactionUse", { combatId: combat?.id ?? null, time: Number(game.time?.worldTime ?? 0),
+    used: Math.max(used + 1, Number(actor.getFlag("midi-qol", "actions")?.reactionsUsed ?? 0)) });
 }
 export async function addCombatBenefit(source, target, item, { kind, name = item.name, remaining = null, expiry = "sourceStart", changes = [], ...data }) {
   if (!isGmAuthority()) throw Error("Боевые бонусы создаёт активный GM.");
@@ -27,7 +42,8 @@ export async function addCombatBenefit(source, target, item, { kind, name = item
   const combat = game.combats?.find?.(combat => combat.started && combat.scene?.id === sourceDoc.parent?.id) ?? game.combat;
   const state = { kind, sourceTokenUuid: sourceDoc.uuid, sourceActorUuid: sourceDoc.actor.uuid, sourceItemUuid: item.uuid,
     targetTokenUuid: targetDoc.uuid, remaining, expiry, combatId: combat?.started ? combat.id : null,
-    createdTurn: turnKey(combat), skipCurrentEnd: expiry === "targetEnd" && combat?.combatant?.tokenId === targetDoc.id,
+    createdTurn: turnKey(combat), skipCurrentEnd: ["targetEnd", "sourceEnd"].includes(expiry)
+      && combat?.combatant?.tokenId === (expiry === "sourceEnd" ? sourceDoc.id : targetDoc.id),
     claims: [], ...data };
   const timing = combat?.started ? { start: null, duration: { value: null, units: "seconds", expiry: null, expired: false } }
     : temporaryEffectTiming({ seconds: 6 });
@@ -60,7 +76,7 @@ export function matchesAttackBenefit(effect, { attacker, target, weapon = false,
   if (data.attackers && !data.attackers.includes(tokenRef(attacker)?.uuid)) return false;
   if (data.protectedBy) {
     const protector = sceneToken(scene, data.protectedBy);
-    if (!protector || protector.actor.statuses?.has?.("incapacitated") || tokenRef(target).uuid === protector.uuid
+    if (!protector || isAuraIncapacitated(protector.actor) || tokenRef(target).uuid === protector.uuid
       || !inFeet(attacker, protector, meleeReach(protector.actor), scene)) return false;
   }
   if (data.rangeSource != null) {
@@ -79,6 +95,7 @@ export async function cleanupCombatBenefits(combat, changes) {
     if (!source || !target) { await effect.delete(); continue; }
     const matches = (data.expiry === "sourceStart" && combat.combatant?.tokenId === source.id)
       || (data.expiry === "targetStart" && combat.combatant?.tokenId === target.id)
+      || (data.expiry === "sourceEnd" && previous?.tokenId === source.id)
       || (data.expiry === "targetEnd" && previous?.tokenId === target.id);
     if (!matches) continue;
     if (data.skipCurrentEnd) await effect.setFlag(MODULE_ID, "combatBenefit", { ...data, skipCurrentEnd: false });
@@ -102,7 +119,7 @@ registerGmRequest("combat-attack-benefits", async (actor, data) => {
   return { status: "success", results };
 });
 
-export async function prepareCombatAttackBenefits(workflow, config) {
+export async function prepareCombatAttackBenefits(workflow) {
   if (!enabled() || workflow?.targets?.size !== 1 || workflow.grimgutzBenefitsPrepared) return;
   const target = [...workflow.targets][0];
   const result = await requestGm("combat-attack-benefits", workflow.actor, { activityUuid: workflow.activity.uuid,
@@ -113,8 +130,31 @@ export async function prepareCombatAttackBenefits(workflow, config) {
   for (const bonus of result.results) {
     if (["attack-advantage"].includes(bonus.kind)) workflow.attackRollModifierTracker?.advantage?.add?.(bonus.effectUuid, bonus.name);
     if (["attack-disadvantage", "mark", "dodge", "caution"].includes(bonus.kind)) workflow.attackRollModifierTracker?.disadvantage?.add?.(bonus.effectUuid, bonus.name);
-    if (bonus.kind === "attack-bonus") for (const roll of config?.rolls ?? []) { roll.parts ??= []; roll.parts.push(String(bonus.amount)); }
   }
+  bindWorkflowArmor(workflow);
+}
+// Midi's preAttackRollConfig receives ONLY the workflow. The native D&D5e hook
+// supplies the actual roll configuration after that asynchronous preparation.
+export function applyNativeAttackBonuses(config) {
+  const workflow = config?.workflow;
+  if (!workflow?.grimgutzBenefitsPrepared || config.grimgutzNumericBonusesApplied) return;
+  const amounts = workflow.grimgutzAttackBenefits.filter(bonus => bonus.kind === "attack-bonus")
+    .map(bonus => Number(bonus.amount)).filter(Number.isFinite);
+  if (!amounts.length) return;
+  for (const roll of config.rolls ?? []) { roll.parts ??= []; roll.parts.push(...amounts.map(String)); }
+  config.grimgutzNumericBonusesApplied = true;
+}
+export function bindWorkflowArmor(workflow) {
+  const armor = workflow.grimgutzAttackBenefits?.filter(bonus => bonus.kind === "armor-ac") ?? [];
+  if (!armor.length || workflow.grimgutzArmorBound || typeof workflow.recordTargetACModifiers !== "function") return;
+  const original = workflow.recordTargetACModifiers;
+  workflow.recordTargetACModifiers = function (...args) {
+    const result = original.apply(this, args);
+    for (const bonus of armor) this.targetACModifiers.set(bonus.targetActorUuid,
+      (this.targetACModifiers.get(bonus.targetActorUuid) ?? 0) + Number(bonus.amount));
+    return result;
+  };
+  workflow.grimgutzArmorBound = true;
 }
 const attackReservations = new Map();
 registerGmRequest("commit-attack-benefits", async (actor, data) => {
@@ -145,12 +185,15 @@ export async function appendCalculatedBonus(token, damageItem, value, type) {
   const options = damageItem.damageDetails?.calcDamageOptions?.[selector] ?? damageItem.calcDamageOptions ?? { invertHealing: true };
   const raw = structuredClone(damageItem.damageDetails?.[`raw${selector}`] ?? damageItem.rawDamageDetail ?? []);
   if (!raw.length) throw Error("Нет исходного пакета урона для безопасного бонуса.");
-  raw.push({ value, type, properties: new Set() });
+  raw.push({ value, type, properties: new Set(raw.find(part => part.type === type)?.properties ?? []) });
   const calculated = token.actor.calculateDamage(raw, options);
   damageItem.rawDamageDetail = raw; damageItem.damageDetails ??= {}; damageItem.damageDetails[`raw${selector}`] = raw;
   commitCalculatedDamage(token, damageItem, calculated);
 }
 export function installCombatBenefitHooks() {
+  Hooks.on("dnd5e.preRollAttack", applyNativeAttackBonuses);
+  Hooks.on("updateCombat", (combat, changes) => { if (enabled() && isGmAuthority() && isForwardTurn(combat, changes) && combat.combatant?.actor)
+    void combat.combatant.actor.unsetFlag(MODULE_ID, "reactionUse"); });
   Hooks.on("updateCombat", (combat, changes) => { void cleanupCombatBenefits(combat, changes).catch(error => console.error(`${MODULE_ID} | Benefit expiry failed`, error)); });
   Hooks.on("deleteCombat", combat => { if (isGmAuthority()) for (const actor of automationActors()) for (const effect of activeBenefits(actor))
     if (benefitData(effect).combatId === combat.id) void effect.delete(); });
