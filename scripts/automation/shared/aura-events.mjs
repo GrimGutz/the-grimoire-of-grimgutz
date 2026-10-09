@@ -31,11 +31,12 @@ export async function grantSoulAuraTemporaryHp(actor, amount, sourceItem = null)
   return true;
 }
 
-export function trackSoulAuraTemporaryHp(actor, changes) {
+export function trackSoulAuraTemporaryHp(actor, changes, { damage = false } = {}) {
   const record = flag(actor, SOUL_TEMP_HP), next = field(changes, "system.attributes.hp.temp");
   if (!record || next === undefined || field(changes, `flags.${MODULE_ID}.${SOUL_TEMP_HP}`) !== undefined) return;
   const current = Number(actor.system?.attributes?.hp?.temp ?? 0);
-  if (current !== record.remaining || Number(next) > current) changes[`flags.${MODULE_ID}.-=${SOUL_TEMP_HP}`] = null;
+  if (Number(next) === current) return;
+  if (!damage || current !== record.remaining || Number(next) > current) changes[`flags.${MODULE_ID}.-=${SOUL_TEMP_HP}`] = null;
   else changes[`flags.${MODULE_ID}.${SOUL_TEMP_HP}`] = { ...record, remaining: Math.max(0, Number(next)) };
 }
 
@@ -108,15 +109,25 @@ export function createAuraEventEngine({ synchronize, framesForScene, tokensForSc
   function seed(actor) {
     health.set(actor.uuid, Number(actor.system?.attributes?.hp?.value ?? 0));
     if (actor.statuses?.has?.("dead") || (actor.type === "npc" && !flag(actor, "auraDeathRequiresStatus") && health.get(actor.uuid) <= 0)) deadActors.add(actor.uuid);
+    else deadActors.delete(actor.uuid);
   }
   async function death(actor) {
     if (!isAuthority() || !enabled() || deadActors.has(actor.uuid) || flag(actor, "auraDeathProcessed")) return false;
     deadActors.add(actor.uuid);
-    await actor.setFlag?.(MODULE_ID, "auraDeathProcessed", true);
+    // Summon cleanup can delete its token/Actor while the flag update awaits.
+    // Capture the actual death locations and size first, not a later corpse position.
+    const corpse = { size: actor.system?.traits?.size, type: actor.system?.details?.type?.value };
+    const locations = [...(game.scenes ?? [])].map(scene => ({ scene,
+      deceased: tokensForScene(scene).filter(token => token.actor.uuid === actor.uuid).map(token => ({ actor,
+        center: { ...token.center }, w: token.w, h: token.h, document: Object.fromEntries(["id", "uuid", "x", "y", "width", "height", "elevation"]
+          .map(key => [key, token.document[key]])) })) })).filter(entry => entry.deceased.length);
+    try { await actor.setFlag?.(MODULE_ID, "auraDeathProcessed", true); }
+    catch (error) {
+      if (!globalThis.fromUuid || await fromUuid(actor.uuid)) throw error;
+      // The Actor really was removed; the in-memory claim still prevents repeats.
+    }
     return enqueue(async () => {
-      for (const scene of game.scenes ?? []) {
-        const deceased = tokensForScene(scene).filter(token => token.actor.uuid === actor.uuid);
-        if (!deceased.length) continue;
+      for (const { scene, deceased } of locations) {
         await synchronize(scene);
         for (const frame of framesForScene(scene)) {
           if (!frame.isActive() || !frame.definition.events?.some(event => event.trigger === "death")) continue;
@@ -125,8 +136,8 @@ export function createAuraEventEngine({ synchronize, framesForScene, tokensForSc
             && tokenSceneDistance(frame.sourceToken, token, scene) <= feetToSceneUnits(frame.definition.radius, scene));
           if (!inRange) continue;
           const sourceItem = auraFeature(frame.sourceToken.actor, frame.definition), npc = itemIdentifier(sourceItem) === "аура-опустоше-нных-душ-6";
-          if (npc && ["undead", "construct"].includes(actor.system?.details?.type?.value)) continue;
-          let amount = { sm: 10, med: 20, lg: 30, huge: 40, grg: 50 }[actor.system?.traits?.size] ?? 0;
+          if (npc && ["undead", "construct"].includes(corpse.type)) continue;
+          let amount = { sm: 10, med: 20, lg: 30, huge: 40, grg: 50 }[corpse.size] ?? 0;
           if (npc) amount = Math.min(40, amount);
           if (amount) await grantSoulAuraTemporaryHp(frame.sourceToken.actor, amount, sourceItem);
         }
@@ -175,6 +186,9 @@ export function installAuraEventHooks(context) {
   Hooks.once("ready", () => { for (const actor of automationActors()) engine.seed(actor); });
   Hooks.on("createActor", actor => engine.seed(actor));
   Hooks.on("createToken", token => { if (token.actor) engine.seed(token.actor); });
+  Hooks.on("dnd5e.preApplyDamage", (actor, amount, updates) => {
+    if (enabled()) trackSoulAuraTemporaryHp(actor, updates, { damage: amount > 0 });
+  });
   Hooks.on("preUpdateActor", (actor, changes, options) => {
     if (!enabled()) return;
     options[MODULE_ID] ??= {}; options[MODULE_ID].auraOldHp = Number(actor.system?.attributes?.hp?.value ?? 0);

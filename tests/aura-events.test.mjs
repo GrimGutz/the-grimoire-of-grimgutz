@@ -96,9 +96,20 @@ test("NPC death grants size-based temporary HP once; character 0 HP is not death
   await engine.death(pc.actor); assert.equal(source.actor.system.attributes.hp.temp, 20); // Explicit dead status.
 });
 
+test("removing a dead summon during cleanup does not erase the death location", async () => {
+  const source = token(actor("devil", "character", "aura-of-devastated-souls"), "devil"), summon = token(actor("summon"), "summon", 100);
+  tokens = [source, summon]; frames = [frame("devil-devastated-souls", source, [])];
+  const engine = createAuraEventEngine(context()); engine.seed(summon.actor);
+  summon.actor.setFlag = async () => { tokens = [source]; throw Error("Actor removed by summon cleanup"); };
+  globalThis.fromUuid = async () => null;
+  summon.actor.system.attributes.hp.value = 0;
+  await engine.observeActor(summon.actor, { "system.attributes.hp.value": 0 });
+  assert.equal(source.actor.system.attributes.hp.temp, 20);
+});
+
 test("soul temporary HP expire after rest, but never overwrite a higher unrelated total", async () => {
   const owner = actor("owner", "character"); await grantSoulAuraTemporaryHp(owner, 30);
-  const damage = { "system.attributes.hp.temp": 18 }; trackSoulAuraTemporaryHp(owner, damage); await owner.update(damage);
+  const damage = { "system.attributes.hp.temp": 18 }; trackSoulAuraTemporaryHp(owner, damage, { damage: true }); await owner.update(damage);
   assert.equal(owner.flags[MODULE_ID].soulAuraTempHp.remaining, 18);
   await clearSoulAuraTemporaryHpOnRest(owner); assert.equal(owner.system.attributes.hp.temp, 0); assert.equal(owner.flags[MODULE_ID].soulAuraTempHp, undefined);
   owner.system.attributes.hp.temp = 40; assert.equal(await grantSoulAuraTemporaryHp(owner, 20), false);
@@ -106,4 +117,10 @@ test("soul temporary HP expire after rest, but never overwrite a higher unrelate
   owner.system.attributes.hp.temp = 0; await grantSoulAuraTemporaryHp(owner, 20);
   const other = { "system.attributes.hp.temp": 50 }; trackSoulAuraTemporaryHp(owner, other); await owner.update(other);
   await clearSoulAuraTemporaryHpOnRest(owner); assert.equal(owner.system.attributes.hp.temp, 50);
+});
+
+test("manual temporary HP changes lose ambiguous ownership rather than being cleared on rest", async () => {
+  const owner = actor("owner", "character"); await grantSoulAuraTemporaryHp(owner, 30);
+  const manual = { "system.attributes.hp.temp": 10 }; trackSoulAuraTemporaryHp(owner, manual); await owner.update(manual);
+  await clearSoulAuraTemporaryHpOnRest(owner); assert.equal(owner.system.attributes.hp.temp, 10);
 });

@@ -76,3 +76,10 @@ test("large-token emanation includes each occupied space and uses metric scene u
   assert.equal(data.shapes.length, 2); assert.ok(data.shapes.every(shape => Math.abs(shape.radius - 100) < 0.001));
   assert.deepEqual(data.shapes.map(shape => shape.x), [50, 150]); assert.equal(data.attachment.token, "large");
 });
+
+test("a dead NPC stops projecting buffs even when automatic dead-status marking is disabled", async () => {
+  const source = actor("gutz", "аура-просвещения-1"), ally = actor("ally"); source.type = "npc";
+  source.system.attributes = { hp: { value: 10 } };
+  populate(token(source, "gutz", 0), token(ally, "ally", 100)); await syncSceneAuras(); assert.equal(ally.effects.length, 1);
+  source.system.attributes.hp.value = 0; await syncSceneAuras(); assert.equal(ally.effects.length, 0); assert.equal(scene.regions.length, 0);
+});

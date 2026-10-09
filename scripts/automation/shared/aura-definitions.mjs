@@ -8,6 +8,8 @@ export function isAuraIncapacitated(actor) {
     || [...(actor?.effects ?? [])].some(effect => isEffectActive(effect) && [...(effect.statuses ?? [])].some(status => INCAPACITATED.has(status)));
 }
 export function isAuraDefeated(token) {
+  const actor = token?.actor, explicitDeath = actor?.getFlag?.(MODULE_ID, "auraDeathRequiresStatus") ?? actor?.flags?.[MODULE_ID]?.auraDeathRequiresStatus;
+  if (actor?.type === "npc" && !explicitDeath && Number(actor.system?.attributes?.hp?.value) <= 0) return true;
   return token?.combatant?.defeated === true || token?.document?.combatant?.defeated === true
     || token?.actor?.statuses?.has?.("dead") === true
     || [...(token?.actor?.effects ?? [])].some(effect => isEffectActive(effect) && effect.statuses?.has?.("dead"));
