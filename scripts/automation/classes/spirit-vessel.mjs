@@ -378,7 +378,7 @@ export async function chooseSpiritVesselAbility(actor) {
   const ability = await choiceDialog({
     title: "Магия договора Сосуда Духа",
     label: "Заклинательная характеристика",
-    options: [["int", "Интеллект"], ["wis", "Мудрость"], ["cha", "Харизма"]]
+    choices: [["int", "Интеллект"], ["wis", "Мудрость"], ["cha", "Харизма"]]
   });
   if (!ability) return false;
   await actor.setFlag(MODULE_ID, FLAGS.SPIRIT_VESSEL_ABILITY, ability);
@@ -416,7 +416,7 @@ export async function chooseSpiritVesselStrikeDamage(actor) {
   const damageType = await choiceDialog({
     title: "Концентрированный удар",
     label: "Тип урона",
-    options
+    choices: options
   });
   if (!damageType) return false;
   await actor.setFlag(MODULE_ID, FLAGS.SPIRIT_VESSEL_STRIKE_DAMAGE, damageType);

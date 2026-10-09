@@ -70,13 +70,23 @@ export function prepareModuleTemporaryEffectExpiry(effect, update = null, option
   const base = sourceData(effect).duration ?? {};
   const explicitTimer = ["value", "units", "seconds", "rounds", "turns", "startTime", "startRound", "startTurn"]
     .some(key => Object.hasOwn(patch, key));
+  const spec = durationSpec(patch) ?? durationSpec({ ...base, ...patch });
+  const oldSpec = durationSpec(base);
+  const timerChanged = spec && (spec.value !== oldSpec?.value || spec.units !== oldSpec?.units);
+  const startChanged = ["time", "combat", "combatant", "round", "turn"].some(key => {
+    const value = field(update, `start.${key}`);
+    return value !== undefined && value !== sourceData(effect).start?.[key];
+  }) || ["startTime", "startRound", "startTurn"].some(key => {
+    const startKey = { startTime: "time", startRound: "round", startTurn: "turn" }[key];
+    return patch[key] !== undefined && patch[key] !== sourceData(effect).start?.[startKey];
+  });
   const restarting = update && (
-    explicitTimer || field(update, "duration.expired") === false
+    timerChanged || startChanged || options?.[MODULE_ID]?.reactivate === true
+    || (base.expired && (explicitTimer || patch.expired === false))
     || (field(update, "disabled") === false && (effect.disabled || base.expired))
   );
   if (update && !restarting) return;
 
-  const spec = durationSpec(patch) ?? durationSpec({ ...base, ...patch });
   if (!spec) return;
   const target = update ?? {};
   setField(target, "duration.value", spec.value);

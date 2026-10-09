@@ -119,10 +119,9 @@ function applyCriticalReduction(roll, reduction) {
   const value = Number(reduction ?? 0);
   if (!Number.isFinite(value) || value <= 0 || !roll) return;
   roll.options ??= {};
-  roll.options.critical ??= {};
-  const current = Number(roll.options.critical.threshold ?? roll.options.critical ?? 20);
+  const current = Number(roll.options.criticalSuccess ?? 20);
   const threshold = Math.max(1, Math.min(Number.isFinite(current) ? current : 20, 20 - value));
-  roll.options.critical.threshold = threshold;
+  roll.options.criticalSuccess = threshold;
 }
 
 export function applyWeaponBuffAttackAutomation(config) {

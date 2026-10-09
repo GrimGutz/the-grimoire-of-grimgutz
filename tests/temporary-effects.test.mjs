@@ -59,6 +59,20 @@ test("renaming or updating a flag does not renew or revive an expired effect", (
   assert.deepEqual(update, { name: "Renamed", [`flags.${MODULE_ID}.rollTotal`]: 6 });
 });
 
+test("saving unchanged duration fields in a form does not restart the clock", () => {
+  const update = { name: "Edited", duration: { value: 60, units: "seconds", expired: false } };
+  const expected = structuredClone(update);
+  prepareModuleTemporaryEffectExpiry(effect(), update);
+  assert.deepEqual(update, expected);
+});
+
+test("an explicit activation start or changed duration restarts a running effect", () => {
+  for (const update of [{ start: { time: 120 }, duration: { value: 60, units: "seconds" } }, { "duration.value": 90 }]) {
+    prepareModuleTemporaryEffectExpiry(effect(), update);
+    assert.equal(update.start.time, 120);
+  }
+});
+
 test("nested and flat reapplication restart at the current game time", () => {
   for (const update of [{ duration: { value: 60, units: "seconds", expired: false } }, { "duration.seconds": 60 }]) {
     prepareModuleTemporaryEffectExpiry(effect({ expired: true }), update);
