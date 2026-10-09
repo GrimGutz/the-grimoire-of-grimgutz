@@ -32,6 +32,12 @@ beforeEach(() => {
   globalThis.MidiQOL = { Workflow, TrapWorkflow, async completeActivityUse(...args) { calls.push(args); return { aborted: false }; } };
 });
 const pulse = event => useAuraPulse({ sourceToken, sourceItem, targets, scene, template: { uuid: "Scene.one.Region.aura" }, event, eventKey: "source-start:turn-one" });
+test("save-only automation exposes only confirmed native save outcomes", async () => {
+  MidiQOL.completeActivityUse = async () => ({saves: new Set(), failedSaves: new Set(targets)});
+  const result = await pulse({save: "con", dc: "16", damage: [], returnSaveOutcome: true});
+  assert.deepEqual(result.failedSaves, [targets[0].document.uuid]);
+  assert.deepEqual(result.saves, []);
+});
 
 test("a successful repeated bleeding save removes only its source-owned effect", async () => {
   let removed = 0;

@@ -91,7 +91,7 @@ export async function useAuraPulse({ sourceToken, sourceItem, template, targets,
         midiOptions: { asUser: game.user.id, ignoreUserTargets: true, targetUuids: targets.map(token => token.document.uuid), workflowOptions } },
       { configure: false }, { create: true, ...(sourceToken.document.hidden ? { rollMode: "gmroll" } : {}) });
     if (result === undefined) notify("Результат срабатывания ауры ещё не подтверждён Midi-QOL. Проверьте карточку; повторный бросок автоматически не делается.", "warn");
-    if (result !== false && !result?.aborted && (event.removeEffectOnSaveUuid || event.replaceCondition)) {
+    if (result !== false && !result?.aborted && (event.removeEffectOnSaveUuid || event.replaceCondition || event.returnSaveOutcome)) {
       const completed = result?.workflow ?? (result?.saves ? result : workflow);
       const successes = new Set([...(completed.saves ?? [])].map(token => token.document?.uuid ?? token.uuid));
       const failures = new Set([...(completed.failedSaves ?? [])].map(token => token.document?.uuid ?? token.uuid));
@@ -109,6 +109,7 @@ export async function useAuraPulse({ sourceToken, sourceItem, template, targets,
         if (!effects.some(effect => effect.getFlag(MODULE_ID, "auraEventKey") === eventKey)) return { status: "needs-review" };
         for (const effect of effects.filter(effect => effect.getFlag(MODULE_ID, "auraEventKey") !== eventKey)) await effect.delete();
       }
+      if (event.returnSaveOutcome) return { status: "success", saves: [...successes], failedSaves: [...failures] };
     }
     return result;
   } finally {

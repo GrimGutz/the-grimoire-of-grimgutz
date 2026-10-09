@@ -13,6 +13,11 @@ import { numberDialog } from "../shared/dialogs.mjs";
 import { syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const hollowPassiveSyncs = new Set();
+const chargeListeners = new Set();
+export function onHollowChargeUse(handler) { chargeListeners.add(handler); }
+export async function afterHollowChargeUse(actor, activity) {
+  for (const handler of chargeListeners) await handler(actor, activity);
+}
 
 export function hollowFeatureLevel(item) {
   const data = automationData(item);
@@ -137,6 +142,7 @@ export async function useHollowCharges(actor, activity) {
   await rollHollowFormula(actor, activity, cost);
   const message = data.hollowMessage;
   notify(`${actor.name}: потрачено ${cost} Зарядов Анти-Магии, осталось ${before.remaining - cost}.${message ? ` ${message}` : ""}`);
+  await afterHollowChargeUse(actor, activity);
   return true;
 }
 
