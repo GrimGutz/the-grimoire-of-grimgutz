@@ -215,6 +215,7 @@ export const murderspawnDocuments = [
         title: "Бонус трансформации II",
         hint: "Выберите один бонус трансформации из списка бонусов II уровня или ниже. Если бонус уже есть у персонажа, выберите другой.",
         items: level2Boons,
+        allowDrops: false,
         pack: "features"
       }),
       itemGrant({
@@ -230,6 +231,7 @@ export const murderspawnDocuments = [
         title: "Бонус трансформации III",
         hint: "Выберите один бонус трансформации из списка бонусов III уровня или ниже. Если бонус уже есть у персонажа, выберите другой.",
         items: level3Boons,
+        allowDrops: false,
         pack: "features"
       }),
       itemGrant({
@@ -245,6 +247,7 @@ export const murderspawnDocuments = [
         title: "Бонус трансформации IV",
         hint: "Выберите один бонус трансформации из списка бонусов IV уровня или ниже. Если бонус уже есть у персонажа, выберите другой.",
         items: level4Boons,
+        allowDrops: false,
         pack: "features"
       }),
       itemGrant({

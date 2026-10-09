@@ -453,6 +453,7 @@ export function itemChoice({
   level,
   items,
   count = 1,
+  allowDrops = true,
   title,
   hint,
   pack = "features"
@@ -467,7 +468,7 @@ export function itemChoice({
           replacement: false
         }
       },
-      allowDrops: true,
+      allowDrops,
       type: null,
       pool: items.map(item => ({
         uuid: uuidFor(pack, item)
