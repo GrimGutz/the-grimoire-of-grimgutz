@@ -9,6 +9,7 @@ import { useNativeUtility, reactionAttack } from "../shared/native-actions.mjs";
 import { handleStratagemUse, validateStratagemUse } from "./leader.mjs";
 import { feetToSceneUnits } from "../shared/spatial.mjs";
 import { dispatchAutomationPulse } from "../midi/aura-workflow.mjs";
+import { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs";
 
 export const STRATAGEM_RULES = Object.freeze({
   "stratagem-cunning-ruse": "contest", "stratagem-battle-cry": "battle-cry", "stratagem-command-caution": "caution",
@@ -34,6 +35,7 @@ async function roll(actor, formula, name) {
 }
 export async function giveLeaderTemporaryHp(source, target, item, amount, expiry = "sourceStart") {
   const actor = tokenRef(target).actor;
+  amount = inspiringTemporaryHp(actor, amount);
   if (Number(actor.system.attributes.hp.temp ?? 0) >= amount) return false;
   const effect = await addCombatBenefit(source, target, item, { kind: "temporary-hp", expiry, amount });
   await actor.update({ "system.attributes.hp.temp": amount, [`flags.${MODULE_ID}.combatTempHp`]: { remaining: amount, effectUuid: effect.uuid } },

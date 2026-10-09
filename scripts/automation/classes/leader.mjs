@@ -42,7 +42,8 @@ function leaderPassiveDefinitions(actor) {
   const definitions = [];
 
   const boisterous = findFeature(actor, "boisterous-presence");
-  if (boisterous) {
+  const configured = actor.getFlag?.(MODULE_ID, "leaderPresenceRecipients")?.some(record => record.key === "boisterous-presence");
+  if (boisterous && !configured) {
     const changes = leaderMovementBonusChanges(actor, 10);
     if (changes.length) {
       definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.LEADER_PASSIVE, {
@@ -58,6 +59,7 @@ function leaderPassiveDefinitions(actor) {
 
 export async function syncLeaderPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
+  if (actor.getFlag?.(MODULE_ID, "leaderLegacyBoiConflict")) return;
   return syncFlaggedPassiveEffects(actor, leaderPassiveSyncs, MODULE_ID, FLAGS.LEADER_PASSIVE, leaderPassiveDefinitions);
 }
 

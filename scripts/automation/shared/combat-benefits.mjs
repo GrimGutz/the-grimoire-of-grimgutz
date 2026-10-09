@@ -45,9 +45,10 @@ export async function consumeBenefit(effect, key) {
   else await effect.setFlag(MODULE_ID, "combatBenefit", next);
   return true;
 }
-export function matchesAttackBenefit(effect, { attacker, target, weapon = false, opportunity = false, scene }) {
+export function matchesAttackBenefit(effect, { attacker, target, weapon = false, opportunity = false, scene, workflowId = null }) {
   const data = benefitData(effect);
   if (!isEffectActive(effect) || !data || data.remaining === 0) return false;
+  if (data.workflowId && workflowId !== data.workflowId) return false;
   const recipient = data.targetTokenUuid;
   if (recipient) {
     const defending = ["dodge", "direct-attack", "opportunity-ac", "caution"].includes(data.kind);
@@ -91,7 +92,7 @@ registerGmRequest("combat-attack-benefits", async (actor, data) => {
     || target?.parent?.id !== attacker.parent?.id || activity.type !== "attack") throw Error("Неверный контекст атаки.");
   const effects = [...activeBenefits(actor), ...activeBenefits(target.actor)], results = [];
   for (const effect of effects) if (matchesAttackBenefit(effect, { attacker, target, scene: attacker.parent,
-    weapon: activity.item.type === "weapon", opportunity: data.opportunity === true })) {
+    weapon: activity.item.type === "weapon", opportunity: data.opportunity === true, workflowId: data.workflowId })) {
     const bonus = benefitData(effect);
     if (["attack-advantage", "attack-disadvantage", "mark", "attack-bonus", "dodge", "caution"].includes(bonus.kind))
       results.push({ effectUuid: effect.uuid, kind: bonus.kind, amount: bonus.amount ?? 0, name: effect.name });
@@ -122,7 +123,14 @@ registerGmRequest("commit-attack-benefits", async (actor, data) => {
   const reserved = attackReservations.get(`${actor.uuid}:${data.workflowId}`) ?? [];
   for (const uuid of reserved) {
     const effect = await fromUuid(uuid), bonus = benefitData(effect);
-    if (bonus && ["attack-advantage", "attack-disadvantage", "attack-bonus", "caution"].includes(bonus.kind)) await consumeBenefit(effect, data.key);
+    if (bonus && ["attack-advantage", "attack-disadvantage", "attack-bonus", "caution"].includes(bonus.kind)) {
+      if (bonus.presenceKind === "insightful") {
+        const source = await fromUuid(bonus.sourceActorUuid);
+        const claims = source.getFlag(MODULE_ID, "insightfulPresenceClaims") ?? {};
+        claims[bonus.protectedTarget] = data.workflowId; await source.setFlag(MODULE_ID, "insightfulPresenceClaims", claims);
+      }
+      await consumeBenefit(effect, data.key);
+    }
   }
   return { status: "success" };
 });

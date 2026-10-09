@@ -1,6 +1,9 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 
 export const MIDI_QOL_HOOKS = [
+  ["midi-qol.preTargetDamageApplication", "prepareLeaderHealing"],
+  ["midi-qol.RollComplete", "handleLeaderCritical"],
+  ["midi-qol.RollComplete", "handleDistractingPresence"],
   ["midi-qol.preTargetSave", "prepareLeaderTargetSave"],
   ["midi-qol.postCheckSaves", "finishLeaderSaves"],
   ["midi-qol.RollComplete", "finishLeaderRoll"],

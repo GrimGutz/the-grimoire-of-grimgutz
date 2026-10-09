@@ -5,6 +5,8 @@ import { activeBenefits, benefitData, matchesAttackBenefit, consumeBenefit, toke
 import { calculatedDamage } from "../midi/damage-packet.mjs";
 
 const confirmed = new Set(), listeners = new Set(), prepared = new Map();
+const providers = new Set();
+export function onPrepareDamage(provider) { providers.add(provider); }
 let reservationChain = Promise.resolve();
 export function onConfirmedDamage(handler) { listeners.add(handler); }
 export async function emitConfirmedDamage(actor, amount, options) {
@@ -55,11 +57,14 @@ registerGmRequest("prepare-damage-event", (actor, data) => {
       if (bonus.remaining != null) await effect.setFlag(MODULE_ID, "combatBenefit", { ...bonus, reserved: data.key, reservedValue: value });
       bonuses.push({ effectUuid: effect.uuid, value, name: effect.name });
     }
+    const extra = {};
+    for (const provider of providers) { const result = await provider({ actor, attacker, target, activity, data });
+      if (result) { bonuses.push(...(result.bonuses ?? [])); Object.assign(extra, result.context ?? {}); } }
     const result = { status: "success", bonuses, context: { key: data.key, sourceActorUuid: actor.uuid,
       sourceTokenUuid: attacker.uuid, targetTokenUuid: target.uuid, activityUuid: activity.uuid, workflowId: data.workflowId,
       bloodSpell: data.bloodSpell === true, bloodDrain: data.bloodDrain === true, automatic: data.automatic === true,
       damageType: data.damageType,
-      benefits: bonuses.map(bonus => bonus.effectUuid) } };
+      benefits: bonuses.map(bonus => bonus.effectUuid).filter(Boolean), ...extra } };
     prepared.set(data.key, result); if (prepared.size > 500) prepared.delete(prepared.keys().next().value);
     return result;
   });
@@ -90,6 +95,9 @@ export async function prepareConfirmedDamage(token, { workflow, damageItem }) {
   damageItem.grimgutzDamagePrepared = key;
 }
 export function installDamageEventHooks() {
+  Hooks.on("dnd5e.preApplyDamage", (actor, _amount, _updates, options) => {
+    if (options?.[MODULE_ID]?.damageEvent) options[MODULE_ID].damageEvent.beforeHp = Number(actor.system.attributes.hp.value);
+  });
   Hooks.on("dnd5e.applyDamage", (actor, amount, options) => { void emitConfirmedDamage(actor, amount, options)
     .catch(error => console.error(`${MODULE_ID} | Damage confirmation failed`, error)); });
 }

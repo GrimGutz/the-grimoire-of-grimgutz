@@ -8,6 +8,7 @@ import { isForwardTurn } from "./combat-flow.mjs";
 import { choiceDialog } from "./dialogs.mjs";
 import { registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { dispatchAutomationPulse } from "../midi/aura-workflow.mjs";
+import { inspiringTemporaryHp } from "./leader-presence-definitions.mjs";
 
 const flag = (actor, key) => actor?.getFlag?.(MODULE_ID, key) ?? actor?.flags?.[MODULE_ID]?.[key];
 const field = (data, path) => Object.hasOwn(data ?? {}, path) ? data[path] : path.split(".").reduce((v, key) => v?.[key], data);
@@ -24,7 +25,7 @@ export async function chooseCarnageAuraType(actor) {
 }
 
 export async function grantSoulAuraTemporaryHp(actor, amount, sourceItem = null) {
-  const current = Number(actor.system?.attributes?.hp?.temp ?? 0), value = Math.max(0, Number(amount));
+  const current = Number(actor.system?.attributes?.hp?.temp ?? 0), value = inspiringTemporaryHp(actor, Math.max(0, Number(amount)));
   if (!value || value <= current) return false;
   await actor.update({ "system.attributes.hp.temp": value,
     [`flags.${MODULE_ID}.${SOUL_TEMP_HP}`]: { remaining: value, sourceItem: sourceItem?.uuid ?? null } });

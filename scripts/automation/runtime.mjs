@@ -27,6 +27,7 @@ import { installCombatBenefitHooks, prepareCombatAttackBenefits, commitCombatAtt
 import { installDamageEventHooks, prepareConfirmedDamage } from "./shared/damage-events.mjs";
 import { installLeaderStratagemHooks, useLeaderStratagem } from "./classes/leader-stratagems.mjs";
 import { installLeaderEventHooks, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll } from "./classes/leader-events.mjs";
+import { installLeaderPresenceHooks, chooseLeaderPresenceTargets, handleLeaderCritical, handleDistractingPresence, prepareLeaderHealing } from "./classes/leader-presences.mjs";
 import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
@@ -551,6 +552,7 @@ function actionFromActivity(activity) {
 }
 
 const COMMON_ACTIVITY_ACTIONS = new Map([
+  ["choose-leader-presence-targets", async (actor, activity) => chooseLeaderPresenceTargets(actor, automationData(activity).leaderPresenceKey ?? itemIdentifier(activity.item))],
   ["choose-carnage-aura-type", async actor => chooseCarnageAuraType(actor)],
   ["toggle-gwm", async (actor, activity, context) => toggleGreatWeaponMaster(actor)],
   ["set-style-cleaving", async (actor, activity, context) => setStyle(actor, STYLES.CLEAVING)],
@@ -991,6 +993,7 @@ function installHooks() {
   installDamageEventHooks();
   installLeaderStratagemHooks();
   installLeaderEventHooks();
+  installLeaderPresenceHooks();
   installAuraHooks();
   installZoneHooks();
   installAreaActivityHooks({ validate: validateActivityUse });
@@ -1163,7 +1166,7 @@ function installHooks() {
 }
 
 export function getMidiHookHandlers() {
-  return { prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
+  return { prepareLeaderHealing, handleLeaderCritical, handleDistractingPresence, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
     prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
@@ -1199,6 +1202,7 @@ export function exposeApi() {
   module.api = {
     useAreaActivity,
     useLeaderStratagem,
+    chooseLeaderPresenceTargets,
     inspectAutomation: actorOrUuid => inspectActorAutomation(actorOrUuid, { actionHandlers: getAutomationActionHandlers() }),
     resolvePendingAutomation,
     summonRequestResult,

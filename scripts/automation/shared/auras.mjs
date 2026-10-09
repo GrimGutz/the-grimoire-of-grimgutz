@@ -132,7 +132,7 @@ function targetsForAura(definition, sourceToken, tokens = activeTokens(), scene 
     && relationMatches(definition, sourceToken, targetToken)
     && targetTypeMatches(definition, targetToken)
     && (!definition.targetCondition || definition.targetCondition(sourceToken, targetToken))
-    && (inside ? inside.has(targetToken) : tokenDistance(sourceToken, targetToken, scene) <= feetToSceneUnits(definition.radius ?? 0, scene))
+    && (definition.unlimitedRange || (inside ? inside.has(targetToken) : tokenDistance(sourceToken, targetToken, scene) <= feetToSceneUnits(definition.radius ?? 0, scene)))
   );
 }
 

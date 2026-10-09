@@ -1,19 +1,10 @@
 import { FLAGS, MODULE_ID } from "./constants.mjs";
 import { findFeature } from "./helpers.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
+import { isAuraDefeated, isAuraIncapacitated } from "./aura-conditions.mjs";
+import { LEADER_PRESENCE_DEFINITIONS } from "./leader-presence-definitions.mjs";
+export { isAuraDefeated, isAuraIncapacitated } from "./aura-conditions.mjs";
 
-const INCAPACITATED = new Set(["incapacitated", "unconscious", "paralyzed", "petrified", "stunned"]);
-export function isAuraIncapacitated(actor) {
-  return [...(actor?.statuses ?? [])].some(status => INCAPACITATED.has(status))
-    || [...(actor?.effects ?? [])].some(effect => isEffectActive(effect) && [...(effect.statuses ?? [])].some(status => INCAPACITATED.has(status)));
-}
-export function isAuraDefeated(token) {
-  const actor = token?.actor, explicitDeath = actor?.getFlag?.(MODULE_ID, "auraDeathRequiresStatus") ?? actor?.flags?.[MODULE_ID]?.auraDeathRequiresStatus;
-  if (actor?.type === "npc" && !explicitDeath && Number(actor.system?.attributes?.hp?.value) <= 0) return true;
-  return token?.combatant?.defeated === true || token?.document?.combatant?.defeated === true
-    || token?.actor?.statuses?.has?.("dead") === true
-    || [...(token?.actor?.effects ?? [])].some(effect => isEffectActive(effect) && effect.statuses?.has?.("dead"));
-}
 export function auraFeature(actor, definition) {
   return (definition.sourceFeatures ?? [definition.sourceFeature ?? definition.activityFeature]).filter(Boolean).map(key => findFeature(actor, key)).find(Boolean);
 }
@@ -24,6 +15,7 @@ export function carnageDamageType(actor) {
 const change = (key, value, type = "add") => ({ key, value: String(value), type, phase: "initial", priority: 20 });
 
 export const AURA_DEFINITIONS = [
+  ...LEADER_PRESENCE_DEFINITIONS,
   {
     id: "hollow-masking-aura", name: "Аура маскировки", radius: 10, indicatorColor: "#b7d6e8",
     sourceFeature: "masking-aura", sourceEffectFlag: FLAGS.HOLLOW_PASSIVE, sourceEffectValue: "masking-aura",
