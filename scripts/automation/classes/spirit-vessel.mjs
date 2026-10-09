@@ -547,11 +547,6 @@ async function activateFiendFlames(actor) {
     system: { changes: [] }
   };
   await replaceFlaggedEffect(actor, FLAGS.SPIRIT_VESSEL_FIEND_FLAMES_EFFECT, data);
-  const roll = await new Roll("1d6", actor.getRollData(), { flavor: "Пламя исчадия" }).evaluate();
-  await roll.toMessage({
-    speaker: ChatMessage.getSpeaker({ actor }),
-    flavor: "Пламя исчадия: огненный урон существам в 5 футах в начале вашего хода или существу, атакующему вас в ближнем бою"
-  });
   return true;
 }
 

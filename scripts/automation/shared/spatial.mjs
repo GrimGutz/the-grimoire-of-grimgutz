@@ -15,7 +15,7 @@ function bounds(token, scene) {
   const center = token.center ?? doc.getCenterPoint?.() ?? { x: Number(doc.x ?? 0) + width / 2, y: Number(doc.y ?? 0) + height / 2 };
   return { x: center.x - width / 2, y: center.y - height / 2, width, height, elevation: Number(doc.elevation ?? 0) };
 }
-function occupiedPoints(token, scene) {
+export function tokenOccupiedPoints(token, scene) {
   const doc = tokenDocument(token), grid = sceneGrid(scene);
   if (doc.getOccupiedGridSpaceOffsets && grid?.getCenterPoint) {
     const offsets = doc.getOccupiedGridSpaceOffsets();
@@ -41,7 +41,7 @@ export function tokenSceneDistance(left, right, scene = canvas?.scene) {
     return Math.hypot(dx / size * distance, dy / size * distance, x.elevation - y.elevation);
   }
   let minimum = Infinity;
-  for (const p of occupiedPoints(left, scene)) for (const q of occupiedPoints(right, scene)) {
+  for (const p of tokenOccupiedPoints(left, scene)) for (const q of tokenOccupiedPoints(right, scene)) {
     const measured = grid?.measurePath?.([p, q])?.distance;
     const fallback = Math.hypot((p.x - q.x) / size * distance, (p.y - q.y) / size * distance, p.elevation - q.elevation);
     minimum = Math.min(minimum, Number.isFinite(measured) ? measured : fallback);

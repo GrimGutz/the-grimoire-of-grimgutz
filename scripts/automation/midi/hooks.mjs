@@ -1,6 +1,7 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 
 export const MIDI_QOL_HOOKS = [
+  ["midi-qol.AttackRollComplete", "handleAuraMeleeAttack"],
   ["midi-qol.preAttackRollConfig", "applyMidiAttackDisadvantage"],
   ["midi-qol.preAttackRollConfig", "applyMidiWeaponBuffAttackAutomation"],
   ["midi-qol.DamageRollComplete", "applyPowerfulCleaving"],

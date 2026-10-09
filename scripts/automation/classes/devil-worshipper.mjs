@@ -13,6 +13,7 @@ import {
 import { abilityMod } from "../shared/dnd5e.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
+import { grantSoulAuraTemporaryHp } from "../shared/aura-events.mjs";
 import { createSummonedCreature } from "../shared/summons.mjs";
 import { impFamiliarSummon } from "../shared/summon-templates.mjs";
 
@@ -377,7 +378,7 @@ export async function gainDevilSoulAuraTempHp(actor, activity) {
   const amount = Math.max(0, Number(automationData(activity).devilSoulAuraTempHp ?? 0));
   if (!amount) return false;
   const current = Number(actor.system?.attributes?.hp?.temp ?? 0);
-  await actor.update({ "system.attributes.hp.temp": Math.max(current, amount) });
+  await grantSoulAuraTemporaryHp(actor, amount, activityItem(activity));
   notify(`${actor.name}: Аура опустошённых душ — временные хиты ${Math.max(current, amount)}.`);
   return true;
 }

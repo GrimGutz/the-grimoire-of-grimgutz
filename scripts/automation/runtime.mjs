@@ -311,6 +311,7 @@ import {
   scheduleAuraSync,
   syncSceneAuras
 } from "./shared/auras.mjs";
+import { chooseCarnageAuraType, handleAuraMeleeAttack } from "./shared/aura-events.mjs";
 import {
   applyMidiWeaponBuffAttackAutomation,
   applyWeaponBuffAttackAutomation,
@@ -543,6 +544,7 @@ function actionFromActivity(activity) {
 }
 
 const COMMON_ACTIVITY_ACTIONS = new Map([
+  ["choose-carnage-aura-type", async actor => chooseCarnageAuraType(actor)],
   ["toggle-gwm", async (actor, activity, context) => toggleGreatWeaponMaster(actor)],
   ["set-style-cleaving", async (actor, activity, context) => setStyle(actor, STYLES.CLEAVING)],
   ["set-style-crushing", async (actor, activity, context) => setStyle(actor, STYLES.CRUSHING)],
@@ -1150,7 +1152,7 @@ function installHooks() {
 export function getMidiHookHandlers() {
   return { applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
-    applySpellSourceResistance, applySummonProtection, handleSummonSelfCost,
+    applySpellSourceResistance, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
     applyMidiWeaponBuffAttackAutomation, prepareMidiSteelWill, finishMidiSteelWill };
 }
 
@@ -1317,6 +1319,7 @@ export function exposeApi() {
     syncSceneAuras,
     scheduleAuraSync,
     auraDefinitions,
+    chooseCarnageAuraType,
     applySmithing,
     applyWeaponBuffAttackAutomation,
     applyWeaponBuffDamageAutomation
