@@ -14,6 +14,7 @@ import {
 } from "../effects/passive-helpers.mjs";
 import { createSummonedCreature, registerSummonRecipe } from "../shared/summons.mjs";
 import { manageSummons } from "../shared/summon-lifecycle.mjs";
+import { ownedAreaActivity, useAreaActivity } from "../shared/area-activities.mjs";
 
 const insectLordSyncs = new Set();
 const insectLordPassiveSyncs = new Set();
@@ -216,13 +217,10 @@ export async function useCrawlingArmor(actor) {
   return true;
 }
 
-export async function rollInsectSpew(actor) {
-  if (!actor || !findFeature(actor, "spew-insects")) {
-    notify("Для броска требуется особенность «Изрыгание насекомых».", "warn");
-    return false;
-  }
-  await rollToChat(actor, "4d12 + 3d12", `Изрыгание насекомых: 4к12 колющий + 3к12 яд; спасбросок Ловкости Сл ${insectLordSaveDc(actor)}, половина при успехе и без отравления`);
-  return true;
+export async function rollInsectSpew(actor, activity = null) {
+  const chosen = activity?.item ? activity : ownedAreaActivity(actor, "spew-insects");
+  if (!chosen) { notify("Не найдена активность Изрыгания насекомых на персонаже.", "warn"); return false; }
+  return Boolean(await useAreaActivity(chosen));
 }
 
 const FAMILIAR_FORMS = {

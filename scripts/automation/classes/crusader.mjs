@@ -8,15 +8,8 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { ownedAreaActivity, useAreaActivity } from "../shared/area-activities.mjs";
 import { applyTargetEffect } from "../shared/target-effects.mjs";
-import {
-  applyTemporaryHp,
-  createCircleTemplate,
-  groupTokensByDisposition,
-  postZoneSummary,
-  sourceTokenForActor,
-  tokensWithinRadius
-} from "../shared/zones.mjs";
 
 const crusaderSyncs = new Set();
 
@@ -148,52 +141,10 @@ function crusaderSpellSaveDc(actor) {
   return 8 + proficiencyBonus(actor) + abilityMod(actor, "cha");
 }
 
-export async function useCrusaderConsecration(actor) {
-  if (!validateCrusaderConsecrationUse(actor)) return false;
-
-  const sourceToken = sourceTokenForActor(actor);
-  if (!sourceToken) {
-    notify("Для автоматизации «Освящения» нужен токен Крестоносца на активной сцене.", "warn");
-    return false;
-  }
-
-  const radius = 30;
-  const amount = Math.max(0, abilityMod(actor, "cha") + crusaderLevel(actor));
-  await createCircleTemplate({
-    actor,
-    originToken: sourceToken,
-    radius,
-    label: "Освящение",
-    color: "#f8d878"
-  });
-
-  const tokens = tokensWithinRadius(sourceToken, radius, { includeOrigin: true });
-  const groups = groupTokensByDisposition(sourceToken, tokens);
-  const tempHp = await applyTemporaryHp(groups.allies, amount, { sourceActor: actor });
-  const saveDc = crusaderSpellSaveDc(actor);
-
-  const notes = [
-    tempHp.pending ? "Запрос временных хитов ожидает подтверждения GM; повторно не применяйте его до проверки результата." : `Союзникам в радиусе применены временные хиты: ${amount}.`,
-    `Враги из списка должны пройти спасбросок Харизмы СЛ ${saveDc}; при провале получают ${amount} урона излучением.`,
-    "Трата нестандартной ячейки Крестоносца и очищение осквернённой земли остаются ручными."
-  ];
-  if (tempHp.failed.length) notes.push("Часть временных хитов не удалось применить автоматически: проверьте права на актёров.");
-
-  await postZoneSummary({
-    actor,
-    sourceToken,
-    title: "Освящение",
-    radius,
-    originToken: sourceToken,
-    rows: [
-      { label: "Величина", value: `${amount} временных хитов / урона излучением` },
-      { label: "Союзники", tokens: tempHp.applied },
-      { label: "Враги", tokens: groups.enemies },
-      ...(groups.neutral.length ? [{ label: "Нейтральные токены", tokens: groups.neutral }] : [])
-    ],
-    notes
-  });
-  return true;
+export async function useCrusaderConsecration(actor, activity = null) {
+  const chosen = activity?.item ? activity : ownedAreaActivity(actor, "consecration");
+  if (!chosen || !validateCrusaderConsecrationUse(actor)) return false;
+  return Boolean(await useAreaActivity(chosen));
 }
 
 export async function condemnCrusaderTarget(actor) {

@@ -1,21 +1,12 @@
 import { automationData, findFeature, isAutomationAuthority, notify } from "../shared/helpers.mjs";
-import { abilityMod, clamp } from "../shared/dnd5e.mjs";
-import { choiceDialog, slotLevelDialog } from "../shared/dialogs.mjs";
-import { applyTargetEffect } from "../shared/target-effects.mjs";
+import { clamp } from "../shared/dnd5e.mjs";
+import { ownedAreaActivity, useAreaActivity } from "../shared/area-activities.mjs";
+import { slotLevelDialog } from "../shared/dialogs.mjs";
 import {
   createWeaponBuff,
   postWeaponBuffMessage
 } from "../shared/weapon-buffs.mjs";
 import { witchBladeClass, witchBladeLevel } from "../shared/selectors.mjs";
-import {
-  createCircleTemplate,
-  firstTargetToken,
-  groupTokensByDisposition,
-  postZoneSummary,
-  rollZoneDamage,
-  sourceTokenForActor,
-  tokensWithinRadius
-} from "../shared/zones.mjs";
 
 const witchBladeRageSyncs = new Set();
 
@@ -174,120 +165,14 @@ export async function activateEtherealStorm(actor, activity) {
   return true;
 }
 
-function proficiencyBonus(actor) {
-  const value = Number(actor?.system?.attributes?.prof ?? actor?.system?.prof ?? 0);
-  return Number.isFinite(value) ? value : 0;
-}
-
-function witchBladeSaveDc(actor) {
-  return 8 + proficiencyBonus(actor) + abilityMod(actor, "int");
-}
-
-function alignmentText(actor) {
-  const alignmentData = actor?.system?.details?.alignment;
-  return String(
-    typeof alignmentData === "object" ? alignmentData?.value ?? alignmentData?.label ?? "" : alignmentData ?? ""
-  ).toLocaleLowerCase("ru");
-}
-
-function witchBladeAlignmentDamage(actor) {
-  const alignment = alignmentText(actor);
-  if (alignment.includes("evil") || alignment.includes("зл")) return { type: "necrotic", label: "некротический" };
-  if (alignment.includes("good") || alignment.includes("добр")) return { type: "radiant", label: "излучение" };
-  return { type: "", label: "излучение/некротический — выберите по мировоззрению" };
-}
-
 export async function openImmaterialWhirlwind(actor, activity) {
-  if (!actor || !witchBladeClass(actor)) {
-    notify("Эта активность требует класс «Ведьмин клинок».", "warn");
-    return false;
-  }
-
-  const sourceToken = sourceTokenForActor(actor);
-  if (!sourceToken) {
-    notify("Для автоматизации «Нематериального вихря» нужен токен Witch Blade на активной сцене.", "warn");
-    return false;
-  }
-
-  if (!validateWitchBladeRageUse(actor, activity)) return false;
-  const current = [...(actor.concentration?.effects ?? [])];
-  let replaceConcentration = [];
-  if (current.length >= Number(actor.system?.attributes?.concentration?.limit ?? 1)) {
-    const choice = await choiceDialog({ title: "Нематериальный вихрь", label: "Завершить текущую концентрацию?",
-      choices: [["replace", "Завершить и открыть вихрь"], ["cancel", "Отмена"]] });
-    if (choice !== "replace") return false;
-    replaceConcentration = current.map(effect => effect.uuid);
-  }
-
-  const radius = 30;
-  const originToken = firstTargetToken() ?? sourceToken;
-  const damage = witchBladeAlignmentDamage(actor);
-  const template = await createCircleTemplate({ actor, originToken, radius, label: "Нематериальный вихрь", color: "#7f5cff", seconds: 60,
-    concentration: { activityUuid: activity.uuid, replaceConcentration },
-    resource: { itemUuid: witchBladeRagePoints(actor).feature.uuid, cost: Math.max(1, Number(automationData(activity).witchBladeRageCost ?? 3)) } });
-  if (!template) return false;
-  const roll = await rollZoneDamage({
-    actor,
-    sourceToken,
-    formula: "8d8",
-    damageType: damage.type,
-    flavor: "Нематериальный вихрь"
-  });
-
-  const tokens = tokensWithinRadius(originToken, radius, { includeOrigin: true });
-  const groups = groupTokensByDisposition(sourceToken, tokens, { includeSelfAsAlly: true });
-  const saveDc = witchBladeSaveDc(actor);
-  const originWasTarget = originToken !== sourceToken;
-
-  await postZoneSummary({
-    actor,
-    sourceToken,
-    title: "Нематериальный вихрь",
-    radius,
-    originToken,
-    rows: [
-      { label: "Урон", value: `${roll.total} (${damage.label})` },
-      { label: "Враги", tokens: groups.enemies },
-      { label: "Союзники / вы", tokens: groups.allies },
-      ...(groups.neutral.length ? [{ label: "Нейтральные токены", tokens: groups.neutral }] : [])
-    ],
-    notes: [
-      `Цели в зоне должны пройти спасбросок Ловкости СЛ ${saveDc}; при провале получают урон.`,
-      "Урон не применяется автоматически, потому что нужен спасбросок и повторные проверки в конце хода.",
-      "Шаблон удаляется через 1 минуту или при потере концентрации; скрытые цели в публичном списке не раскрываются.",
-      originWasTarget
-        ? "Шаблон создан по первой выбранной цели."
-        : "Цель не была выбрана: шаблон создан на вашем токене, передвиньте его на нужную точку при необходимости."
-    ]
-  });
-  return true;
+  const chosen = activity?.item ? activity : ownedAreaActivity(actor, "immaterial-whirlwind", "open-immaterial-whirlwind");
+  if (!chosen) { notify("Не найдена активность Нематериального вихря на персонаже.", "warn"); return false; }
+  return Boolean(await useAreaActivity(chosen, { validate: () => validateWitchBladeRageUse(actor, chosen) }));
 }
 
 export async function useWitchBladeSealEvil(actor, activity) {
-  if (!actor || !witchBladeClass(actor)) {
-    notify("Эта активность требует класс «Ведьмин клинок».", "warn");
-    return false;
-  }
-  if (![...(game.user?.targets ?? [])].some(token => token.actor)) {
-    notify("Выберите цели, провалившие спасбросок Печати, перед расходом Очков Гнева.", "warn");
-    return false;
-  }
-  if (!await useWitchBladeRage(actor, activity)) return false;
-
-  const feature = findFeature(actor, "witch-blade-seal");
-  const saveDc = witchBladeSaveDc(actor);
-  return applyTargetEffect({
-    sourceActor: actor,
-    sourceItem: feature,
-    key: "witch-blade-seal-evil-stunned",
-    name: "Ошеломлён: Печать Ведьминого клинка",
-    img: feature?.img,
-    status: "stunned",
-    statusLabel: "Ошеломлён",
-    duration: { seconds: 6, rounds: 1, turns: 1 },
-    title: "Печать: Злой",
-    saveText: `Харизма СЛ ${saveDc}; выбирайте только цели, провалившие спасбросок.`,
-    note: "Эффект длится 1 раунд. Для конуса выберите токенами все цели, которые действительно провалили спасбросок.",
-    description: "<p>Цель провалила спасбросок Харизмы против Печати: Злой и ошеломлена на 1 раунд.</p>"
-  });
+  const chosen = activity?.item ? activity : ownedAreaActivity(actor, "witch-blade-seal", "use-witch-blade-seal-evil");
+  if (!chosen) { notify("Не найдена злая Печать Ведьминого клинка на персонаже.", "warn"); return false; }
+  return Boolean(await useAreaActivity(chosen, { validate: () => validateWitchBladeRageUse(actor, chosen) }));
 }

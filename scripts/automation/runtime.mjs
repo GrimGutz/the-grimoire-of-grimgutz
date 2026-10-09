@@ -20,6 +20,7 @@ import { createActorSynchronizer } from "./shared/actor-sync.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { installZoneHooks } from "./shared/zones.mjs";
+import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
 import { dismissRitualistSpirits, regainRitualistSpirits } from "./classes/ritualist.mjs";
@@ -652,6 +653,7 @@ export function getAutomationActionHandlers() {
 
 async function handleActivityAction(activity, context = {}) {
   if (!enabled()) return;
+  if (automationData(activity).areaResolved) return;
   const actor = activityActor(activity), action = actionFromActivity(activity);
   if (!actor || !action) return;
   const handler = getAutomationActionHandlers().get(action);
@@ -976,6 +978,7 @@ function installHooks() {
   installRepeatedSaveHooks();
   installAuraHooks();
   installZoneHooks();
+  installAreaActivityHooks({ validate: validateActivityUse });
   installTemporaryEffectHooks();
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateAdvancement);
   Hooks.on("dnd5e.preUseActivity", validateActivityUse);
@@ -986,6 +989,7 @@ function installHooks() {
     usageConfig[MODULE_ID] = { ...(usageConfig[MODULE_ID] ?? {}), managedSummonResource: true };
   });
   Hooks.on("dnd5e.postUseActivity", (activity, usageConfig, results) => {
+    if (automationData(activity).areaResolved) return;
     const deltas = results?.message?.system?.deltas?.item?.[activity.item?.id] ?? [];
     const nativeSummonConsumption = !usageConfig?.[MODULE_ID]?.managedSummonResource
       && deltas.some(delta => delta.keyPath === "system.uses.spent" && delta.delta > 0);
@@ -1176,6 +1180,7 @@ export function exposeApi() {
   const module = game.modules.get(MODULE_ID);
   if (!module) return;
   module.api = {
+    useAreaActivity,
     inspectAutomation: actorOrUuid => inspectActorAutomation(actorOrUuid, { actionHandlers: getAutomationActionHandlers() }),
     summonRequestResult,
     manageSummons,
