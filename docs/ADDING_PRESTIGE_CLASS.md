@@ -21,6 +21,7 @@ Use this order to avoid touching unrelated module systems.
    - Midi-QOL hooks belong under `scripts/automation/midi/`.
    - Avoid permanent effects for conditional rules unless the dnd5e path and trigger are stable.
    - Pack source should use simple `automation` / `actionData`; the canonical nested config is generated automatically. See `docs/AUTOMATION_CONFIG.md`.
+   - Save/damage AoE uses the shared template/Midi flow, not utility rolls or manually selected failed saves. See `docs/AREA_AUTOMATION.md`.
 
 5. Update validation.
    - Expected class/feature counts in `tools/validate.mjs`.
