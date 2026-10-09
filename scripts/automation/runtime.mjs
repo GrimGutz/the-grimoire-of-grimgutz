@@ -19,6 +19,7 @@ import { automationActors } from "./effects/temporary-effects.mjs";
 import { createActorSynchronizer } from "./shared/actor-sync.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
+import { registerAutomationPanel, openAutomationPanel } from "./shared/control-panel.mjs";
 import { installZoneHooks } from "./shared/zones.mjs";
 import { installPeriodicZoneHooks } from "./shared/periodic-zones.mjs";
 import { resolvePendingAutomation } from "./shared/event-ledger.mjs";
@@ -1203,6 +1204,7 @@ export function registerAutomation() {
     restricted: true
   });
   installHooks();
+  registerAutomationPanel(getAutomationActionHandlers());
 }
 
 export function exposeApi() {
@@ -1216,6 +1218,7 @@ export function exposeApi() {
     endInsectBloodDrain,
     inspectAutomation: actorOrUuid => inspectActorAutomation(actorOrUuid, { actionHandlers: getAutomationActionHandlers() }),
     resolvePendingAutomation,
+    openAutomationPanel,
     summonRequestResult,
     manageSummons,
     setStyle,

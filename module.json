@@ -17,6 +17,9 @@
   "esmodules": [
     "scripts/main.mjs"
   ],
+  "styles": [
+    "styles/automation-panel.css"
+  ],
   "packFolders": [
     {
       "name": "Гримуар Гатца",

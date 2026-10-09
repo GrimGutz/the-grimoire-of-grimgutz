@@ -2,6 +2,7 @@ import { FLAGS, MODULE_ID, SETTINGS } from "./constants.mjs";
 import { automationAction, automationConfig, automationData, findFeature, itemIdentifier } from "./helpers.mjs";
 import { isLikelyModuleItem, moduleItemSources } from "../effects/module-passives.mjs";
 import { migrationFingerprint, ownedItemMigrationPlan } from "./owned-item-migration.mjs";
+import { listAutomationEvents } from "./event-ledger.mjs";
 
 const timeUnits = { seconds: 1, minutes: 60, hours: 3600, days: 86400, weeks: 604800, months: 2592000, years: 31536000 };
 function values(collection) { return collection?.values ? [...collection.values()] : Object.values(collection ?? {}); }
@@ -25,6 +26,7 @@ function effectReport(effect) {
 export async function inspectAutomation(actorOrUuid, { actionHandlers = new Map() } = {}) {
   const actor = typeof actorOrUuid === "string" ? await fromUuid(actorOrUuid) : actorOrUuid;
   if (!actor || (actor.documentName && actor.documentName !== "Actor")) throw new TypeError("Ожидается Actor или UUID актёра.");
+  if (!game.user?.isGM && !actor.testUserPermission?.(game.user, "OWNER")) throw Error("Диагностика доступна GM или владельцу персонажа.");
   const automationEnabled = game.settings.get(MODULE_ID, SETTINGS.AUTOMATION);
   const strictPrerequisites = game.settings.get(MODULE_ID, SETTINGS.STRICT_PREREQUISITES);
   const dependencies = ["midi-qol", "dae", "itemacro"].map(id => ({ id, active: game.modules?.get(id)?.active === true,
@@ -73,7 +75,8 @@ export async function inspectAutomation(actorOrUuid, { actionHandlers = new Map(
       actions, effects: relevantEffects.map(effect => effect.uuid), migration,
       warnings: passiveTemplates.length && !relevantEffects.length ? ["passive-effect-missing"] : [] };
   });
-  const summons = values(game.actors).filter(candidate => candidate.getFlag?.(MODULE_ID, "summonedBy") === actor.uuid).map(candidate => ({
+  const summons = values(game.actors).filter(candidate => candidate.getFlag?.(MODULE_ID, "summonedBy") === actor.uuid
+    && (game.user?.isGM || candidate.testUserPermission?.(game.user, "OWNER"))).map(candidate => ({
     uuid: candidate.uuid, name: candidate.name, kind: candidate.getFlag(MODULE_ID, "summonKind"),
     hp: candidate.system?.attributes?.hp?.value, maxHp: candidate.system?.attributes?.hp?.max,
     lifecycle: structuredClone(candidate.getFlag(MODULE_ID, "summonLifecycle") ?? null),
@@ -82,5 +85,11 @@ export async function inspectAutomation(actorOrUuid, { actionHandlers = new Map(
   return { actor: { uuid: actor.uuid, name: actor.name, synthetic: actor.isToken === true }, automationEnabled, strictPrerequisites,
     dependencies, authority: { activeGM: activeGM?.id ?? null, currentUser: game.user?.id ?? null,
       moduleSocket: game.modules?.get(MODULE_ID)?.socket === true }, sourceError, effects, items, summons,
-    summonRequests: structuredClone(actor.getFlag?.(MODULE_ID, "summonRequests") ?? {}) };
+    summonRequests: structuredClone(actor.getFlag?.(MODULE_ID, "summonRequests") ?? {}),
+    links: { bloodDrain: structuredClone(actor.getFlag?.(MODULE_ID, "bloodDrainLink") ?? null),
+      leaderPresences: structuredClone(actor.getFlag?.(MODULE_ID, "leaderPresenceRecipients") ?? []),
+      bloodSpell: structuredClone(actor.getFlag?.(MODULE_ID, "bloodSpellArmed") ?? null) },
+    limitedBonuses: effects.filter(effect => effect.moduleFlags.combatBenefit).map(effect => ({uuid: effect.uuid, name: effect.name,
+      active: effect.active, reasons: effect.reasons, ...effect.moduleFlags.combatBenefit})),
+    pendingEvents: (await listAutomationEvents()).filter(event => event.sourceActorUuid === actor.uuid && ["queued", "running", "needs-review"].includes(event.state)) };
 }

@@ -29,7 +29,8 @@ test("registerAutomation installs the actual Midi callbacks and summon socket", 
     on: (name, callback) => subscriptions.push([name, callback]),
     once: (name, callback) => subscriptions.push([name, callback])
   };
-  globalThis.game = { settings: { register() {} }, socket: { on: (name, callback) => sockets.push([name, callback]) } };
+  globalThis.foundry = {applications: {api: {ApplicationV2: class {}}}};
+  globalThis.game = { settings: { register() {}, registerMenu() {} }, socket: { on: (name, callback) => sockets.push([name, callback]) } };
   registerAutomation();
   const handlers = getMidiHookHandlers();
   for (const [hook, name] of MIDI_QOL_HOOKS) {

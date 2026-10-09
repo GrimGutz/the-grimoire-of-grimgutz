@@ -1,0 +1,5 @@
+#grimgutz-automation-panel .window-content { overflow: auto; }
+.grimgutz-automation-panel table { width: 100%; table-layout: fixed; }
+.grimgutz-automation-panel td { vertical-align: top; padding: .5rem; overflow-wrap: anywhere; }
+.grimgutz-automation-panel button { margin: .25rem .25rem .25rem 0; height: auto; min-height: 2rem; }
+.grimgutz-automation-panel article { padding: .75rem 0; border-bottom: 1px solid var(--color-border-light-primary, #777); }
