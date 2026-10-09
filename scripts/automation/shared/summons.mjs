@@ -10,6 +10,8 @@ const OWNERSHIP = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS ?? {
 };
 
 let socketInstalled = false;
+const pendingUniqueSummons = new Map();
+const handledSummonRequests = new Set();
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -471,7 +473,7 @@ async function announceSummon(owner, actor, summon, token) {
   });
 }
 
-async function createSummonLocally(owner, summon, requestedBy) {
+async function performSummonCreation(owner, summon, requestedBy) {
   const existing = summon.unique ? summonedActor(owner, summon.kind) : null;
   const actor = existing ?? await Actor.create(actorData(owner, summon, requestedBy), { renderSheet: false });
   if (!actor) throw new Error(`Actor.create returned no document for summon kind "${summon.kind}".`);
@@ -486,6 +488,17 @@ async function createSummonLocally(owner, summon, requestedBy) {
   return actor;
 }
 
+function createSummonLocally(owner, summon, requestedBy) {
+  if (!summon.unique) return performSummonCreation(owner, summon, requestedBy);
+  const key = `${owner.uuid}:${summon.kind}`;
+  const pending = pendingUniqueSummons.get(key);
+  if (pending) return pending;
+  const creation = performSummonCreation(owner, summon, requestedBy)
+    .finally(() => { pendingUniqueSummons.delete(key); });
+  pendingUniqueSummons.set(key, creation);
+  return creation;
+}
+
 async function emitSummonRequest(owner, summon) {
   const gm = game.users?.activeGM ?? [...(game.users ?? [])].find(user => user.active && user.isGM);
   if (!gm) {
@@ -494,6 +507,7 @@ async function emitSummonRequest(owner, summon) {
   }
   game.socket.emit(`module.${MODULE_ID}`, {
     type: SOCKET_TYPE,
+    requestId: foundry.utils.randomID(),
     ownerUuid: owner.uuid,
     summon,
     userId: game.user.id
@@ -527,10 +541,21 @@ export function installSummonSocket() {
   socketInstalled = true;
   game.socket.on(`module.${MODULE_ID}`, payload => {
     if (payload?.type !== SOCKET_TYPE || !game.user?.isGM) return;
+    if (game.users?.activeGM && game.users.activeGM.id !== game.user.id) return;
+    if (payload.requestId) {
+      if (handledSummonRequests.has(payload.requestId)) return;
+      handledSummonRequests.add(payload.requestId);
+      if (handledSummonRequests.size > 100) handledSummonRequests.delete(handledSummonRequests.values().next().value);
+    }
     void (async () => {
       const owner = await fromUuid(payload.ownerUuid);
       if (!owner) {
         notify("Не удалось выполнить призыв: владелец не найден.", "warn");
+        return;
+      }
+      const requester = game.users?.get?.(payload.userId);
+      if (!requester || (!requester.isGM && !owner.testUserPermission?.(requester, "OWNER"))) {
+        console.warn(`${MODULE_ID} | Summon request ignored: requester does not own ${payload.ownerUuid}`);
         return;
       }
       await createSummonedCreature(owner, payload.summon, {
