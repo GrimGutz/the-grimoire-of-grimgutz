@@ -15,6 +15,8 @@ import {
 } from "./shared/helpers.mjs";
 import { clamp } from "./shared/dnd5e.mjs";
 import { installTemporaryEffectHooks } from "./effects/temporary-effects.mjs";
+import { automationActors } from "./effects/temporary-effects.mjs";
+import { createActorSynchronizer } from "./shared/actor-sync.mjs";
 import {
   deathKnightClass,
   deathKnightLevel,
@@ -1109,48 +1111,21 @@ function scheduleNatureMagicSync(actor) {
   }, 50);
 }
 
-function schedulePassiveSync(actor) {
-  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  setTimeout(() => {
-    void (async () => {
-      await syncCrusherPassiveEffects(actor);
-      await syncLeaderPassiveEffects(actor);
-      await syncDeathKnightPassiveEffects(actor);
-      await syncHereticPassiveEffects(actor);
-      await syncForestPassiveEffects(actor);
-      await syncAberrantPassiveEffects(actor);
-      await syncTransformationPassiveEffects(actor);
-      await syncModulePassiveEffects(actor);
-      await syncWitchBladeRage(actor);
-      await syncGuardianResources(actor);
-      await syncCrusaderResources(actor);
-      await syncFeyWarriorResources(actor);
-      await syncFallenPriestSpellcasting(actor);
-      await syncGamblerResources(actor);
-      await syncKeeperResources(actor);
-      await syncOnmyojiResources(actor);
-      await syncRitualistResources(actor);
-      await syncDarkWarriorResources(actor);
-      await syncPlagueDoctorResources(actor);
-      await syncInsectLordResources(actor);
-      await syncInsectLordPassiveEffects(actor);
-      await syncFeyWarriorPassiveEffects(actor);
-      await syncGhostWalkerResources(actor);
-      await syncGhostWalkerPassiveEffects(actor);
-      await syncBlinkerResources(actor);
-      await syncSpiritVesselResources(actor);
-      await syncSpiritVesselPassiveEffects(actor);
-      await syncOracleResources(actor);
-      await syncOraclePassiveEffects(actor);
-      await syncSanguinistResources(actor);
-      await syncSchoolOfSteel(actor);
-      await syncTransformations(actor);
-      await syncDarkGuard(actor);
-    })().catch(error => {
-      console.error(`${MODULE_ID} | Passive feature sync failed`, error);
-    });
-  }, 50);
-}
+const actorSynchronizer = createActorSynchronizer([
+  syncCrusherPassiveEffects, syncLeaderPassiveEffects, syncDeathKnightPassiveEffects,
+  syncHereticPassiveEffects, syncForestPassiveEffects, syncAberrantPassiveEffects,
+  syncTransformationPassiveEffects, syncModulePassiveEffects, syncWitchBladeRage,
+  updateOwnedMassiveWeaponProficiency, syncSteelGiant, syncMysticalPower, syncNatureMagic,
+  syncGuardianResources, syncCrusaderResources, syncFeyWarriorResources,
+  syncFallenPriestSpellcasting, syncGamblerResources, syncKeeperResources,
+  syncOnmyojiResources, syncRitualistResources, syncDarkWarriorResources,
+  syncPlagueDoctorResources, syncInsectLordResources, syncInsectLordPassiveEffects,
+  syncFeyWarriorPassiveEffects, syncGhostWalkerResources, syncGhostWalkerPassiveEffects,
+  syncBlinkerResources, syncSpiritVesselResources, syncSpiritVesselPassiveEffects,
+  syncOracleResources, syncOraclePassiveEffects, syncSanguinistResources,
+  syncSchoolOfSteel, syncTransformations, syncDarkGuard
+]);
+const schedulePassiveSync = actorSynchronizer.schedule;
 
 function activitiesOf(item) {
   const activities = item?.system?.activities;
@@ -1367,6 +1342,10 @@ function installHooks() {
     schedulePassiveSync(item.parent);
   });
   Hooks.on("updateActor", actor => schedulePassiveSync(actor));
+  Hooks.on("createToken", token => schedulePassiveSync(token.actor));
+  Hooks.on("canvasReady", () => {
+    for (const token of canvas?.scene?.tokens ?? []) schedulePassiveSync(token.actor);
+  });
   Hooks.on("createActiveEffect", effect => scheduleSteelGiantSync(actorFromEffect(effect)));
   Hooks.on("updateActiveEffect", effect => scheduleSteelGiantSync(actorFromEffect(effect)));
   Hooks.on("deleteActiveEffect", effect => {
@@ -1375,7 +1354,9 @@ function installHooks() {
   });
   Hooks.on("updateCombat", (combat, changes) => {
     if (!enabled() || (!Object.hasOwn(changes, "turn") && !Object.hasOwn(changes, "round"))) return;
-    const previousActor = combat.turns?.[combat.previous?.turn]?.actor;
+    if (!combat.started) return;
+    const previousActor = combat.combatants?.get(combat.previous?.combatantId)?.actor
+      ?? combat.turns?.[combat.previous?.turn]?.actor;
     const currentActor = combat.combatant?.actor;
     if (previousActor) {
       void endLeaderTurn(previousActor);
@@ -1568,45 +1549,11 @@ export function exposeApi() {
 export async function initializeOwnedActors() {
   exposeApi();
   if (!enabled()) return;
-  for (const actor of game.actors ?? []) {
+  for (const actor of automationActors()) {
     if (!actor.isOwner || !isAutomationAuthority(actor)) continue;
-    await syncCrusherPassiveEffects(actor);
-    await syncLeaderPassiveEffects(actor);
-    await syncDeathKnightPassiveEffects(actor);
-    await syncHereticPassiveEffects(actor);
-    await syncForestPassiveEffects(actor);
-    await syncAberrantPassiveEffects(actor);
-    await syncTransformationPassiveEffects(actor);
-    await migrateOwnedItems(actor);
-    await updateOwnedMassiveWeaponProficiency(actor);
-    await syncSteelGiant(actor);
-    await syncMysticalPower(actor);
-    await syncNatureMagic(actor);
-    await syncGuardianResources(actor);
-    await syncCrusaderResources(actor);
-    await syncFeyWarriorResources(actor);
-    await syncFallenPriestSpellcasting(actor);
-    await syncGamblerResources(actor);
-    await syncKeeperResources(actor);
-    await syncOnmyojiResources(actor);
-    await syncRitualistResources(actor);
-    await syncDarkWarriorResources(actor);
-    await syncPlagueDoctorResources(actor);
-    await syncInsectLordResources(actor);
-    await syncInsectLordPassiveEffects(actor);
-    await syncFeyWarriorPassiveEffects(actor);
-    await syncGhostWalkerResources(actor);
-    await syncGhostWalkerPassiveEffects(actor);
-    await syncBlinkerResources(actor);
-    await syncSpiritVesselResources(actor);
-    await syncSpiritVesselPassiveEffects(actor);
-    await syncOracleResources(actor);
-    await syncOraclePassiveEffects(actor);
-    await syncSanguinistResources(actor);
-    await syncSchoolOfSteel(actor);
-    await syncModulePassiveEffects(actor);
-    await syncTransformations(actor);
-    await syncDarkGuard(actor);
+    try { await migrateOwnedItems(actor); }
+    catch (error) { console.error(`${MODULE_ID} | Migration failed for ${actor.uuid}`, error); }
+    await actorSynchronizer.synchronize(actor);
   }
   scheduleAuraSync();
 

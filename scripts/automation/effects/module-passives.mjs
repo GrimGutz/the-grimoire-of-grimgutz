@@ -18,7 +18,7 @@ export async function moduleItemSources() {
       if (pack) sourceDocuments.push(...await pack.getDocuments());
     }
     return new Map(sourceDocuments.map(item => [itemIdentifier(item), item]));
-  })();
+  })().catch(error => { migrationSourcesPromise = undefined; throw error; });
   return migrationSourcesPromise;
 }
 
