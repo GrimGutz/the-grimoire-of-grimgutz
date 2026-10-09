@@ -86,6 +86,13 @@ test("permanent passives and effects belonging to other modules are left alone",
   assert.equal(isEffectActive(effect()), false);
 });
 
+test("timed effect templates on Items are not started or given an expiry override", () => {
+  const doc = effect();
+  doc.parent = { documentName: "Item" };
+  prepareModuleTemporaryEffectExpiry(doc);
+  assert.equal(doc.createdUpdate, undefined);
+});
+
 test("native timing supports turns and a specified end-of-turn event", () => {
   const timing = temporaryEffectTiming({ turns: 0, expiry: "turnEnd" });
   assert.equal(timing.duration.value, 0);

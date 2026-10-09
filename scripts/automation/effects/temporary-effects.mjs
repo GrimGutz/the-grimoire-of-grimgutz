@@ -61,6 +61,8 @@ export function temporaryEffectTiming({ seconds = null, rounds = null, turns = n
 
 /** Normalize module effects without restarting the timer on unrelated document updates. */
 export function prepareModuleTemporaryEffectExpiry(effect, update = null, options = {}, creationData = null) {
+  // An Item effect is a template. Its timer starts when applied to an Actor.
+  if (effect?.parent?.documentName && effect.parent.documentName !== "Actor") return;
   if (options["expiry-reason"] || !hasModuleFlag(effect, update ?? creationData)) return;
   const patch = durationPatch(update ?? creationData ?? {});
   if (patch.expired === true) return;
