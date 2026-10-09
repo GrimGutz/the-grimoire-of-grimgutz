@@ -554,13 +554,16 @@ async function storeRequest(owner, requestId, result) {
 
 async function performSummonGroup(owner, data, { requesterId, requestId }) {
   const previous = owner.getFlag?.(MODULE_ID, "summonRequests")?.[requestId];
-  if (previous && previous.status !== "pending") return previous;
+  // A different GM may inherit an unfinished request. Its outcome is unknown,
+  // so it must not reserve the resource or create the group a second time.
+  if (previous) return previous;
   const summons = data.summons ?? (data.summon ? [data.summon] : []);
   if (!summons.length || summons.length > 3 || summons.some(summon => !summon.kind)) throw Error("Неверная группа призывов.");
   const scene = data.sceneId ? game.scenes?.get?.(data.sceneId) ?? (canvas?.scene?.id === data.sceneId ? canvas.scene : null) : null;
   if (data.sceneId && !scene) throw Error("Сцена призыва не найдена.");
   if (data.requireScene && !scene) throw Error("Для призыва нужна сцена.");
   const actors = [], tokens = [], newActors = [], newTokens = [];
+  const newOwnerEffects = [], restoredOwnerEffects = [];
   let resourceItem, charged = 0, concentrationEffect;
   await storeRequest(owner, requestId, { status: "pending" });
   try {
@@ -587,6 +590,7 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
         if (!actor) throw Error(`Actor.create returned no document for summon kind "${summon.kind}".`);
         newActors.push(actor);
       } else await updateManagedSummon(actor, summon);
+      if (summon.requireAlive && Number(actor.system?.attributes?.hp?.value) <= 0) throw Error("Союзник уничтожен. Восстановление или срок повторного призыва требует подтверждения Мастера.");
       const existed = sceneTokens(scene).some(token => token.actorId === actor.id);
       const token = await createToken(actor, owner, summon, scene, data.sourceTokenId, index);
       if (token && !existed) newTokens.push({ scene, id: token.id ?? token._id });
@@ -613,6 +617,19 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
       if (!concentrationEffect) throw Error("Концентрация не создана.");
       for (const actor of actors) await actor.update({ [`flags.${MODULE_ID}.summonLifecycle.concentrationEffectUuid`]: concentrationEffect.uuid });
     }
+    for (const data of summons.flatMap(summon => summon.ownerEffects ?? [])) {
+      if (!data.flags?.[MODULE_ID]) throw Error("Неизвестный эффект владельца призыва.");
+      const current = [...(owner.effects ?? [])].find(effect => effect.origin === data.origin
+        && Object.entries(data.flags[MODULE_ID]).every(([key, value]) => effect.getFlag?.(MODULE_ID, key) === value));
+      if (current) {
+        restoredOwnerEffects.push({ effect: current, data: current.toObject() });
+        await current.update(data, { [MODULE_ID]: { reactivate: true } });
+      } else {
+        const created = await owner.createEmbeddedDocuments("ActiveEffect", [data]);
+        if (!created?.length) throw Error("Эффект владельца призыва не создан.");
+        newOwnerEffects.push(...created);
+      }
+    }
     const result = { status: "success", actorUuids: actors.map(actor => actor.uuid ?? `Actor.${actor.id}`), tokenUuids: tokens.map(token => token.uuid ?? token.id), requestId };
     await storeRequest(owner, requestId, result);
     for (const [index, actor] of actors.entries()) {
@@ -622,6 +639,8 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
     return result;
   } catch (error) {
     const rollbackErrors = [];
+    for (const effect of newOwnerEffects) try { await effect.delete(); } catch (failure) { rollbackErrors.push(failure.message); }
+    for (const snapshot of restoredOwnerEffects) try { await snapshot.effect.update(snapshot.data); } catch (failure) { rollbackErrors.push(failure.message); }
     if (concentrationEffect) {
       try { await concentrationEffect.delete(); } catch (failure) { rollbackErrors.push(failure.message); }
     }

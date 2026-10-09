@@ -80,6 +80,10 @@ registerGmRequest("manage-summons", async (owner, data) => {
     && (!data.source || flag(actor, "summonSource") === data.source));
   if (data.action === "dismiss") {
     for (const actor of owned) await dismissSummonActor(actor);
+    if (data.removeOwnerEffect) {
+      const effects = [...(owner.effects ?? [])].filter(effect => effect.getFlag?.(MODULE_ID, data.removeOwnerEffect));
+      if (effects.length) await owner.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
+    }
   } else if (data.action === "regain") {
     const dc = Number(data.dc);
     if (!Number.isFinite(dc) || dc < 1) throw Error("Укажите СЛ предыдущей проверки концентрации.");

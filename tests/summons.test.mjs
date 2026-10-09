@@ -71,6 +71,27 @@ test("changing a legacy familiar form reuses the same unique ally", async () => 
   assert.equal(creations.length, 1);
 });
 
+test("an inherited pending request is not charged or created again by another GM", async () => {
+  const caster = { ...owner, getFlag: (_module, key) => key === "summonRequests" ? { pending: { status: "pending", requestId: "pending" } } : null };
+  const result = await createSummonedGroup(caster, [summon], { requestId: "pending" });
+  assert.equal(result.status, "pending"); assert.equal(creations.length, 0);
+});
+
+test("failed owner effects roll back only this request's summon and effects", async () => {
+  const caster = { ...owner, effects: [],
+    async createEmbeddedDocuments(type, data) {
+      if (this.effects.length) throw Error("second effect invalid");
+      const effect = { ...data[0], async delete() { caster.effects = caster.effects.filter(entry => entry !== effect); } };
+      this.effects.push(effect); return [effect];
+    } };
+  const result = await createSummonedGroup(caster, [{ ...summon, ownerEffects: [
+    { name: "Penalty", flags: { [MODULE_ID]: { penalty: true } } },
+    { name: "Invalid", flags: { [MODULE_ID]: { invalid: true } } }
+  ] }]);
+  assert.equal(result.status, "failed"); assert.equal(caster.effects.length, 0);
+  assert.equal(game.actors.length, 0); assert.equal(canvas.scene.tokens.length, 0);
+});
+
 test("failed actor creation does not attempt token placement and permits a retry", async () => {
   const original = Actor.create;
   Actor.create = async () => undefined;

@@ -13,6 +13,7 @@ import {
   syncFlaggedPassiveEffects
 } from "../effects/passive-helpers.mjs";
 import { createSummonedCreature, registerSummonRecipe } from "../shared/summons.mjs";
+import { manageSummons } from "../shared/summon-lifecycle.mjs";
 
 const insectLordSyncs = new Set();
 const insectLordPassiveSyncs = new Set();
@@ -361,6 +362,7 @@ export async function summonInsectSwarm(actor) {
 function crawlingEyeSummon(actor) {
   return {
     kind: "crawling-eye",
+    requireAlive: true,
     unique: true,
     name: `${actor.name}: Ползучий глаз`,
     img: "icons/creatures/eyes/humanoid-single-blue.webp",
@@ -422,10 +424,8 @@ export async function detachCrawlingEye(actor) {
       }]
     }
   };
-  const current = crawlingEyeEffect(actor);
-  if (current) await current.update(data);
-  else await actor.createEmbeddedDocuments("ActiveEffect", [data]);
-  await summonCrawlingEye(actor);
+  const summoned = await createSummonedCreature(actor, { ...crawlingEyeSummon(actor), ownerEffects: [data] });
+  if (!summoned) return false;
   notify(`${actor.name}: Ползучий глаз отделён, максимум хитов снижен на 2.`);
   return true;
 }
@@ -436,7 +436,8 @@ export async function returnCrawlingEye(actor) {
     notify(`${actor?.name ?? "Персонаж"}: активного эффекта «Ползучий глаз» нет.`, "info");
     return false;
   }
-  await effect.delete();
+  const result = await manageSummons(actor, { action: "dismiss", source: "crawling-eye", removeOwnerEffect: FLAGS.CREEPING_EYE_EFFECT });
+  if (result.status !== "success") return false;
   notify(`${actor.name}: Ползучий глаз возвращён.`);
   return true;
 }
