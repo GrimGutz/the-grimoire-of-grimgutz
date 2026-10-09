@@ -35,6 +35,17 @@ test("zero HP on a synthetic token removes the temporary summon", async () => {
   summon(); scene.tokens[0].actor = { system: { attributes: { hp: { value: 0 } } } };
   await synchronizeSummonLifecycle(); assert.equal(game.actors.length, 0);
 });
+
+test("one inaccessible summon does not block expiration of the others", async () => {
+  const broken = summon();
+  broken.delete = async () => { throw Error("document unavailable"); };
+  const normal = summon();
+  game.time.worldTime = 60;
+  const previous = console.error; console.error = () => {};
+  try { await synchronizeSummonLifecycle(); } finally { console.error = previous; }
+  assert.ok(game.actors.includes(broken));
+  assert.ok(!game.actors.includes(normal));
+});
 test("lost ritualist concentration makes the spirit hostile without deleting it", async () => {
   const actor = summon({ seconds: 600, concentration: "Actor.owner.ActiveEffect.expired" });
   await synchronizeSummonLifecycle();

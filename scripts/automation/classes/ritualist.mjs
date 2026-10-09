@@ -226,11 +226,11 @@ function ritualistSpiritSummon(actor, index, total, activity, replaceConcentrati
     abilities: { str: 7, dex: 13, con: 10, int: 10, wis: 12, cha: 15 },
     movement: { walk: 0, fly: 30, hover: true },
     senses: { darkvision: 60 },
-    dr: { value: ["thunder", "acid", "fire", "lightning", "bludgeoning", "piercing", "slashing"], custom: "дробящий, колющий и рубящий урон только от немагических атак" },
+    dr: { value: ["thunder", "acid", "fire", "lightning", "bludgeoning", "piercing", "slashing"], bypasses: ["mgc"], custom: "дробящий, колющий и рубящий урон только от немагических атак" },
     di: { value: ["necrotic", "cold", "poison"] },
     ci: { value: ["grappled", "frightened", "exhaustion", "petrified", "restrained", "poisoned", "charmed", "paralyzed", "prone"] },
     description: `
-      <p><strong>Призванный дух Ритуалиста.</strong> Существует до 10 минут, пока Ритуалист концентрируется, или пока его хиты не упадут до 0.</p>
+      <p><strong>Призванный дух Ритуалиста.</strong> Существует до 10 минут или до 0 хитов. Концентрация определяет контроль; потеряв её, Ритуалист оставляет в мире враждебного духа.</p>
       <ul>
         <li><strong>КД:</strong> 11; <strong>хиты:</strong> 28 (5к8 + 5); <strong>скорость:</strong> полёт 30 фт. (парит).</li>
         <li><strong>Эфирное зрение:</strong> дух видит на 60 фт. на Эфирный План с Материального и наоборот.</li>
@@ -241,11 +241,13 @@ function ritualistSpiritSummon(actor, index, total, activity, replaceConcentrati
     `,
     features: [{
       name: "Варианты духов",
-      activities: variant === "life" ? [{ name: "Дух жизни: лечение", type: "heal", formula: `${Math.max(1, ritualistLevel(actor))}d6`, range: 5, selfCost: { value: 14, type: "force" } }]
-        : variant === "protection" ? [{ name: "Дух защиты: защитить союзника", type: "utility", activation: "reaction", range: 30, action: "summon-spirit-protection" }]
+      activities: variant === "life" ? [{ name: "Дух жизни: лечение", type: "heal", formula: `${Math.max(1, ritualistLevel(actor))}d6`, range: 30, selfCost: { value: 14, type: "force", excludeTypes: ["undead", "construct"] } }]
+        : variant === "protection" ? [{ name: "Дух защиты: защитить союзника", type: "utility", activation: "special", range: 30, action: "summon-spirit-protection", condition: "Когда союзник в пределах 30 футов получает урон от атаки или заклинания" }]
         : variant === "sorrow" ? [{ name: "Скорбная песня", type: "save", formula: "1d4", damageType: "force", saveAbility: "con", dc: ritualistSpiritSaveDC(actor), range: 30 }]
-        : variant === "destruction" ? [{ name: "Разрушение: один раунд", type: "damage", formula: "1d6", damageType: "force", range: 30 }]
-        : variant === "agony" ? [{ name: "Дух агонии", type: "save", formula: `${Math.max(1, ritualistLevel(actor))}d6`, damageType: "psychic", saveAbility: "wis", dc: ritualistSpiritSaveDC(actor), range: 30 }] : [],
+        : variant === "destruction" ? [{ name: "Разрушение: урон за один раунд", type: "save", formula: "1d6", damageType: "force", saveAbility: "wis", dc: ritualistSpiritSaveDC(actor), onSave: "half", range: 15, activation: "special",
+          condition: "Только при уничтожении/исчезновении духа. Укажите число к6 за прожитые раунды, максимум 8; цели — враги в 15 футах." }]
+        : variant === "agony" ? [{ name: "Дух агонии", type: "save", formula: `${Math.max(1, ritualistLevel(actor))}d6`, damageType: "psychic", saveAbility: "wis", dc: ritualistSpiritSaveDC(actor), range: 30, activation: "special",
+          condition: "Когда враждебное существо в 30 футах поражается атакой или заклинанием" }] : [],
       description: "<p>Выберите вариант: Дух агонии, Кровавой песни, Разрушения, Великих возможностей, Жизни, Защиты или Скорбной песни. Автоматические броски находятся на карточке Ритуалиста.</p>"
     }],
     note: "Через 10 минут или при 0 хитов дух исчезает. Потеря концентрации делает его враждебным."

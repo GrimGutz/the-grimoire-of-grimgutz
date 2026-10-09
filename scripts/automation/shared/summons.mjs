@@ -109,10 +109,12 @@ function movementData(movement = {}) {
 
 function sensesData(senses = {}) {
   return {
-    darkvision: Number(senses.darkvision ?? 0),
-    blindsight: Number(senses.blindsight ?? 0),
-    tremorsense: Number(senses.tremorsense ?? 0),
-    truesight: Number(senses.truesight ?? 0),
+    ranges: {
+      darkvision: Number(senses.ranges?.darkvision ?? senses.darkvision ?? 0),
+      blindsight: Number(senses.ranges?.blindsight ?? senses.blindsight ?? 0),
+      tremorsense: Number(senses.ranges?.tremorsense ?? senses.tremorsense ?? 0),
+      truesight: Number(senses.ranges?.truesight ?? senses.truesight ?? 0)
+    },
     units: senses.units ?? "ft",
     special: senses.special ?? ""
   };

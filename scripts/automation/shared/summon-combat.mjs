@@ -3,6 +3,26 @@ import { activityActor, automationData, enabled, notify } from "./helpers.mjs";
 import { registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { isEffectActive, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
+import { sourceTokenForActor, tokenDistance } from "./zones.mjs";
+import { feetToSceneUnits } from "./spatial.mjs";
+
+export function validateSummonActivityUse(activity) {
+  if (!enabled()) return true;
+  const cost = automationData(activity).summonSelfCost;
+  if (!cost?.excludeTypes?.length) return true;
+  const targets = [...(game.user?.targets ?? [])].filter(token => token.actor);
+  if (!targets.length) { notify("Выберите живую цель лечения до применения способности духа.", "warn"); return false; }
+  const source = sourceTokenForActor(activityActor(activity));
+  for (const target of targets) {
+    if (cost.excludeTypes.includes(target.actor.system?.details?.type?.value)) {
+      notify("Дух жизни не может лечить нежить и конструктов.", "warn"); return false;
+    }
+    if (source && tokenDistance(source, target) > feetToSceneUnits(Number(activity.range?.value ?? 30))) {
+      notify("Цель находится вне дальности лечения духа.", "warn"); return false;
+    }
+  }
+  return true;
+}
 
 registerGmRequest("spirit-protection", async (spirit, data) => {
   if (!spirit.getFlag(MODULE_ID, "summoned") || spirit.getFlag(MODULE_ID, "summonLifecycle")?.controlled === false) throw Error("Дух недоступен для защиты.");
@@ -90,6 +110,7 @@ export async function handleSummonSelfCost(workflow) {
 }
 
 export function installSummonCombatHooks() {
+  Hooks.on("dnd5e.preUseActivity", validateSummonActivityUse);
   Hooks.on("dnd5e.applyDamage", (actor, _amount, options) => {
     const data = options?.[MODULE_ID]?.protection;
     if (data) void requestGm("commit-spirit-protection", actor, data).catch(error => console.error(`${MODULE_ID} | Protection confirmation failed`, error));

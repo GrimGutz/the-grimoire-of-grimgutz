@@ -4,6 +4,7 @@ import { MODULE_ID } from "../scripts/automation/shared/constants.mjs";
 import { summonActivities, summonActivitySignature } from "../scripts/automation/shared/summon-activities.mjs";
 import { summonConcentrationActivity } from "../scripts/automation/shared/summon-lifecycle.mjs";
 import { automationData } from "../scripts/automation/shared/helpers.mjs";
+import { validateSummonActivityUse } from "../scripts/automation/shared/summon-combat.mjs";
 
 test("summon abilities generate native attack, heal and protection activities", () => {
   let id = 0; globalThis.foundry = { utils: { randomID: () => `${++id}`.padStart(16, "0") } };
@@ -18,6 +19,19 @@ test("summon abilities generate native attack, heal and protection activities", 
   assert.equal(automationData(activities[1]).summonSelfCost.value, 14);
   assert.equal(activities[2].activation.type, "reaction");
   assert.equal(activities[2].flags[MODULE_ID].action, "summon-spirit-protection");
+});
+
+test("life spirit healing rejects empty targets, constructs and undead", () => {
+  globalThis.game = { settings: { get: () => true }, user: { targets: new Set() } };
+  globalThis.canvas = { ready: false };
+  globalThis.ui = { notifications: { warn() {} } };
+  const [activity] = Object.values(summonActivities([{ name: "Heal", type: "heal", range: 30,
+    selfCost: { value: 14, type: "force", excludeTypes: ["undead", "construct"] } }]));
+  assert.equal(validateSummonActivityUse(activity), false);
+  for (const type of ["undead", "construct", "humanoid"]) {
+    game.user.targets = new Set([{ actor: { system: { details: { type: { value: type } } } } }]);
+    assert.equal(validateSummonActivityUse(activity), type === "humanoid");
+  }
 });
 test("manual critical thresholds make the generated activity snapshot differ", () => {
   globalThis.foundry = { utils: { randomID: () => "0000000000000001" } };

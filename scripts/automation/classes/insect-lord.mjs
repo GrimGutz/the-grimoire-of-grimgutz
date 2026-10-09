@@ -341,6 +341,9 @@ function insectSwarmSummon(actor) {
     `,
     features: [{
       name: "Поглощение",
+      activities: [{ name: "Поглощение: спасбросок и урон", type: "save", formula: "4d6 + 3", damageType: "piercing",
+        saveAbility: "con", dc: insectLordSaveDc(actor), onSave: "half", range: 0, activation: "special",
+        condition: "В начале хода роя; цель занимает пространство роя. Состояния и невозможность говорить подтверждает Мастер." }],
       description: `<p>Спасбросок Телосложения против СЛ ${insectLordSaveDc(actor)}. Провал: 4к6 + 3 колющего урона и сенсорные ограничения; успех: половина урона.</p>`
     }],
     note: "Недельную перезарядку после уничтожения роя отметьте вручную."

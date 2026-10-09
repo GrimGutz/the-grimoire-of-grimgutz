@@ -1,7 +1,9 @@
 import { MODULE_ID } from "./constants.mjs";
 import { isGmAuthority, registerGmRequest, requestGm } from "./gm-requests.mjs";
+import { isEffectActive } from "../effects/temporary-effects.mjs";
 
 const operationQueue = new Map();
+let synchronizationRequested = false;
 export function summonConcentrationActivity(activity, seconds = 600) {
   if (activity?.duration?.concentration) return activity;
   if (!activity?.clone) throw Error("Активность не поддерживает концентрацию.");
@@ -40,6 +42,7 @@ async function setControl(actor, controlled) {
 export async function synchronizeSummonLifecycle() {
   if (!isGmAuthority()) return;
   for (const actor of [...(game.actors ?? [])]) {
+    try {
     const lifecycle = flag(actor, "summonLifecycle");
     if (!lifecycle) continue;
     const expiry = Number(lifecycle.expiresAt);
@@ -49,15 +52,25 @@ export async function synchronizeSummonLifecycle() {
     if (dead || expired) { await dismissSummonActor(actor); continue; }
     if (lifecycle.concentrationEffectUuid && lifecycle.controlled !== false) {
       const effect = await fromUuid(lifecycle.concentrationEffectUuid);
-      if (!effect || effect.disabled || effect.active === false) await setControl(actor, false);
+      if (!isEffectActive(effect)) await setControl(actor, false);
+    }
+    } catch (error) {
+      console.error(`${MODULE_ID} | Summon lifecycle failed for ${actor.uuid}`, error);
     }
   }
 }
 
 function scheduleLifecycle() {
-  if (!isGmAuthority() || operationQueue.has("sync")) return;
-  const operation = synchronizeSummonLifecycle().catch(error => console.error(`${MODULE_ID} | Summon lifecycle failed`, error))
-    .finally(() => operationQueue.delete("sync"));
+  if (!isGmAuthority()) return;
+  synchronizationRequested = true;
+  if (operationQueue.has("sync")) return;
+  const operation = (async () => {
+    do {
+      synchronizationRequested = false;
+      await synchronizeSummonLifecycle();
+    } while (synchronizationRequested);
+  })().catch(error => console.error(`${MODULE_ID} | Summon lifecycle failed`, error))
+    .finally(() => { operationQueue.delete("sync"); if (synchronizationRequested) scheduleLifecycle(); });
   operationQueue.set("sync", operation);
 }
 
