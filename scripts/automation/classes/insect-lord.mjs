@@ -191,6 +191,8 @@ export async function rollInsectBite(actor) {
     notify("Для броска требуется особенность «Высасывание крови».", "warn");
     return false;
   }
+  const activity = [...(findFeature(actor, "blood-drain").system.activities?.values?.() ?? [])].find(activity => activity.flags?.[MODULE_ID]?.insectBite);
+  if (activity && globalThis.MidiQOL?.completeActivityUse) return MidiQOL.completeActivityUse(activity);
   await rollToChat(actor, "1d4", "Жвалы: колющий урон");
   return true;
 }
@@ -200,9 +202,7 @@ export async function rollInsectBloodDrain(actor) {
     notify("Для броска требуется особенность «Высасывание крови».", "warn");
     return false;
   }
-  const roll = await rollToChat(actor, "2d6", "Высасывание крови: урон; исцеление равно половине фактически нанесённого урона");
-  notify(`${actor.name}: рекомендуемое исцеление до сопротивлений/иммунитетов цели — ${Math.floor(Number(roll.total ?? 0) / 2)} хитов.`);
-  return true;
+  return (await import("./insect-combat.mjs")).useInsectBloodDrain(actor);
 }
 
 export async function useCrawlingArmor(actor) {

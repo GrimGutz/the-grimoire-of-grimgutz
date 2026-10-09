@@ -29,6 +29,7 @@ import { installLeaderStratagemHooks, useLeaderStratagem } from "./classes/leade
 import { installLeaderEventHooks, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll } from "./classes/leader-events.mjs";
 import { installLeaderPresenceHooks, chooseLeaderPresenceTargets, handleLeaderCritical, handleDistractingPresence, prepareLeaderHealing } from "./classes/leader-presences.mjs";
 import { installSanguinistCombatHooks, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves } from "./classes/sanguinist-combat.mjs";
+import { installInsectCombatHooks, handleInsectBiteHit, useInsectBloodDrain, endInsectBloodDrain } from "./classes/insect-combat.mjs";
 import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
@@ -996,6 +997,7 @@ function installHooks() {
   installLeaderEventHooks();
   installLeaderPresenceHooks();
   installSanguinistCombatHooks();
+  installInsectCombatHooks();
   installAuraHooks();
   installZoneHooks();
   installAreaActivityHooks({ validate: validateActivityUse });
@@ -1168,7 +1170,7 @@ function installHooks() {
 }
 
 export function getMidiHookHandlers() {
-  return { prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
+  return { handleInsectBiteHit, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
     prepareLeaderHealing, handleLeaderCritical, handleDistractingPresence, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
     prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
@@ -1206,6 +1208,8 @@ export function exposeApi() {
     useAreaActivity,
     useLeaderStratagem,
     chooseLeaderPresenceTargets,
+    useInsectBloodDrain,
+    endInsectBloodDrain,
     inspectAutomation: actorOrUuid => inspectActorAutomation(actorOrUuid, { actionHandlers: getAutomationActionHandlers() }),
     resolvePendingAutomation,
     summonRequestResult,

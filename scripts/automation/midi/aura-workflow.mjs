@@ -81,6 +81,7 @@ export async function useAuraPulse({ sourceToken, sourceItem, template, targets,
   const resolved = item.system.activities.get(id), oldTargets = [...(game.user.targets ?? [])].map(token => token.id);
   const workflowOptions = { ignoreUserTargets: true, targetConfirmation: "none", checkTargets: false, autoRollDamage: "always",
     fastForwardDamage: true, forceCompletion: true, noOnUseMacro: true, grimgutzAuraPulse: true,
+    grimgutzValidatedDrain: game.user.isGM && event.metadata?.bloodDrain === true,
     ...(template?.uuid ? { templateUuid: template.uuid } : {}) };
   const Workflow = getAreaWorkflowClass();
   const workflow = new Workflow(actor, resolved, ChatMessage.getSpeaker({ actor, token: sourceToken.document }), new Set(targets), { workflowOptions });

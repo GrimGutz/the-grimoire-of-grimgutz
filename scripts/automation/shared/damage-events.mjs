@@ -36,7 +36,7 @@ export async function emitConfirmedDamage(actor, amount, options) {
     catch (error) { console.error(`${MODULE_ID} | Confirmed damage handler failed`, error); }
   }
 }
-registerGmRequest("prepare-damage-event", (actor, data) => {
+registerGmRequest("prepare-damage-event", (actor, data, context) => {
   const operation = reservationChain.catch(() => {}).then(async () => {
     if (prepared.has(data.key)) return prepared.get(data.key);
     const activity = await fromUuid(data.activityUuid), attacker = await fromUuid(data.attackerUuid), target = await fromUuid(data.targetUuid);
@@ -62,7 +62,10 @@ registerGmRequest("prepare-damage-event", (actor, data) => {
       if (result) { bonuses.push(...(result.bonuses ?? [])); Object.assign(extra, result.context ?? {}); } }
     const result = { status: "success", bonuses, context: { key: data.key, sourceActorUuid: actor.uuid,
       sourceTokenUuid: attacker.uuid, targetTokenUuid: target.uuid, activityUuid: activity.uuid, workflowId: data.workflowId,
-      bloodSpell: data.bloodSpell === true, bloodDrain: data.bloodDrain === true, automatic: data.automatic === true,
+      bloodSpell: data.bloodSpell === true,
+      bloodDrain: data.bloodDrain === true && (actor.getFlag(MODULE_ID, "bloodDrainLink")?.targetTokenUuid === target.uuid
+        || (data.authorityBloodDrain && game.users?.get?.(context.requesterId)?.isGM && activity.item.system.identifier === "blood-drain")),
+      automatic: data.automatic === true,
       damageType: data.damageType,
       benefits: bonuses.map(bonus => bonus.effectUuid).filter(Boolean), ...extra } };
     prepared.set(data.key, result); if (prepared.size > 500) prepared.delete(prepared.keys().next().value);
@@ -81,6 +84,7 @@ export async function prepareConfirmedDamage(token, { workflow, damageItem }) {
     activityUuid: workflow.activity.uuid, attackerUuid: tokenRef(workflow.token).uuid, targetUuid: tokenRef(token).uuid,
     opportunity: workflow.workflowOptions?.isOpportunityAttack === true, bloodSpell: workflow.grimgutzBloodSpell === true,
     bloodDrain: workflow.activity.flags?.[MODULE_ID]?.bloodDrain === true,
+    authorityBloodDrain: workflow.workflowOptions?.grimgutzValidatedDrain === true,
     automatic: workflow.workflowOptions?.grimgutzAuraPulse === true,
     damageType: parts.find(part => part.value > 0 && !["healing", "temphp", "maximum", "midi-none"].includes(part.type))?.type }, { requestId: key, timeoutMs: 120000 });
   if (result.status !== "success") return;
