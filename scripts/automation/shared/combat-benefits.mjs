@@ -8,6 +8,8 @@ import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.
 
 export const benefitData = effect => effect?.getFlag?.(MODULE_ID, "combatBenefit") ?? effect?.flags?.[MODULE_ID]?.combatBenefit;
 export const activeBenefits = actor => [...(actor?.effects ?? [])].filter(effect => isEffectActive(effect) && benefitData(effect));
+const attackProviders = new Set();
+export function onPrepareAttack(provider) { attackProviders.add(provider); }
 export const tokenRef = token => token?.document ?? token;
 export const turnKey = combat => combat?.started ? `${combat.id}:${combat.round}:${combat.turn}` : null;
 export function sceneToken(scene, uuid) { return [...(scene?.tokens ?? [])].find(token => token.uuid === uuid); }
@@ -16,8 +18,8 @@ export function meleeReach(actor) {
   return Math.max(5, ...[...(actor.items ?? [])].filter(item => item.type === "weapon").map(item => Number(item.system?.range?.reach ?? item.system?.range?.value ?? 5)));
 }
 export function canReact(actor) {
-  return !actor.statuses?.has?.("incapacitated") && !actor.statuses?.has?.("unconscious")
-    && !actor.statuses?.has?.("stunned") && !globalThis.MidiQOL?.hasUsedReaction?.(actor);
+  return !["incapacitated", "unconscious", "stunned", "paralyzed", "petrified"].some(status => actor.statuses?.has?.(status))
+    && !globalThis.MidiQOL?.hasUsedReaction?.(actor);
 }
 export async function addCombatBenefit(source, target, item, { kind, name = item.name, remaining = null, expiry = "sourceStart", changes = [], ...data }) {
   if (!isGmAuthority()) throw Error("Боевые бонусы создаёт активный GM.");
@@ -46,9 +48,14 @@ export async function consumeBenefit(effect, key) {
 export function matchesAttackBenefit(effect, { attacker, target, weapon = false, opportunity = false, scene }) {
   const data = benefitData(effect);
   if (!isEffectActive(effect) || !data || data.remaining === 0) return false;
+  const recipient = data.targetTokenUuid;
+  if (recipient) {
+    const defending = ["dodge", "direct-attack", "opportunity-ac", "caution"].includes(data.kind);
+    if (recipient !== tokenRef(defending ? target : attacker)?.uuid) return false;
+  }
   if (data.weaponOnly && !weapon) return false;
   if (data.opportunityOnly && !opportunity) return false;
-  if (data.against && !data.against.includes(tokenRef(target)?.uuid)) return false;
+  if (data.against && !data.against.includes(tokenRef(data.kind === "caution" ? attacker : target)?.uuid)) return false;
   if (data.attackers && !data.attackers.includes(tokenRef(attacker)?.uuid)) return false;
   if (data.protectedBy) {
     const protector = sceneToken(scene, data.protectedBy);
@@ -86,9 +93,10 @@ registerGmRequest("combat-attack-benefits", async (actor, data) => {
   for (const effect of effects) if (matchesAttackBenefit(effect, { attacker, target, scene: attacker.parent,
     weapon: activity.item.type === "weapon", opportunity: data.opportunity === true })) {
     const bonus = benefitData(effect);
-    if (["attack-advantage", "attack-disadvantage", "mark", "attack-bonus", "dodge"].includes(bonus.kind))
+    if (["attack-advantage", "attack-disadvantage", "mark", "attack-bonus", "dodge", "caution"].includes(bonus.kind))
       results.push({ effectUuid: effect.uuid, kind: bonus.kind, amount: bonus.amount ?? 0, name: effect.name });
   }
+  for (const provider of attackProviders) results.push(...await provider({ actor, attacker, target, activity, data }));
   attackReservations.set(`${actor.uuid}:${data.workflowId}`, results.map(result => result.effectUuid));
   return { status: "success", results };
 });
@@ -103,7 +111,7 @@ export async function prepareCombatAttackBenefits(workflow, config) {
   workflow.grimgutzBenefitsPrepared = true; workflow.grimgutzAttackBenefits = result.results;
   for (const bonus of result.results) {
     if (["attack-advantage"].includes(bonus.kind)) workflow.attackRollModifierTracker?.advantage?.add?.(bonus.effectUuid, bonus.name);
-    if (["attack-disadvantage", "mark", "dodge"].includes(bonus.kind)) workflow.attackRollModifierTracker?.disadvantage?.add?.(bonus.effectUuid, bonus.name);
+    if (["attack-disadvantage", "mark", "dodge", "caution"].includes(bonus.kind)) workflow.attackRollModifierTracker?.disadvantage?.add?.(bonus.effectUuid, bonus.name);
     if (bonus.kind === "attack-bonus") for (const roll of config?.rolls ?? []) { roll.parts ??= []; roll.parts.push(String(bonus.amount)); }
   }
 }
@@ -114,7 +122,7 @@ registerGmRequest("commit-attack-benefits", async (actor, data) => {
   const reserved = attackReservations.get(`${actor.uuid}:${data.workflowId}`) ?? [];
   for (const uuid of reserved) {
     const effect = await fromUuid(uuid), bonus = benefitData(effect);
-    if (bonus && ["attack-advantage", "attack-disadvantage", "attack-bonus"].includes(bonus.kind)) await consumeBenefit(effect, data.key);
+    if (bonus && ["attack-advantage", "attack-disadvantage", "attack-bonus", "caution"].includes(bonus.kind)) await consumeBenefit(effect, data.key);
   }
   return { status: "success" };
 });

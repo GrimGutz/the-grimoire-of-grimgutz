@@ -25,6 +25,8 @@ import { resolvePendingAutomation } from "./shared/event-ledger.mjs";
 import { installOwnerPromptHooks } from "./shared/owner-prompts.mjs";
 import { installCombatBenefitHooks, prepareCombatAttackBenefits, commitCombatAttackBenefits } from "./shared/combat-benefits.mjs";
 import { installDamageEventHooks, prepareConfirmedDamage } from "./shared/damage-events.mjs";
+import { installLeaderStratagemHooks, useLeaderStratagem } from "./classes/leader-stratagems.mjs";
+import { installLeaderEventHooks, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll } from "./classes/leader-events.mjs";
 import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
@@ -987,6 +989,8 @@ function installHooks() {
   installOwnerPromptHooks();
   installCombatBenefitHooks();
   installDamageEventHooks();
+  installLeaderStratagemHooks();
+  installLeaderEventHooks();
   installAuraHooks();
   installZoneHooks();
   installAreaActivityHooks({ validate: validateActivityUse });
@@ -1159,7 +1163,8 @@ function installHooks() {
 }
 
 export function getMidiHookHandlers() {
-  return { prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage,
+  return { prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
+    prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
     applySpellSourceResistance, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
@@ -1193,6 +1198,7 @@ export function exposeApi() {
   if (!module) return;
   module.api = {
     useAreaActivity,
+    useLeaderStratagem,
     inspectAutomation: actorOrUuid => inspectActorAutomation(actorOrUuid, { actionHandlers: getAutomationActionHandlers() }),
     resolvePendingAutomation,
     summonRequestResult,
