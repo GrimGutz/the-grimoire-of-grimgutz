@@ -19,6 +19,7 @@ import { automationActors } from "./effects/temporary-effects.mjs";
 import { createActorSynchronizer } from "./shared/actor-sync.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
+import { installZoneHooks } from "./shared/zones.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
 import { dismissRitualistSpirits, regainRitualistSpirits } from "./classes/ritualist.mjs";
@@ -974,6 +975,7 @@ function installHooks() {
   installSummonCombatHooks();
   installRepeatedSaveHooks();
   installAuraHooks();
+  installZoneHooks();
   installTemporaryEffectHooks();
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateAdvancement);
   Hooks.on("dnd5e.preUseActivity", validateActivityUse);

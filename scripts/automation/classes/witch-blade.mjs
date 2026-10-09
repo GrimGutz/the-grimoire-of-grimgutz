@@ -1,6 +1,6 @@
 import { automationData, findFeature, isAutomationAuthority, notify } from "../shared/helpers.mjs";
 import { abilityMod, clamp } from "../shared/dnd5e.mjs";
-import { slotLevelDialog } from "../shared/dialogs.mjs";
+import { choiceDialog, slotLevelDialog } from "../shared/dialogs.mjs";
 import { applyTargetEffect } from "../shared/target-effects.mjs";
 import {
   createWeaponBuff,
@@ -209,25 +209,29 @@ export async function openImmaterialWhirlwind(actor, activity) {
     return false;
   }
 
-  if (!await useWitchBladeRage(actor, activity)) return false;
+  if (!validateWitchBladeRageUse(actor, activity)) return false;
+  const current = [...(actor.concentration?.effects ?? [])];
+  let replaceConcentration = [];
+  if (current.length >= Number(actor.system?.attributes?.concentration?.limit ?? 1)) {
+    const choice = await choiceDialog({ title: "Нематериальный вихрь", label: "Завершить текущую концентрацию?",
+      choices: [["replace", "Завершить и открыть вихрь"], ["cancel", "Отмена"]] });
+    if (choice !== "replace") return false;
+    replaceConcentration = current.map(effect => effect.uuid);
+  }
 
   const radius = 30;
   const originToken = firstTargetToken() ?? sourceToken;
   const damage = witchBladeAlignmentDamage(actor);
+  const template = await createCircleTemplate({ actor, originToken, radius, label: "Нематериальный вихрь", color: "#7f5cff", seconds: 60,
+    concentration: { activityUuid: activity.uuid, replaceConcentration },
+    resource: { itemUuid: witchBladeRagePoints(actor).feature.uuid, cost: Math.max(1, Number(automationData(activity).witchBladeRageCost ?? 3)) } });
+  if (!template) return false;
   const roll = await rollZoneDamage({
     actor,
     sourceToken,
     formula: "8d8",
     damageType: damage.type,
     flavor: "Нематериальный вихрь"
-  });
-
-  await createCircleTemplate({
-    actor,
-    originToken,
-    radius,
-    label: "Нематериальный вихрь",
-    color: "#7f5cff"
   });
 
   const tokens = tokensWithinRadius(originToken, radius, { includeOrigin: true });
@@ -250,6 +254,7 @@ export async function openImmaterialWhirlwind(actor, activity) {
     notes: [
       `Цели в зоне должны пройти спасбросок Ловкости СЛ ${saveDc}; при провале получают урон.`,
       "Урон не применяется автоматически, потому что нужен спасбросок и повторные проверки в конце хода.",
+      "Шаблон удаляется через 1 минуту или при потере концентрации; скрытые цели в публичном списке не раскрываются.",
       originWasTarget
         ? "Шаблон создан по первой выбранной цели."
         : "Цель не была выбрана: шаблон создан на вашем токене, передвиньте его на нужную точку при необходимости."

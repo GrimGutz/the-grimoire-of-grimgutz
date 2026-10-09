@@ -169,11 +169,11 @@ export async function useCrusaderConsecration(actor) {
 
   const tokens = tokensWithinRadius(sourceToken, radius, { includeOrigin: true });
   const groups = groupTokensByDisposition(sourceToken, tokens);
-  const tempHp = await applyTemporaryHp(groups.allies, amount);
+  const tempHp = await applyTemporaryHp(groups.allies, amount, { sourceActor: actor });
   const saveDc = crusaderSpellSaveDc(actor);
 
   const notes = [
-    `Союзникам в радиусе применены временные хиты: ${amount}.`,
+    tempHp.pending ? "Запрос временных хитов ожидает подтверждения GM; повторно не применяйте его до проверки результата." : `Союзникам в радиусе применены временные хиты: ${amount}.`,
     `Враги из списка должны пройти спасбросок Харизмы СЛ ${saveDc}; при провале получают ${amount} урона излучением.`,
     "Трата нестандартной ячейки Крестоносца и очищение осквернённой земли остаются ручными."
   ];

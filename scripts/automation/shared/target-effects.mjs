@@ -174,11 +174,11 @@ export async function applyTargetEffect({
       statusLabel,
       saveText,
       note: failed.length
-        ? `${note ? `${note} ` : ""}Часть целей не обновилась: проверьте права на актёров.`
+        ? `${note ? `${note} ` : ""}Часть целей не обновилась: проверьте иммунитеты, права и сообщения консоли.`
         : note
     });
   }
-  if (failed.length && !applied.length) notify("Не удалось наложить состояние: проверьте права на актёров цели.", "warn");
+  if (failed.length && !applied.length) notify("Состояние не наложено: проверьте иммунитеты и права на актёров цели.", "warn");
   return applied.length > 0;
 }
 
