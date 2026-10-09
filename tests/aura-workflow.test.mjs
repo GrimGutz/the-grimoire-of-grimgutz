@@ -33,6 +33,13 @@ beforeEach(() => {
 });
 const pulse = event => useAuraPulse({ sourceToken, sourceItem, targets, scene, template: { uuid: "Scene.one.Region.aura" }, event, eventKey: "source-start:turn-one" });
 
+test("aura uses Midi's fire-resistance override without ignoring immunity or other traits", async () => {
+  await pulse({ damage: [{ formula: "3d10", type: "fire" }], ignoreTraits: ["idr.fire"] });
+  assert.deepEqual(calls[0][0].midiProperties.ignoreTraits, ["idr.fire"]);
+  await pulse({ damage: [{ formula: "1d6", type: "fire" }] });
+  assert.deepEqual(calls[1][0].midiProperties.ignoreTraits, []);
+});
+
 test("aura damage uses native Midi, its attached Region, and no further costs or dialogs", async () => {
   assert.ok(await pulse({ damage: [{ formula: "1d6", type: "fire" }] }));
   const [activity, usage, dialog] = calls[0];

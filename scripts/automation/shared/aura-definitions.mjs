@@ -46,6 +46,11 @@ export const AURA_DEFINITIONS = [
       { trigger: "meleeAttempt", damage: [{ formula: "1d6", type: "fire" }] }]
   },
   {
+    id: "demonologist-vitality", name: "Демоническая живучесть", radius: 5, indicatorColor: "#e33e22",
+    activityFeature: "demonic-vitality", sourceEffectFlag: FLAGS.DEMONOLOGIST_VITALITY_EFFECT, affects: "nonSelf",
+    events: [{ trigger: "meleeAttempt", requiresInside: true, damage: [{ formula: "3d10", type: "fire" }], ignoreTraits: ["idr.fire"] }]
+  },
+  {
     id: "murderspawn-carnage", name: "Аура резни", radius: 15, indicatorColor: "#aa143c",
     sourceFeature: "aura-of-carnage", affects: "all",
     sourceCondition: token => !isAuraDefeated(token) && !token.actor.statuses?.has?.("unconscious")

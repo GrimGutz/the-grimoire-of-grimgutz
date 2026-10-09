@@ -3,7 +3,7 @@ import { beforeEach, test } from "node:test";
 import { FLAGS, MODULE_ID } from "../scripts/automation/shared/constants.mjs";
 import { activeWeaponBuffs } from "../scripts/automation/shared/weapon-buffs.mjs";
 import { applyDarkWarriorDamageAutomation } from "../scripts/automation/classes/dark-warrior.mjs";
-import { beginDemonologistTurn } from "../scripts/automation/classes/demonologist.mjs";
+import { beginDemonologistTurn, activateDemonicVitality } from "../scripts/automation/classes/demonologist.mjs";
 import { forestRootEffect } from "../scripts/automation/classes/forest-lord.mjs";
 import { rollDevilGlaiveDamage } from "../scripts/automation/classes/devil-worshipper.mjs";
 import { useWitchBladeSealEvil } from "../scripts/automation/classes/witch-blade.mjs";
@@ -68,4 +68,19 @@ test("demonic vitality stops granting HP on expiry and runs on only one client",
   game.user.id = "player";
   await beginDemonologistTurn(actor);
   assert.equal(calls, 1);
+});
+
+test("activating demonic vitality starts its effect and HP but never rolls retaliation without an attack", async () => {
+  game.time = { worldTime: 100 }; let effects = [], messages = [];
+  globalThis.CONFIG = { Dice: { DamageRoll: class { constructor() { throw Error("No attack occurred"); } } } };
+  globalThis.ChatMessage = { getSpeaker: () => ({}), async create(message) { messages.push(message); } };
+  const actor = { items: [{ type: "class", system: { identifier: "demonologist" } },
+    { uuid: "Actor.demon.Item.vitality", system: { identifier: "demonic-vitality" } }], effects: [],
+    system: { attributes: { hp: { temp: 0 } } }, getRollData: () => ({}),
+    async createEmbeddedDocuments(type, data) { effects.push(...data); },
+    async update(data) { this.system.attributes.hp.temp = data["system.attributes.hp.temp"]; } };
+  assert.equal(await activateDemonicVitality(actor), true);
+  assert.equal(effects[0].flags[MODULE_ID][FLAGS.DEMONOLOGIST_VITALITY_EFFECT], true);
+  assert.equal(effects[0].duration.seconds, 60); assert.equal(actor.system.attributes.hp.temp, 10);
+  assert.equal(messages.length, 1);
 });

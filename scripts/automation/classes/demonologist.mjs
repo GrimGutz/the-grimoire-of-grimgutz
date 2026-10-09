@@ -162,19 +162,6 @@ async function ensureDemonicVitalityTempHp(actor) {
   return true;
 }
 
-async function rollDemonicVitalityDamage(actor) {
-  const RollClass = CONFIG.Dice?.DamageRoll ?? Roll;
-  const roll = await new RollClass("3d10", actor.getRollData(), {
-    type: "fire",
-    flavor: "Демоническая живучесть: урон огнём"
-  }).evaluate();
-  await roll.toMessage({
-    speaker: ChatMessage.getSpeaker({ actor }),
-    flavor: "Демоническая живучесть: 3к10 огнём атакующему в 5 футах, сопротивление огню игнорируется"
-  });
-  return roll;
-}
-
 export async function activateDemonicVitality(actor) {
   if (!actor || !demonologistClass(actor)) {
     notify("Эта активность требует класс «Демонолог».", "warn");
@@ -208,7 +195,6 @@ export async function activateDemonicVitality(actor) {
   if (current) await current.update(data);
   else await actor.createEmbeddedDocuments("ActiveEffect", [data]);
   await ensureDemonicVitalityTempHp(actor);
-  await rollDemonicVitalityDamage(actor);
   await chat(actor, `<p><strong>${actor.name}: Демоническая живучесть.</strong> Эффект активен 1 минуту. В начале каждого вашего хода временные хиты становятся минимум 10. Существо в пределах 5 футов, которое совершает по вам рукопашную атаку, получает 3к10 огненного урона; сопротивление огню игнорируется.</p>`);
   return true;
 }

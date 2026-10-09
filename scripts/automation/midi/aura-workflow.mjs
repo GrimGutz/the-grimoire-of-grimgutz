@@ -25,7 +25,8 @@ export async function useAuraPulse({ sourceToken, sourceItem, template, targets,
     target: { template: { type: "", count: "" }, affects: { type: "creature", count: "", choice: false }, prompt: false, override: true },
     duration: { value: "", units: "inst", concentration: false, override: true },
     damage: { onSave: event.onSave ?? "none", parts: (event.damage ?? []).map(areaDamagePart) }, effects: [],
-    midiProperties: { autoTargetAction: "always", confirmTargets: "never", forceDamageDialog: "never", autoCEEffects: "itempri" },
+    midiProperties: { autoTargetAction: "always", confirmTargets: "never", forceDamageDialog: "never", autoCEEffects: "itempri",
+      ignoreTraits: event.ignoreTraits ?? [] },
     // Item.clone merges nested flags. Explicitly blank the activation action so
     // its "no uses remaining" validator cannot reject later aura pulses.
     flags: { [MODULE_ID]: { action: "", moduleAction: "", areaResolved: true, auraPulse: true, auraEventKey: eventKey } } };

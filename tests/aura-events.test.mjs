@@ -66,6 +66,21 @@ test("two different flame sources each retaliate against the same confirmed mele
   assert.equal(pulses.length, 2); assert.ok(pulses.every(pulse => pulse.targets[0] === attacker));
 });
 
+test("demonic vitality retaliates only against melee attackers inside its circle, not on turns or movement", async () => {
+  const source = token(actor("demon", "character", "demonic-vitality"), "demon"), attacker = token(actor("attacker"), "attacker", 100);
+  const aura = frame("demonologist-vitality", source, [attacker]);
+  assert.ok(aura.definition, "Demonologist vitality must be registered as an aura");
+  frames = [aura]; tokens = [source, attacker]; const engine = createAuraEventEngine(context());
+  await engine.turn(combat("demon"), { turn: 0 }); assert.equal(pulses.length, 0);
+  const attack = { attacker, targets: [source.document.uuid], scene, eventKey: "melee-1" };
+  await engine.meleeAttempt(attack); await engine.meleeAttempt(attack);
+  assert.equal(pulses.length, 1); assert.deepEqual(pulses[0].event.damage, [{ formula: "3d10", type: "fire" }]);
+  assert.deepEqual(pulses[0].event.ignoreTraits, ["idr.fire"]);
+  aura.targets = []; await engine.meleeAttempt({ ...attack, eventKey: "long-reach" }); assert.equal(pulses.length, 1);
+  aura.targets = [attacker]; active = false;
+  await engine.meleeAttempt({ ...attack, eventKey: "expired" }); assert.equal(pulses.length, 1);
+});
+
 test("disabled automation, another GM or an inactive source cannot roll aura damage", async () => {
   const source = token(actor("fiend", "character", "spirit-fiend"), "fiend"), enemy = token(actor("enemy"), "enemy");
   frames = [frame("spirit-vessel-fiend-flames", source, [enemy])]; const engine = createAuraEventEngine(context());

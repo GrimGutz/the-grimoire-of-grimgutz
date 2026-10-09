@@ -131,3 +131,16 @@ test("a dead NPC stops projecting buffs even when automatic dead-status marking 
   populate(token(source, "gutz", 0), token(ally, "ally", 100)); await syncSceneAuras(); assert.equal(ally.effects.length, 1);
   source.system.attributes.hp.value = 0; await syncSceneAuras(); assert.equal(ally.effects.length, 0); assert.equal(scene.regions.length, 0);
 });
+
+test("demonic vitality circle exists only for an active root and does not need another use to remain active", async () => {
+  const source = actor("demon", "demonic-vitality"); source.items[0].system = { uses: { max: "1", spent: 1 } };
+  const root = doc({ flags: { [MODULE_ID]: { [FLAGS.DEMONOLOGIST_VITALITY_EFFECT]: true } },
+    duration: { value: 60, units: "seconds", expired: false } });
+  source.effects = [root]; populate(token(source, "demon", 0));
+  await syncSceneAuras(); assert.equal(scene.regions.length, 1); assert.equal(scene.regions[0].shapes[0].radius, 100);
+  root.isSuppressed = true; await syncSceneAuras(); assert.equal(scene.regions.length, 0);
+  root.isSuppressed = false; root.duration.expired = true;
+  await syncSceneAuras(); assert.equal(scene.regions.length, 0);
+  root.duration.expired = false; await syncSceneAuras(); assert.equal(scene.regions.length, 1);
+  assert.equal(source.items[0].system.uses.spent, 1);
+});

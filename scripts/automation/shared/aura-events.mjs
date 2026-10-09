@@ -100,7 +100,8 @@ export function createAuraEventEngine({ synchronize, framesForScene, tokensForSc
     return enqueue(async () => {
       for (const frame of frames) {
         if (!targets.includes(tokenUuid(frame.sourceToken)) || tokenUuid(attacker) === tokenUuid(frame.sourceToken)) continue;
-        for (const event of frame.definition.events ?? []) if (event.trigger === "meleeAttempt")
+        for (const event of frame.definition.events ?? []) if (event.trigger === "meleeAttempt"
+          && (!event.requiresInside || frame.targets.some(token => tokenUuid(token) === tokenUuid(attacker))))
           await once(frame, event, `melee:${eventKey}`, [attacker], scene);
       }
       return true;
