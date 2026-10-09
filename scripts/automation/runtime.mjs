@@ -17,6 +17,8 @@ import { clamp } from "./shared/dnd5e.mjs";
 import { installTemporaryEffectHooks } from "./effects/temporary-effects.mjs";
 import { automationActors } from "./effects/temporary-effects.mjs";
 import { createActorSynchronizer } from "./shared/actor-sync.mjs";
+import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
+import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
 import { dismissRitualistSpirits, regainRitualistSpirits } from "./classes/ritualist.mjs";
@@ -944,88 +946,28 @@ const actorSynchronizer = createActorSynchronizer([
 ]);
 const schedulePassiveSync = actorSynchronizer.schedule;
 
-function activitiesOf(item) {
-  const activities = item?.system?.activities;
-  if (!activities) return [];
-  if (typeof activities.values === "function") return [...activities.values()];
-  return Object.values(activities);
-}
-
-function hasModuleAction(item) {
-  return activitiesOf(item).some(activity => Boolean(actionFromActivity(activity)));
-}
-
-function moduleActionSignature(item) {
-  return activitiesOf(item)
-    .map(activity => actionFromActivity(activity))
-    .filter(Boolean)
-    .sort()
-    .join("|");
-}
-
-async function migrateOwnedItems(actor) {
+export async function migrateOwnedItems(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
   const sources = await moduleItemSources();
-  const updates = [];
-  const effectSyncs = [];
-
-  const effectSignature = effects => effects.map(effect => ({
-    name: effect.name,
-    transfer: effect.transfer,
-    changes: effect.system?.changes ?? effect.system?.toObject?.().changes ?? []
-  }));
-
+  const updates = [], effectSyncs = [];
   for (const item of actor.items) {
     const source = sources.get(itemIdentifier(item));
     if (!source || !isLikelyModuleItem(item, source)) continue;
-    const sourceData = source.toObject();
-    const update = { _id: item.id };
-    let changed = false;
-
-    if (!automationData(item).feature && !automationData(item).massiveWeapon) {
-      update[`flags.${MODULE_ID}`] = sourceData.flags?.[MODULE_ID] ?? {};
-      changed = true;
-    }
-    if (hasModuleAction(source) && moduleActionSignature(source) !== moduleActionSignature(item)) {
-      update["system.activities"] = sourceData.system.activities;
-      changed = true;
-    }
-    if (item.system.description?.value !== sourceData.system.description?.value) {
-      update["system.description"] = sourceData.system.description;
-      changed = true;
-    }
-    const currentEffects = item.effects?.map(effect => effect.toObject()) ?? [];
-    if (
-      (sourceData.effects?.length ?? 0) > 0
-      && JSON.stringify(effectSignature(currentEffects)) !== JSON.stringify(effectSignature(sourceData.effects))
-    ) {
-      effectSyncs.push({
-        item,
-        effects: sourceData.effects
-      });
-    }
-    if (changed) updates.push(update);
+    const plan = ownedItemMigrationPlan(item, source);
+    if (plan.update) updates.push(plan.update);
+    if (plan.effects) effectSyncs.push({ item, effects: plan.effects });
   }
-
-  if (updates.length) {
-    await actor.updateEmbeddedDocuments("Item", updates);
-    console.log(`${MODULE_ID} | Migrated ${updates.length} owned items on ${actor.name}`);
-  }
+  if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
   for (const { item, effects } of effectSyncs) {
-    const updates = [];
-    const creates = [];
-    for (const effect of effects) {
-      if (item.effects.get(effect._id)) updates.push(effect);
-      else creates.push(effect);
-    }
+    const desiredIds = new Set(effects.map(effect => effect._id));
+    const deletes = [...(item.effects ?? [])].filter(effect => !desiredIds.has(effect.id)).map(effect => effect.id);
+    const updates = effects.filter(effect => item.effects.get(effect._id));
+    const creates = effects.filter(effect => !item.effects.get(effect._id));
+    if (deletes.length) await item.deleteEmbeddedDocuments("ActiveEffect", deletes);
     if (updates.length) await item.updateEmbeddedDocuments("ActiveEffect", updates);
     if (creates.length) await item.createEmbeddedDocuments("ActiveEffect", creates, { keepId: true });
   }
-  if (effectSyncs.length) {
-    console.log(`${MODULE_ID} | Synchronized effects on ${effectSyncs.length} owned items for ${actor.name}`);
-  }
 }
-
 function installHooks() {
   installSummonSocket();
   installSummonLifecycleHooks();
@@ -1140,6 +1082,7 @@ function installHooks() {
   Hooks.on("createItem", item => {
     const actor = item.parent;
     if (!actor) return;
+    if (enabled()) void migrateOwnedItems(actor).catch(error => console.error(`${MODULE_ID} | Imported item migration failed`, error));
     if (item.type === "class" && itemIdentifier(item) === "crusher") {
       if (isAutomationAuthority(actor)) void updateOwnedMassiveWeaponProficiency(actor);
     }
@@ -1231,6 +1174,7 @@ export function exposeApi() {
   const module = game.modules.get(MODULE_ID);
   if (!module) return;
   module.api = {
+    inspectAutomation: actorOrUuid => inspectActorAutomation(actorOrUuid, { actionHandlers: getAutomationActionHandlers() }),
     summonRequestResult,
     manageSummons,
     setStyle,

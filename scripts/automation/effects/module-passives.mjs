@@ -1,6 +1,6 @@
 import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
 import { automationData, isAutomationAuthority, itemIdentifier } from "../shared/helpers.mjs";
-import { passiveEffectSignature } from "./passive-helpers.mjs";
+import { guardPassiveChanges, passiveEffectSignature, recordPassiveSnapshots } from "./passive-helpers.mjs";
 
 const passiveEffectSyncs = new Set();
 let migrationSourcesPromise;
@@ -80,9 +80,10 @@ export async function syncModulePassiveEffects(actor) {
       const sourceEffects = source && isLikelyModuleItem(item, source)
         ? [...(source.effects ?? [])]
         : [];
-      const effects = sourceEffects.some(effect => effect.getFlag(MODULE_ID, "passiveEffect") === true)
-        ? sourceEffects
-        : [...(item.effects ?? [])];
+      const ownedEffects = [...(item.effects ?? [])];
+      const effects = ownedEffects.some(effect => effect.getFlag(MODULE_ID, "passiveEffect") === true)
+        ? ownedEffects
+        : sourceEffects;
       for (const effect of effects) {
         if (effect.getFlag(MODULE_ID, "passiveEffect") !== true) continue;
         const key = `${item.id}:${effect.id}`;
@@ -104,12 +105,14 @@ export async function syncModulePassiveEffects(actor) {
     const updates = [];
     for (const [key, data] of desired) {
       const current = existing.get(key);
+      const guarded = guardPassiveChanges(current, data, MODULE_ID);
       if (!current) {
-        creates.push(data);
+        creates.push(guarded);
         continue;
       }
-      if (passiveEffectSignature(current) !== passiveEffectSignature(data)) {
-        updates.push({ _id: current.id, ...data });
+      if (guarded && (passiveEffectSignature(current) !== passiveEffectSignature(guarded)
+        || !current.flags?.[MODULE_ID]?.managedPassiveChanges)) {
+        updates.push({ _id: current.id, ...guarded });
       }
       existing.delete(key);
     }
@@ -117,7 +120,7 @@ export async function syncModulePassiveEffects(actor) {
     deletes.push(...[...existing.values()].map(effect => effect.id));
     if (deletes.length) await actor.deleteEmbeddedDocuments("ActiveEffect", deletes);
     if (updates.length) await actor.updateEmbeddedDocuments("ActiveEffect", updates);
-    if (creates.length) await actor.createEmbeddedDocuments("ActiveEffect", creates);
+    if (creates.length) await recordPassiveSnapshots(actor, await actor.createEmbeddedDocuments("ActiveEffect", creates), MODULE_ID);
   } finally {
     passiveEffectSyncs.delete(actor.uuid);
   }

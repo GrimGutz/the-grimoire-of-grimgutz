@@ -64,10 +64,12 @@ export async function syncFlaggedPassiveEffects(actor, syncSet, moduleId, flag, 
     const updates = [];
     for (const [key, data] of desired) {
       const current = existing.get(key);
+      const guarded = guardPassiveChanges(current, data, moduleId);
       if (!current) {
-        creates.push(data);
-      } else if (passiveEffectSignature(current) !== passiveEffectSignature(data)) {
-        updates.push({ _id: current.id, ...data });
+        creates.push(guarded);
+      } else if (guarded && (passiveEffectSignature(current) !== passiveEffectSignature(guarded)
+        || !current.flags?.[moduleId]?.managedPassiveChanges)) {
+        updates.push({ _id: current.id, ...guarded });
       }
       existing.delete(key);
     }
@@ -75,8 +77,32 @@ export async function syncFlaggedPassiveEffects(actor, syncSet, moduleId, flag, 
     deletes.push(...[...existing.values()].map(effect => effect.id));
     if (deletes.length) await actor.deleteEmbeddedDocuments("ActiveEffect", deletes);
     if (updates.length) await actor.updateEmbeddedDocuments("ActiveEffect", updates);
-    if (creates.length) await actor.createEmbeddedDocuments("ActiveEffect", creates);
+    if (creates.length) await recordPassiveSnapshots(actor, await actor.createEmbeddedDocuments("ActiveEffect", creates), moduleId);
   } finally {
     syncSet.delete(actor.uuid);
   }
 }
+import { migrationFingerprint } from "../shared/owned-item-migration.mjs";
+
+export function guardPassiveChanges(current, data, moduleId) {
+  const changes = current?.toObject?.().system?.changes ?? current?.system?.changes ?? [];
+  const normalized = current?.clone?.(data)?.toObject?.() ?? data;
+  const desired = normalized.system?.changes ?? [];
+  const currentHash = migrationFingerprint(changes), desiredHash = migrationFingerprint(desired);
+  const previous = current?.getFlag?.(moduleId, "managedPassiveChanges") ?? current?.flags?.[moduleId]?.managedPassiveChanges;
+  if (current && currentHash !== desiredHash && previous !== currentHash) return null;
+  return { ...data, disabled: current?.disabled ?? data.disabled,
+    flags: { ...data.flags, [moduleId]: { ...data.flags?.[moduleId], managedPassiveChanges: desiredHash } } };
+}
+
+export async function recordPassiveSnapshots(actor, documents, moduleId) {
+  const updates = [];
+  for (const effect of documents ?? []) {
+    const changes = effect.toObject?.().system?.changes ?? effect.system?.changes ?? [];
+    const signature = migrationFingerprint(changes);
+    if (effect.getFlag?.(moduleId, "managedPassiveChanges") === signature) continue;
+    updates.push({ _id: effect.id, [`flags.${moduleId}.managedPassiveChanges`]: signature });
+  }
+  if (updates.length) await actor.updateEmbeddedDocuments("ActiveEffect", updates);
+}
+

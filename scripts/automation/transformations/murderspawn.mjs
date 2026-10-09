@@ -1,6 +1,6 @@
 import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
 import { automationData, findFeature, isAutomationAuthority } from "../shared/helpers.mjs";
-import { passiveEffectSignature } from "../effects/passive-helpers.mjs";
+import { syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const murderspawnPassiveSyncs = new Set();
 
@@ -35,11 +35,6 @@ export async function syncMurderspawnTransformation(actor) {
   if (current !== maximum) {
     await unstoppable.update({ "system.uses.max": maximum });
   }
-}
-
-function murderspawnPassiveSource(effect) {
-  return effect?.getFlag?.(MODULE_ID, FLAGS.MURDERSPAWN_PASSIVE)
-    ?? effect?.flags?.[MODULE_ID]?.[FLAGS.MURDERSPAWN_PASSIVE];
 }
 
 function murderspawnPassiveEffectData({ key, feature, name, img, changes }) {
@@ -111,35 +106,6 @@ function murderspawnPassiveDefinitions(actor) {
 }
 
 export async function syncMurderspawnPassiveEffects(actor) {
-  if (!actor?.isOwner || !isAutomationAuthority(actor) || murderspawnPassiveSyncs.has(actor.uuid)) return;
-  murderspawnPassiveSyncs.add(actor.uuid);
-  try {
-    const desired = new Map(
-      murderspawnPassiveDefinitions(actor).map(effect => [murderspawnPassiveSource(effect), effect])
-    );
-    const existing = new Map();
-    for (const effect of actor.effects ?? []) {
-      const source = murderspawnPassiveSource(effect);
-      if (source) existing.set(source, effect);
-    }
-
-    const creates = [];
-    const updates = [];
-    for (const [key, data] of desired) {
-      const current = existing.get(key);
-      if (!current) {
-        creates.push(data);
-      } else if (passiveEffectSignature(current) !== passiveEffectSignature(data)) {
-        updates.push({ _id: current.id, ...data });
-      }
-      existing.delete(key);
-    }
-
-    const deletes = [...existing.values()].map(effect => effect.id);
-    if (deletes.length) await actor.deleteEmbeddedDocuments("ActiveEffect", deletes);
-    if (updates.length) await actor.updateEmbeddedDocuments("ActiveEffect", updates);
-    if (creates.length) await actor.createEmbeddedDocuments("ActiveEffect", creates);
-  } finally {
-    murderspawnPassiveSyncs.delete(actor.uuid);
-  }
+  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
+  return syncFlaggedPassiveEffects(actor, murderspawnPassiveSyncs, MODULE_ID, FLAGS.MURDERSPAWN_PASSIVE, murderspawnPassiveDefinitions);
 }

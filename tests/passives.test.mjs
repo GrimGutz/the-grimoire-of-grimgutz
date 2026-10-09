@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../scripts/automation/effects/passive-helpers.mjs";
+import { flaggedPassiveEffectData, guardPassiveChanges, syncFlaggedPassiveEffects } from "../scripts/automation/effects/passive-helpers.mjs";
 
 test("passive sync removes duplicate bonuses, updates origin and clears deleted features", async () => {
   const module = "module", flag = "passive";
@@ -27,4 +27,16 @@ test("passive sync removes duplicate bonuses, updates origin and clears deleted 
   feature = null;
   await syncFlaggedPassiveEffects(actor, locks, module, flag, definitions);
   assert.equal(actor.effects.length, 0);
+});
+
+test("manual passive edits and deliberate disabling survive synchronization", () => {
+  const original = flaggedPassiveEffectData("module", "passive", { key: "speed", feature: { name: "Speed" },
+    changes: [{ key: "speed", type: "add", value: "10" }] });
+  const current = guardPassiveChanges(null, original, "module");
+  current.disabled = true;
+  const higher = structuredClone(original);
+  higher.system.changes[0].value = "20";
+  assert.equal(guardPassiveChanges(current, higher, "module").disabled, true);
+  current.system.changes[0].value = "15";
+  assert.equal(guardPassiveChanges(current, higher, "module"), null);
 });

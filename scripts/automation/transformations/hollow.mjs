@@ -10,7 +10,7 @@ import {
 } from "../shared/helpers.mjs";
 import { abilityMod, baseAbilityValue } from "../shared/dnd5e.mjs";
 import { numberDialog } from "../shared/dialogs.mjs";
-import { passiveEffectSignature } from "../effects/passive-helpers.mjs";
+import { syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const hollowPassiveSyncs = new Set();
 
@@ -174,11 +174,6 @@ export async function syncHollowTransformation(actor) {
   }
 }
 
-function hollowPassiveSource(effect) {
-  return effect?.getFlag?.(MODULE_ID, FLAGS.HOLLOW_PASSIVE)
-    ?? effect?.flags?.[MODULE_ID]?.[FLAGS.HOLLOW_PASSIVE];
-}
-
 function hollowPassiveEffectData({ key, feature, name = feature?.name, img = feature?.img, changes = [], description = "" }) {
   return {
     name,
@@ -288,35 +283,6 @@ function hollowPassiveDefinitions(actor) {
 }
 
 export async function syncHollowPassiveEffects(actor) {
-  if (!actor?.isOwner || !isAutomationAuthority(actor) || hollowPassiveSyncs.has(actor.uuid)) return;
-  hollowPassiveSyncs.add(actor.uuid);
-  try {
-    const desired = new Map(
-      hollowPassiveDefinitions(actor).map(effect => [hollowPassiveSource(effect), effect])
-    );
-    const existing = new Map();
-    for (const effect of actor.effects ?? []) {
-      const source = hollowPassiveSource(effect);
-      if (source) existing.set(source, effect);
-    }
-
-    const creates = [];
-    const updates = [];
-    for (const [key, data] of desired) {
-      const current = existing.get(key);
-      if (!current) {
-        creates.push(data);
-      } else if (passiveEffectSignature(current) !== passiveEffectSignature(data)) {
-        updates.push({ _id: current.id, ...data });
-      }
-      existing.delete(key);
-    }
-
-    const deletes = [...existing.values()].map(effect => effect.id);
-    if (deletes.length) await actor.deleteEmbeddedDocuments("ActiveEffect", deletes);
-    if (updates.length) await actor.updateEmbeddedDocuments("ActiveEffect", updates);
-    if (creates.length) await actor.createEmbeddedDocuments("ActiveEffect", creates);
-  } finally {
-    hollowPassiveSyncs.delete(actor.uuid);
-  }
+  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
+  return syncFlaggedPassiveEffects(actor, hollowPassiveSyncs, MODULE_ID, FLAGS.HOLLOW_PASSIVE, hollowPassiveDefinitions);
 }
