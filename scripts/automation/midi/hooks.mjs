@@ -1,6 +1,9 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 
 export const MIDI_QOL_HOOKS = [
+  ["midi-qol.prePreambleComplete", "prepareBloodSpell"],
+  ["midi-qol.postCheckSaves", "handleBloodFailedSaves"],
+  ["midi-qol.RollComplete", "finishBloodSpell"],
   ["midi-qol.preTargetDamageApplication", "prepareLeaderHealing"],
   ["midi-qol.RollComplete", "handleLeaderCritical"],
   ["midi-qol.RollComplete", "handleDistractingPresence"],

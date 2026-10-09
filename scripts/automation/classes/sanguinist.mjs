@@ -198,7 +198,7 @@ function sanguinistSpellModifier(actor) {
   return abilityMod(actor, sanguinistAbility(actor));
 }
 
-function sanguinistSpellDC(actor) {
+export function sanguinistSpellDC(actor) {
   return 8 + proficiency(actor) + sanguinistSpellModifier(actor);
 }
 
@@ -314,7 +314,7 @@ async function gainBloodPoints(actor, amount) {
   return after;
 }
 
-async function spendBloodPoints(actor, amount) {
+export async function spendBloodPoints(actor, amount) {
   const current = sanguinistBloodPoints(actor);
   if (current < amount) {
     notify(`${actor.name}: недостаточно единиц крови (${current}/${amount}).`, "warn");
@@ -454,6 +454,10 @@ async function handleBloodReading(actor) {
 }
 
 async function handleMarkBloodSpell(actor) {
+  return (await import("./sanguinist-combat.mjs")).armBloodSpell(actor);
+}
+
+async function legacyMarkBloodSpell(actor) {
   const used = Number(actor.getFlag(MODULE_ID, FLAGS.SANGUINIST_BLOOD_SPELL_USED) ?? 0);
   const maximum = Math.max(1, proficiency(actor));
   if (used >= maximum) {
@@ -589,10 +593,7 @@ async function handleBloodBacklash(actor) {
 }
 
 async function handleBloodletting(actor) {
-  if (!await spendFixedBlood(actor, 2, "Кровопускание")) return false;
-  await rollToChat(actor, "2d8", "Кровопускание: некротический урон при провале спасброска");
-  await chat(actor, `<p>Цель повторяет спасбросок Телосложения в конце каждого своего хода, получая 2к8 некротического урона при провале и оканчивая эффект при успехе.</p>`);
-  return true;
+  return (await import("./sanguinist-combat.mjs")).useBloodletting(actor);
 }
 
 async function handleContusion(actor) {

@@ -33,6 +33,23 @@ beforeEach(() => {
 });
 const pulse = event => useAuraPulse({ sourceToken, sourceItem, targets, scene, template: { uuid: "Scene.one.Region.aura" }, event, eventKey: "source-start:turn-one" });
 
+test("a successful repeated bleeding save removes only its source-owned effect", async () => {
+  let removed = 0;
+  globalThis.fromUuid = async () => ({ getFlag: (_module, key) => key === "repeatSave" ? { sourceItemUuid: sourceItem.uuid } : null, async delete() { removed++; } });
+  MidiQOL.completeActivityUse = async (...args) => { calls.push(args); return { saves: new Set(targets), failedSaves: new Set() }; };
+  await pulse({ save: "con", dc: "16", damage: [{ formula: "2d8", type: "necrotic" }], removeEffectOnSaveUuid: "bleeding" });
+  assert.equal(removed, 1);
+  assert.equal(calls[0][0].damage.onSave, "none");
+});
+
+test("an unknown repeat-save result is marked for review instead of deleting or rolling twice", async () => {
+  let review = false;
+  globalThis.fromUuid = async () => ({ async setFlag(module, key, value) { assert.equal(key, "repeatSaveReview"); review = value; },
+    async delete() { throw Error("Unknown save cannot end bleeding"); } });
+  const result = await pulse({ save: "con", dc: "16", damage: [], removeEffectOnSaveUuid: "bleeding" });
+  assert.equal(result.status, "needs-review"); assert.equal(review, true); assert.equal(calls.length, 1);
+});
+
 test("aura uses Midi's fire-resistance override without ignoring immunity or other traits", async () => {
   await pulse({ damage: [{ formula: "3d10", type: "fire" }], ignoreTraits: ["idr.fire"] });
   assert.deepEqual(calls[0][0].midiProperties.ignoreTraits, ["idr.fire"]);

@@ -63,7 +63,7 @@ export async function useAuraPulse({ sourceToken, sourceItem, template, targets,
       ignoreTraits: event.ignoreTraits ?? [] },
     // Item.clone merges nested flags. Explicitly blank the activation action so
     // its "no uses remaining" validator cannot reject later aura pulses.
-    flags: { [MODULE_ID]: { action: "", moduleAction: "", areaResolved: true, auraPulse: true, auraEventKey: eventKey } } };
+    flags: { [MODULE_ID]: { ...(event.metadata ?? {}), action: "", moduleAction: "", areaResolved: true, auraPulse: true, auraEventKey: eventKey } } };
   delete activity.roll; delete activity.attack; delete activity.healing; delete activity.save;
   if (event.save) activity.save = { ability: [event.save], dc: { calculation: "", formula: event.dc } };
   const effects = [];
@@ -90,6 +90,25 @@ export async function useAuraPulse({ sourceToken, sourceItem, template, targets,
         midiOptions: { asUser: game.user.id, ignoreUserTargets: true, targetUuids: targets.map(token => token.document.uuid), workflowOptions } },
       { configure: false }, { create: true, ...(sourceToken.document.hidden ? { rollMode: "gmroll" } : {}) });
     if (result === undefined) notify("Результат срабатывания ауры ещё не подтверждён Midi-QOL. Проверьте карточку; повторный бросок автоматически не делается.", "warn");
+    if (result !== false && !result?.aborted && (event.removeEffectOnSaveUuid || event.replaceCondition)) {
+      const completed = result?.workflow ?? (result?.saves ? result : workflow);
+      const successes = new Set([...(completed.saves ?? [])].map(token => token.document?.uuid ?? token.uuid));
+      const failures = new Set([...(completed.failedSaves ?? [])].map(token => token.document?.uuid ?? token.uuid));
+      if (targets.some(token => !successes.has(token.document.uuid) && !failures.has(token.document.uuid))) {
+        if (event.removeEffectOnSaveUuid) await (await fromUuid(event.removeEffectOnSaveUuid))?.setFlag(MODULE_ID, "repeatSaveReview", true);
+        return { status: "needs-review" };
+      }
+      if (event.removeEffectOnSaveUuid && targets.every(token => successes.has(token.document.uuid))) {
+        const effect = await fromUuid(event.removeEffectOnSaveUuid);
+        if (effect?.getFlag?.(MODULE_ID, "repeatSave")?.sourceItemUuid === sourceItem.uuid) await effect.delete();
+      }
+      if (event.replaceCondition && event.condition) for (const token of targets.filter(token => failures.has(token.document.uuid))) {
+        const effects = [...token.actor.effects].filter(effect => effect.getFlag?.(MODULE_ID, "auraPersistentCondition") === event.condition.key
+          && effect.getFlag(MODULE_ID, "auraConditionSource") === actor.uuid);
+        if (!effects.some(effect => effect.getFlag(MODULE_ID, "auraEventKey") === eventKey)) return { status: "needs-review" };
+        for (const effect of effects.filter(effect => effect.getFlag(MODULE_ID, "auraEventKey") !== eventKey)) await effect.delete();
+      }
+    }
     return result;
   } finally {
     if (canvas?.scene?.id === scene.id) await game.user.updateTokenTargets?.(oldTargets);

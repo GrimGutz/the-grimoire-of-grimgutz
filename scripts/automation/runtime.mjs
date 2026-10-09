@@ -28,6 +28,7 @@ import { installDamageEventHooks, prepareConfirmedDamage } from "./shared/damage
 import { installLeaderStratagemHooks, useLeaderStratagem } from "./classes/leader-stratagems.mjs";
 import { installLeaderEventHooks, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll } from "./classes/leader-events.mjs";
 import { installLeaderPresenceHooks, chooseLeaderPresenceTargets, handleLeaderCritical, handleDistractingPresence, prepareLeaderHealing } from "./classes/leader-presences.mjs";
+import { installSanguinistCombatHooks, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves } from "./classes/sanguinist-combat.mjs";
 import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
@@ -994,6 +995,7 @@ function installHooks() {
   installLeaderStratagemHooks();
   installLeaderEventHooks();
   installLeaderPresenceHooks();
+  installSanguinistCombatHooks();
   installAuraHooks();
   installZoneHooks();
   installAreaActivityHooks({ validate: validateActivityUse });
@@ -1166,7 +1168,8 @@ function installHooks() {
 }
 
 export function getMidiHookHandlers() {
-  return { prepareLeaderHealing, handleLeaderCritical, handleDistractingPresence, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
+  return { prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
+    prepareLeaderHealing, handleLeaderCritical, handleDistractingPresence, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
     prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
