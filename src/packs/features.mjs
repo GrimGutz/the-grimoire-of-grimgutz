@@ -1,4 +1,5 @@
 import { feature, folder, idFor, utilityActivity } from "../common.mjs";
+import { configureAreaActivities } from "../areas.mjs";
 import { deathKnightDocuments, deathKnightFolders } from "./death-knight-features.mjs";
 import { aberrantDocuments, aberrantFolders } from "./aberrant-features.mjs";
 import { forestLordDocuments, forestLordFolders } from "./forest-lord-features.mjs";
@@ -72,7 +73,7 @@ export const folders = [
   ...hollowFeatureFolders
 ];
 
-export const documents = [
+export const documents = configureAreaActivities([
   feature({
     key: "great-weapon-style",
     name: "Стиль огромного оружия",
@@ -422,4 +423,4 @@ export const documents = [
   ...sanguinistDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
-];
+]);
