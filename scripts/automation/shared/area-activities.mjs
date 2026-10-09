@@ -211,6 +211,8 @@ export async function useAreaActivity(activity, { validate = () => true, usage =
     for (const doc of placed) await doc.update({ [`flags.${MODULE_ID}.zoneTemplate`]: true,
       [`flags.${MODULE_ID}.sourceActor`]: actor.uuid, [`flags.${MODULE_ID}.areaCastId`]: castId,
       [`flags.${MODULE_ID}.zoneExpiresAt`]: lifetime > 0 ? Number(game.time?.worldTime ?? 0) + lifetime : null,
+      ...(spec.periodic ? { [`flags.${MODULE_ID}.periodicZone`]: { trigger: spec.periodic, sourceTokenUuid: source.document.uuid,
+        sourceItemUuid: activity.item.uuid, event: { save: spec.save, dc: spec.dc, damage: spec.damage, onSave: spec.onSave } } } : {}),
       ...(concentration ? { [`flags.${MODULE_ID}.zoneConcentrationEffect`]: concentration.uuid } : {}) });
     return workflow;
   } catch (error) {

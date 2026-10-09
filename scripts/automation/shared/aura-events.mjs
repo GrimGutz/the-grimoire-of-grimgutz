@@ -7,7 +7,7 @@ import { feetToSceneUnits, tokenSceneDistance } from "./spatial.mjs";
 import { isForwardTurn } from "./combat-flow.mjs";
 import { choiceDialog } from "./dialogs.mjs";
 import { registerGmRequest, requestGm } from "./gm-requests.mjs";
-import { useAuraPulse } from "../midi/aura-workflow.mjs";
+import { dispatchAutomationPulse } from "../midi/aura-workflow.mjs";
 
 const flag = (actor, key) => actor?.getFlag?.(MODULE_ID, key) ?? actor?.flags?.[MODULE_ID]?.[key];
 const field = (data, path) => Object.hasOwn(data ?? {}, path) ? data[path] : path.split(".").reduce((v, key) => v?.[key], data);
@@ -49,7 +49,7 @@ export async function clearSoulAuraTemporaryHpOnRest(actor) {
 }
 
 /** One authoritative, serialized event queue; movement sync never rolls damage. */
-export function createAuraEventEngine({ synchronize, framesForScene, tokensForScene, isAuthority, pulse = useAuraPulse }) {
+export function createAuraEventEngine({ synchronize, framesForScene, tokensForScene, isAuthority, pulse = dispatchAutomationPulse }) {
   let queue = Promise.resolve();
   const claims = new Set(), health = new Map(), deadActors = new Set();
   const enqueue = task => {

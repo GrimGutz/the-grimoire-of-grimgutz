@@ -2,7 +2,7 @@
 export const AREA_DEFINITIONS = [
   { id: "immaterial-whirlwind", feature: "immaterial-whirlwind", action: "open-immaterial-whirlwind",
     shape: "sphere", size: 30, origin: "point", save: "dex", dc: "8 + @prof + @abilities.int.mod",
-    damage: [{ formula: "8d8", type: "alignment" }], onSave: "none", rage: 3, concentration: 60 },
+    damage: [{ formula: "8d8", type: "alignment" }], onSave: "none", rage: 3, concentration: 60, periodic: "targetEnd" },
   { id: "witch-blade-seal-evil", feature: "witch-blade-seal", action: "use-witch-blade-seal-evil",
     shape: "cone", size: 30, origin: "self", excludeSelf: true, save: "cha", dc: "8 + @prof + @abilities.int.mod",
     damage: [], onSave: "none", rage: 1, statuses: ["stunned"], duration: { value: 1, units: "rounds", expiry: "turnStart" } },

@@ -20,6 +20,8 @@ import { createActorSynchronizer } from "./shared/actor-sync.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { installZoneHooks } from "./shared/zones.mjs";
+import { installPeriodicZoneHooks } from "./shared/periodic-zones.mjs";
+import { resolvePendingAutomation } from "./shared/event-ledger.mjs";
 import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
@@ -978,6 +980,7 @@ function installHooks() {
   installSummonLifecycleHooks();
   installSummonCombatHooks();
   installRepeatedSaveHooks();
+  installPeriodicZoneHooks();
   installAuraHooks();
   installZoneHooks();
   installAreaActivityHooks({ validate: validateActivityUse });
@@ -1184,6 +1187,7 @@ export function exposeApi() {
   module.api = {
     useAreaActivity,
     inspectAutomation: actorOrUuid => inspectActorAutomation(actorOrUuid, { actionHandlers: getAutomationActionHandlers() }),
+    resolvePendingAutomation,
     summonRequestResult,
     manageSummons,
     setStyle,
