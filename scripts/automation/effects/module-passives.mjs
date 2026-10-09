@@ -91,10 +91,13 @@ export async function syncModulePassiveEffects(actor) {
     }
 
     const existing = new Map();
+    const deletes = [];
     for (const effect of actor.effects ?? []) {
       const source = passiveSource(effect);
       if (!source?.itemId || !source?.effectId) continue;
-      existing.set(`${source.itemId}:${source.effectId}`, effect);
+      const key = `${source.itemId}:${source.effectId}`;
+      if (existing.has(key)) deletes.push(effect.id);
+      else existing.set(key, effect);
     }
 
     const creates = [];
@@ -111,7 +114,7 @@ export async function syncModulePassiveEffects(actor) {
       existing.delete(key);
     }
 
-    const deletes = [...existing.values()].map(effect => effect.id);
+    deletes.push(...[...existing.values()].map(effect => effect.id));
     if (deletes.length) await actor.deleteEmbeddedDocuments("ActiveEffect", deletes);
     if (updates.length) await actor.updateEmbeddedDocuments("ActiveEffect", updates);
     if (creates.length) await actor.createEmbeddedDocuments("ActiveEffect", creates);

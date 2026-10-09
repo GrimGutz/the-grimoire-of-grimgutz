@@ -5,6 +5,9 @@ export function passiveEffectSignature(effect) {
     img: data?.img,
     disabled: data?.disabled,
     showIcon: data?.showIcon,
+    origin: data?.origin ?? null,
+    statuses: [...(data?.statuses ?? [])].sort(),
+    duration: data?.duration,
     system: data?.system
   });
 }
@@ -49,9 +52,12 @@ export async function syncFlaggedPassiveEffects(actor, syncSet, moduleId, flag, 
       definitions(actor).map(effect => [flaggedPassiveSource(moduleId, flag, effect), effect])
     );
     const existing = new Map();
+    const deletes = [];
     for (const effect of actor.effects ?? []) {
       const source = flaggedPassiveSource(moduleId, flag, effect);
-      if (source) existing.set(source, effect);
+      if (!source) continue;
+      if (existing.has(source)) deletes.push(effect.id);
+      else existing.set(source, effect);
     }
 
     const creates = [];
@@ -66,7 +72,7 @@ export async function syncFlaggedPassiveEffects(actor, syncSet, moduleId, flag, 
       existing.delete(key);
     }
 
-    const deletes = [...existing.values()].map(effect => effect.id);
+    deletes.push(...[...existing.values()].map(effect => effect.id));
     if (deletes.length) await actor.deleteEmbeddedDocuments("ActiveEffect", deletes);
     if (updates.length) await actor.updateEmbeddedDocuments("ActiveEffect", updates);
     if (creates.length) await actor.createEmbeddedDocuments("ActiveEffect", creates);
