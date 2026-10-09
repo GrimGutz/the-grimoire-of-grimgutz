@@ -8,43 +8,49 @@ export const auraKey = (definition, token) => `${definition.id}:${token.document
 
 export function auraIndicatorData(definition, token, scene) {
   const radius = feetToSceneUnits(definition.radius, scene), size = Number(scene.grid.size ?? 100);
-  const center = token.center ?? token.document.getCenterPoint();
+  // Prepared token coordinates/center are animated. Attached Regions are stored
+  // at the committed destination; Foundry animates their rendering alongside
+  // the token. Writing an intermediate center fights that native attachment.
+  const doc = token.document, source = doc._source ?? doc;
+  const center = { x: Number(source.x ?? 0) + Number(source.width ?? 1) * size / 2,
+    y: Number(source.y ?? 0) + Number(source.height ?? 1) * size / 2 };
   const color = definition.indicatorColor ?? "#7f5cff";
   const flags = { [MODULE_ID]: { [AURA_INDICATOR_FLAG]: true, [FLAGS.AURA_EFFECT]: definition.id,
     [FLAGS.AURA_SOURCE]: token.document?.uuid ?? token.id, [FLAGS.AURA_KEY]: auraKey(definition, token),
     auraName: definition.name, sourceActor: token.actor.uuid, auraRadius: definition.radius } };
   if (!scene.regions) return { t: "circle", author: game.user.id, x: center.x, y: center.y, direction: 0,
-    distance: radius, hidden: Boolean(token.document.hidden), borderColor: color, fillColor: color, flags };
+    distance: radius, hidden: Boolean(source.hidden), borderColor: color, fillColor: color, flags };
   const radiusPixels = radius / Number(scene.grid.distance ?? 5) * size;
-  let shapes;
-  if (scene.grid.type !== 0) {
-    // A union over occupied spaces is a true emanation from a large token;
-    // gridBased circles use Foundry's own grid/diagonal rules.
-    shapes = tokenOccupiedPoints(token, scene).map(point => ({ type: "circle", x: point.x, y: point.y, radius: radiusPixels, gridBased: true }));
-  } else {
-    const doc = token.document, width = Number(token.w ?? (doc.width ?? 1) * size), height = Number(token.h ?? (doc.height ?? 1) * size);
-    const x = center.x - width / 2, y = center.y - height / 2;
-    shapes = [{ type: "rectangle", x: x - radiusPixels, y, width: width + 2 * radiusPixels, height, rotation: 0, anchorX: 0, anchorY: 0 },
-      { type: "rectangle", x, y: y - radiusPixels, width, height: height + 2 * radiusPixels, rotation: 0, anchorX: 0, anchorY: 0 },
-      ...[[x, y], [x + width, y], [x, y + height], [x + width, y + height]]
-        .map(([x, y]) => ({ type: "circle", x, y, radius: radiusPixels, gridBased: false }))];
-  }
-  const elevation = Number(token.document.elevation ?? 0);
+  const shapes = [{ type: "circle", ...center, radius: radiusPixels, gridBased: false }];
+  const elevation = Number(source.elevation ?? 0);
   return { name: definition.name, color, shapes, elevation: { bottom: elevation - radius, top: elevation + radius, topInclusive: true },
-    attachment: { token: token.document.id }, hidden: Boolean(token.document.hidden), locked: true,
-    visibility: globalThis.CONST?.REGION_VISIBILITY?.ALWAYS ?? 2, highlightMode: "coverage", displayMeasurements: false,
+    attachment: { token: doc.id }, hidden: Boolean(source.hidden), locked: true,
+    visibility: globalThis.CONST?.REGION_VISIBILITY?.ALWAYS ?? 2, highlightMode: "shapes", displayMeasurements: false,
     restriction: { enabled: false }, behaviors: [], ownership: { [game.user.id]: 3 }, flags };
 }
 
-function signature(document) {
+function comparableData(document) {
   const data = document?.toObject?.() ?? document;
   const shapes = data.shapes?.map(shape => ({ type: shape.type, x: shape.x, y: shape.y,
     ...(shape.type === "circle" ? { radius: shape.radius, gridBased: Boolean(shape.gridBased) }
       : { width: shape.width, height: shape.height, rotation: Number(shape.rotation ?? 0), anchorX: Number(shape.anchorX ?? 0), anchorY: Number(shape.anchorY ?? 0) }),
     hole: Boolean(shape.hole) }));
-  return JSON.stringify({ ...Object.fromEntries(["name", "t", "x", "y", "distance", "color", "borderColor", "fillColor",
+  return { ...Object.fromEntries(["name", "t", "x", "y", "distance", "color", "borderColor", "fillColor",
     "elevation", "attachment", "hidden", "locked", "visibility", "highlightMode", "displayMeasurements"].map(key => [key, data[key]])),
-    shapes, flags: data.flags?.[MODULE_ID] ?? {} });
+    shapes, flags: data.flags?.[MODULE_ID] ?? {} };
+}
+
+function indicatorChanges(document, data) {
+  const current = comparableData(document), desired = comparableData(data), changes = {};
+  for (const [key, value] of Object.entries(desired)) {
+    if (key === "flags") {
+      for (const [flag, flagValue] of Object.entries(value)) if (current.flags[flag] !== flagValue)
+        changes[`flags.${MODULE_ID}.${flag}`] = flagValue;
+    } else if (value !== undefined && JSON.stringify(current[key]) !== JSON.stringify(value)) changes[key] = data[key];
+  }
+  // Sending unchanged attachment resets Region animation, even on a color or
+  // name update. Never submit unchanged shapes/elevation/attachment fields.
+  return changes;
 }
 
 export async function reconcileAuraIndicators(desired, scene) {
@@ -59,7 +65,10 @@ export async function reconcileAuraIndicators(desired, scene) {
   for (const [key, data] of desired) {
     const current = existing.get(key);
     if (!current) creates.push(data);
-    else if (signature(current) !== signature(data)) updates.push({ _id: current.id, ...data });
+    else {
+      const changes = indicatorChanges(current, data);
+      if (Object.keys(changes).length) updates.push({ _id: current.id, ...changes });
+    }
     existing.delete(key);
   }
   deletes.push(...[...existing.values()].map(doc => doc.id));

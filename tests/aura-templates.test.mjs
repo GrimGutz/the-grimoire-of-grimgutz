@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
 import { FLAGS, MODULE_ID } from "../scripts/automation/shared/constants.mjs";
-import { syncSceneAuras } from "../scripts/automation/shared/auras.mjs";
-import { auraIndicatorData } from "../scripts/automation/shared/aura-templates.mjs";
+import { syncSceneAuras, installAuraHooks } from "../scripts/automation/shared/auras.mjs";
+import { auraIndicatorData, reconcileAuraIndicators, auraKey } from "../scripts/automation/shared/aura-templates.mjs";
 
 let scene, calls, serial = 0;
 function doc(data) {
@@ -45,7 +45,8 @@ test("native Region is attached, follows its source and removes debuffs on exit 
   const a = token(source, "source", 0), b = token(target, "target", 200, -1); populate(a, b);
   await syncSceneAuras();
   assert.equal(scene.regions.length, 1); assert.equal(scene.regions[0].attachment.token, "source");
-  assert.equal(scene.regions[0].locked, true); assert.equal(scene.regions[0].shapes[0].gridBased, true);
+  assert.equal(scene.regions[0].locked, true); assert.equal(scene.regions[0].shapes[0].gridBased, false);
+  assert.equal(scene.regions[0].highlightMode, "shapes");
   assert.equal(source.effects.length, 1); assert.equal(target.effects[0].system.changes[0].value, "slashing"); // "Any creature" includes the owner.
   calls.length = 0; await syncSceneAuras(); assert.deepEqual(calls, []); // Native defaults do not cause update loops.
   a.document.x = 1000; a.center.x = 1050; await syncSceneAuras();
@@ -69,12 +70,59 @@ test("enlightenment grants checks to friends only, and hidden source does not re
   assert.equal(scene.regions[0].hidden, true); assert.equal(ally.effects[0].flags[MODULE_ID][FLAGS.AURA_SOURCE], own.document.uuid);
 });
 
-test("large-token emanation includes each occupied space and uses metric scene units", () => {
+test("aura is a single smooth circle centered on a large token in metric units on every grid", () => {
   scene.grid.units = "m"; scene.grid.distance = 1.524;
   const source = token(actor("large"), "large", 0, 1, 2);
-  const data = auraIndicatorData({ id: "test", name: "Aura", radius: 5 }, source, scene);
-  assert.equal(data.shapes.length, 2); assert.ok(data.shapes.every(shape => Math.abs(shape.radius - 100) < 0.001));
-  assert.deepEqual(data.shapes.map(shape => shape.x), [50, 150]); assert.equal(data.attachment.token, "large");
+  for (const type of [0, 1, 2, 3]) {
+    scene.grid.type = type;
+    const data = auraIndicatorData({ id: "test", name: "Aura", radius: 5 }, source, scene);
+    assert.equal(data.shapes.length, 1); assert.ok(Math.abs(data.shapes[0].radius - 100) < 0.001);
+    assert.equal(data.shapes[0].type, "circle"); assert.equal(data.shapes[0].gridBased, false);
+    assert.equal(data.shapes[0].x, 100); assert.equal(data.attachment.token, "large");
+  }
+});
+
+test("native attachment is not rewritten using an intermediate animation position", async () => {
+  const source = token(actor("source"), "source", 0), definition = { id: "test", name: "Aura", radius: 5 };
+  source.document._source = { ...source.document, x: 1000, elevation: 20 };
+  const desired = auraIndicatorData(definition, source, scene);
+  assert.equal(desired.shapes[0].x, 1050); assert.equal(desired.elevation.bottom, 15);
+  await reconcileAuraIndicators(new Map([[auraKey(definition, source), desired]]), scene);
+  calls.length = 0;
+  // Foundry already moved the attached Region to the committed destination;
+  // token.center and its prepared document fields are still mid-animation.
+  source.center.x = 250; source.document.x = 200; source.document.elevation = 4;
+  await reconcileAuraIndicators(new Map([[auraKey(definition, source), auraIndicatorData(definition, source, scene)]]), scene);
+  assert.deepEqual(calls, []);
+  let patch;
+  const update = scene.updateEmbeddedDocuments.bind(scene);
+  scene.updateEmbeddedDocuments = async (type, data) => { patch = data[0]; return update(type, data); };
+  definition.indicatorColor = "#ff0000";
+  await reconcileAuraIndicators(new Map([[auraKey(definition, source), auraIndicatorData(definition, source, scene)]]), scene);
+  assert.equal(patch.color, "#ff0000"); assert.equal(patch.attachment, undefined);
+  assert.equal(patch.shapes, undefined); assert.equal(patch.elevation, undefined);
+});
+
+test("circle membership is not contradicted by a second grid-distance calculation", async () => {
+  const source = actor("gutz", "аура-просвещения-1"), ally = actor("ally");
+  populate(token(source, "gutz", 0), token(ally, "ally", 100));
+  canvas.grid = { measurePath: () => ({ distance: 1000 }) };
+  await syncSceneAuras(); assert.equal(ally.effects.length, 1);
+});
+
+test("registered movement hook rechecks membership after native token animation completes", async () => {
+  const handlers = new Map(); let timers = 0, finish;
+  globalThis.Hooks = { once() {}, on(name, handler) { handlers.set(name, handler); } };
+  globalThis.window = { setTimeout() { return ++timers; }, clearTimeout() {} };
+  try {
+    installAuraHooks(); scene.documentName = "Scene";
+    const source = token(actor("source"), "source", 0);
+    source.document.parent = scene;
+    source.document.object = { movementAnimationPromise: new Promise(resolve => { finish = resolve; }) };
+    handlers.get("updateToken")(source.document, { x: 200 });
+    await Promise.resolve(); assert.equal(timers, 1);
+    finish(); await Promise.resolve(); assert.equal(timers, 2);
+  } finally { delete globalThis.Hooks; delete globalThis.window; }
 });
 
 test("a dead NPC stops projecting buffs even when automatic dead-status marking is disabled", async () => {

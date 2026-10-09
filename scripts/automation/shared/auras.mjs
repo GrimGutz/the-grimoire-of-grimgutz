@@ -132,8 +132,7 @@ function targetsForAura(definition, sourceToken, tokens = activeTokens(), scene 
     && relationMatches(definition, sourceToken, targetToken)
     && targetTypeMatches(definition, targetToken)
     && (!definition.targetCondition || definition.targetCondition(sourceToken, targetToken))
-    && (!inside || inside.has(targetToken))
-    && tokenDistance(sourceToken, targetToken, scene) <= feetToSceneUnits(definition.radius ?? 0, scene)
+    && (inside ? inside.has(targetToken) : tokenDistance(sourceToken, targetToken, scene) <= feetToSceneUnits(definition.radius ?? 0, scene))
   );
 }
 
@@ -360,6 +359,13 @@ export function installAuraHooks() {
   Hooks.on("updateToken", (_tokenDocument, changes) => {
     if (["x", "y", "elevation", "hidden", "disposition", "width", "height"].some(key => Object.hasOwn(changes, key))) {
       scheduleAuraSync(_tokenDocument);
+      // Native Region animation handles every visual frame. Recheck mechanical
+      // membership once at the final position, not with an actor sweep per frame.
+      queueMicrotask(() => {
+        const animation = _tokenDocument.object?.movementAnimationPromise;
+        if (animation) void animation.then(() => scheduleAuraSync(_tokenDocument))
+          .catch(error => console.error(`${MODULE_ID} | Aura movement sync failed`, error));
+      });
     }
   });
   Hooks.on("createActiveEffect", scheduleAuraSync);

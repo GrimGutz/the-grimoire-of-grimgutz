@@ -132,8 +132,8 @@ export function createAuraEventEngine({ synchronize, framesForScene, tokensForSc
         for (const frame of framesForScene(scene)) {
           if (!frame.isActive() || !frame.definition.events?.some(event => event.trigger === "death")) continue;
           const eligible = tokensInAuraTemplate(frame.template, frame.sourceToken, deceased, scene, { native: false });
-          const inRange = deceased.some(token => tokenUuid(token) !== tokenUuid(frame.sourceToken) && (!eligible || eligible.has(token))
-            && tokenSceneDistance(frame.sourceToken, token, scene) <= feetToSceneUnits(frame.definition.radius, scene));
+          const inRange = deceased.some(token => tokenUuid(token) !== tokenUuid(frame.sourceToken) && (eligible ? eligible.has(token)
+            : tokenSceneDistance(frame.sourceToken, token, scene) <= feetToSceneUnits(frame.definition.radius, scene)));
           if (!inRange) continue;
           const sourceItem = auraFeature(frame.sourceToken.actor, frame.definition), npc = itemIdentifier(sourceItem) === "аура-опустоше-нных-душ-6";
           if (npc && ["undead", "construct"].includes(corpse.type)) continue;
