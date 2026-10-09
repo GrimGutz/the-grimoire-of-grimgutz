@@ -22,3 +22,18 @@ test("NPC aura notes use canonical config and are not duplicated on reconfigurat
   assert.deepEqual(items.map(item => item.system.description.value), before);
   for (const item of items) assert.equal(item.flags[MODULE_ID].automation.data.auraDefinitionId, item.flags[MODULE_ID].auraDefinitionId);
 });
+
+test("demonic vitality card identifies its aura and documents native retaliation, not a reminder roll", () => {
+  const card = features.find(item => item.system.identifier === "demonic-vitality");
+  assert.equal(card.flags[MODULE_ID].automation.data.auraDefinitionId, "demonologist-vitality");
+  assert.ok(card.system.description.value.includes("иммунитет сохраняется"));
+  assert.ok(card.system.description.value.includes("привязанный к токену"));
+  assert.equal(card.system.description.value.includes("выводится в чат как напоминание"), false);
+});
+
+test("divine devotion keeps its self-immunity and identifies its separate ally aura", () => {
+  const card = features.find(item => item.system.identifier === "divine-devotion");
+  assert.equal(card.flags[MODULE_ID].automation.data.auraDefinitionId, "crusader-divine-devotion");
+  assert.ok(card.system.description.value.includes("преимущество только на спасброски от смерти"));
+  assert.deepEqual(card.effects[0].system.changes.map(change => change.value), ["frightened", "charmed"]);
+});
