@@ -7,6 +7,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { isEffectActive } from "../effects/temporary-effects.mjs";
 
 const gamblerSyncs = new Set();
 
@@ -112,7 +113,8 @@ function sleevedCardEffect(actor) {
 }
 
 function acesCooldownEffect(actor) {
-  return effectByFlag(actor, FLAGS.GAMBLER_ACES_COOLDOWN_EFFECT);
+  const effect = effectByFlag(actor, FLAGS.GAMBLER_ACES_COOLDOWN_EFFECT);
+  return isEffectActive(effect) ? effect : null;
 }
 
 function cardFromEffect(effect) {

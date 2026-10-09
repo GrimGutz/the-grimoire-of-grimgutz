@@ -263,6 +263,10 @@ export async function useWitchBladeSealEvil(actor, activity) {
     notify("Эта активность требует класс «Ведьмин клинок».", "warn");
     return false;
   }
+  if (![...(game.user?.targets ?? [])].some(token => token.actor)) {
+    notify("Выберите цели, провалившие спасбросок Печати, перед расходом Очков Гнева.", "warn");
+    return false;
+  }
   if (!await useWitchBladeRage(actor, activity)) return false;
 
   const feature = findFeature(actor, "witch-blade-seal");

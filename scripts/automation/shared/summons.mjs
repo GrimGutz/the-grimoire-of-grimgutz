@@ -424,7 +424,8 @@ function summonedActor(owner, summon) {
     actor.getFlag(MODULE_ID, "summoned") === true
     && actor.getFlag(MODULE_ID, "summonedBy") === owner.uuid
     && (actor.getFlag(MODULE_ID, "summonFamily") === (summon.uniqueGroup ?? summon.source ?? summon.kind)
-      || actor.getFlag(MODULE_ID, "summonKind") === summon.kind)
+      || actor.getFlag(MODULE_ID, "summonKind") === summon.kind
+      || (!actor.getFlag(MODULE_ID, "summonFamily") && summon.source && actor.getFlag(MODULE_ID, "summonSource") === summon.source))
   ));
 }
 

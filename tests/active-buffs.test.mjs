@@ -4,9 +4,30 @@ import { FLAGS, MODULE_ID } from "../scripts/automation/shared/constants.mjs";
 import { activeWeaponBuffs } from "../scripts/automation/shared/weapon-buffs.mjs";
 import { applyDarkWarriorDamageAutomation } from "../scripts/automation/classes/dark-warrior.mjs";
 import { beginDemonologistTurn } from "../scripts/automation/classes/demonologist.mjs";
+import { forestRootEffect } from "../scripts/automation/classes/forest-lord.mjs";
+import { rollDevilGlaiveDamage } from "../scripts/automation/classes/devil-worshipper.mjs";
+import { useWitchBladeSealEvil } from "../scripts/automation/classes/witch-blade.mjs";
 
 beforeEach(() => {
   globalThis.game = { user: { id: "gm" }, users: { activeGM: { id: "gm" } }, settings: { get: () => true } };
+  globalThis.ui = { notifications: { info() {}, warn() {} } };
+});
+
+test("suppressed roots and expired devil glaives are not usable active states", async () => {
+  assert.equal(forestRootEffect({ effects: [buff(FLAGS.FOREST_ROOT_EFFECT, { isSuppressed: true })] }), undefined);
+  const actor = { items: [{ type: "class", system: { identifier: "devil-worshipper" } }],
+    effects: [buff(FLAGS.DEVIL_GLAIVE_EFFECT, { expired: true })] };
+  assert.equal(await rollDevilGlaiveDamage(actor), false);
+});
+
+test("an evil seal with no selected targets does not spend Rage", async () => {
+  game.user.targets = new Set();
+  let writes = 0;
+  const actor = { items: [{ type: "class", system: { identifier: "witch-blade", levels: 3 } },
+    { system: { identifier: "witch-hunter", uses: { spent: 0 } }, async update() { writes++; } }],
+    system: { attributes: { prof: 3 }, abilities: { int: { mod: 2 } } } };
+  assert.equal(await useWitchBladeSealEvil(actor, {}), false);
+  assert.equal(writes, 0);
 });
 
 function buff(flag, { disabled = false, expired = false, isSuppressed = false } = {}) {

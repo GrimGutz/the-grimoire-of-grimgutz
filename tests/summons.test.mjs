@@ -62,6 +62,15 @@ test("concurrent unique summons create only one actor and token", async () => {
   assert.equal(creations[0].system.attributes.hp.formula, "2 * 10");
 });
 
+test("changing a legacy familiar form reuses the same unique ally", async () => {
+  const original = await createSummonedCreature(owner, { ...summon, kind: "familiar-spider", source: "insect-familiar" });
+  delete original.flags[MODULE_ID].summonFamily;
+  delete original.flags[MODULE_ID].summonManaged;
+  const changed = await createSummonedCreature(owner, { ...summon, kind: "familiar-scorpion", source: "insect-familiar" });
+  assert.equal(changed, original);
+  assert.equal(creations.length, 1);
+});
+
 test("failed actor creation does not attempt token placement and permits a retry", async () => {
   const original = Actor.create;
   Actor.create = async () => undefined;

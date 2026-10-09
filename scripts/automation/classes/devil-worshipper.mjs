@@ -11,6 +11,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
 import { createSummonedCreature } from "../shared/summons.mjs";
 import { impFamiliarSummon } from "../shared/summon-templates.mjs";
@@ -341,7 +342,7 @@ export async function rollDevilGlaiveDamage(actor) {
     notify("Эта активность требует класс «Дьяволопоклонник».", "warn");
     return false;
   }
-  if (!devilGlaiveEffect(actor)) {
+  if (!isEffectActive(devilGlaiveEffect(actor))) {
     notify("Сначала призовите Дьявольскую гвизарму.", "warn");
     return false;
   }
@@ -360,7 +361,7 @@ export async function rollDevilGlaiveGrappleDamage(actor) {
     notify("Эта активность требует класс «Дьяволопоклонник».", "warn");
     return false;
   }
-  if (!devilGlaiveEffect(actor)) {
+  if (!isEffectActive(devilGlaiveEffect(actor))) {
     notify("Сначала призовите Дьявольскую гвизарму.", "warn");
     return false;
   }

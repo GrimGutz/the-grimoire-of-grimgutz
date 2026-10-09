@@ -7,6 +7,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
+import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
 import {
   druidClass,
@@ -89,8 +90,8 @@ export async function rollForestUnarmedDamage(actor) {
   return true;
 }
 
-export function forestRootEffect(actor) {
-  return actor?.effects?.find(effect => effect.getFlag(MODULE_ID, FLAGS.FOREST_ROOT_EFFECT));
+export function forestRootEffect(actor, { activeOnly = true } = {}) {
+  return actor?.effects?.find(effect => effect.getFlag(MODULE_ID, FLAGS.FOREST_ROOT_EFFECT) && (!activeOnly || isEffectActive(effect)));
 }
 
 function darkGuardEffect(actor) {
@@ -224,7 +225,7 @@ export async function takeRoot(actor) {
     notify(`${actor.name} уже укоренён.`, "warn");
     return false;
   }
-  await actor.createEmbeddedDocuments("ActiveEffect", [{
+  const data = {
     name: "Пустить корни",
     img: "icons/magic/nature/root-vines-face-glow-green.webp",
     origin: findFeature(actor, "take-root")?.uuid,
@@ -246,13 +247,16 @@ export async function takeRoot(actor) {
         { key: "system.attributes.movement.swim", type: "override", value: "0", phase: "final", priority: 100 }
       ]
     }
-  }]);
+  };
+  const existing = forestRootEffect(actor, { activeOnly: false });
+  if (existing) await existing.update(data, { [MODULE_ID]: { reactivate: true } });
+  else await actor.createEmbeddedDocuments("ActiveEffect", [data]);
   notify(`${actor.name} пустил корни: скорость 0, эффективная Ловкость 1.`);
   return true;
 }
 
 export async function withdrawRoots(actor) {
-  const effect = forestRootEffect(actor);
+  const effect = forestRootEffect(actor, { activeOnly: false });
   if (!effect) {
     notify(`${actor?.name ?? "Персонаж"} не укоренён.`, "warn");
     return false;
