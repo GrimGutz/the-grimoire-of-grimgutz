@@ -155,11 +155,7 @@ export async function activateSpiritForm(actor) {
     },
     duration: {
       seconds: 60,
-      startTime: game.time?.worldTime ?? 0,
-      value: 1,
-      units: "minute",
-      expiry: null,
-      expired: false
+      startTime: game.time?.worldTime ?? 0
     },
     system: { changes }
   };

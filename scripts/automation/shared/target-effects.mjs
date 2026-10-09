@@ -25,23 +25,15 @@ function statusIcon(status) {
 
 function durationData({ seconds = null, rounds = null, turns = null } = {}) {
   const data = {
-    startTime: game.time?.worldTime ?? 0,
-    value: null,
-    units: "",
-    expiry: null,
-    expired: false
+    startTime: game.time?.worldTime ?? 0
   };
   if (seconds != null) {
     data.seconds = Number(seconds);
-    data.value = Number(seconds) >= 3600 ? Number(seconds) / 3600 : Number(seconds) / 60;
-    data.units = Number(seconds) >= 3600 ? "hour" : "minute";
   }
   if (rounds != null) {
     data.rounds = Number(rounds);
     data.startRound = game.combat?.round ?? null;
     data.startTurn = game.combat?.turn ?? null;
-    data.value ??= Number(rounds);
-    data.units ||= "round";
   }
   if (turns != null) {
     data.turns = Number(turns);

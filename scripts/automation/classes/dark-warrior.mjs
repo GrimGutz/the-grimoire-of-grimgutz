@@ -148,11 +148,7 @@ export async function applyBlackMagicOil(actor) {
     },
     duration: {
       seconds: 60,
-      startTime: game.time?.worldTime ?? 0,
-      value: 1,
-      units: "minute",
-      expiry: null,
-      expired: false
+      startTime: game.time?.worldTime ?? 0
     },
     system: { changes: [] }
   };
@@ -197,11 +193,7 @@ function elixirData(actor, feature, type) {
     },
     duration: {
       seconds: 3600,
-      startTime: game.time?.worldTime ?? 0,
-      value: 1,
-      units: "hour",
-      expiry: null,
-      expired: false
+      startTime: game.time?.worldTime ?? 0
     }
   };
   switch (type) {

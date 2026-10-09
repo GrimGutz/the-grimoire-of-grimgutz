@@ -134,11 +134,7 @@ export async function activateMiniMythal(actor) {
     },
     duration: {
       seconds: 60,
-      startTime: game.time?.worldTime ?? 0,
-      value: 1,
-      units: "minute",
-      expiry: null,
-      expired: false
+      startTime: game.time?.worldTime ?? 0
     },
     system: { changes: [] }
   };
@@ -202,11 +198,7 @@ export async function castNethereseGreatSpell(actor, activity) {
     },
     duration: {
       seconds: 864000,
-      startTime: game.time?.worldTime ?? 0,
-      value: 10,
-      units: "day",
-      expiry: null,
-      expired: false
+      startTime: game.time?.worldTime ?? 0
     },
     system: { changes: [] }
   };

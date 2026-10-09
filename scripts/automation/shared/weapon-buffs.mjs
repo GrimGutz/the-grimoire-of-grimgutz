@@ -8,12 +8,8 @@ import {
 
 function effectDuration({ seconds = 60, rounds = null, turns = null } = {}) {
   const duration = {
-    seconds,
-    startTime: game.time?.worldTime ?? 0,
-    value: seconds >= 3600 ? seconds / 3600 : seconds / 60,
-    units: seconds >= 3600 ? "hour" : "minute",
-    expiry: null,
-    expired: false
+    seconds: Number(seconds),
+    startTime: game.time?.worldTime ?? 0
   };
   if (rounds != null) {
     duration.rounds = Number(rounds);
