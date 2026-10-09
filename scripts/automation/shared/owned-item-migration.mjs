@@ -26,14 +26,17 @@ export function ownedItemMigrationPlan(item, source) {
   const previous = current.flags?.[MODULE_ID]?.managedItemFields ?? {};
   const snapshots = { ...previous }, update = { _id: item.id }, conflicts = [];
   let effects = null;
+  const advancements = data => (data.system?.advancement ?? []).map(({ value, ...definition }) => definition);
   const fields = {
     "system.description": [current.system?.description, next.system?.description],
     "system.activities": [current.system?.activities, next.system?.activities],
-    effects: [current.effects ?? [], next.effects ?? []]
+    effects: [current.effects ?? [], next.effects ?? []],
+    "system.advancement": [advancements(current), advancements(next)]
   };
   for (const [field, [before, after]] of Object.entries(fields)) {
     const fingerprint = migrationFingerprint(before), desired = migrationFingerprint(after);
     if (fingerprint === desired) snapshots[field] = fingerprint;
+    else if (field === "system.advancement") conflicts.push({ field, reason: "advancement-requires-review" });
     else if (previous[field] === fingerprint) {
       if (field === "effects") effects = after;
       else update[field] = after;

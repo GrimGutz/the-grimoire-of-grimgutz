@@ -19,6 +19,17 @@ test("legacy edited descriptions and activities are not silently replaced", asyn
   assert.ok(updates.every(update => !Object.keys(update).some(key => key.startsWith("system."))));
 });
 
+test("advancement changes require review and never erase existing choices", () => {
+  const item = { id: "one", flags: {}, system: { advancement: [{ _id: "grant", type: "ItemChoice", configuration: { allowDrops: true }, value: { added: { 6: "Chosen.Item.uuid" } } }] } };
+  const source = structuredClone(item); source.system.advancement[0].value = { added: {} };
+  assert.equal(ownedItemMigrationPlan(item, source).conflicts.length, 0);
+  source.system.advancement[0].configuration.allowDrops = false;
+  const plan = ownedItemMigrationPlan(item, source);
+  assert.deepEqual(plan.conflicts, [{ field: "system.advancement", reason: "advancement-requires-review" }]);
+  assert.equal(plan.update?.["system.advancement"], undefined);
+  assert.equal(item.system.advancement[0].value.added[6], "Chosen.Item.uuid");
+});
+
 test("only unchanged snapshotted fields receive future rules updates", () => {
   const item = { id: "one", flags: {}, system: { description: { value: "Original" }, activities: {} }, effects: [] };
   const source = structuredClone(item);
