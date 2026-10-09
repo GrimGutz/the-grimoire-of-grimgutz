@@ -144,3 +144,15 @@ test("demonic vitality circle exists only for an active root and does not need a
   root.duration.expired = false; await syncSceneAuras(); assert.equal(scene.regions.length, 1);
   assert.equal(source.items[0].system.uses.spent, 1);
 });
+
+test("divine devotion grants only allies death-save advantage, including unconscious allies, and removes it on exit", async () => {
+  const source = actor("crusader", "divine-devotion"), ally = actor("ally"), enemy = actor("enemy");
+  ally.statuses.add("unconscious");
+  const friend = token(ally, "ally", 200);
+  populate(token(source, "crusader", 0), friend, token(enemy, "enemy", 100, -1));
+  await syncSceneAuras(); assert.equal(scene.regions.length, 1);
+  assert.equal(ally.effects.length, 1);
+  assert.deepEqual(ally.effects[0].system.changes, [{ key: "flags.midi-qol.advantage.deathSave", value: "true", type: "override", phase: "initial", priority: 20 }]);
+  assert.equal(source.effects.length, 0); assert.equal(enemy.effects.length, 0);
+  friend.document.x = 1000; friend.center.x = 1050; await syncSceneAuras(); assert.equal(ally.effects.length, 0);
+});

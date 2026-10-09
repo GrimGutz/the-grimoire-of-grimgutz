@@ -46,6 +46,12 @@ export const AURA_DEFINITIONS = [
       { trigger: "meleeAttempt", damage: [{ formula: "1d6", type: "fire" }] }]
   },
   {
+    id: "crusader-divine-devotion", name: "Божественная преданность", radius: 30, indicatorColor: "#f6d67b",
+    sourceFeature: "divine-devotion", affects: "allies", sourceCondition: token => !isAuraDefeated(token),
+    effect: token => ({ name: "Божественная преданность: спасброски от смерти", img: findFeature(token.actor, "divine-devotion")?.img,
+      changes: [change("flags.midi-qol.advantage.deathSave", "true", "override")] })
+  },
+  {
     id: "demonologist-vitality", name: "Демоническая живучесть", radius: 5, indicatorColor: "#e33e22",
     activityFeature: "demonic-vitality", sourceEffectFlag: FLAGS.DEMONOLOGIST_VITALITY_EFFECT, affects: "nonSelf",
     events: [{ trigger: "meleeAttempt", requiresInside: true, damage: [{ formula: "3d10", type: "fire" }], ignoreTraits: ["idr.fire"] }]
