@@ -12,6 +12,10 @@ export function passiveEffectSignature(effect) {
   });
 }
 
+export function normalizedPassiveSignature(current, data) {
+  return passiveEffectSignature(current?.clone?.(data) ?? data);
+}
+
 export function flaggedPassiveSource(moduleId, flag, effect) {
   return effect?.getFlag?.(moduleId, flag) ?? effect?.flags?.[moduleId]?.[flag];
 }
@@ -67,7 +71,7 @@ export async function syncFlaggedPassiveEffects(actor, syncSet, moduleId, flag, 
       const guarded = guardPassiveChanges(current, data, moduleId);
       if (!current) {
         creates.push(guarded);
-      } else if (guarded && (passiveEffectSignature(current) !== passiveEffectSignature(guarded)
+      } else if (guarded && (passiveEffectSignature(current) !== normalizedPassiveSignature(current, guarded)
         || !current.flags?.[moduleId]?.managedPassiveChanges)) {
         updates.push({ _id: current.id, ...guarded });
       }
@@ -91,8 +95,17 @@ export function guardPassiveChanges(current, data, moduleId) {
   const currentHash = migrationFingerprint(changes), desiredHash = migrationFingerprint(desired);
   const previous = current?.getFlag?.(moduleId, "managedPassiveChanges") ?? current?.flags?.[moduleId]?.managedPassiveChanges;
   if (current && currentHash !== desiredHash && previous !== currentHash) return null;
-  return { ...data, disabled: current?.disabled ?? data.disabled,
-    flags: { ...data.flags, [moduleId]: { ...data.flags?.[moduleId], managedPassiveChanges: desiredHash } } };
+  const presentation = { ...(current?.getFlag?.(moduleId, "managedPassivePresentation") ?? current?.flags?.[moduleId]?.managedPassivePresentation) };
+  const result = { ...data, disabled: current?.disabled ?? data.disabled };
+  const currentData = current?.toObject?.() ?? current;
+  for (const field of ["name", "img", "description", "statuses"]) {
+    if (!(field in data)) continue;
+    const before = migrationFingerprint(currentData?.[field]), after = migrationFingerprint(normalized[field]);
+    if (current && before !== after && presentation[field] !== before) result[field] = currentData[field];
+    else presentation[field] = after;
+  }
+  result.flags = { ...data.flags, [moduleId]: { ...data.flags?.[moduleId], managedPassiveChanges: desiredHash, managedPassivePresentation: presentation } };
+  return result;
 }
 
 export async function recordPassiveSnapshots(actor, documents, moduleId) {

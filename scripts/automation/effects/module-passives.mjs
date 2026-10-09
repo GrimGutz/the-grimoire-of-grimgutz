@@ -1,6 +1,6 @@
 import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
 import { automationData, isAutomationAuthority, itemIdentifier } from "../shared/helpers.mjs";
-import { guardPassiveChanges, passiveEffectSignature, recordPassiveSnapshots } from "./passive-helpers.mjs";
+import { guardPassiveChanges, normalizedPassiveSignature, passiveEffectSignature, recordPassiveSnapshots } from "./passive-helpers.mjs";
 
 const passiveEffectSyncs = new Set();
 let migrationSourcesPromise;
@@ -110,7 +110,7 @@ export async function syncModulePassiveEffects(actor) {
         creates.push(guarded);
         continue;
       }
-      if (guarded && (passiveEffectSignature(current) !== passiveEffectSignature(guarded)
+      if (guarded && (passiveEffectSignature(current) !== normalizedPassiveSignature(current, guarded)
         || !current.flags?.[MODULE_ID]?.managedPassiveChanges)) {
         updates.push({ _id: current.id, ...guarded });
       }

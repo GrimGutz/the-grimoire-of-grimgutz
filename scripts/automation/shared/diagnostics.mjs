@@ -1,5 +1,5 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "./constants.mjs";
-import { automationAction, automationConfig, automationData, itemIdentifier } from "./helpers.mjs";
+import { automationAction, automationConfig, automationData, findFeature, itemIdentifier } from "./helpers.mjs";
 import { isLikelyModuleItem, moduleItemSources } from "../effects/module-passives.mjs";
 import { migrationFingerprint, ownedItemMigrationPlan } from "./owned-item-migration.mjs";
 
@@ -41,16 +41,26 @@ export async function inspectAutomation(actorOrUuid, { actionHandlers = new Map(
     const source = sources.get(itemIdentifier(item));
     const migration = source && isLikelyModuleItem(item, source) ? ownedItemMigrationPlan(item, source).conflicts : [];
     const actions = values(item.system?.activities).map(activity => {
+      const actionData = automationData(activity);
       const action = automationAction(activity);
       if (!action) return null;
       const reasons = [!automationEnabled && "automation-disabled", !actionHandlers.has(action) && "unregistered-action",
         /summon|spirit-protection/.test(action) && !activeGM && "no-active-gm"].filter(Boolean);
       const consumedItems = values(activity.consumption?.targets).filter(target => target.type === "itemUses");
       for (const target of consumedItems) {
-        const resource = actor.items?.get?.(target.target) ?? item;
+        const resource = target.target ? actor.items?.get?.(target.target) ?? values(actor.items).find(candidate => candidate.id === target.target) : item;
+        if (!resource) { reasons.push("missing-resource"); continue; }
         const resourceUses = resource.system?.uses ?? {};
         const remaining = resourceUses.value ?? (Number(resourceUses.max) - Number(resourceUses.spent ?? 0));
         if (Number.isFinite(Number(remaining)) && Number(remaining) < Number(target.value ?? 1)) reasons.push("insufficient-resource");
+      }
+      for (const [field, feature] of [["witchBladeRageCost", "witch-hunter"], ["ritualistRitualPointCost", "binding-ritual"], ["hollowCost", "magic-eradicator"]]) {
+        if (actionData[field] == null) continue;
+        const resource = findFeature(actor, feature);
+        if (!resource) { reasons.push("missing-resource"); continue; }
+        const uses = resource.system?.uses ?? {}, remaining = uses.value ?? (Number(uses.max) - Number(uses.spent ?? 0));
+        const cost = actionData[field] === "all" ? 1 : Number(actionData[field]);
+        if (Number.isFinite(cost) && Number(remaining) < cost) reasons.push("insufficient-resource");
       }
       return { id: activity.id ?? activity._id, name: activity.name, action, registered: actionHandlers.has(action), reasons,
         consumption: structuredClone(activity.toObject?.().consumption ?? activity.consumption ?? {}),
