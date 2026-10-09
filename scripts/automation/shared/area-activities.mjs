@@ -161,8 +161,12 @@ export async function useAreaActivity(activity, { validate = () => true, usage =
     if (placed.some(doc => !areaPlacementAllowed(doc, source, spec, scene, origins.get(doc.uuid)))) {
       notify(spec.origin === "self" ? "Начало шаблона должно находиться на токене персонажа." : "Область находится вне дальности способности.", "warn"); return false;
     }
-    const targets = api.computeTargetsFromTemplates(placed, source.document?.uuid ?? source, spec.excludeSelf ?? false, spec.targets ?? "any", "always");
-    const allies = spec.allyTempHp ? api.computeTargetsFromTemplates(placed, source.document?.uuid ?? source, false, "ally", "always") : [];
+    // Midi 14 resolves Region UUIDs, but treats raw Region documents as
+    // MeasuredTemplate placeables and tries to read their nonexistent document.t.
+    // Keep documents for ownership/cleanup; pass native UUIDs only for targeting.
+    const templateUuids = placed.map(document => document.uuid);
+    const targets = api.computeTargetsFromTemplates(templateUuids, source.document?.uuid ?? source, spec.excludeSelf ?? false, spec.targets ?? "any", "always");
+    const allies = spec.allyTempHp ? api.computeTargetsFromTemplates(templateUuids, source.document?.uuid ?? source, false, "ally", "always") : [];
     const resolved = cloneAreaActivity(activity, spec, { resolved: true, castId });
     for (const doc of placed) await doc.update({ [`flags.${MODULE_ID}.zoneTemplate`]: true,
       [`flags.${MODULE_ID}.sourceActor`]: actor.uuid, [`flags.${MODULE_ID}.areaCastId`]: castId,

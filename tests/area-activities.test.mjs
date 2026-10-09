@@ -60,7 +60,7 @@ test("canceling preview never starts native consumption or damage", async () => 
 
 test("placement resolves geometry first, then one native save/damage workflow with both damage types", async () => {
   let geometries = 0;
-  MidiQOL.computeTargetsFromTemplates = (...args) => { geometries++; assert.equal(args[0][0], placed); return [target]; };
+  MidiQOL.computeTargetsFromTemplates = (...args) => { geometries++; assert.equal(args[0][0], placed.uuid); return [target]; };
   assert.ok(await useAreaActivity(activity, { usage: { workflow: { aborted: true }, consume: { resources: false } } }));
   assert.equal(geometries, 1); assert.equal(rolls.length, 1);
   const { input, options } = rolls[0];
@@ -77,6 +77,33 @@ test("placement resolves geometry first, then one native save/damage workflow wi
   assert.equal(item.toObject().system.activities.ability.type, "utility"); // no owned document edits
   assert.equal(input.item.toObject().system.description.value, "My rules");
   assert.deepEqual(selections.at(-1), ["old"]);
+});
+
+test("v14 Region documents reach Midi as UUIDs, never as MeasuredTemplate placeables", async () => {
+  const region = { ...placed, documentName: "Region", shapes: [{ type: "circle", x: 50, y: 50, radius: 600 }] };
+  delete region.x; delete region.y;
+  canvas.scene.regions = new Map([[region.id, region]]);
+  placed = { id: region.id, uuid: "Scene.one.MeasuredTemplate.area", documentName: "MeasuredTemplate", x: 50, y: 50 };
+  MidiQOL.computeTargetsFromTemplates = refs => {
+    // Midi 14 accepts Region UUIDs, but a raw Region enters its placeable branch
+    // and crashes on ref.document.t. A proxy must resolve to the backing Region.
+    assert.deepEqual(refs, [region.uuid]);
+    assert.equal(region.document, undefined);
+    return [target];
+  };
+  assert.ok(await useAreaActivity(activity));
+  assert.equal(rolls.length, 1);
+  assert.equal(rolls[0].options.midiOptions.workflowOptions.templateUuid, region.uuid);
+  assert.equal(region.deleted, false);
+  assert.equal(region.updateData[`flags.${MODULE_ID}.areaCastId`], "newCast");
+});
+
+test("legacy template documents also reach Midi by their native UUID", async () => {
+  placed.uuid = "Scene.one.MeasuredTemplate.area";
+  placed.documentName = "MeasuredTemplate";
+  MidiQOL.computeTargetsFromTemplates = refs => { assert.deepEqual(refs, [placed.uuid]); return [target]; };
+  assert.ok(await useAreaActivity(activity));
+  assert.equal(rolls.length, 1);
 });
 
 test("an invalid origin or a canceled native dialog removes only its new preview", async () => {
