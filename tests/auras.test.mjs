@@ -37,7 +37,7 @@ beforeEach(() => {
     actors: [], scenes: []
   };
   const scene = {
-    templates: [], tokens: [], grid: { distance: 5, size: 100 },
+    id: "one", templates: [], tokens: [], grid: { distance: 5, size: 100, units: "ft", type: 1 },
     async createEmbeddedDocuments(type, data) { this.templates.push(...data.map(document)); },
     async updateEmbeddedDocuments(type, updates) {
       for (const update of updates) Object.assign(this.templates.find(template => template.id === update._id), update);
@@ -109,4 +109,42 @@ test("expired fiend aura loses its indicator and reapplication restores it", asy
   source.effects = [];
   await syncSceneAuras();
   assert.equal(canvas.scene.templates.length, 0);
+});
+
+test("hidden sources keep applying the aura but their indicator is hidden", async () => {
+  const { target } = battleAura();
+  canvas.tokens.placeables[0].document.hidden = true;
+  await syncSceneAuras();
+  assert.equal(target.effects.length, 1);
+  assert.equal(canvas.scene.templates[0].hidden, true);
+});
+
+test("opening another scene does not remove effects belonging to the previous scene", async () => {
+  const { target } = battleAura();
+  await syncSceneAuras();
+  const original = target.effects[0].id;
+  const other = { ...canvas.scene, id: "other", templates: [], tokens: [] };
+  game.scenes.push(other); canvas.scene = other; canvas.tokens.placeables = [];
+  await syncSceneAuras();
+  assert.ok(target.effects.some(effect => effect.id === original));
+});
+
+test("overlapping masking auras grant only the strongest ally save bonus", async () => {
+  const feature = { name: "Аура маскировки", flags: { [MODULE_ID]: { feature: "masking-aura" } } };
+  const first = actor("hollow-one", [feature]), second = actor("hollow-two", [feature]), ally = actor("ally");
+  for (const [source, modifier] of [[first, 2], [second, 3]]) {
+    source.system.abilities = { con: { mod: modifier } };
+    source.effects = [document({ flags: { [MODULE_ID]: { [FLAGS.HOLLOW_PASSIVE]: "masking-aura" } } })];
+  }
+  game.actors = [first, second, ally];
+  canvas.tokens.placeables = [token(first, "hollow-one"), token(second, "hollow-two", 100), token(ally, "ally", 200)];
+  canvas.scene.tokens = canvas.tokens.placeables.map(t => ({ actor: t.actor }));
+  await syncSceneAuras();
+  const bonuses = ally.effects.filter(effect => effect.getFlag(MODULE_ID, FLAGS.AURA_EFFECT) === "hollow-masking-aura");
+  assert.equal(bonuses.length, 1);
+  assert.equal(bonuses[0].system.changes[0].value, "3");
+  canvas.tokens.placeables[1].center.x = 1000;
+  await syncSceneAuras();
+  const remaining = ally.effects.filter(effect => effect.getFlag(MODULE_ID, FLAGS.AURA_EFFECT) === "hollow-masking-aura");
+  assert.equal(remaining[0].system.changes[0].value, "2");
 });

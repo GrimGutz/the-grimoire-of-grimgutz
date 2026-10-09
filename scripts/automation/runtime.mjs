@@ -22,6 +22,14 @@ import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-life
 import { dismissRitualistSpirits, regainRitualistSpirits } from "./classes/ritualist.mjs";
 import { applySpellSourceResistance } from "./midi/spell-resistance.mjs";
 import { applySummonProtection, handleSummonSelfCost, installSummonCombatHooks, useSummonProtection } from "./shared/summon-combat.mjs";
+import { installRepeatedSaveHooks } from "./effects/repeated-saves.mjs";
+import { isForwardTurn, previousCombatActor } from "./shared/combat-flow.mjs";
+import { TRANSFORMATION_ACTIONS } from "./transformations/index.mjs";
+import { SCHOOL_OF_STEEL_ACTIONS } from "./subclasses/school-of-steel.mjs";
+import { SPIRIT_VESSEL_ACTIONS } from "./classes/spirit-vessel.mjs";
+import { ORACLE_ACTIONS } from "./classes/oracle.mjs";
+import { DEMONOLOGIST_ACTIONS } from "./classes/demonologist.mjs";
+import { SANGUINIST_ACTIONS } from "./classes/sanguinist.mjs";
 import {
   deathKnightClass,
   deathKnightLevel,
@@ -530,327 +538,122 @@ function actionFromActivity(activity) {
   return automationAction(activity);
 }
 
+const COMMON_ACTIVITY_ACTIONS = new Map([
+  ["toggle-gwm", async (actor, activity, context) => toggleGreatWeaponMaster(actor)],
+  ["set-style-cleaving", async (actor, activity, context) => setStyle(actor, STYLES.CLEAVING)],
+  ["set-style-crushing", async (actor, activity, context) => setStyle(actor, STYLES.CRUSHING)],
+  ["toggle-style", async (actor, activity, context) => toggleStyle(actor)],
+  ["arm-steel-will", async (actor, activity, context) => armSteelWill(actor)],
+  ["sync-steel-giant", async (actor, activity, context) => syncSteelGiant(actor, { notifyResult: true })],
+  ["smithing", async (actor, activity, context) => applySmithing(actor)],
+  ["arm-glimpse-of-genius", async (actor, activity, context) => armGlimpseOfGenius(actor)],
+  ["choose-occult-ability", async (actor, activity, context) => chooseOccultAbility(actor)],
+  ["use-occult-points", async (actor, activity, context) => useOccultPoints(actor, activity)],
+  ["choose-forest-base-class", async (actor, activity, context) => chooseForestBaseClass(actor)],
+  ["forest-unarmed-damage", async (actor, activity, context) => rollForestUnarmedDamage(actor)],
+  ["take-root", async (actor, activity, context) => takeRoot(actor)],
+  ["withdraw-roots", async (actor, activity, context) => withdrawRoots(actor)],
+  ["arm-deadly-precision", async (actor, activity, context) => armDeadlyPrecision(actor)],
+  ["vigorous-nature", async (actor, activity, context) => useVigorousNature(actor)],
+  ["activate-soul-shard", async (actor, activity, context) => activateSoulShard(actor)],
+  ["use-witch-blade-rage", async (actor, activity, context) => useWitchBladeRage(actor, activity)],
+  ["activate-witch-hunter-empower", async (actor, activity, context) => activateWitchHunterEmpower(actor, activity)],
+  ["activate-witch-crystallization", async (actor, activity, context) => activateWitchCrystallization(actor)],
+  ["activate-ethereal-storm", async (actor, activity, context) => activateEtherealStorm(actor, activity)],
+  ["open-immaterial-whirlwind", async (actor, activity, context) => openImmaterialWhirlwind(actor, activity)],
+  ["use-witch-blade-seal-evil", async (actor, activity, context) => useWitchBladeSealEvil(actor, activity)],
+  ["activate-crusader-rage", async (actor, activity, context) => activateCrusaderRage(actor)],
+  ["use-crusader-consecration", async (actor, activity, context) => useCrusaderConsecration(actor)],
+  ["condemn-crusader-target", async (actor, activity, context) => condemnCrusaderTarget(actor)],
+  ["activate-spirit-form", async (actor, activity, context) => activateSpiritForm(actor)],
+  ["summon-ghost-walker-spirit", async (actor, activity, context) => summonUnfinishedBusinessSpirit(actor, activity, { consumed: context.nativeSummonConsumption === true })],
+  ["end-spirit-form", async (actor, activity, context) => endSpiritForm(actor)],
+  ["use-inner-blink", async (actor, activity, context) => useInnerBlink(actor)],
+  ["use-outer-blink", async (actor, activity, context) => useOuterBlink(actor)],
+  ["activate-sideways-shift", async (actor, activity, context) => activateSidewaysShift(actor)],
+  ["sync-fallen-priest-spellcasting", async (actor, activity, context) => syncFallenPriestSpellcasting(actor, { notifyResult: true })],
+  ["roll-plague-sneak-attack", async (actor, activity, context) => rollPlagueSneakAttack(actor)],
+  ["create-smart-infection", async (actor, activity, context) => createSmartInfection(actor, activity)],
+  ["clear-smart-infections", async (actor, activity, context) => clearSmartInfections(actor)],
+  ["activate-disease-form", async (actor, activity, context) => activateDiseaseForm(actor)],
+  ["end-disease-form", async (actor, activity, context) => endDiseaseForm(actor)],
+  ["draw-astral-card", async (actor, activity, context) => drawAstralCard(actor)],
+  ["use-held-astral-card", async (actor, activity, context) => useHeldAstralCard(actor)],
+  ["discard-held-astral-card", async (actor, activity, context) => discardHeldAstralCard(actor)],
+  ["deal-them", async (actor, activity, context) => dealThem(actor)],
+  ["rogues-are-lucky", async (actor, activity, context) => rollRoguesAreLucky(actor)],
+  ["store-sleeved-card", async (actor, activity, context) => storeSleevedCard(actor)],
+  ["use-sleeved-card", async (actor, activity, context) => useSleevedCard(actor)],
+  ["aces-beat", async (actor, activity, context) => acesBeat(actor)],
+  ["summon-keeper-ally", async (actor, activity, context) => summonKeeperAlly(actor, activity)],
+  ["sync-keeper-ally-points", async (actor, activity, context) => syncKeeperAllyPoints(actor)],
+  ["roll-keeper-ally-strike", async (actor, activity, context) => rollKeeperAllyStrike(actor)],
+  ["roll-keeper-rest-recovery", async (actor, activity, context) => rollKeeperRestRecovery(actor)],
+  ["roll-keeper-might-damage", async (actor, activity, context) => rollKeeperMightDamage(actor)],
+  ["apply-blood-magic-cost", async (actor, activity, context) => applyBloodMagicCost(actor, activity)],
+  ["roll-blood-mage-sacrifice", async (actor, activity, context) => rollBloodMageSacrifice(actor)],
+  ["sync-onmyoji-resources", async (actor, activity, context) => syncOnmyojiResources(actor, { notifyResult: true })],
+  ["summon-onmyoji-shikigami", async (actor, activity, context) => summonOnmyojiShikigami(actor)],
+  ["use-onmyoji-ki", async (actor, activity, context) => useOnmyojiKi(actor, activity)],
+  ["sync-ritualist-resources", async (actor, activity, context) => syncRitualistResources(actor, { notifyResult: true })],
+  ["summon-ritualist-spirits", async (actor, activity, context) => summonRitualistSpirits(actor, activity)],
+  ["summon-spirit-protection", async (actor, activity, context) => useSummonProtection(actor)],
+  ["dismiss-ritualist-spirits", async (actor, activity, context) => dismissRitualistSpirits(actor)],
+  ["regain-ritualist-spirits", async (actor, activity, context) => regainRitualistSpirits(actor)],
+  ["use-ritualist-ritual-points", async (actor, activity, context) => useRitualistRitualPoints(actor, activity)],
+  ["show-ritualist-spirit-dc", async (actor, activity, context) => showRitualistSpiritDC(actor)],
+  ["roll-ritualist-spirit-agony", async (actor, activity, context) => rollRitualistSpiritAgony(actor)],
+  ["roll-ritualist-spirit-life", async (actor, activity, context) => rollRitualistSpiritLife(actor)],
+  ["roll-ritualist-spirit-protection", async (actor, activity, context) => rollRitualistSpiritProtection(actor)],
+  ["roll-ritualist-spirit-sorrow", async (actor, activity, context) => rollRitualistSpiritSorrow(actor)],
+  ["roll-ritualist-spirit-destruction-die", async (actor, activity, context) => rollRitualistSpiritDestructionDie(actor)],
+  ["show-ritualist-spirit-channel", async (actor, activity, context) => showRitualistSpiritChannel(actor)],
+  ["apply-black-magic-oil", async (actor, activity, context) => applyBlackMagicOil(actor)],
+  ["drink-dark-warrior-elixir", async (actor, activity, context) => drinkDarkWarriorElixir(actor, activity)],
+  ["sync-dark-warrior-resources", async (actor, activity, context) => syncDarkWarriorResources(actor, { notifyResult: true })],
+  ["choose-devil-worshipper-ability", async (actor, activity, context) => chooseDevilWorshipperAbility(actor)],
+  ["show-dark-luck", async (actor, activity, context) => showDarkLuck(actor)],
+  ["show-empowered-charms", async (actor, activity, context) => showEmpoweredCharms(actor)],
+  ["summon-devil-glaive", async (actor, activity, context) => summonDevilGlaive(actor)],
+  ["summon-devil-imp-familiar", async (actor, activity, context) => summonImpFamiliar(actor)],
+  ["roll-devil-glaive-damage", async (actor, activity, context) => rollDevilGlaiveDamage(actor)],
+  ["roll-devil-glaive-grapple-damage", async (actor, activity, context) => rollDevilGlaiveGrappleDamage(actor)],
+  ["gain-devil-soul-aura-temp-hp", async (actor, activity, context) => gainDevilSoulAuraTempHp(actor, activity)],
+  ["show-scholar-arcanist", async (actor, activity, context) => showScholarArcanist(actor)],
+  ["activate-mini-mythal", async (actor, activity, context) => activateMiniMythal(actor)],
+  ["teleport-in-mini-mythal", async (actor, activity, context) => teleportInMiniMythal(actor)],
+  ["overload-mini-mythal", async (actor, activity, context) => overloadMiniMythal(actor)],
+  ["use-ancient-knowledge", async (actor, activity, context) => useAncientKnowledge(actor)],
+  ["cast-netherese-great-spell", async (actor, activity, context) => castNethereseGreatSpell(actor, activity)],
+  ["roll-insect-tail-sting", async (actor, activity, context) => rollInsectTailSting(actor)],
+  ["summon-insect-familiar", async (actor, activity, context) => summonInsectFamiliar(actor, activity)],
+  ["roll-insect-bone-blades", async (actor, activity, context) => rollInsectBoneBlades(actor)],
+  ["roll-insect-bite", async (actor, activity, context) => rollInsectBite(actor)],
+  ["roll-insect-blood-drain", async (actor, activity, context) => rollInsectBloodDrain(actor)],
+  ["use-crawling-armor", async (actor, activity, context) => useCrawlingArmor(actor)],
+  ["roll-insect-spew", async (actor, activity, context) => rollInsectSpew(actor)],
+  ["summon-insect-swarm", async (actor, activity, context) => summonInsectSwarm(actor)],
+  ["detach-crawling-eye", async (actor, activity, context) => detachCrawlingEye(actor)],
+  ["return-crawling-eye", async (actor, activity, context) => returnCrawlingEye(actor)]
+]);
+
+export function getAutomationActionHandlers() {
+  const registry = new Map(COMMON_ACTIVITY_ACTIONS);
+  for (const [actions, handler] of [
+    [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
+    [SPIRIT_VESSEL_ACTIONS, handleSpiritVesselAction], [ORACLE_ACTIONS, handleOracleAction],
+    [DEMONOLOGIST_ACTIONS, handleDemonologistAction], [SANGUINIST_ACTIONS, handleSanguinistAction]
+  ]) for (const action of actions) registry.set(action, (actor, activity) => handler(actor, activity, action));
+  return registry;
+}
+
 async function handleActivityAction(activity, context = {}) {
   if (!enabled()) return;
-  const actor = activityActor(activity);
-  const action = actionFromActivity(activity);
+  const actor = activityActor(activity), action = actionFromActivity(activity);
   if (!actor || !action) return;
-
-  if (isTransformationAction(action)) {
-    await handleTransformationAction(actor, activity, action);
-    return;
-  }
-  if (isSchoolOfSteelAction(action)) {
-    await handleSchoolOfSteelAction(actor, activity, action);
-    return;
-  }
-  if (isSpiritVesselAction(action)) {
-    await handleSpiritVesselAction(actor, activity, action);
-    return;
-  }
-  if (isOracleAction(action)) {
-    await handleOracleAction(actor, activity, action);
-    return;
-  }
-  if (isDemonologistAction(action)) {
-    await handleDemonologistAction(actor, activity, action);
-    return;
-  }
-  if (isSanguinistAction(action)) {
-    await handleSanguinistAction(actor, activity, action);
-    return;
-  }
-
-  switch (action) {
-    case "toggle-gwm":
-      await toggleGreatWeaponMaster(actor);
-      break;
-    case "set-style-cleaving":
-      await setStyle(actor, STYLES.CLEAVING);
-      break;
-    case "set-style-crushing":
-      await setStyle(actor, STYLES.CRUSHING);
-      break;
-    case "toggle-style":
-      await toggleStyle(actor);
-      break;
-    case "arm-steel-will":
-      await armSteelWill(actor);
-      break;
-    case "sync-steel-giant":
-      await syncSteelGiant(actor, { notifyResult: true });
-      break;
-    case "smithing":
-      await applySmithing(actor);
-      break;
-    case "arm-glimpse-of-genius":
-      await armGlimpseOfGenius(actor);
-      break;
-    case "choose-occult-ability":
-      await chooseOccultAbility(actor);
-      break;
-    case "use-occult-points":
-      await useOccultPoints(actor, activity);
-      break;
-    case "choose-forest-base-class":
-      await chooseForestBaseClass(actor);
-      break;
-    case "forest-unarmed-damage":
-      await rollForestUnarmedDamage(actor);
-      break;
-    case "take-root":
-      await takeRoot(actor);
-      break;
-    case "withdraw-roots":
-      await withdrawRoots(actor);
-      break;
-    case "arm-deadly-precision":
-      await armDeadlyPrecision(actor);
-      break;
-    case "vigorous-nature":
-      await useVigorousNature(actor);
-      break;
-    case "activate-soul-shard":
-      await activateSoulShard(actor);
-      break;
-    case "use-witch-blade-rage":
-      await useWitchBladeRage(actor, activity);
-      break;
-    case "activate-witch-hunter-empower":
-      await activateWitchHunterEmpower(actor, activity);
-      break;
-    case "activate-witch-crystallization":
-      await activateWitchCrystallization(actor);
-      break;
-    case "activate-ethereal-storm":
-      await activateEtherealStorm(actor, activity);
-      break;
-    case "open-immaterial-whirlwind":
-      await openImmaterialWhirlwind(actor, activity);
-      break;
-    case "use-witch-blade-seal-evil":
-      await useWitchBladeSealEvil(actor, activity);
-      break;
-    case "activate-crusader-rage":
-      await activateCrusaderRage(actor);
-      break;
-    case "use-crusader-consecration":
-      await useCrusaderConsecration(actor);
-      break;
-    case "condemn-crusader-target":
-      await condemnCrusaderTarget(actor);
-      break;
-    case "activate-spirit-form":
-      await activateSpiritForm(actor);
-      break;
-    case "summon-ghost-walker-spirit":
-      await summonUnfinishedBusinessSpirit(actor, activity, { consumed: context.nativeSummonConsumption === true });
-      break;
-    case "end-spirit-form":
-      await endSpiritForm(actor);
-      break;
-    case "use-inner-blink":
-      await useInnerBlink(actor);
-      break;
-    case "use-outer-blink":
-      await useOuterBlink(actor);
-      break;
-    case "activate-sideways-shift":
-      await activateSidewaysShift(actor);
-      break;
-    case "sync-fallen-priest-spellcasting":
-      await syncFallenPriestSpellcasting(actor, { notifyResult: true });
-      break;
-    case "roll-plague-sneak-attack":
-      await rollPlagueSneakAttack(actor);
-      break;
-    case "create-smart-infection":
-      await createSmartInfection(actor, activity);
-      break;
-    case "clear-smart-infections":
-      await clearSmartInfections(actor);
-      break;
-    case "activate-disease-form":
-      await activateDiseaseForm(actor);
-      break;
-    case "end-disease-form":
-      await endDiseaseForm(actor);
-      break;
-    case "draw-astral-card":
-      await drawAstralCard(actor);
-      break;
-    case "use-held-astral-card":
-      await useHeldAstralCard(actor);
-      break;
-    case "discard-held-astral-card":
-      await discardHeldAstralCard(actor);
-      break;
-    case "deal-them":
-      await dealThem(actor);
-      break;
-    case "rogues-are-lucky":
-      await rollRoguesAreLucky(actor);
-      break;
-    case "store-sleeved-card":
-      await storeSleevedCard(actor);
-      break;
-    case "use-sleeved-card":
-      await useSleevedCard(actor);
-      break;
-    case "aces-beat":
-      await acesBeat(actor);
-      break;
-    case "summon-keeper-ally":
-      await summonKeeperAlly(actor, activity);
-      break;
-    case "sync-keeper-ally-points":
-      await syncKeeperAllyPoints(actor);
-      break;
-    case "roll-keeper-ally-strike":
-      await rollKeeperAllyStrike(actor);
-      break;
-    case "roll-keeper-rest-recovery":
-      await rollKeeperRestRecovery(actor);
-      break;
-    case "roll-keeper-might-damage":
-      await rollKeeperMightDamage(actor);
-      break;
-    case "apply-blood-magic-cost":
-      await applyBloodMagicCost(actor, activity);
-      break;
-    case "roll-blood-mage-sacrifice":
-      await rollBloodMageSacrifice(actor);
-      break;
-    case "sync-onmyoji-resources":
-      await syncOnmyojiResources(actor, { notifyResult: true });
-      break;
-    case "summon-onmyoji-shikigami":
-      await summonOnmyojiShikigami(actor);
-      break;
-    case "use-onmyoji-ki":
-      await useOnmyojiKi(actor, activity);
-      break;
-    case "sync-ritualist-resources":
-      await syncRitualistResources(actor, { notifyResult: true });
-      break;
-    case "summon-ritualist-spirits":
-      await summonRitualistSpirits(actor, activity);
-      break;
-    case "summon-spirit-protection":
-      await useSummonProtection(actor);
-      break;
-    case "dismiss-ritualist-spirits":
-      await dismissRitualistSpirits(actor);
-      break;
-    case "regain-ritualist-spirits":
-      await regainRitualistSpirits(actor);
-      break;
-    case "use-ritualist-ritual-points":
-      await useRitualistRitualPoints(actor, activity);
-      break;
-    case "show-ritualist-spirit-dc":
-      await showRitualistSpiritDC(actor);
-      break;
-    case "roll-ritualist-spirit-agony":
-      await rollRitualistSpiritAgony(actor);
-      break;
-    case "roll-ritualist-spirit-life":
-      await rollRitualistSpiritLife(actor);
-      break;
-    case "roll-ritualist-spirit-protection":
-      await rollRitualistSpiritProtection(actor);
-      break;
-    case "roll-ritualist-spirit-sorrow":
-      await rollRitualistSpiritSorrow(actor);
-      break;
-    case "roll-ritualist-spirit-destruction-die":
-      await rollRitualistSpiritDestructionDie(actor);
-      break;
-    case "show-ritualist-spirit-channel":
-      await showRitualistSpiritChannel(actor);
-      break;
-    case "apply-black-magic-oil":
-      await applyBlackMagicOil(actor);
-      break;
-    case "drink-dark-warrior-elixir":
-      await drinkDarkWarriorElixir(actor, activity);
-      break;
-    case "sync-dark-warrior-resources":
-      await syncDarkWarriorResources(actor, { notifyResult: true });
-      break;
-    case "choose-devil-worshipper-ability":
-      await chooseDevilWorshipperAbility(actor);
-      break;
-    case "show-dark-luck":
-      await showDarkLuck(actor);
-      break;
-    case "show-empowered-charms":
-      await showEmpoweredCharms(actor);
-      break;
-    case "summon-devil-glaive":
-      await summonDevilGlaive(actor);
-      break;
-    case "summon-devil-imp-familiar":
-      await summonImpFamiliar(actor);
-      break;
-    case "roll-devil-glaive-damage":
-      await rollDevilGlaiveDamage(actor);
-      break;
-    case "roll-devil-glaive-grapple-damage":
-      await rollDevilGlaiveGrappleDamage(actor);
-      break;
-    case "gain-devil-soul-aura-temp-hp":
-      await gainDevilSoulAuraTempHp(actor, activity);
-      break;
-    case "show-scholar-arcanist":
-      await showScholarArcanist(actor);
-      break;
-    case "activate-mini-mythal":
-      await activateMiniMythal(actor);
-      break;
-    case "teleport-in-mini-mythal":
-      await teleportInMiniMythal(actor);
-      break;
-    case "overload-mini-mythal":
-      await overloadMiniMythal(actor);
-      break;
-    case "use-ancient-knowledge":
-      await useAncientKnowledge(actor);
-      break;
-    case "cast-netherese-great-spell":
-      await castNethereseGreatSpell(actor, activity);
-      break;
-    case "roll-insect-tail-sting":
-      await rollInsectTailSting(actor);
-      break;
-    case "summon-insect-familiar":
-      await summonInsectFamiliar(actor, activity);
-      break;
-    case "roll-insect-bone-blades":
-      await rollInsectBoneBlades(actor);
-      break;
-    case "roll-insect-bite":
-      await rollInsectBite(actor);
-      break;
-    case "roll-insect-blood-drain":
-      await rollInsectBloodDrain(actor);
-      break;
-    case "use-crawling-armor":
-      await useCrawlingArmor(actor);
-      break;
-    case "roll-insect-spew":
-      await rollInsectSpew(actor);
-      break;
-    case "summon-insect-swarm":
-      await summonInsectSwarm(actor);
-      break;
-    case "detach-crawling-eye":
-      await detachCrawlingEye(actor);
-      break;
-    case "return-crawling-eye":
-      await returnCrawlingEye(actor);
-      break;
-  }
+  const handler = getAutomationActionHandlers().get(action);
+  if (!handler) throw new Error(`Unhandled module activity: ${action}`);
+  return handler(actor, activity, context);
 }
 
 function validateActivityUse(activity) {
@@ -1227,6 +1030,7 @@ function installHooks() {
   installSummonSocket();
   installSummonLifecycleHooks();
   installSummonCombatHooks();
+  installRepeatedSaveHooks();
   installAuraHooks();
   installTemporaryEffectHooks();
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateAdvancement);
@@ -1264,20 +1068,7 @@ function installHooks() {
     void clearPendingSteelWill(subject);
   });
 
-  installMidiQolHooks({
-    applyMidiAttackDisadvantage,
-    applyPowerfulCleaving,
-    applyGiantKillerHook,
-    applyDeathKnightHealingRestriction,
-    markForestRootFireDamageHook,
-    applyHellfireFuryHook,
-    applySpellSourceResistance,
-    applySummonProtection,
-    handleSummonSelfCost,
-    applyMidiWeaponBuffAttackAutomation,
-    prepareMidiSteelWill,
-    finishMidiSteelWill
-  });
+  installMidiQolHooks(getMidiHookHandlers());
 
   Hooks.on("preCreateItem", (item, _data, options, userId) => {
     if (!enabled()) return true;
@@ -1381,10 +1172,8 @@ function installHooks() {
     void clearForestRootStateFromEffect(effect);
   });
   Hooks.on("updateCombat", (combat, changes) => {
-    if (!enabled() || (!Object.hasOwn(changes, "turn") && !Object.hasOwn(changes, "round"))) return;
-    if (!combat.started) return;
-    const previousActor = combat.combatants?.get(combat.previous?.combatantId)?.actor
-      ?? combat.turns?.[combat.previous?.turn]?.actor;
+    if (!enabled() || !isForwardTurn(combat, changes)) return;
+    const previousActor = previousCombatActor(combat);
     const currentActor = combat.combatant?.actor;
     if (previousActor) {
       void endLeaderTurn(previousActor);
@@ -1407,6 +1196,13 @@ function installHooks() {
       }
     }
   });
+}
+
+export function getMidiHookHandlers() {
+  return { applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
+    applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
+    applySpellSourceResistance, applySummonProtection, handleSummonSelfCost,
+    applyMidiWeaponBuffAttackAutomation, prepareMidiSteelWill, finishMidiSteelWill };
 }
 
 export function registerAutomation() {

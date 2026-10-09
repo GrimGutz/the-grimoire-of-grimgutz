@@ -12,7 +12,7 @@ import { createSummonedCreature } from "../shared/summons.mjs";
 import { quasitFamiliarSummon } from "../shared/summon-templates.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 
-const DEMONOLOGIST_ACTIONS = new Set([
+export const DEMONOLOGIST_ACTIONS = new Set([
   "show-demonologist-demon-charm",
   "show-demonologist-infernal-familiar",
   "use-demonologist-master-summoner",

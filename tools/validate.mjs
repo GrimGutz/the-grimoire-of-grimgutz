@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ClassicLevel } from "classic-level";
+import { getAutomationActionHandlers, getMidiHookHandlers } from "../scripts/automation/runtime.mjs";
+import { MIDI_QOL_HOOKS } from "../scripts/automation/midi/hooks.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const foundryPublic = "C:\\Program Files\\Foundry Virtual Tabletop\\resources\\app\\public";
@@ -2089,13 +2091,17 @@ const automationSource = [
   await readFile(path.join(root, "scripts", "automation.mjs"), "utf8"),
   await readTextFilesRecursive(path.join(root, "scripts", "automation"))
 ].join("\n");
+const registeredActions = getAutomationActionHandlers();
 for (const document of featureDocuments) {
   for (const activity of Object.values(document.system?.activities ?? {})) {
     const action = activity.flags?.[manifest.id]?.action;
-    if (action && !automationSource.includes(action)) {
+    if (action && typeof registeredActions.get(action) !== "function") {
       errors.push(`Feature ${document.system?.identifier ?? document.name} has unhandled activity action: ${action}`);
     }
   }
+}
+for (const [hook, handler] of MIDI_QOL_HOOKS) {
+  if (typeof getMidiHookHandlers()[handler] !== "function") errors.push(`Missing registered Midi-QOL handler ${handler} for ${hook}`);
 }
 for (const token of [
   "syncMurderspawnPassiveEffects",

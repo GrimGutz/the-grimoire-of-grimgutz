@@ -10,7 +10,7 @@ import {
   syncMurderspawnTransformation
 } from "./murderspawn.mjs";
 
-const TRANSFORMATION_ACTIONS = new Set([
+export const TRANSFORMATION_ACTIONS = new Set([
   "gain-hollow-charge",
   "use-hollow-charges"
 ]);

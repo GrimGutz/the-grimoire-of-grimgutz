@@ -1,4 +1,5 @@
 import { MODULE_ID } from "./constants.mjs";
+import { feetToSceneUnits, tokenSceneDistance } from "./spatial.mjs";
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -10,7 +11,7 @@ function escapeHtml(value) {
 }
 
 function activeSceneTokens() {
-  return canvas?.tokens?.placeables?.filter(token => token?.actor && !token.document?.hidden) ?? [];
+  return canvas?.tokens?.placeables?.filter(token => token?.actor) ?? [];
 }
 
 function tokenUuid(token) {
@@ -42,21 +43,14 @@ export function firstTargetToken() {
 }
 
 export function tokenDistance(sourceToken, targetToken) {
-  if (!sourceToken || !targetToken) return Number.POSITIVE_INFINITY;
-  if (sameToken(sourceToken, targetToken)) return 0;
-
-  const source = tokenCenter(sourceToken);
-  const target = tokenCenter(targetToken);
-  const gridSize = Number(canvas?.dimensions?.size ?? canvas?.scene?.grid?.size ?? 100) || 100;
-  const gridDistance = Number(canvas?.scene?.grid?.distance ?? canvas?.dimensions?.distance ?? 5) || 5;
-  return Math.hypot(source.x - target.x, source.y - target.y) / gridSize * gridDistance;
+  return tokenSceneDistance(sourceToken, targetToken);
 }
 
 export function tokensWithinRadius(originToken, radius, { includeOrigin = true } = {}) {
   if (!originToken || !canvas?.ready) return [];
   return activeSceneTokens().filter(token =>
     (includeOrigin || !sameToken(originToken, token))
-    && tokenDistance(originToken, token) <= Number(radius ?? 0)
+    && tokenDistance(originToken, token) <= feetToSceneUnits(radius ?? 0)
   );
 }
 
@@ -113,11 +107,12 @@ export async function createCircleTemplate({
     const center = tokenCenter(originToken);
     const [template] = await scene.createEmbeddedDocuments("MeasuredTemplate", [{
       t: "circle",
-      user: game.user.id,
+      author: game.user.id,
       x: center.x,
       y: center.y,
       direction: 0,
-      distance: Number(radius ?? 0),
+      distance: feetToSceneUnits(radius ?? 0, scene),
+      hidden: Boolean(originToken.document?.hidden),
       borderColor: color,
       fillColor: color,
       flags: {

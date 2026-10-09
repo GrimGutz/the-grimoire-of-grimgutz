@@ -38,8 +38,8 @@ export function summonActivitySignature(activities) {
     damage: activity.damage?.parts?.map(part => ({ formula: part.custom?.formula, types: [...(part.types ?? [])].sort() })) ?? [],
     healing: activity.healing?.custom?.formula ?? null,
     save: activity.save ? { ability: [...(activity.save.ability ?? [])].sort(), dc: activity.save.dc?.formula } : null,
-    action: activity.flags?.[MODULE_ID]?.action ?? null
-    , effects: activity.effects ?? [], spent: activity.uses?.spent ?? 0,
+    action: activity.flags?.[MODULE_ID]?.action ?? null,
+    effects: activity.effects ?? [], spent: activity.uses?.spent ?? 0,
     extraFlags: Object.fromEntries(Object.entries(activity.flags ?? {}).filter(([key]) => key !== MODULE_ID))
   })).sort((a, b) => a.name.localeCompare(b.name)));
 }

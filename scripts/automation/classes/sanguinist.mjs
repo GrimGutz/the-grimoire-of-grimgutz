@@ -19,7 +19,7 @@ const BLOOD_SPELL_SLOTS = {
   3: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 2 }
 };
 
-const SANGUINIST_ACTIONS = new Set([
+export const SANGUINIST_ACTIONS = new Set([
   "sync-sanguinist-resources",
   "gain-sanguinist-blood-point",
   "gain-sanguinist-blood-points-others",

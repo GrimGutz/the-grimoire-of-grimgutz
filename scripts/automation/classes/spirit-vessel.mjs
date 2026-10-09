@@ -22,7 +22,7 @@ import {
 const spiritVesselSyncs = new Set();
 const spiritVesselPassiveSyncs = new Set();
 
-const SPIRIT_VESSEL_ACTIONS = new Set([
+export const SPIRIT_VESSEL_ACTIONS = new Set([
   "choose-spirit-vessel-ability",
   "choose-spirit-vessel-strike-damage",
   "roll-spirit-vessel-concentrated-strike",
@@ -503,6 +503,7 @@ async function applySpiritTargetCondition(actor, {
   statusLabel,
   saveAbility,
   duration = {},
+  repeatSave = null,
   note = "",
   description = ""
 }) {
@@ -516,6 +517,7 @@ async function applySpiritTargetCondition(actor, {
     status,
     statusLabel,
     duration,
+    repeatSave,
     title,
     saveText: `${saveAbility} СЛ ${spiritVesselSaveDC(actor)}; выбирайте только цели, провалившие спасбросок.`,
     note,
@@ -602,7 +604,8 @@ export async function handleSpiritVesselAction(actor, activity, action) {
         statusLabel: "Испуган",
         saveAbility: "Мудрость",
         duration: { seconds: 60 },
-        note: "Цель повторяет спасбросок в конце каждого хода. Старение при провале на 5+ и 24-часовая невосприимчивость отслеживаются вручную.",
+        repeatSave: { ability: "wis", dc: spiritVesselSaveDC(actor), event: "turnEnd" },
+        note: "В конце хода цели GM автоматически бросает повторный спасбросок; успех снимает испуг. Старение при провале на 5+ и 24-часовая невосприимчивость отслеживаются вручную.",
         description: "<p>Цель испугана Сосудом духа на 1 минуту после провала спасброска Мудрости. Повторяйте спасбросок в конце каждого хода цели.</p>"
       });
     default:

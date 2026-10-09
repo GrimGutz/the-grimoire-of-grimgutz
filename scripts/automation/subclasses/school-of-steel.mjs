@@ -13,7 +13,7 @@ import {
   schoolOfSteelSubclass
 } from "../shared/selectors.mjs";
 
-const SCHOOL_OF_STEEL_ACTIONS = new Set([
+export const SCHOOL_OF_STEEL_ACTIONS = new Set([
   "school-steel-choose-weapons",
   "school-steel-bonus-attack",
   "sync-school-steel"

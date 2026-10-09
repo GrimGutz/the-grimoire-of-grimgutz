@@ -18,7 +18,7 @@ import {
 const oracleSyncs = new Set();
 const oraclePassiveSyncs = new Set();
 
-const ORACLE_ACTIONS = new Set([
+export const ORACLE_ACTIONS = new Set([
   "sync-oracle-resources",
   "oracle-fate-miss",
   "oracle-mysterious-guidance",
