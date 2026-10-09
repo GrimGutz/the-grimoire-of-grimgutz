@@ -14,6 +14,7 @@ import {
   notify
 } from "./shared/helpers.mjs";
 import { clamp } from "./shared/dnd5e.mjs";
+import { installTemporaryEffectHooks } from "./effects/temporary-effects.mjs";
 import {
   deathKnightClass,
   deathKnightLevel,
@@ -1236,6 +1237,7 @@ async function migrateOwnedItems(actor) {
 function installHooks() {
   installSummonSocket();
   installAuraHooks();
+  installTemporaryEffectHooks();
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateAdvancement);
   Hooks.on("dnd5e.preUseActivity", validateActivityUse);
   Hooks.on("dnd5e.postUseActivity", activity => {
@@ -1409,12 +1411,12 @@ export function registerAutomation() {
     restricted: true
   });
   game.settings.register(MODULE_ID, SETTINGS.STRICT_PREREQUISITES, {
-    name: "Строго проверять требования",
-    hint: "Запрещает добавлять престиж-класс и техники персонажам, которые не выполняют требования.",
+    name: "Проверять требования престиж-классов",
+    hint: "Если включено, модуль запрещает добавлять престиж-классы, их особенности, специализации и техники персонажам, которые не выполняют требования. По умолчанию выключено, чтобы Мастер мог сам решать допуск.",
     scope: "world",
     config: true,
     type: Boolean,
-    default: true,
+    default: false,
     restricted: true
   });
   installHooks();
