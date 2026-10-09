@@ -20,7 +20,7 @@ test("suppressed roots and expired devil glaives are not usable active states", 
   assert.equal(await rollDevilGlaiveDamage(actor), false);
 });
 
-test("an evil seal with no selected targets does not spend Rage", async () => {
+test("a missing owned seal activity does not spend Rage", async () => {
   game.user.targets = new Set();
   let writes = 0;
   const actor = { items: [{ type: "class", system: { identifier: "witch-blade", levels: 3 } },

@@ -1,4 +1,5 @@
 import { rm, mkdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ClassicLevel } from "classic-level";
@@ -94,6 +95,19 @@ for (const pack of packs) {
 
 const linksAdded = linkDocumentDescriptions(loadedPacks);
 console.log(`Linked descriptions: ${linksAdded} references`);
+
+// Refuse the entire build before deleting anything if Foundry still holds a pack.
+// Opening and closing may rotate LevelDB service logs, but does not change records.
+for (const pack of loadedPacks) {
+  const target = path.join(packsRoot, pack.name);
+  assertInsidePacks(target);
+  validateRecords(pack);
+  if (!existsSync(target)) continue;
+  const probe = new ClassicLevel(target, { valueEncoding: "json", createIfMissing: false });
+  try { await probe.open(); }
+  catch (error) { throw new Error(`Pack ${pack.name} is unavailable. Close the Foundry world before building. No packs were replaced.`, { cause: error }); }
+  finally { await probe.close().catch(() => {}); }
+}
 
 for (const pack of loadedPacks) {
   const target = path.join(packsRoot, pack.name);

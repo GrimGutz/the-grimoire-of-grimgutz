@@ -90,6 +90,36 @@ test("an invalid origin or a canceled native dialog removes only its new preview
 test("an unknown completion retains the area and never assumes a refund", async () => {
   MidiQOL.completeActivityUse = async () => undefined;
   assert.equal(await useAreaActivity(activity), false); assert.equal(placed.deleted, false);
+  assert.equal(placed.updateData[`flags.${MODULE_ID}.zoneExpiresAt`], null);
+});
+
+test("an explicit native cancellation removes its own template without starting another cast", async () => {
+  MidiQOL.completeActivityUse = async () => false;
+  assert.equal(await useAreaActivity(activity), false);
+  assert.equal(placed.deleted, true);
+});
+
+test("generic native AoE retains its concentration and duration", () => {
+  const native = { ...activity, name: "Different area", flags: {}, type: "save", target: { template: { type: "sphere", size: "20" } },
+    duration: { value: "10", units: "minute", concentration: true } };
+  native.item = { ...item, system: { ...item.system, identifier: "other-area" }, flags: { [MODULE_ID]: {} } };
+  const spec = areaDefinitionFor(native);
+  assert.equal(spec.native, true); assert.equal(spec.concentration, true); assert.equal(spec.templateSeconds, 600);
+});
+
+test("fallback concentration registers only this cast's template and conditions through Midi", async () => {
+  const spec = { ...areaDefinitionFor(activity), concentration: 60 };
+  activity.flags[MODULE_ID].area = spec;
+  const concentration = { id: "conc", uuid: "Actor.owner.ActiveEffect.conc" };
+  actor.beginConcentrating = async () => { actor.concentration.effects = [concentration]; return concentration; };
+  const condition = { uuid: "Actor.target.ActiveEffect.current", flags: { [MODULE_ID]: { areaCastId: "newCast" } } };
+  target.actor.effects = [condition, { uuid: "Actor.target.ActiveEffect.old", flags: { [MODULE_ID]: { areaCastId: "oldCast" } } }];
+  const dependents = [];
+  MidiQOL.addDependent = async (owner, dependent) => { assert.equal(owner, concentration); dependents.push(dependent.uuid); };
+  assert.ok(await useAreaActivity(activity));
+  assert.deepEqual(dependents, [placed.uuid, condition.uuid]);
+  assert.equal(placed.updateData[`flags.${MODULE_ID}.zoneConcentrationEffect`], concentration.uuid);
+  assert.equal(placed.updateData[`flags.${MODULE_ID}.zoneExpiresAt`], 180);
 });
 
 test("hook blocks the original utility before resources; resolved flow is not intercepted twice", async () => {

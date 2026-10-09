@@ -27,7 +27,11 @@ export function areaDefinitionFor(activity) {
   const isModule = Boolean(activity.item?.flags?.[MODULE_ID])
     || String(activity.item?._stats?.compendiumSource ?? "").startsWith(`Compendium.${MODULE_ID}.`);
   if (isModule && ["save", "damage"].includes(activity.type) && template?.type && Number(template.size) > 0) {
+    const duration = activity.duration ?? {};
+    const unitSeconds = { second: 1, minute: 60, hour: 3600, day: 86400, round: 6, turn: 6 }[duration.units];
+    const seconds = unitSeconds && Number(duration.value) > 0 ? Number(duration.value) * unitSeconds : null;
     return { id: activity.id, native: true, shape: template.type, size: Number(template.size), width: template.width,
+      concentration: Boolean(duration.concentration), templateSeconds: seconds ?? (duration.concentration || duration.units === "perm" ? null : 6),
       origin: activity.range?.units === "self" ? "self" : "point", maxRange: activity.range?.units === "ft" ? Number(activity.range.value) : null };
   }
   return null;
@@ -40,6 +44,7 @@ function sourceActivities(item) {
 function cloneAreaActivity(activity, spec, { resolved = false, castId = "" } = {}) {
   const original = activity.toObject(), id = activity.id ?? original._id;
   const data = spec.native ? clone(original) : areaActivityData(original, spec);
+  data.midiProperties = { ...data.midiProperties, forceDamageDialog: "always" };
   data.flags ??= {}; data.flags[MODULE_ID] ??= {};
   Object.assign(data.flags[MODULE_ID], { areaResolved: resolved, areaCastId: castId });
   if (resolved) {
@@ -59,13 +64,14 @@ function cloneAreaActivity(activity, spec, { resolved = false, castId = "" } = {
   if (spec.statuses?.length) data.effects = [{ _id: `area${id}`.slice(0, 16), onSave: false }];
   const effects = clone(activity.item.toObject().effects ?? []);
   const effectDuration = spec.duration ? { ...spec.duration, expired: false } : { value: null, units: "seconds", expiry: null, expired: false };
-  const specialDuration = effectDuration.expiry === "sourceEnd" ? ["turnEndSource"] : [];
-  if (effectDuration.expiry === "sourceEnd" && globalThis.CONFIG?.ActiveEffect?.expiryEvents
-    && !CONFIG.ActiveEffect.expiryEvents.sourceEnd) effectDuration.expiry = "turnEnd";
+  if (effectDuration.expiry === "sourceEnd" && !globalThis.CONFIG?.ActiveEffect?.expiryEvents?.sourceEnd)
+    throw Error("Для окончания состояния в конце следующего хода источника включите DAE.");
+  if (effectDuration.expiry === "updateWorldTime" && globalThis.CONFIG?.ActiveEffect?.expiryEvents
+    && !CONFIG.ActiveEffect.expiryEvents.updateWorldTime) effectDuration.expiry = "turnStart";
   if (spec.statuses?.length) effects.push({ _id: data.effects[0]._id, name: activity.item.name, img: activity.item.img,
     type: "base", origin: activity.item.uuid, transfer: false, disabled: false, statuses: spec.statuses,
     duration: effectDuration, start: null, system: { changes: [] },
-    flags: { [MODULE_ID]: { areaCondition: spec.id, areaCastId: castId }, dae: { expiryMode: "delete", specialDuration } } });
+    flags: { [MODULE_ID]: { areaCondition: spec.id, areaCastId: castId }, dae: { expiryMode: "delete", specialDuration: [] } } });
   const item = activity.item.clone({ system: { activities: { ...sourceActivities(activity.item), [id]: data } }, effects,
     "flags.midi-qol.syntheticItem": true }, { keepId: true });
   return item.system.activities.get(id);
@@ -160,7 +166,8 @@ export async function useAreaActivity(activity, { validate = () => true, usage =
     const resolved = cloneAreaActivity(activity, spec, { resolved: true, castId });
     for (const doc of placed) await doc.update({ [`flags.${MODULE_ID}.zoneTemplate`]: true,
       [`flags.${MODULE_ID}.sourceActor`]: actor.uuid, [`flags.${MODULE_ID}.areaCastId`]: castId,
-      [`flags.${MODULE_ID}.zoneExpiresAt`]: Number(game.time?.worldTime ?? 0) + Number(spec.concentration ?? 6) });
+      // Do not expire while players are still answering saving-throw requests.
+      [`flags.${MODULE_ID}.zoneExpiresAt`]: null });
     // The intercepted configuration belongs to the canceled utility workflow.
     // Do not carry its workflow, message effects or derived hasConsumption flags forward.
     const options = { event: usage.event, scaling: usage.scaling, create: { measuredTemplate: false },
@@ -188,9 +195,18 @@ export async function useAreaActivity(activity, { validate = () => true, usage =
       concentration = await actor.beginConcentrating(previewActivity, { flags: { [MODULE_ID]: { areaConcentration: castId }, dae: { expiryMode: "delete" } } });
       if (!concentration) throw Error("Не удалось создать концентрацию области.");
     }
+    if (concentration && api.addDependent) {
+      // These templates were placed before Midi started. Explicitly register
+      // them and this cast's conditions, including the concentration fallback.
+      const conditions = targets.flatMap(token => [...(token.actor?.effects ?? [])])
+        .filter(effect => effect.flags?.[MODULE_ID]?.areaCastId === castId);
+      for (const dependent of [...placed, ...new Map(conditions.map(effect => [effect.uuid, effect])).values()])
+        if (dependent.flags?.dnd5e?.dependentOn !== concentration.uuid) await api.addDependent(concentration, dependent);
+    }
+    const lifetime = spec.native ? spec.templateSeconds : Number(spec.concentration ?? 6);
     for (const doc of placed) await doc.update({ [`flags.${MODULE_ID}.zoneTemplate`]: true,
       [`flags.${MODULE_ID}.sourceActor`]: actor.uuid, [`flags.${MODULE_ID}.areaCastId`]: castId,
-      [`flags.${MODULE_ID}.zoneExpiresAt`]: Number(game.time?.worldTime ?? 0) + Number(spec.concentration ?? 6),
+      [`flags.${MODULE_ID}.zoneExpiresAt`]: lifetime > 0 ? Number(game.time?.worldTime ?? 0) + lifetime : null,
       ...(concentration ? { [`flags.${MODULE_ID}.zoneConcentrationEffect`]: concentration.uuid } : {}) });
     return workflow;
   } catch (error) {
