@@ -8,8 +8,9 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
-import { numberDialog } from "../shared/dialogs.mjs";
+import { choiceDialog, numberDialog } from "../shared/dialogs.mjs";
 import { createSummonedGroup } from "../shared/summons.mjs";
+import { manageSummons } from "../shared/summon-lifecycle.mjs";
 
 const ritualistSyncs = new Set();
 
@@ -207,7 +208,7 @@ export async function showRitualistSpiritDC(actor) {
   return true;
 }
 
-function ritualistSpiritSummon(actor, index, total) {
+function ritualistSpiritSummon(actor, index, total, activity, replaceConcentration = [], variant = "agony") {
   const suffix = total > 1 ? ` ${index + 1}` : "";
   return {
     kind: "ritualist-spirit",
@@ -215,6 +216,8 @@ function ritualistSpiritSummon(actor, index, total) {
     name: `${actor.name}: Призванный дух${suffix}`,
     img: "icons/magic/death/undead-ghost-scream-teal.webp",
     source: "binding-ritual",
+    lifecycle: { seconds: 600, concentration: "hostile", activityUuid: activity?.uuid ?? null, replaceConcentration },
+    variant,
     size: "med",
     type: "undead",
     ac: 11,
@@ -238,9 +241,14 @@ function ritualistSpiritSummon(actor, index, total) {
     `,
     features: [{
       name: "Варианты духов",
+      activities: variant === "life" ? [{ name: "Дух жизни: лечение", type: "heal", formula: `${Math.max(1, ritualistLevel(actor))}d6`, range: 5, selfCost: { value: 14, type: "force" } }]
+        : variant === "protection" ? [{ name: "Дух защиты: защитить союзника", type: "utility", activation: "reaction", range: 30, action: "summon-spirit-protection" }]
+        : variant === "sorrow" ? [{ name: "Скорбная песня", type: "save", formula: "1d4", damageType: "force", saveAbility: "con", dc: ritualistSpiritSaveDC(actor), range: 30 }]
+        : variant === "destruction" ? [{ name: "Разрушение: один раунд", type: "damage", formula: "1d6", damageType: "force", range: 30 }]
+        : variant === "agony" ? [{ name: "Дух агонии", type: "save", formula: `${Math.max(1, ritualistLevel(actor))}d6`, damageType: "psychic", saveAbility: "wis", dc: ritualistSpiritSaveDC(actor), range: 30 }] : [],
       description: "<p>Выберите вариант: Дух агонии, Кровавой песни, Разрушения, Великих возможностей, Жизни, Защиты или Скорбной песни. Автоматические броски находятся на карточке Ритуалиста.</p>"
     }],
-    note: "Если концентрация Ритуалиста нарушена, дух не исчезает автоматически: отметьте потерю контроля вручную."
+    note: "Через 10 минут или при 0 хитов дух исчезает. Потеря концентрации делает его враждебным."
   };
 }
 
@@ -248,15 +256,37 @@ export async function summonRitualistSpirits(actor, activity) {
   if (!validateRitualistRitualPointUse(actor, activity)) return false;
   const cost = await chooseRitualistRitualPointCost(actor, activity, { title: "Призвать духов Ритуалиста" });
   if (!cost) return false;
+  const variant = await choiceDialog({ title: "Вариант духов", label: "Каких духов призвать",
+    choices: [["agony", "Агонии"], ["life", "Жизни"], ["protection", "Защиты"], ["sorrow", "Скорбной песни"], ["destruction", "Разрушения"], ["blood-song", "Кровавой песни"], ["possibilities", "Великих возможностей"]] });
+  if (!variant) return false;
   const resource = bindingRitualResource(actor);
   if (cost > resource.remaining || cost > 3) {
     notify(`${actor.name}: недостаточно ритуальных очков или превышен максимум 3 духов за раз.`, "warn");
     return false;
   }
-  const result = await createSummonedGroup(actor, Array.from({ length: cost }, (_value, index) => ritualistSpiritSummon(actor, index, cost)), {
+  let replaceConcentration = [];
+  const current = [...(actor.concentration?.effects ?? [])];
+  if (current.length >= Number(actor.system?.attributes?.concentration?.limit ?? 1)) {
+    const confirmed = await choiceDialog({ title: "Концентрация Ритуалиста", label: "Завершить текущую концентрацию для духов?",
+      choices: [["replace", "Завершить и призвать духов"], ["cancel", "Отмена"]] });
+    if (confirmed !== "replace") return false;
+    replaceConcentration = current.map(effect => effect.uuid);
+  }
+  const result = await createSummonedGroup(actor, Array.from({ length: cost }, (_value, index) => ritualistSpiritSummon(actor, index, cost, activity, replaceConcentration, variant)), {
     requireScene: true, resource: { itemUuid: resource.feature.uuid, cost }
   });
   return result.status === "success";
+}
+
+export async function dismissRitualistSpirits(actor) {
+  return manageSummons(actor, { action: "dismiss", source: "binding-ritual" });
+}
+
+export async function regainRitualistSpirits(actor) {
+  const dc = await numberDialog({ title: "Вернуть контроль духов", label: "СЛ предыдущей проверки концентрации", min: 1, max: 100, defaultValue: actor.getFlag(MODULE_ID, "lastConcentrationDC") ?? 10,
+    hint: "Укажите прежнюю СЛ: она не определяется автоматически, если проверка выполнялась вручную." });
+  if (dc == null) return false;
+  return manageSummons(actor, { action: "regain", source: "binding-ritual", dc });
 }
 
 export async function rollRitualistSpiritAgony(actor) {

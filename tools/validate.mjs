@@ -2177,10 +2177,8 @@ if (!negativeBody?.effects?.some(effect => {
 })) {
   errors.push("Negative Body must include CON +2 and WIS +1 passive changes");
 }
-if (!fortifiedSoul?.effects?.some(effect => effect.system?.changes?.some(change =>
-  change.key === "system.traits.dr.value" && change.value === "spell"
-))) {
-  errors.push("Fortified Soul must include custom spell damage resistance marker");
+if (!fortifiedSoul?.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
+  errors.push("Fortified Soul must include the passive effect enabling its source-based resistance");
 }
 
 const magicEradicator = featuresByIdentifier.get("magic-eradicator");

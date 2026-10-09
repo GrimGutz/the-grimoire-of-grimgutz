@@ -1,4 +1,5 @@
 import { abilityMod } from "./dnd5e.mjs";
+import { registerSummonRecipe } from "./summons.mjs";
 
 function abilityValues(actor) {
   return Object.fromEntries(["str", "dex", "con", "int", "wis", "cha"].map(ability => [
@@ -64,10 +65,13 @@ export function quasitFamiliarSummon(actor) {
     features: [
       {
         name: "Укус/когти квазита",
+        activities: [{ name: "Укус/когти", attackBonus: 4, formula: "1d4 + 3", damageType: "piercing" },
+          { name: "Яд квазита", type: "save", formula: "2d4", damageType: "poison", saveAbility: "con", dc: 10 }],
         description: "<p>Рукопашная атака: +4 к попаданию, 1d4 + 3 колющего урона, цель совершает спасбросок Телосложения СЛ 10 или получает 2d4 урона ядом и отравлена на 1 минуту.</p>"
       },
       {
         name: "Пугающий облик",
+        activities: [{ name: "Спасбросок от испуга", type: "save", formula: "0", saveAbility: "wis", dc: 10, range: 20 }],
         description: "<p>Одно существо в пределах 20 футов совершает спасбросок Мудрости СЛ 10 или испугано на 1 минуту.</p>"
       },
       {
@@ -107,6 +111,8 @@ export function impFamiliarSummon(actor) {
     features: [
       {
         name: "Жало беса",
+        activities: [{ name: "Жало", attackBonus: 5, formula: "1d4 + 3", damageType: "piercing" },
+          { name: "Яд беса", type: "save", formula: "3d6", damageType: "poison", saveAbility: "con", dc: 11, onSave: "half" }],
         description: "<p>Рукопашная атака: +5 к попаданию, 1d4 + 3 колющего урона, цель совершает спасбросок Телосложения СЛ 11 или получает 3d6 урона ядом, половину при успехе.</p>"
       },
       {
@@ -145,6 +151,8 @@ export function shikigamiSummon(actor) {
     features: [
       {
         name: "Атака Шикигами",
+        activities: empowered ? [{ name: "Атака Шикигами выбранной формы", attackBonus,
+          condition: "Владелец потратил бонусное действие; урон задаёт выбранная форма" }] : [],
         description: `<p>Если Онмёджи тратит бонусное действие, Шикигами может атаковать. На 5-м уровне используйте бонус атаки владельца: <strong>+${attackBonus}</strong>; урон выбранной формы может добавлять модификатор Мудрости владельца (${damageBonus}).</p>`
       },
       {
@@ -166,6 +174,10 @@ export function ghostWalkerSpiritSummon(actor, targetActor = null) {
     name: `${actor.name}: дух ${targetName}`,
     img: targetActor?.img ?? "icons/magic/death/undead-ghost-scream-teal.webp",
     source: "unfinished-business",
+    lifecycle: { seconds: 60 },
+    extraItems: [...(targetActor?.items ?? [])].filter(item => ["weapon", "feat"].includes(item.type)
+      && [...(item.system?.activities?.values?.() ?? [])].some(activity => activity.type === "attack"))
+      .map(item => item.toObject()),
     size: actorSize(targetActor, "med"),
     type: "undead",
     ac: actorAc(targetActor, 12),
@@ -192,4 +204,8 @@ export function ghostWalkerSpiritSummon(actor, targetActor = null) {
     note: "Если нужен точный статблок умершего существа, используйте созданного актёра как заготовку и скорректируйте атаки/особенности вручную."
   };
 }
+
+registerSummonRecipe("shikigami-talisman", owner => shikigamiSummon(owner));
+registerSummonRecipe("infernal-familiar", owner => quasitFamiliarSummon(owner));
+registerSummonRecipe("imp-familiar", owner => impFamiliarSummon(owner));
 

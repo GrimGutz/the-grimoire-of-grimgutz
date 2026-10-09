@@ -270,14 +270,8 @@ function hollowPassiveDefinitions(actor) {
     definitions.push(hollowPassiveEffectData({
       key: "fortified-soul",
       feature: fortifiedSoul,
-      changes: [{
-        key: "system.traits.dr.value",
-        type: "custom",
-        value: "spell",
-        phase: "initial",
-        priority: 20
-      }],
-      description: "Сопротивление урону от заклинаний. dnd5e хранит сопротивления по типам урона, поэтому эффект добавляет кастомное сопротивление «spell» и требует подтверждения Мастера при расчёте урона."
+      changes: [],
+      description: "Сопротивление урону от заклинаний: Midi-QOL определяет источник и уменьшает урон, не складывая это сопротивление с уже применённым сопротивлением типу урона."
     }));
   }
 

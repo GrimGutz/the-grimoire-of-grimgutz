@@ -302,6 +302,8 @@ function keeperAllySummon(actor, form) {
     `,
     features: [{
       name: "Удар союзника",
+      activities: [{ name: "Удар союзника", attackBonus: Number(actor?.system?.attributes?.prof ?? 0) + level,
+        formula: `1${damageDie} - 1 + ${level}`, damageType: "bludgeoning" }],
       description: `<p>Бонус атаки +${Number(actor?.system?.attributes?.prof ?? 0) + level}; урон 1${damageDie} − 1 + ${level}. Для автоматического броска можно использовать активность «Удар союзника» на карточке Хранителя.</p>`
     }],
     note: "Таланты союзника не выбираются автоматически: добавьте их на лист союзника после создания."

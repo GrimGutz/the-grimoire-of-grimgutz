@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 
-const MIDI_QOL_HOOKS = [
+export const MIDI_QOL_HOOKS = [
   ["midi-qol.preAttackRollConfig", "applyMidiAttackDisadvantage"],
   ["midi-qol.preAttackRollConfig", "applyMidiWeaponBuffAttackAutomation"],
   ["midi-qol.DamageRollComplete", "applyPowerfulCleaving"],
@@ -8,6 +8,9 @@ const MIDI_QOL_HOOKS = [
   ["midi-qol.preTargetDamageApplication", "applyDeathKnightHealingRestriction"],
   ["midi-qol.preTargetDamageApplication", "markForestRootFireDamageHook"],
   ["midi-qol.preTargetDamageApplication", "applyHellfireFuryHook"],
+  ["midi-qol.preTargetDamageApplication", "applySpellSourceResistance"],
+  ["midi-qol.preTargetDamageApplication", "applySummonProtection"],
+  ["midi-qol.RollComplete", "handleSummonSelfCost"],
   ["midi-qol.preCheckSaves", "prepareMidiSteelWill"],
   ["midi-qol.postCheckSaves", "finishMidiSteelWill"]
 ];

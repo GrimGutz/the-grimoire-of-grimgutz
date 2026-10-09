@@ -18,6 +18,10 @@ import { installTemporaryEffectHooks } from "./effects/temporary-effects.mjs";
 import { automationActors } from "./effects/temporary-effects.mjs";
 import { createActorSynchronizer } from "./shared/actor-sync.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
+import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
+import { dismissRitualistSpirits, regainRitualistSpirits } from "./classes/ritualist.mjs";
+import { applySpellSourceResistance } from "./midi/spell-resistance.mjs";
+import { applySummonProtection, handleSummonSelfCost, installSummonCombatHooks, useSummonProtection } from "./shared/summon-combat.mjs";
 import {
   deathKnightClass,
   deathKnightLevel,
@@ -732,6 +736,15 @@ async function handleActivityAction(activity, context = {}) {
     case "summon-ritualist-spirits":
       await summonRitualistSpirits(actor, activity);
       break;
+    case "summon-spirit-protection":
+      await useSummonProtection(actor);
+      break;
+    case "dismiss-ritualist-spirits":
+      await dismissRitualistSpirits(actor);
+      break;
+    case "regain-ritualist-spirits":
+      await regainRitualistSpirits(actor);
+      break;
     case "use-ritualist-ritual-points":
       await useRitualistRitualPoints(actor, activity);
       break;
@@ -1212,6 +1225,8 @@ async function migrateOwnedItems(actor) {
 
 function installHooks() {
   installSummonSocket();
+  installSummonLifecycleHooks();
+  installSummonCombatHooks();
   installAuraHooks();
   installTemporaryEffectHooks();
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateAdvancement);
@@ -1256,6 +1271,9 @@ function installHooks() {
     applyDeathKnightHealingRestriction,
     markForestRootFireDamageHook,
     applyHellfireFuryHook,
+    applySpellSourceResistance,
+    applySummonProtection,
+    handleSummonSelfCost,
     applyMidiWeaponBuffAttackAutomation,
     prepareMidiSteelWill,
     finishMidiSteelWill
@@ -1418,6 +1436,7 @@ export function exposeApi() {
   if (!module) return;
   module.api = {
     summonRequestResult,
+    manageSummons,
     setStyle,
     toggleStyle,
     toggleGreatWeaponMaster,

@@ -1,6 +1,8 @@
 import { MODULE_ID } from "./constants.mjs";
 import { itemUses, notify } from "./helpers.mjs";
 import { gmRequestResult, installGmRequests, registerGmRequest, requestGm } from "./gm-requests.mjs";
+import { summonActivities, summonActivitySignature } from "./summon-activities.mjs";
+import { summonConcentrationActivity } from "./summon-lifecycle.mjs";
 
 const SOCKET_TYPE = "create-summon";
 const OWNERSHIP = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS ?? {
@@ -155,7 +157,9 @@ function ownershipFor(owner, requestedBy) {
 }
 
 function featureItems(summon) {
-  return (summon.features ?? []).map(feature => ({
+  return (summon.features ?? []).map(feature => {
+    const activities = summonActivities(feature.activities ?? []);
+    return ({
     name: feature.name,
     type: "feat",
     img: feature.img ?? summon.img,
@@ -186,12 +190,12 @@ function featureItems(summon) {
       },
       properties: [],
       requirements: "",
-      activities: {},
+      activities,
       advancement: [],
       identifier: "",
       enchant: {}
-    }
-  }));
+    }, flags: { [MODULE_ID]: { managedSummonFeature: feature.key ?? feature.name, managedActivities: summonActivitySignature(activities) } }
+  }); });
 }
 
 function actorSystem(summon) {
@@ -388,7 +392,9 @@ function actorData(owner, summon, requestedBy) {
     name: summon.name,
     type: "npc",
     img: summon.img,
-    items: featureItems(summon),
+    items: [...featureItems(summon), ...(summon.extraItems ?? []).map(item => {
+      const data = foundry.utils.deepClone(item); delete data._id; delete data._stats; data.flags = {}; data.effects = []; return data;
+    })],
     effects: summon.effects ?? [],
     ownership: ownershipFor(owner, requestedBy),
     flags: {
@@ -498,11 +504,24 @@ export async function updateManagedSummon(actor, summon) {
     const hp = actor.system.attributes.hp;
     update["system.attributes.hp.value"] = hp.value <= 0 ? 0 : Math.max(0, update["system.attributes.hp.max"] - Math.max(0, hp.max - hp.value));
   }
-  if (!Object.keys(update).length && actor.getFlag(MODULE_ID, "summonKind") === summon.kind) return false;
+  if (!Object.keys(update).length && actor.getFlag(MODULE_ID, "summonKind") === summon.kind
+    && JSON.stringify(actor.getFlag(MODULE_ID, "summonTemplate")) === JSON.stringify(summon)) return false;
   update[`flags.${MODULE_ID}.summonManaged`] = desired;
   update[`flags.${MODULE_ID}.summonTemplate`] = summon;
   update[`flags.${MODULE_ID}.summonKind`] = summon.kind;
   await actor.update(update);
+  // Only refresh activities created by this module, retaining manual item edits.
+  for (const feature of summon.features ?? []) {
+    if (!feature.activities?.length) continue;
+    const item = actor.items?.find?.(entry => entry.getFlag?.(MODULE_ID, "managedSummonFeature") === (feature.key ?? feature.name));
+    if (!item) continue;
+    const previousActivities = item.getFlag?.(MODULE_ID, "managedActivities");
+    const current = Object.fromEntries([...(item.system?.activities?.values?.() ?? [])].map(activity => [activity.id, activity.toObject()]));
+    if (previousActivities && summonActivitySignature(current) === previousActivities && summonActivitySignature(summonActivities(feature.activities)) !== previousActivities) {
+      const activities = summonActivities(feature.activities);
+      await item.update({ "system.activities": activities, [`flags.${MODULE_ID}.managedActivities`]: summonActivitySignature(activities) });
+    }
+  }
   return true;
 }
 
@@ -539,7 +558,7 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
   if (data.sceneId && !scene) throw Error("Сцена призыва не найдена.");
   if (data.requireScene && !scene) throw Error("Для призыва нужна сцена.");
   const actors = [], tokens = [], newActors = [], newTokens = [];
-  let resourceItem, charged = 0;
+  let resourceItem, charged = 0, concentrationEffect;
   await storeRequest(owner, requestId, { status: "pending" });
   try {
     if (data.resource?.itemUuid) {
@@ -570,6 +589,27 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
       if (token && !existed) newTokens.push({ scene, id: token.id ?? token._id });
       actors.push(actor); if (token) tokens.push(token);
     }
+    const concentration = summons.find(summon => summon.lifecycle?.concentration === "hostile");
+    if (concentration) {
+      const activity = await fromUuid(concentration.lifecycle.activityUuid);
+      if (!activity || !owner.beginConcentrating) throw Error("Не удалось начать концентрацию Ритуалиста.");
+      const current = [...(owner.concentration?.effects ?? [])];
+      if (current.length >= Number(owner.system?.attributes?.concentration?.limit ?? 1)) {
+        const approved = concentration.lifecycle.replaceConcentration ?? [];
+        if (current.some(effect => !approved.includes(effect.uuid))) throw Error("Новая концентрация требует подтверждения завершения предыдущей.");
+        for (const effect of current) {
+          const ended = await owner.endConcentration(effect);
+          if (!ended?.length) throw Error("Текущую концентрацию не удалось завершить.");
+        }
+      }
+      // Keep the native effect until group expiration; losing it only changes control.
+      concentrationEffect = await owner.beginConcentrating(summonConcentrationActivity(activity), {
+        duration: { value: 600, units: "seconds", expiry: "updateWorldTime", expired: false },
+        flags: { [MODULE_ID]: { summonConcentration: requestId }, dae: { expiryMode: "delete" } }
+      });
+      if (!concentrationEffect) throw Error("Концентрация не создана.");
+      for (const actor of actors) await actor.update({ [`flags.${MODULE_ID}.summonLifecycle.concentrationEffectUuid`]: concentrationEffect.uuid });
+    }
     const result = { status: "success", actorUuids: actors.map(actor => actor.uuid ?? `Actor.${actor.id}`), tokenUuids: tokens.map(token => token.uuid ?? token.id), requestId };
     await storeRequest(owner, requestId, result);
     for (const [index, actor] of actors.entries()) {
@@ -579,6 +619,9 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
     return result;
   } catch (error) {
     const rollbackErrors = [];
+    if (concentrationEffect) {
+      try { await concentrationEffect.delete(); } catch (failure) { rollbackErrors.push(failure.message); }
+    }
     for (const { scene, id } of newTokens) {
       try { await scene.deleteEmbeddedDocuments("Token", [id]); } catch (failure) { rollbackErrors.push(failure.message); }
     }
