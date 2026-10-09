@@ -167,12 +167,12 @@ export async function useAreaActivity(activity, { validate = () => true, usage =
       consume: { resources: true, spellSlot: resolved.item.type === "spell" },
       midiOptions: { ignoreUserTargets: true, asUser: game.user.id, targetUuids: targets.map(token => token.document.uuid),
         workflowOptions: { ...(usage.midiOptions?.workflowOptions ?? {}), ignoreUserTargets: true, targetConfirmation: "none", checkTargets: false,
-          autoRollDamage: "always", templateUuid: placed[0].uuid } } };
+          autoRollDamage: "always", forceCompletion: true, templateUuid: placed[0].uuid } } };
     const WorkflowClass = getAreaWorkflowClass();
     options.workflow = new WorkflowClass(actor, resolved, ChatMessage.getSpeaker({ actor }), new Set(targets),
       { event: usage.event, workflowOptions: options.midiOptions.workflowOptions });
     const workflow = await api.completeActivityUse(resolved, options, { configure: dialog.configure ?? true }, { create: true, rollMode: message.rollMode });
-    if (workflow?.aborted || options.workflow?.aborted) return false;
+    if (workflow === false || workflow?.aborted || options.workflow?.aborted) return false;
     // Undefined with a running workflow is an unknown outcome, not a refund signal.
     committed = true;
     if (!workflow) { notify("Midi-QOL ещё завершает применение. Не повторяйте расход; проверьте карточку в чате.", "warn"); return false; }

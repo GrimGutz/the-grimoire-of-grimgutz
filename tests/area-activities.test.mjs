@@ -44,7 +44,7 @@ beforeEach(() => {
     system: { canvas: { AbilityTemplate: { fromActivity(input) { templateActivity = input;
       return [{ async drawPreview() { if (placement === "cancel") throw undefined; return [placed]; } }]; } } } } };
   class Workflow { constructor(actor, activity, speaker, targets, options) { Object.assign(this, { actor, activity, targets, workflowOptions: options.workflowOptions }); } }
-  class TrapWorkflow { constructor() { throw Error("Trap constructor must never run"); } }
+  class TrapWorkflow extends Workflow { constructor() { throw Error("Trap constructor must never run"); } }
   globalThis.MidiQOL = { Workflow, TrapWorkflow, computeTargetsFromTemplates: () => [target],
     async completeActivityUse(input, options) { rolls.push({ input, options }); return { activity: input, aborted: false }; } };
   globalThis.ChatMessage = { getSpeaker: () => ({}) };
@@ -111,8 +111,8 @@ test("origin constraints use the caster footprint and measured range", () => {
 test("save-first adapter uses Midi's stages without invoking its self-starting trap constructor", async () => {
   const calls = [];
   MidiQOL.TrapWorkflow.prototype.WorkflowState_WaitForSaves = async function () { calls.push("saves"); await this.checkSaves(); return "saved"; };
-  MidiQOL.TrapWorkflow.prototype.WorkflowState_DamageRollComplete = async () => { calls.push("damage"); };
-  MidiQOL.TrapWorkflow.prototype.WorkflowState_AllRollsComplete = async () => { calls.push("apply"); };
+  MidiQOL.Workflow.prototype.WorkflowState_DamageRollComplete = async function () { calls.push("damage"); return this.WorkflowState_WaitForSaves; };
+  MidiQOL.Workflow.prototype.WorkflowState_AllRollsComplete = async () => { calls.push("apply"); };
   MidiQOL.Workflow.prototype.checkSaves = async () => { calls.push("native-rolls"); };
   const Class = getAreaWorkflowClass(), workflow = new Class(actor, { hasAttack: false }, {}, new Set([target]), { workflowOptions: {} });
   workflow.callMidiHooks = async name => calls.push(name);
@@ -121,4 +121,19 @@ test("save-first adapter uses Midi's stages without invoking its self-starting t
   assert.equal(await workflow.WorkflowState_WaitForSaves(), "saved");
   await workflow.WorkflowState_DamageRollComplete(); await workflow.WorkflowState_AllRollsComplete();
   assert.deepEqual(calls, ["midi-qol.preCheckSaves", "saves", "native-rolls", "midi-qol.postCheckSaves", "damage", "apply"]);
+});
+
+test("MidiActivityMixin preserves the supplied workflow instead of replacing it", () => {
+  const Class = getAreaWorkflowClass();
+  const workflow = new Class(actor, activity, {}, new Set([target]), { workflowOptions: {} });
+  // Midi 14.0.9 only preserves usage.workflow when it is a TrapWorkflow instance.
+  assert.ok(workflow instanceof MidiQOL.TrapWorkflow);
+  assert.ok(workflow instanceof MidiQOL.Workflow);
+});
+
+test("save-only areas finish without entering a saves/damage loop", async () => {
+  MidiQOL.Workflow.prototype.WorkflowState_SavesComplete = async function () { return this.WorkflowState_AllRollsComplete; };
+  const Class = getAreaWorkflowClass();
+  const workflow = new Class(actor, { hasDamage: false, hasHealing: false }, {}, new Set([target]), { workflowOptions: {} });
+  assert.equal(await workflow.WorkflowState_SavesComplete(), workflow.WorkflowState_AllRollsComplete);
 });
