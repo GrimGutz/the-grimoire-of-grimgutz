@@ -4,6 +4,7 @@ import { isGmAuthority, registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { summonConcentrationActivity } from "./summon-lifecycle.mjs";
 import { itemUses, notify } from "./helpers.mjs";
+import { inspiringTemporaryHp } from "./leader-presence-definitions.mjs";
 
 const zoneOperations = new Map();
 registerGmRequest("create-circle-zone", (owner, data, context) => {
@@ -258,8 +259,9 @@ export async function applyTemporaryHp(tokens, amount, { sourceActor = null } = 
     if (!actor) continue;
     try {
       const current = Number(actor.system?.attributes?.hp?.temp ?? 0);
-      if (!Number.isFinite(current) || current < value) {
-        await actor.update({ "system.attributes.hp.temp": value });
+      const boosted = inspiringTemporaryHp(actor, value);
+      if (!Number.isFinite(current) || current < boosted) {
+        await actor.update({ "system.attributes.hp.temp": boosted });
       }
       applied.push(token);
     } catch (error) {

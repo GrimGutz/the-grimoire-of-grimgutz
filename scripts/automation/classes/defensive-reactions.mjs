@@ -10,6 +10,7 @@ import { onConfirmedDamage, onPrepareDamage } from "../shared/damage-events.mjs"
 import { reactionAttack, useNativeUtility } from "../shared/native-actions.mjs";
 import { guardianLevel } from "./guardian.mjs";
 import { isAuraIncapacitated } from "../shared/aura-conditions.mjs";
+import { addSaveAdvantage } from "../midi/save-modifiers.mjs";
 
 export const guardianMarksPerTurn = level => [0, 2, 3, 3, 4, 4][Math.max(0, Math.min(5, level))];
 async function mark(source, target, id, magical = false) {
@@ -118,9 +119,7 @@ export async function prepareArmorSave(target, workflow, details) {
     sourceUuid: tokenRef(workflow.token).uuid, targetUuid: tokenRef(target).uuid, workflowId: workflow.id,
     destructive: Boolean(workflow.activity.damage?.parts?.length) }, { timeoutMs: 120000, requestId: `armor-save:${workflow.id}:${tokenRef(target).uuid}` });
   if (!result.advantage) return;
-  details.advantage = true;
-  for (const choice of Object.values(details.advantageByChoice ?? {})) { choice.advantage = true; choice.tracker?.advantage?.add?.(`${MODULE_ID}.armor`, "Шевелящаяся броня"); }
-  details.tracker?.advantage?.add?.(`${MODULE_ID}.armor`, "Шевелящаяся броня");
+  addSaveAdvantage(details, `${MODULE_ID}.armor`, "Шевелящаяся броня");
 }
 registerGmRequest("finish-defense-reactions", async (actor, data) => {
   const activity = await fromUuid(data.activityUuid);

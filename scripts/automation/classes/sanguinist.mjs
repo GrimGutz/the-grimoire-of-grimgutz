@@ -1,4 +1,5 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
+import { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs";
 import {
   activityItem,
   automationData,
@@ -609,7 +610,8 @@ function crimsonFuryEffect(actor) {
 async function handleCrimsonFury(actor) {
   if (!await spendBloodPoints(actor, 1)) return false;
   const currentTemp = Number(actor.system?.attributes?.hp?.temp ?? 0);
-  if (currentTemp < 5) await actor.update({ "system.attributes.hp.temp": 5 });
+  const temp = inspiringTemporaryHp(actor, 5);
+  if (currentTemp < temp) await actor.update({ "system.attributes.hp.temp": temp });
   const feature = findFeature(actor, "crimson-fury");
   const data = {
     name: "Багровая ярость",

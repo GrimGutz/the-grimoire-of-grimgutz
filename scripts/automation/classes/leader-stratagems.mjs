@@ -1,15 +1,16 @@
 import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
 import { automationData, enabled, findFeature, itemIdentifier, notify } from "../shared/helpers.mjs";
 import { leaderLevel } from "../shared/selectors.mjs";
-import { registerGmRequest, requestGm } from "../shared/gm-requests.mjs";
+import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
 import { runAutomationEvent, registerAutomationEvent } from "../shared/event-ledger.mjs";
 import { askOwner, confirmOwner, chooseSceneTokens } from "../shared/owner-prompts.mjs";
-import { addCombatBenefit, canReact, inFeet, meleeReach, tokenRef, turnKey } from "../shared/combat-benefits.mjs";
-import { useNativeUtility, reactionAttack } from "../shared/native-actions.mjs";
+import { addCombatBenefit, canReact, inFeet, meleeReach, tokenRef, turnKey, recordModuleReaction } from "../shared/combat-benefits.mjs";
+import { useNativeUtility, reactionAttack, prepareReactionAttack } from "../shared/native-actions.mjs";
 import { handleStratagemUse, validateStratagemUse } from "./leader.mjs";
 import { feetToSceneUnits } from "../shared/spatial.mjs";
 import { dispatchAutomationPulse } from "../midi/aura-workflow.mjs";
 import { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs";
+import { isAuraIncapacitated } from "../shared/aura-conditions.mjs";
 
 export const STRATAGEM_RULES = Object.freeze({
   "stratagem-cunning-ruse": "contest", "stratagem-battle-cry": "battle-cry", "stratagem-command-caution": "caution",
@@ -56,6 +57,7 @@ async function applyStratagem(actor, data) {
   if (!item || activity.actor?.uuid !== actor.uuid || source?.actor?.uuid !== actor.uuid || !leaderLevel(actor)
     || !STRATAGEM_RULES[itemIdentifier(item)] || !validateStratagemUse(activity)) throw Error("Стратагема недоступна.");
   const scene = source.parent, level = leaderLevel(actor), prof = Number(actor.system.attributes.prof), rule = STRATAGEM_RULES[itemIdentifier(item)];
+  if (isAuraIncapacitated(actor) || (activity.activation?.type === "reaction" && !canReact(actor))) return false;
   const combat = game.combats?.find?.(entry => entry.started && entry.scene?.id === scene.id);
   if (["battle-cry", "guiding", "line"].includes(rule) && combat?.combatant?.tokenId !== source.id)
     throw Error("Эта стратагема применяется в начале собственного хода; подтвердите момент в своём ходу.");
@@ -63,7 +65,7 @@ async function applyStratagem(actor, data) {
   const allies = token => token.uuid !== source.uuid && token.disposition === source.disposition && canReact(token.actor)
     && !token.actor.getFlag(MODULE_ID, "leaderStratagemReceived");
   const enemy = token => token.uuid !== source.uuid && token.disposition !== source.disposition;
-  let selected = [], victim, mode, amount;
+  let selected = [], victim, mode, amount, defenderSkill, selectedSkill, helpKind;
   if (rule === "caution") mode = activity.activation?.type === "bonus" ? "check" : "protect";
   const select = async (relation, max = 1, range = null) => chooseSceneTokens(actor, scene, { title: item.name, max,
     relation: token => relation(token) && (range == null || inFeet(source, token, leaderDistance(actor, range), scene)) });
@@ -104,12 +106,30 @@ async function applyStratagem(actor, data) {
   if (rule === "contest") {
     mode = await askOwner(actor, { title: item.name, choices: ["arc", "inv", "dec", "prf", "slt", "sur"].map(skill => [skill, CONFIG.DND5E.skills[skill].label]) });
     if (!mode) return false;
+    defenderSkill = await askOwner(victim.actor, { title: item.name, choices: [["inv", "Расследование"], ["ins", "Проницательность"], ["prc", "Восприятие"]] });
+    if (!defenderSkill) return false;
   }
+  if (rule === "caution" && mode === "check") {
+    selectedSkill = await askOwner(selected[0].actor, { title: item.name, choices: [["prc", "Восприятие"], ["inv", "Расследование"]] });
+    if (!selectedSkill) return false;
+  }
+  if (rule === "help") {
+    helpKind = await askOwner(selected[0].actor, { title: item.name, choices: [["stand", "Встать"], ["escape", "Вырваться из захвата"]] });
+    if (!helpKind) return false;
+    if (helpKind === "escape") {
+      selectedSkill = await askOwner(selected[0].actor, { title: item.name, choices: [["ath", "Атлетика"], ["acr", "Акробатика"]] });
+      if (!selectedSkill) return false;
+    }
+  }
+  const preparedAttack = rule === "strike" ? await prepareReactionAttack(selected[0], victim, {name: item.name}) : null;
+  if (rule === "strike" && !preparedAttack) return false;
   const native = await useNativeUtility(activity);
   if (native === false || native?.aborted) return false;
   await handleStratagemUse(activity);
   if (native === undefined) return { status: "needs-review" };
-  if (["wolf", "retreat"].includes(rule)) await globalThis.MidiQOL?.setReactionUsed?.(selected[0].actor);
+  if (!isGmAuthority()) return {status: "needs-review"};
+  if (activity.activation?.type === "reaction") await recordModuleReaction(actor, scene);
+  if (["wolf", "retreat"].includes(rule)) { await globalThis.MidiQOL?.setReactionUsed?.(selected[0].actor); await recordModuleReaction(selected[0].actor, scene); }
   const commandId = native.id ?? foundry.utils.randomID();
   for (const target of selected) await target.actor.setFlag(MODULE_ID, "leaderStratagemReceived", { combatId: combat?.id ?? null, turn: turnKey(combat), commandId });
   const add = (target, options) => addCombatBenefit(source, target, item, { commandId, ...options });
@@ -119,13 +139,12 @@ async function applyStratagem(actor, data) {
   if (rule === "direct") await add(victim, { kind: "direct-attack", remaining: 1 + level, formula: `1d${leaderDie(actor)} + ${Math.floor(prof / 2)}`,
     weaponOnly: true, attackers: [...scene.tokens].filter(allies).map(token => token.uuid) });
   if (rule === "contest") {
-    const defenderSkill = await askOwner(victim.actor, { title: item.name, choices: [["inv", "Расследование"], ["ins", "Проницательность"], ["prc", "Восприятие"]] });
     const attack = await skillRoll(actor, mode, level, false, true), defense = await skillRoll(victim.actor, defenderSkill, 0, true);
-    if (attack > defense) await add(selected[0], { kind: "attack-advantage", against: [victim.uuid] });
+    if (attack > defense) await add(selected[0], { kind: "attack-advantage", against: [victim.uuid], expiry: "sourceEnd" });
   }
   if (rule === "battle-cry") for (const target of selected) await add(target, { kind: "battle-cry", amount: level });
   if (rule === "caution") {
-    if (mode === "check") { const skill = await askOwner(selected[0].actor, { title: item.name, choices: [["prc", "Восприятие"], ["inv", "Расследование"]] }); await skillRoll(selected[0].actor, skill, level); }
+    if (mode === "check") await skillRoll(selected[0].actor, selectedSkill, level);
     else for (const target of selected) await add(target, { kind: "caution", against: [victim.uuid], remaining: 1 });
   }
   if (rule === "retreat") {
@@ -134,9 +153,8 @@ async function applyStratagem(actor, data) {
   }
   if (rule === "guiding") await add(source, { kind: "guiding-magic", amount: level });
   if (rule === "help") {
-    const kind = await askOwner(selected[0].actor, { title: item.name, choices: [["stand", "Встать"], ["escape", "Вырваться из захвата"]] });
-    if (kind === "stand") for (const effect of [...selected[0].actor.effects].filter(effect => effect.statuses?.has?.("prone"))) await effect.delete();
-    if (kind === "escape") { const skill = await askOwner(selected[0].actor, { title: item.name, choices: [["ath", "Атлетика"], ["acr", "Акробатика"]] }); await skillRoll(selected[0].actor, skill, level); }
+    if (helpKind === "stand") for (const effect of [...selected[0].actor.effects].filter(effect => effect.statuses?.has?.("prone"))) await effect.delete();
+    if (helpKind === "escape") await skillRoll(selected[0].actor, selectedSkill, level);
     await add(selected[0], { kind: "save-bonus", expiry: "targetEnd", changes: [change("system.bonuses.abilities.save", 1 + level)] });
   }
   if (rule === "line") for (const target of [...scene.tokens].filter(allies)) {
@@ -159,7 +177,7 @@ async function applyStratagem(actor, data) {
     for (const effect of [...victim.actor.effects].filter(effect => effect.getFlag?.(MODULE_ID, "combatBenefit")?.kind === "mark")) await effect.delete();
     await add(victim, { kind: "mark", protectedBy: selected[0].uuid, expiry: null });
   }
-  if (rule === "strike") await reactionAttack(selected[0], victim, { name: item.name, attackBonus: level,
+  if (rule === "strike") return reactionAttack(selected[0], victim, { name: item.name, attackBonus: level, prepared: preparedAttack,
     damageBonus: findFeature(selected[0].actor, "extra-attack") ? prof : 0 });
   if (rule === "wolf") await add(selected[0], { kind: "damage-bonus", against: [victim.uuid], weaponOnly: true, remaining: 1, amount: level + prof });
   return true;
@@ -173,8 +191,8 @@ registerGmRequest("leader-stratagem", async (actor, data, context) => {
     sourceActorUuid: actor.uuid, name: "Стратагема Лидера", input: data }, () => applyStratagem(actor, data),
   { queued: !canvas?.ready || canvas.scene?.id !== source.parent.id });
 });
-export async function useLeaderStratagem(activity) {
-  const actor = activity.actor, source = canvas.tokens?.controlled?.find(token => token.actor.uuid === actor.uuid)?.document ?? actor.getActiveTokens?.()[0]?.document;
+export async function useLeaderStratagem(activity, {sourceTokenUuid = null} = {}) {
+  const actor = activity.actor, source = sourceTokenUuid ? await fromUuid(sourceTokenUuid) : canvas.tokens?.controlled?.find(token => token.actor.uuid === actor.uuid)?.document ?? actor.getActiveTokens?.()[0]?.document;
   if (!source) { notify("Для стратагемы нужен токен Лидера на сцене.", "warn"); return false; }
   return requestGm("leader-stratagem", actor, { activityUuid: activity.uuid, sourceTokenUuid: source.uuid }, { timeoutMs: 120000 });
 }
@@ -188,10 +206,13 @@ export function installLeaderStratagemHooks() {
   Hooks.on("preUpdateActor", (actor, changes, options) => {
     const record = actor.getFlag?.(MODULE_ID, "combatTempHp"), next = changes["system.attributes.hp.temp"] ?? changes.system?.attributes?.hp?.temp;
     if (!record || next === undefined || options?.[MODULE_ID]?.tempHpGrant) return;
-    if (options?.[MODULE_ID]?.damageEvent && Number(next) <= Number(actor.system.attributes.hp.temp))
+    if (options?.[MODULE_ID]?.combatDamage && Number(next) <= Number(actor.system.attributes.hp.temp))
       changes[`flags.${MODULE_ID}.combatTempHp`] = { ...record, remaining: Number(next) };
     else changes[`flags.${MODULE_ID}.-=combatTempHp`] = null;
   });
+  Hooks.on("dnd5e.preApplyDamage", (actor, amount, _updates, options) => { if (amount > 0 && actor.getFlag?.(MODULE_ID, "combatTempHp")) {
+    options[MODULE_ID] ??= {}; options[MODULE_ID].combatDamage = true;
+  } });
   Hooks.on("deleteActiveEffect", effect => { const record = effect.parent?.getFlag?.(MODULE_ID, "combatTempHp");
     if (effect.parent?.isOwner && record?.effectUuid === effect.uuid) { const update = { [`flags.${MODULE_ID}.-=combatTempHp`]: null };
       if (Number(effect.parent.system.attributes.hp.temp) === record.remaining) update["system.attributes.hp.temp"] = 0;

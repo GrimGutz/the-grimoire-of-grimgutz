@@ -1,4 +1,5 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
+import { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs";
 import {
   activityItem,
   automationData,
@@ -157,8 +158,9 @@ function demonicVitalityEffect(actor) {
 
 async function ensureDemonicVitalityTempHp(actor) {
   const current = Number(actor?.system?.attributes?.hp?.temp ?? 0);
-  if (current >= 10) return false;
-  await actor.update({ "system.attributes.hp.temp": 10 });
+  const amount = inspiringTemporaryHp(actor, 10);
+  if (current >= amount) return false;
+  await actor.update({ "system.attributes.hp.temp": amount });
   return true;
 }
 

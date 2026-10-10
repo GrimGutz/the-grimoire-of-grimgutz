@@ -1,4 +1,5 @@
 import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
+import { feetToSceneUnits } from "../shared/spatial.mjs";
 import {
   activityActor,
   activityItem,
@@ -85,7 +86,7 @@ async function applyFrontlineCommander(actor) {
     .map(type => ({
       key: `system.attributes.movement.${type}`,
       type: "add",
-      value: 10,
+      value: feetToSceneUnits(10, {grid: {units: movement.units ?? "ft"}}),
       phase: "final",
       priority: 20
     }));
@@ -115,12 +116,9 @@ async function applyFrontlineCommander(actor) {
         }
       }
     },
-    system: {
-      changes,
-      duration: {
-        rounds: 1
-      }
-    }
+    start: null,
+    duration: {value: null, units: "seconds", expiry: null, expired: false},
+    system: {changes}
   }]);
 }
 

@@ -5,7 +5,7 @@ import { isGmAuthority, registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { isForwardTurn } from "./combat-flow.mjs";
 import { tokenSceneDistance, feetToSceneUnits } from "./spatial.mjs";
 import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
-import { isAuraIncapacitated } from "./aura-conditions.mjs";
+import { isAuraIncapacitated, isAuraDefeated } from "./aura-conditions.mjs";
 
 export const benefitData = effect => effect?.getFlag?.(MODULE_ID, "combatBenefit") ?? effect?.flags?.[MODULE_ID]?.combatBenefit;
 export const activeBenefits = actor => [...(actor?.effects ?? [])].filter(effect => isEffectActive(effect) && benefitData(effect));
@@ -18,9 +18,9 @@ export function combatForScene(scene) { return game.combats?.find?.(combat => co
 export function sceneToken(scene, uuid) { return [...(scene?.tokens ?? [])].find(token => token.uuid === uuid); }
 export function inFeet(a, b, feet, scene) { return tokenSceneDistance(a?.object ?? a, b?.object ?? b, scene) <= feetToSceneUnits(feet, scene); }
 export function meleeReach(actor) {
-  return Math.max(5, ...[...(actor.items ?? [])].filter(item => item.type === "weapon"
-    && [...(item.system?.activities?.values?.() ?? [])].some(activity => activity.attack?.type?.value === "melee"))
-    .map(item => Number(item.system?.range?.reach ?? (item.system?.range?.units === "ft" ? item.system.range.value : 5) ?? 5)));
+  return Math.max(5, ...[...(actor.items ?? [])].filter(item => item.type === "weapon" && item.system?.equipped !== false)
+    .flatMap(item => [...(item.system?.activities?.values?.() ?? [])].filter(activity => activity.attack?.type?.value === "melee")
+      .map(activity => Number(activity.range?.value ?? item.system?.range?.reach ?? (item.system?.properties?.has?.("rch") ? 10 : 5)) || 5)));
 }
 export function canReact(actor) {
   const own = actor.getFlag?.(MODULE_ID, "reactionUse");
@@ -45,7 +45,7 @@ export async function addCombatBenefit(source, target, item, { kind, name = item
     createdTurn: turnKey(combat), skipCurrentEnd: ["targetEnd", "sourceEnd"].includes(expiry)
       && combat?.combatant?.tokenId === (expiry === "sourceEnd" ? sourceDoc.id : targetDoc.id),
     claims: [], ...data };
-  const timing = combat?.started ? { start: null, duration: { value: null, units: "seconds", expiry: null, expired: false } }
+  const timing = combat?.started || expiry === null ? { start: null, duration: { value: null, units: "seconds", expiry: null, expired: false } }
     : temporaryEffectTiming({ seconds: 6 });
   const [effect] = await actor.createEmbeddedDocuments("ActiveEffect", [{ name, img: item.img, type: "base", origin: item.uuid,
     transfer: false, disabled: false, showIcon: 1, statuses: [], ...timing,
@@ -55,7 +55,7 @@ export async function addCombatBenefit(source, target, item, { kind, name = item
 export async function consumeBenefit(effect, key) {
   const data = benefitData(effect);
   if (!isEffectActive(effect) || !data || data.claims?.includes(key)) return false;
-  const next = { ...data, claims: [...(data.claims ?? []), key].slice(-100) };
+  const next = { ...data, reserved: null, reservedValue: null, claims: [...(data.claims ?? []), key].slice(-100) };
   if (next.remaining != null) next.remaining = Math.max(0, Number(next.remaining) - 1);
   if (next.remaining === 0) await effect.delete();
   else await effect.setFlag(MODULE_ID, "combatBenefit", next);
@@ -111,8 +111,8 @@ registerGmRequest("combat-attack-benefits", async (actor, data) => {
   for (const effect of effects) if (matchesAttackBenefit(effect, { attacker, target, scene: attacker.parent,
     weapon: activity.item.type === "weapon", opportunity: data.opportunity === true, workflowId: data.workflowId })) {
     const bonus = benefitData(effect);
-    if (["attack-advantage", "attack-disadvantage", "mark", "attack-bonus", "dodge", "caution"].includes(bonus.kind))
-      results.push({ effectUuid: effect.uuid, kind: bonus.kind, amount: bonus.amount ?? 0, name: effect.name });
+    if (["attack-advantage", "attack-disadvantage", "mark", "attack-bonus", "caution"].includes(bonus.kind))
+      results.push({ effectUuid: effect.uuid, kind: bonus.kind, amount: bonus.amount ?? 0, name: effect.name, presenceKind: bonus.presenceKind ?? null });
   }
   for (const provider of attackProviders) results.push(...await provider({ actor, attacker, target, activity, data }));
   attackReservations.set(`${actor.uuid}:${data.workflowId}`, results.map(result => result.effectUuid));
@@ -127,6 +127,12 @@ export async function prepareCombatAttackBenefits(workflow) {
     workflowId: workflow.id, opportunity: workflow.workflowOptions?.isOpportunityAttack === true }, { requestId: `attack-benefits:${workflow.id}`, timeoutMs: 120000 });
   if (result.status !== "success") return;
   workflow.grimgutzBenefitsPrepared = true; workflow.grimgutzAttackBenefits = result.results;
+  if (result.results.some(bonus => bonus.kind === "prevent-attack")) {
+    workflow.aborted = true;
+    ui.notifications?.info?.("Отход предотвращает эту атаку возможности. Уже потраченные внешним модулем ресурсы проверьте вручную.");
+    await workflow.performState?.(workflow.WorkflowState_Abort);
+    return false;
+  }
   for (const bonus of result.results) {
     if (["attack-advantage"].includes(bonus.kind)) workflow.attackRollModifierTracker?.advantage?.add?.(bonus.effectUuid, bonus.name);
     if (["attack-disadvantage", "mark", "dodge", "caution"].includes(bonus.kind)) workflow.attackRollModifierTracker?.disadvantage?.add?.(bonus.effectUuid, bonus.name);
@@ -197,4 +203,15 @@ export function installCombatBenefitHooks() {
   Hooks.on("updateCombat", (combat, changes) => { void cleanupCombatBenefits(combat, changes).catch(error => console.error(`${MODULE_ID} | Benefit expiry failed`, error)); });
   Hooks.on("deleteCombat", combat => { if (isGmAuthority()) for (const actor of automationActors()) for (const effect of activeBenefits(actor))
     if (benefitData(effect).combatId === combat.id) void effect.delete(); });
+  const endMarks = async () => {
+    if (!enabled() || !isGmAuthority()) return;
+    for (const actor of automationActors()) for (const effect of activeBenefits(actor)) {
+      const data = benefitData(effect);
+      if (data.kind !== "mark" || data.expiry !== null) continue;
+      const source = await fromUuid(data.sourceTokenUuid), protector = await fromUuid(data.protectedBy);
+      if (!source || !protector || isAuraDefeated(source) || isAuraIncapacitated(protector.actor)) await effect.delete();
+    }
+  };
+  for (const hook of ["updateActor", "createActiveEffect", "updateActiveEffect", "deleteActiveEffect", "deleteToken"])
+    Hooks.on(hook, () => { void endMarks().catch(error => console.error(`${MODULE_ID} | Mark cleanup failed`, error)); });
 }

@@ -25,7 +25,7 @@ import { installPeriodicZoneHooks } from "./shared/periodic-zones.mjs";
 import { resolvePendingAutomation } from "./shared/event-ledger.mjs";
 import { installOwnerPromptHooks } from "./shared/owner-prompts.mjs";
 import { installCombatBenefitHooks, prepareCombatAttackBenefits, commitCombatAttackBenefits } from "./shared/combat-benefits.mjs";
-import { installDamageEventHooks, prepareConfirmedDamage } from "./shared/damage-events.mjs";
+import { installDamageEventHooks, prepareConfirmedDamage, finishDamageReservations } from "./shared/damage-events.mjs";
 import { installLeaderStratagemHooks, useLeaderStratagem } from "./classes/leader-stratagems.mjs";
 import { installLeaderEventHooks, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll } from "./classes/leader-events.mjs";
 import { installLeaderPresenceHooks, chooseLeaderPresenceTargets, handleLeaderCritical, handleDistractingPresence, prepareLeaderHealing } from "./classes/leader-presences.mjs";
@@ -1177,7 +1177,7 @@ function installHooks() {
 export function getMidiHookHandlers() {
   return { handleHollowWeaponHit, prepareHollowCast, handleGuardianWeaponHit, prepareArmorSave, finishDefenseReactions, handleInsectBiteHit, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
     prepareLeaderHealing, handleLeaderCritical, handleDistractingPresence, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
-    prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage,
+    prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
     applySpellSourceResistance, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,

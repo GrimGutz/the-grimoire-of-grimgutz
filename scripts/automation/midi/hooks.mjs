@@ -1,6 +1,12 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 
 export const MIDI_QOL_HOOKS = [
+  ["midi-qol.preCleanup", "finishDamageReservations"],
+  ["midi-qol.preCleanup", "finishBloodSpell"],
+  ["midi-qol.preCleanup", "finishDefenseReactions"],
+  ["midi-qol.preCleanup", "finishLeaderRoll"],
+  ["midi-qol.prePreambleComplete", "prepareBloodSpell"],
+  ["midi-qol.RollComplete", "finishDamageReservations"],
   ["midi-qol.prePreambleComplete", "prepareHollowCast"],
   ["midi-qol.RollComplete", "handleHollowWeaponHit"],
   ["midi-qol.RollComplete", "handleGuardianWeaponHit"],
@@ -8,7 +14,6 @@ export const MIDI_QOL_HOOKS = [
   ["midi-qol.postCheckSaves", "finishDefenseReactions"],
   ["midi-qol.RollComplete", "finishDefenseReactions"],
   ["midi-qol.RollComplete", "handleInsectBiteHit"],
-  ["midi-qol.prePreambleComplete", "prepareBloodSpell"],
   ["midi-qol.postCheckSaves", "handleBloodFailedSaves"],
   ["midi-qol.RollComplete", "finishBloodSpell"],
   ["midi-qol.preTargetDamageApplication", "prepareLeaderHealing"],

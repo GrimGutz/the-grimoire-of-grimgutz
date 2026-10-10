@@ -21,6 +21,7 @@ export function presenceApplies(source, target, key) {
   return self || recipients.includes(targetDoc.uuid);
 }
 export function inspiringTemporaryHp(actor, base) {
+  if (!(Number(base) > 0)) return Number(base) || 0;
   let bonus = 0;
   for (const scene of game.scenes ?? []) for (const target of scene.tokens ?? []) if (target.actor?.uuid === actor.uuid)
     for (const source of scene.tokens ?? []) if (presenceApplies(source, target, "inspiring-presence"))

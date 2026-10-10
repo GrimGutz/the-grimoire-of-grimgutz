@@ -4,6 +4,7 @@ import { isGmAuthority } from "./gm-requests.mjs";
 
 const resolvers = new Map();
 let journalPromise;
+const sessionId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}:${Math.random()}`;
 const flag = document => document?.getFlag?.(MODULE_ID, "automationLedger");
 
 // Queue payloads may contain hidden NPCs and cast snapshots. Scene flags and
@@ -80,12 +81,13 @@ export async function listAutomationEvents() {
   if (!game.user?.isGM) return [];
   const existing = [...(game.journal ?? [])].find(flag);
   // Diagnostics must not create the journal.
-  return structuredClone(existing?.getFlag(MODULE_ID, "events") ?? []);
+  return structuredClone(existing?.getFlag(MODULE_ID, "events") ?? []).map(event => event.state === "running" && event.sessionId !== sessionId
+    ? {...event, state: "needs-review", error: event.error ?? "Выполнение прервано перезагрузкой или сменой GM; автоматического повтора нет."} : event);
 }
 export async function runAutomationEvent(record, operation, options) {
   if (!enabled() || !isGmAuthority()) return { status: "forbidden" };
   if (!record.id || !record.kind || !record.sceneId) throw Error("Неполное событие автоматизации.");
-  const result = await ledger.run({ createdAt: Number(game.time?.worldTime ?? 0), ...record }, operation, options);
+  const result = await ledger.run({ createdAt: Number(game.time?.worldTime ?? 0), sessionId, ...record }, operation, options);
   if (result.status === "queued") notify("Срабатывание сохранено в панели Гримуара. GM должен открыть его сцену и подтвердить результат.", "warn");
   return result;
 }

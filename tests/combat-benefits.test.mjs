@@ -34,9 +34,10 @@ test("ranged weapon range is never the reach of a guardian mark", () => {
   assert.equal(meleeReach({items: [{type: "weapon", system: {range: {value: 120, units: "ft"}, activities: new Map([[1, {attack: {type: {value: "ranged"}}}]])}}]}), 5);
 });
 test("a shared remaining-hit pool is consumed once for a confirmed event", async () => {
-  const e = effect({ kind: "direct-attack", remaining: 2, claims: [] });
+  const e = effect({ kind: "direct-attack", remaining: 2, claims: [], reserved: "hit-1", reservedValue: 5 });
   assert.equal(await consumeBenefit(e, "hit-1"), true); assert.equal(await consumeBenefit(e, "hit-1"), false);
   assert.equal(e.getFlag(MODULE_ID, "combatBenefit").remaining, 1);
+  assert.equal(e.getFlag(MODULE_ID, "combatBenefit").reserved, null);
   await consumeBenefit(e, "hit-2"); assert.equal(e.disabled, true);
 });
 test("bonus damage recalculates traits from raw damage, never an already resisted packet", async () => {

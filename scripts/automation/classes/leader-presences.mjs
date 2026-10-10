@@ -4,7 +4,8 @@ import { registerGmRequest, requestGm } from "../shared/gm-requests.mjs";
 import { LEADER_PRESENCE_KEYS, presenceChoices, presenceApplies } from "../shared/leader-presence-definitions.mjs";
 export { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs";
 import { chooseSceneTokens, confirmOwner } from "../shared/owner-prompts.mjs";
-import { activeBenefits, addCombatBenefit, onPrepareAttack, inFeet, tokenRef, canReact, turnKey, appendCalculatedBonus } from "../shared/combat-benefits.mjs";
+import { activeBenefits, addCombatBenefit, onPrepareAttack, inFeet, tokenRef, canReact, turnKey, appendCalculatedBonus, combatForScene } from "../shared/combat-benefits.mjs";
+import { automationActors } from "../effects/temporary-effects.mjs";
 import { onConfirmedDamage, onPrepareDamage } from "../shared/damage-events.mjs";
 import { calculatedDamage } from "../midi/damage-packet.mjs";
 import { syncLeaderPassiveEffects } from "./leader.mjs";
@@ -61,7 +62,7 @@ onPrepareDamage(async ({ actor, attacker, target, activity, data }) => {
     && inFeet(source, target, leaderDistance(source.actor, 60), scene)
     && [...scene.tokens].some(ally => ally.uuid !== attacker.uuid && presenceApplies(source, ally, "tactical-presence") && inFeet(ally, target, 5, scene)));
   if (tactical) {
-    const claims = attacker.actor.getFlag(MODULE_ID, "tacticalPresenceClaims") ?? {}, key = turnKey(game.combat);
+    const claims = attacker.actor.getFlag(MODULE_ID, "tacticalPresenceClaims") ?? {}, key = turnKey(combatForScene(scene));
     const reserved = actor.getFlag(MODULE_ID, "tacticalPresenceReservation");
     if (key && !claims[key] && (!reserved || reserved.key === data.key || reserved.turn !== key)) {
       await actor.setFlag(MODULE_ID, "tacticalPresenceReservation", { key: data.key, turn: key });
@@ -108,6 +109,7 @@ export async function handleLeaderCritical(workflow) {
 }
 export async function handleDistractingPresence(workflow) {
   if (!enabled() || workflow?.aborted || !workflow.attackRoll || workflow.targets?.size !== 1 || workflow.hitTargets?.size) return;
+  if (workflow.grimgutzAttackBenefits?.some(bonus => bonus.presenceKind === "distracting")) return;
   return requestGm("leader-distracting-presence", workflow.actor, { sourceUuid: tokenRef(workflow.token).uuid,
     targetUuid: tokenRef([...workflow.targets][0]).uuid, workflowId: workflow.id });
 }
@@ -179,7 +181,7 @@ export function installLeaderPresenceHooks() {
   Hooks.on("updateCombat", (combat, changes) => {
     if (!isGmAuthority() || !Object.hasOwn(changes, "turn") || !combat.combatant?.actor) return;
     const targetUuid = combat.combatant.token?.uuid;
-    for (const actor of game.actors ?? []) {
+    for (const actor of automationActors()) {
       const claims = actor.getFlag(MODULE_ID, "insightfulPresenceClaims");
       if (claims) void actor.setFlag(MODULE_ID, "insightfulPresenceClaims", Object.fromEntries(Object.entries(claims).filter(([key]) => key !== targetUuid)));
     }

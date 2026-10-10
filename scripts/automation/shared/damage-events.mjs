@@ -1,7 +1,10 @@
 import { MODULE_ID } from "./constants.mjs";
 import { enabled, automationData } from "./helpers.mjs";
 import { isGmAuthority, registerGmRequest, requestGm } from "./gm-requests.mjs";
-import { activeBenefits, benefitData, matchesAttackBenefit, consumeBenefit, tokenRef, appendCalculatedBonus, canReact } from "./combat-benefits.mjs";
+import { activeBenefits, benefitData, matchesAttackBenefit, consumeBenefit, tokenRef, appendCalculatedBonus, canReact, combatForScene, turnKey } from "./combat-benefits.mjs";
+import { runAutomationEvent } from "./event-ledger.mjs";
+import { chooseSceneTokens } from "./owner-prompts.mjs";
+import { serialMutation } from "./transactions.mjs";
 import { calculatedDamage } from "../midi/damage-packet.mjs";
 
 const confirmed = new Set(), listeners = new Set(), prepared = new Map();
@@ -15,6 +18,19 @@ export async function emitConfirmedDamage(actor, amount, options) {
   if (!event || confirmed.has(event.key)) return;
   confirmed.add(event.key);
   if (confirmed.size > 1000) confirmed.delete(confirmed.values().next().value);
+  return runAutomationEvent({id: `confirmed-damage:${event.key}`, kind: "confirmed-damage", name: "Подтверждённое применение урона",
+    sourceActorUuid: event.sourceActorUuid, targetTokenUuid: event.targetTokenUuid, sceneId: event.sceneId}, async () => {
+  if (event.itemCardUuid) {
+    const card = await fromUuid(event.itemCardUuid);
+    if (card) {
+      const fresh = await serialMutation(`damage-card:${card.uuid}`, async () => {
+        const claims = card.getFlag(MODULE_ID, "confirmedDamageKeys") ?? [];
+        if (claims.includes(event.key)) return false;
+        await card.setFlag(MODULE_ID, "confirmedDamageKeys", [...claims, event.key]); return true;
+      });
+      if (!fresh) return false;
+    }
+  }
   for (const uuid of event.benefits ?? []) {
     const effect = await fromUuid(uuid);
     if (effect) {
@@ -27,14 +43,18 @@ export async function emitConfirmedDamage(actor, amount, options) {
   const packet = prepared.get(event.key);
   if (packet) prepared.delete(event.key);
   const source = await fromUuid(event.sourceActorUuid);
+  const turn = turnKey(combatForScene(game.scenes?.get?.(event.sceneId)));
   if (amount > 0) await actor.setFlag(MODULE_ID, "lastReceivedDamage", { amount,
-    turn: game.combat?.started ? `${game.combat.id}:${game.combat.round}:${game.combat.turn}` : null, time: game.time?.worldTime ?? 0 });
+    turn, time: game.time?.worldTime ?? 0 });
   if (source && amount > 0) await source.setFlag(MODULE_ID, "lastConfirmedDamage", { ...event, amount,
-    turn: game.combat?.started ? `${game.combat.id}:${game.combat.round}:${game.combat.turn}` : null, time: game.time?.worldTime ?? 0 });
+    turn, time: game.time?.worldTime ?? 0 });
+  let failed = false;
   for (const handler of listeners) {
     try { await handler({ actor, amount, event, options }); }
-    catch (error) { console.error(`${MODULE_ID} | Confirmed damage handler failed`, error); }
+    catch (error) { failed = true; console.error(`${MODULE_ID} | Confirmed damage handler failed`, error); }
   }
+  return failed ? {status: "needs-review"} : true;
+  });
 }
 registerGmRequest("prepare-damage-event", (actor, data, context) => {
   const operation = reservationChain.catch(() => {}).then(async () => {
@@ -51,6 +71,15 @@ registerGmRequest("prepare-damage-event", (actor, data, context) => {
       if (!["damage-bonus", "direct-attack"].includes(bonus.kind) || !matchesAttackBenefit(effect,
         { attacker, target, scene: attacker.parent, weapon: !data.automatic && activity.item.type === "weapon", opportunity: data.opportunity })) continue;
       if (bonus.reserved && bonus.reserved !== data.key) continue;
+      if (bonus.remaining === 1 && bonus.kind === "damage-bonus" && data.eligibleTargetUuids?.length > 1) {
+        if (bonus.choiceWorkflowId !== data.workflowId) {
+          const selected = await chooseSceneTokens(actor, attacker.parent, {title: `${effect.name}: одна цель для бонуса`,
+            relation: token => data.eligibleTargetUuids.includes(token.uuid)});
+          await effect.setFlag(MODULE_ID, "combatBenefit", {...bonus, choiceWorkflowId: data.workflowId, chosenTargetUuid: selected?.[0]?.uuid ?? null});
+          bonus.choiceWorkflowId = data.workflowId; bonus.chosenTargetUuid = selected?.[0]?.uuid ?? null;
+        }
+        if (bonus.chosenTargetUuid !== target.uuid) continue;
+      }
       const value = bonus.reserved === data.key && Number.isFinite(bonus.reservedValue) ? bonus.reservedValue : Number.isFinite(Number(bonus.amount)) ? Number(bonus.amount)
         : Number((await new Roll(bonus.formula, actor.getRollData()).evaluate()).total);
       if (!Number.isFinite(value)) continue;
@@ -60,8 +89,10 @@ registerGmRequest("prepare-damage-event", (actor, data, context) => {
     const extra = {};
     for (const provider of providers) { const result = await provider({ actor, attacker, target, activity, data });
       if (result) { bonuses.push(...(result.bonuses ?? [])); Object.assign(extra, result.context ?? {}); } }
-    const result = { status: "success", bonuses, context: { key: data.key, sourceActorUuid: actor.uuid,
-      sourceTokenUuid: attacker.uuid, targetTokenUuid: target.uuid, activityUuid: activity.uuid, workflowId: data.workflowId,
+    const card = data.itemCardUuid && await fromUuid(data.itemCardUuid);
+    const cardUuid = card?.documentName === "ChatMessage" && (card.getAssociatedActor?.()?.uuid === actor.uuid || card.speaker?.actor === actor.id) ? card.uuid : null;
+    const result = { status: "success", bonuses, context: { key: data.key, sourceActorUuid: actor.uuid, itemCardUuid: cardUuid,
+      sourceTokenUuid: attacker.uuid, targetTokenUuid: target.uuid, activityUuid: activity.uuid, workflowId: data.workflowId, sceneId: attacker.parent.id,
       bloodSpell: data.bloodSpell === true,
       bloodDrain: data.bloodDrain === true && (actor.getFlag(MODULE_ID, "bloodDrainLink")?.targetTokenUuid === target.uuid
         || (data.authorityBloodDrain && game.users?.get?.(context.requesterId)?.isGM && activity.item.system.identifier === "blood-drain")),
@@ -73,6 +104,31 @@ registerGmRequest("prepare-damage-event", (actor, data, context) => {
   });
   reservationChain = operation; return operation;
 });
+registerGmRequest("release-damage-reservations", async (actor, data) => {
+  for (const effect of activeBenefits(actor)) {
+    const bonus = benefitData(effect);
+    if (bonus.reserved?.startsWith(`${data.workflowId}:`)) await effect.setFlag(MODULE_ID, "combatBenefit", { ...bonus, reserved: null, reservedValue: null });
+  }
+  // Shared pools live on a target actor, not on the attacker.
+  for (const uuid of data.targets ?? []) {
+    const token = await fromUuid(uuid);
+    if (!token?.actor) continue;
+    for (const effect of activeBenefits(token.actor)) {
+      const bonus = benefitData(effect);
+      if (bonus.reserved?.startsWith(`${data.workflowId}:`)) await effect.setFlag(MODULE_ID, "combatBenefit", { ...bonus, reserved: null, reservedValue: null });
+    }
+  }
+  const reservation = actor.getFlag(MODULE_ID, "tacticalPresenceReservation");
+  if (reservation?.key?.startsWith(`${data.workflowId}:`)) await actor.unsetFlag(MODULE_ID, "tacticalPresenceReservation");
+  return {status: "success"};
+});
+export async function finishDamageReservations(workflow) {
+  // A completed workflow may leave a manual damage card awaiting Apply. Keep
+  // its claim until confirmed application or explicit Abort, never consume it.
+  if (!workflow?.aborted || !workflow.actor) return;
+  return requestGm("release-damage-reservations", workflow.actor, {workflowId: workflow.id,
+    targets: [...(workflow.targets ?? [])].map(token => tokenRef(token).uuid)});
+}
 export async function prepareConfirmedDamage(token, { workflow, damageItem }) {
   if (!enabled() || !workflow?.actor || !token?.actor || workflow.aborted) return;
   const selector = damageItem.damageSelector ?? "combinedDamage";
@@ -81,7 +137,9 @@ export async function prepareConfirmedDamage(token, { workflow, damageItem }) {
   const parts = calculatedDamage(damageItem);
   if (!parts.some(part => Number(part.value) > 0 && !["healing", "temphp", "maximum", "midi-none"].includes(part.type))) return;
   const result = await requestGm("prepare-damage-event", workflow.actor, { key, workflowId: workflow.id,
+    itemCardUuid: workflow.itemCardUuid,
     activityUuid: workflow.activity.uuid, attackerUuid: tokenRef(workflow.token).uuid, targetUuid: tokenRef(token).uuid,
+    eligibleTargetUuids: [...(workflow.hitTargets?.size ? workflow.hitTargets : workflow.targets ?? [])].map(token => tokenRef(token).uuid),
     opportunity: workflow.workflowOptions?.isOpportunityAttack === true, bloodSpell: workflow.grimgutzBloodSpell === true,
     bloodDrain: workflow.activity.flags?.[MODULE_ID]?.bloodDrain === true,
     authorityBloodDrain: workflow.workflowOptions?.grimgutzValidatedDrain === true,
