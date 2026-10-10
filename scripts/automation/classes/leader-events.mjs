@@ -3,7 +3,9 @@ import { enabled, findFeature } from "../shared/helpers.mjs";
 import { isGmAuthority, registerGmRequest, requestGm } from "../shared/gm-requests.mjs";
 import { onConfirmedDamage } from "../shared/damage-events.mjs";
 import { onPrepareAttack, activeBenefits, benefitData, addCombatBenefit, tokenRef, consumeBenefit, canReact, recordModuleReaction } from "../shared/combat-benefits.mjs";
-import { confirmOwner, chooseSceneTokens } from "../shared/owner-prompts.mjs";
+import { confirmOwner, chooseSceneTokens, promptOwner } from "../shared/owner-prompts.mjs";
+import {choiceDialog} from "../shared/dialogs.mjs";
+import {leaderReceipt, leaderReceiptData} from "../shared/leader-receipts.mjs";
 import { runAutomationEvent } from "../shared/event-ledger.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { addSaveAdvantage } from "../midi/save-modifiers.mjs";
@@ -42,8 +44,8 @@ onPrepareAttack(async ({ attacker, target, activity, data }) => {
     const mark = activeBenefits(target.actor).find(effect => {
       const data = benefitData(effect), source = [...attacker.parent.tokens].find(token => token.uuid === data.sourceTokenUuid);
       return data.kind === "guiding-target" && source && source.disposition === attacker.disposition && source.uuid !== attacker.uuid
-        && canReact(attacker.actor) && (!attacker.actor.getFlag(MODULE_ID, "leaderStratagemReceived")
-          || attacker.actor.getFlag(MODULE_ID, "leaderStratagemReceived").commandId === data.commandId);
+        && canReact(attacker.actor) && (!leaderReceipt(attacker.actor, attacker.parent)
+          || leaderReceipt(attacker.actor, attacker.parent).commandId === data.commandId);
     });
     if (mark) {
       const item = await fromUuid(benefitData(mark).sourceItemUuid);
@@ -156,6 +158,51 @@ registerGmRequest("complete-leader-hit-die", async (actor, data) => {
   if (!remaining) await effect.delete(); else await effect.setFlag(MODULE_ID, "combatBenefit", {...state, remaining, reserved: null});
   return {status: "success"};
 });
+const perceptionClaims = new Map();
+registerGmRequest("guiding-perception", async (actor, data) => {
+  const observer = await fromUuid(data.sourceTokenUuid);
+  if (observer?.actor?.uuid !== actor.uuid || !canReact(actor)) return {status: "declined"};
+  const receipt = leaderReceipt(actor, observer.parent);
+  const candidates = [...observer.parent.tokens].flatMap(target => activeBenefits(target.actor).flatMap(effect => {
+    const bonus = benefitData(effect), leader = [...observer.parent.tokens].find(token => token.uuid === bonus.sourceTokenUuid);
+    return bonus.kind === "guiding-target" && leader && leader.uuid !== observer.uuid && leader.disposition === observer.disposition
+      && (!receipt || receipt.commandId === bonus.commandId) ? [{target, bonus}] : [];
+  }));
+  if (!candidates.length) return {status: "declined"};
+  if (!await confirmOwner(actor, "Направляющая магия", "Вы ищете подсвеченную цель? Лёгкая заслонённость не даёт помехи, бонус действует только против выбранной цели.")) return {status: "declined"};
+  const owner = promptOwner(actor);
+  let selected;
+  if (candidates.some(({target}) => target.hidden && !owner.isGM)) {
+    const uuid = await choiceDialog({title: "Подсвеченная цель (GM)", choices: candidates.map(({target, bonus}) => [target.uuid + ":" + bonus.commandId, target.name])});
+    selected = candidates.find(({target, bonus}) => target.uuid + ":" + bonus.commandId === uuid);
+  } else {
+    const chosen = await chooseSceneTokens(actor, observer.parent, {title: "Подсвеченная цель", relation: token => candidates.some(({target}) => token.uuid === target.uuid)});
+    selected = candidates.filter(({target}) => target.uuid === chosen?.[0]?.uuid).sort((a, b) => b.bonus.amount - a.bonus.amount)[0];
+  }
+  if (!selected) return {status: "declined"};
+  perceptionClaims.set(`${actor.uuid}:${data.rollId}`, leaderReceiptData(observer.parent, selected.bonus.commandId));
+  const ignoreDisadvantage = data.hasDisadvantage && await confirmOwner(actor, "Направляющая магия", "Помеха этой проверки вызвана ТОЛЬКО лёгкой заслонённостью выбранной цели? Иные причины помехи не снимаются.");
+  return {status: "success", amount: selected.bonus.amount, ignoreDisadvantage};
+});
+registerGmRequest("complete-guiding-perception", async (actor, data) => {
+  const key = `${actor.uuid}:${data.rollId}`, receipt = perceptionClaims.get(key); perceptionClaims.delete(key);
+  if (receipt && data.rolled) await actor.setFlag(MODULE_ID, "leaderStratagemReceived", receipt);
+  return {status: "success"};
+});
+async function resumeGuidingPerception(config) {
+  const actor = config.subject, source = actor.getActiveTokens?.()[0]?.document;
+  const rollId = foundry.utils.randomID();
+  const result = source ? await requestGm("guiding-perception", actor, {sourceTokenUuid: source.uuid, rollId,
+    hasDisadvantage: config.disadvantage === true || (config.rolls ?? []).some(roll => roll.options?.disadvantage === true)}, {timeoutMs: 120000}) : {status: "declined"};
+  if (result.status === "pending") return;
+  const rolls = (config.rolls ?? []).map(roll => ({...roll, options: {...roll.options, ...(result.ignoreDisadvantage ? {disadvantage: false} : {})},
+    parts: [...(roll.parts ?? []), ...(result.status === "success" ? [String(result.amount)] : [])]}));
+  const rolled = await actor.rollSkill({skill: config.skill, ability: config.ability, advantage: config.advantage,
+    // Remove only light-obscurement disadvantage after confirmation. Other
+    // causes cannot be reliably distinguished here and remain an owner choice.
+    disadvantage: result.ignoreDisadvantage ? false : config.disadvantage, rolls, [MODULE_ID]: {skillResolved: true}});
+  if (result.status === "success") await requestGm("complete-guiding-perception", actor, {rollId, rolled: Boolean(rolled?.length)});
+}
 export async function resumeLeaderHitDie(config) {
   const actor = config.subject, rollId = foundry.utils.randomID();
   const reservation = await requestGm("reserve-leader-hit-die", actor, {rollId}, {timeoutMs: 120000});
@@ -183,7 +230,11 @@ export function installLeaderEventHooks() {
     return false;
   });
   Hooks.on("dnd5e.preRollSkill", config => {
-    if (!enabled() || config[MODULE_ID]?.skillResolved || !["ath", "acr"].includes(config.skill)) return;
+    if (!enabled() || config[MODULE_ID]?.skillResolved) return;
+    if (config.skill === "prc" && [...(globalThis.canvas?.scene?.tokens ?? [])].some(token => activeBenefits(token.actor).some(effect => benefitData(effect).kind === "guiding-target"))) {
+      void resumeGuidingPerception(config).catch(error => console.error(`${MODULE_ID} | Guiding perception failed`, error)); return false;
+    }
+    if (!["ath", "acr"].includes(config.skill)) return;
     const actor = config.subject, effect = activeBenefits(actor).find(effect => benefitData(effect).kind === "battle-cry");
     if (!effect) return;
     void (async () => {

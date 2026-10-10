@@ -203,15 +203,25 @@ export function installCombatBenefitHooks() {
   Hooks.on("updateCombat", (combat, changes) => { void cleanupCombatBenefits(combat, changes).catch(error => console.error(`${MODULE_ID} | Benefit expiry failed`, error)); });
   Hooks.on("deleteCombat", combat => { if (isGmAuthority()) for (const actor of automationActors()) for (const effect of activeBenefits(actor))
     if (benefitData(effect).combatId === combat.id) void effect.delete(); });
-  const endMarks = async () => {
+  const trackedMarks = new Map();
+  const track = effect => {
+    const data = benefitData(effect);
+    if (data?.kind === "mark" && data.expiry === null) trackedMarks.set(effect.uuid, effect);
+    else trackedMarks.delete(effect.uuid);
+  };
+  Hooks.once("ready", () => {for (const actor of automationActors()) for (const effect of actor.effects ?? []) track(effect);});
+  const endMarks = async changed => {
     if (!enabled() || !isGmAuthority()) return;
-    for (const actor of automationActors()) for (const effect of activeBenefits(actor)) {
+    const actor = changed?.documentName === "Actor" ? changed : changed?.parent?.documentName === "Actor" ? changed.parent : changed?.actor;
+    for (const effect of trackedMarks.values()) {
       const data = benefitData(effect);
-      if (data.kind !== "mark" || data.expiry !== null) continue;
       const source = await fromUuid(data.sourceTokenUuid), protector = await fromUuid(data.protectedBy);
+      if (actor && source?.actor?.uuid !== actor.uuid && protector?.actor?.uuid !== actor.uuid && effect.parent?.uuid !== actor.uuid) continue;
       if (!source || !protector || isAuraDefeated(source) || isAuraIncapacitated(protector.actor)) await effect.delete();
     }
   };
-  for (const hook of ["updateActor", "createActiveEffect", "updateActiveEffect", "deleteActiveEffect", "deleteToken"])
-    Hooks.on(hook, () => { void endMarks().catch(error => console.error(`${MODULE_ID} | Mark cleanup failed`, error)); });
+  Hooks.on("createActiveEffect", track); Hooks.on("updateActiveEffect", track);
+  Hooks.on("deleteActiveEffect", effect => trackedMarks.delete(effect.uuid));
+  for (const hook of ["updateActor", "createActiveEffect", "updateActiveEffect", "deleteActiveEffect", "deleteToken", "deleteActor"])
+    Hooks.on(hook, changed => { void endMarks(changed).catch(error => console.error(`${MODULE_ID} | Mark cleanup failed`, error)); });
 }

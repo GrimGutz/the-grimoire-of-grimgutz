@@ -5,6 +5,7 @@ import { activeBenefits, benefitData, matchesAttackBenefit, consumeBenefit, toke
 import { runAutomationEvent } from "./event-ledger.mjs";
 import { chooseSceneTokens } from "./owner-prompts.mjs";
 import { serialMutation } from "./transactions.mjs";
+import {leaderReceipt, leaderReceiptData} from "./leader-receipts.mjs";
 import { calculatedDamage } from "../midi/damage-packet.mjs";
 
 const confirmed = new Set(), listeners = new Set(), prepared = new Map();
@@ -36,7 +37,7 @@ export async function emitConfirmedDamage(actor, amount, options) {
     if (effect) {
       const bonus = benefitData(effect), item = await fromUuid(bonus.sourceItemUuid);
       const source = await fromUuid(event.sourceActorUuid);
-      if (automationData(item).stratagem && source) await source.setFlag(MODULE_ID, "leaderStratagemReceived", { commandId: bonus.commandId });
+      if (automationData(item).stratagem && source) await source.setFlag(MODULE_ID, "leaderStratagemReceived", leaderReceiptData(game.scenes?.get?.(event.sceneId), bonus.commandId));
       await consumeBenefit(effect, event.key);
     }
   }
@@ -65,7 +66,7 @@ registerGmRequest("prepare-damage-event", (actor, data, context) => {
     const bonuses = [], effects = [...activeBenefits(actor), ...activeBenefits(target.actor)];
     for (const effect of effects) {
       const bonus = benefitData(effect);
-      const origin = await fromUuid(bonus.sourceItemUuid), received = actor.getFlag?.(MODULE_ID, "leaderStratagemReceived");
+      const origin = await fromUuid(bonus.sourceItemUuid), received = leaderReceipt(actor, attacker.parent);
       if (automationData(origin).stratagem && received && received.commandId !== bonus.commandId) continue;
       if (automationData(origin).stratagem && !canReact(actor)) continue;
       if (!["damage-bonus", "direct-attack"].includes(bonus.kind) || !matchesAttackBenefit(effect,

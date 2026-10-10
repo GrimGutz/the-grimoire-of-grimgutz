@@ -40,7 +40,8 @@ export async function automationPanelData(actorOrUuid = null, actionHandlers = n
       const source = await visibleName(benefit?.sourceTokenUuid ?? flags[FLAGS.AURA_SOURCE] ?? flags.hollowWeakening?.sourceTokenUuid ?? effect.origin);
       records.push({category, name: effect.name, actor: actor.name, source, targets: actor.name,
         expires: effect.remainingSeconds === null ? benefit?.expiry ?? "Без таймера" : `${effect.remainingSeconds} сек.`,
-        remaining: benefit?.remaining ?? "—", reason: [...effect.reasons, ...(benefit?.reserved ? ["Ожидает применения урона"] : []),
+        remaining: benefit?.remaining ?? "—", reason: [...effect.reasons, ...(benefit?.reserved ? ["Ожидает подтверждения броска / урона"] : []),
+          ...(benefit?.dash ? [`Рывок: +${benefit.additionalMovement} ${benefit.movementUnits ?? "ft"} перемещения; прыжок в длину с разбега ${benefit.longJumpFeet} футов. Перемещение вручную.`] : []),
           ...(flags.repeatSaveReview ? ["Спасбросок требует проверки"] : [])].join(", ") || "Доступен",
         // Persistent passives and aura recipients cannot be ended here: the engine would recreate them.
         endUuid: (benefit || flags.hollowWeakening || flags.repeatSave) ? effect.uuid : null });

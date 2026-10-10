@@ -11,6 +11,7 @@ import { feetToSceneUnits } from "../shared/spatial.mjs";
 import { dispatchAutomationPulse } from "../midi/aura-workflow.mjs";
 import { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs";
 import { isAuraIncapacitated } from "../shared/aura-conditions.mjs";
+import {leaderReceipt, leaderReceiptData} from "../shared/leader-receipts.mjs";
 
 export const STRATAGEM_RULES = Object.freeze({
   "stratagem-cunning-ruse": "contest", "stratagem-battle-cry": "battle-cry", "stratagem-command-caution": "caution",
@@ -63,7 +64,7 @@ async function applyStratagem(actor, data) {
     throw Error("Эта стратагема применяется в начале собственного хода; подтвердите момент в своём ходу.");
   if (["battle-cry", "guiding", "line"].includes(rule) && !await confirmOwner(actor, item.name, "Подтвердить: сейчас начало вашего хода?")) return false;
   const allies = token => token.uuid !== source.uuid && token.disposition === source.disposition && canReact(token.actor)
-    && !token.actor.getFlag(MODULE_ID, "leaderStratagemReceived");
+    && !leaderReceipt(token.actor, scene);
   const enemy = token => token.uuid !== source.uuid && token.disposition !== source.disposition;
   let selected = [], victim, mode, amount, defenderSkill, selectedSkill, helpKind;
   if (rule === "caution") mode = activity.activation?.type === "bonus" ? "check" : "protect";
@@ -131,7 +132,7 @@ async function applyStratagem(actor, data) {
   if (activity.activation?.type === "reaction") await recordModuleReaction(actor, scene);
   if (["wolf", "retreat"].includes(rule)) { await globalThis.MidiQOL?.setReactionUsed?.(selected[0].actor); await recordModuleReaction(selected[0].actor, scene); }
   const commandId = native.id ?? foundry.utils.randomID();
-  for (const target of selected) await target.actor.setFlag(MODULE_ID, "leaderStratagemReceived", { combatId: combat?.id ?? null, turn: turnKey(combat), commandId });
+  for (const target of selected) await target.actor.setFlag(MODULE_ID, "leaderStratagemReceived", leaderReceiptData(scene, commandId));
   const add = (target, options) => addCombatBenefit(source, target, item, { commandId, ...options });
   if (rule === "word") { const action = activity.activation?.type === "action"; await giveLeaderTemporaryHp(source, selected[0], item,
     await roll(actor, action ? `1d4 + ${level + prof}` : `1d4 + ${Math.floor(prof / 2)}`, item.name), "targetEnd"); }
@@ -171,8 +172,14 @@ async function applyStratagem(actor, data) {
       eventKey: `reinforcement:${source.uuid}:${context.key}` });
   }
   if (rule === "comfort") await add(selected[0], { kind: "maximize-hit-dice", amount: level, remaining: level });
-  if (rule === "charge") for (const target of [source, ...selected]) await add(target, { kind: "charge", dash: true,
-    changes: movementChanges(target.actor, level >= 5 ? 20 : level >= 3 ? 15 : 10) });
+  if (rule === "charge") for (const target of [source, ...selected]) {
+    const boost = level >= 5 ? 20 : level >= 3 ? 15 : 10;
+    const speed = Math.max(0, ...["walk", "fly", "swim", "climb", "burrow"].map(mode => Number(target.actor.system.attributes.movement[mode]) || 0));
+    await add(target, { kind: "charge", dash: true, longJumpMultiplier: 2,
+      additionalMovement: speed + Number(movementChanges(target.actor, boost)[0]?.value ?? 0), movementUnits: target.actor.system.attributes.movement.units,
+      longJumpFeet: Number(target.actor.system.abilities.str.value) * 2,
+      changes: movementChanges(target.actor, boost) });
+  }
   if (rule === "mark") {
     for (const effect of [...victim.actor.effects].filter(effect => effect.getFlag?.(MODULE_ID, "combatBenefit")?.kind === "mark")) await effect.delete();
     await add(victim, { kind: "mark", protectedBy: selected[0].uuid, expiry: null });
@@ -202,7 +209,7 @@ export function installLeaderStratagemHooks() {
     void useLeaderStratagem(activity).catch(error => notify(error.message, "warn")); return false;
   });
   Hooks.on("updateCombat", (combat, changes) => { if (!Object.hasOwn(changes, "turn") && !Object.hasOwn(changes, "round")) return; const actor = combat.combatant?.actor;
-    if (actor?.isOwner && actor.getFlag(MODULE_ID, "leaderStratagemReceived")) void actor.unsetFlag(MODULE_ID, "leaderStratagemReceived"); });
+    if (enabled() && isGmAuthority() && actor && actor.getFlag(MODULE_ID, "leaderStratagemReceived")) void actor.unsetFlag(MODULE_ID, "leaderStratagemReceived"); });
   Hooks.on("preUpdateActor", (actor, changes, options) => {
     const record = actor.getFlag?.(MODULE_ID, "combatTempHp"), next = changes["system.attributes.hp.temp"] ?? changes.system?.attributes?.hp?.temp;
     if (!record || next === undefined || options?.[MODULE_ID]?.tempHpGrant) return;
