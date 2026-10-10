@@ -3055,7 +3055,6 @@ const requiredActions = new Map([
   ["smart-infection", "create-smart-infection"],
   ["disease-form", "activate-disease-form"],
   ["insect-natural-weapons", "roll-insect-tail-sting"],
-  ["blood-drain", "roll-insect-blood-drain"],
   ["crawling-armor", "use-crawling-armor"],
   ["spew-insects", "roll-insect-spew"],
   ["crawling-eye", "detach-crawling-eye"],
@@ -3128,6 +3127,13 @@ for (const [identifier, action] of requiredActions) {
   const actions = Object.values(document?.system?.activities ?? {})
     .map(activity => activity.flags?.[manifest.id]?.action);
   if (!actions.includes(action)) errors.push(`Missing activity action ${action} on ${identifier}`);
+}
+const insectBloodActivities = Object.values(featuresByIdentifier.get("blood-drain")?.system?.activities ?? {});
+for (const [flag, type, dice, sides] of [["insectBite", "attack", 1, 4], ["bloodDrain", "damage", 2, 6]]) {
+  const activity = insectBloodActivities.find(activity => activity.flags?.[manifest.id]?.[flag]);
+  if (!activity || activity.type !== type || activity.roll || activity.flags[manifest.id].action
+    || activity.damage?.parts?.[0]?.number !== dice || activity.damage.parts[0].denomination !== sides)
+    errors.push(`Blood-drain requires native ${flag} activity with typed ${dice}d${sides} damage`);
 }
 
 const occultGift = featuresByIdentifier.get("occult-gifts");
