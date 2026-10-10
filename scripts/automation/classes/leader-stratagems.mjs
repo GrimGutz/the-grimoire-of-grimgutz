@@ -213,10 +213,14 @@ export async function useLeaderStratagem(activity, {sourceTokenUuid = null} = {}
   return requestGm("leader-stratagem", actor, { activityUuid: activity.uuid, sourceTokenUuid: source.uuid }, { timeoutMs: 120000 });
 }
 export function installLeaderStratagemHooks() {
-  Hooks.on("dnd5e.preUseActivity", activity => {
-    if (!enabled() || automationData(activity).leaderResolved || !automationData(activity.item).stratagem) return;
+  const intercept = activity => {
+    if (!activity || !enabled() || automationData(activity).leaderResolved || !automationData(activity.item).stratagem) return;
     void useLeaderStratagem(activity).catch(error => notify(error.message, "warn")); return false;
-  });
+  };
+  // Midi validates native targets before dnd5e.preUseActivity. Select recipients
+  // first, then replay the confirmed native cost with its resolved marker.
+  Hooks.on("midi-qol.preTargetingV2", ({workflow}) => intercept(workflow?.activity));
+  Hooks.on("dnd5e.preUseActivity", intercept);
   Hooks.on("updateCombat", (combat, changes) => { if (!Object.hasOwn(changes, "turn") && !Object.hasOwn(changes, "round")) return; const actor = combat.combatant?.actor;
     if (enabled() && isGmAuthority() && actor && actor.getFlag(MODULE_ID, "leaderStratagemReceived")) void actor.unsetFlag(MODULE_ID, "leaderStratagemReceived"); });
   Hooks.on("preUpdateActor", (actor, changes, options) => {

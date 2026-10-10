@@ -118,7 +118,10 @@ export function automationConfig(documentOrFlags) {
 
 export function automationData(document) {
   const flags = rawAutomationFlags(document);
-  const config = automationConfig(flags);
+  // Normalize the original input, not its already-unwrapped flags. Transient
+  // replay markers may be the only flags on a native activity clone; unwrapping
+  // them again mistakes the flag payload for an untagged document and loses it.
+  const config = automationConfig(document);
   return {
     ...(config.data ?? {}),
     ...(config.action?.data ?? {}),

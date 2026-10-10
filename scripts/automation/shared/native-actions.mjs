@@ -9,10 +9,19 @@ export async function useNativeUtility(activity) {
   if (!globalThis.MidiQOL?.completeActivityUse) throw Error("Действие требует Midi-QOL.");
   const original = activity.toObject(), data = { ...original, flags: { ...original.flags,
     [MODULE_ID]: { ...(original.flags?.[MODULE_ID] ?? {}), leaderResolved: true, action: "", moduleAction: "" } } };
-  if (data.type === "utility") data.roll = { formula: "", prompt: false, visible: false };
+  if (data.type === "utility") {
+    data.roll = { formula: "", prompt: false, visible: false };
+    // This native use records the action/resource cost. Domain handlers have
+    // already selected and validated the actual recipients, independently of
+    // the GM's user targets and Midi's target requirements.
+    data.target = { ...data.target, prompt: false, override: true,
+      affects: { ...data.target?.affects, type: "self", count: "", choice: false } };
+    data.range = { ...data.range, value: null, units: "self", override: true };
+  }
   const item = activity.item.clone({ system: { activities: { [activity.id]: data } }, "flags.midi-qol.syntheticItem": true }, { keepId: true });
   return MidiQOL.completeActivityUse(item.system.activities.get(activity.id), { create: { measuredTemplate: false },
-    midiOptions: { workflowOptions: { noOnUseMacro: true, ignoreUserTargets: true, targetConfirmation: "none" } } }, { configure: false });
+    midiOptions: { ignoreUserTargets: true,
+      workflowOptions: { noOnUseMacro: true, ignoreUserTargets: true, targetConfirmation: "none" } } }, { configure: false });
 }
 export async function prepareReactionAttack(token, target, {name = "Атака реакцией", meleeOnly = false} = {}) {
   const doc = tokenRef(token), targetDoc = tokenRef(target), actor = doc.actor;
