@@ -38,3 +38,39 @@ test("another canvas scene does not determine the zone's ending target", async (
   await processPeriodicZones(combat, { turn: 1 }, { pulse }); assert.equal(calls.length, 1);
   assert.equal(calls[0].scene.id, "one");
 });
+
+test("a scene-unlinked Foundry 14 encounter uses the ending combatant's scene", async () => {
+  const scene = combat.scene;
+  combat.scene = null;
+  combat.turns[0].sceneId = scene.id;
+  game.scenes = new Map([[scene.id, scene]]);
+  await processPeriodicZones(combat, {turn: 1}, {pulse});
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].scene, scene);
+  assert.equal(calls[0].targets[0].document.uuid, target.uuid);
+});
+
+test("a multi-scene encounter uses the ending token, not its linked scene or the GM canvas", async () => {
+  const scene = combat.scene;
+  target.parent = scene;
+  combat.turns[0].token = target;
+  combat.turns[0].sceneId = scene.id;
+  combat.scene = {id: "other", tokens: [{...target, uuid: "Scene.other.Token.target"}], templates: []};
+  canvas.scene = combat.scene;
+  await processPeriodicZones(combat, {turn: 1}, {pulse});
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].scene, scene);
+  assert.equal(calls[0].targets[0].document.uuid, target.uuid);
+});
+
+test("a pending lookup cannot change the ending-turn event key when combat advances again", async () => {
+  const resolve = fromUuid;
+  fromUuid = async uuid => {
+    const doc = await resolve(uuid);
+    combat.previous = {round: 1, turn: 1};
+    return doc;
+  };
+  await processPeriodicZones(combat, {turn: 1}, {pulse});
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].eventKey, `zone:cast:${target.uuid}:combat:1:0`);
+});

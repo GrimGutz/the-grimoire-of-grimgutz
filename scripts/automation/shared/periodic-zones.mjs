@@ -6,10 +6,17 @@ import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { dispatchAutomationPulse } from "../midi/aura-workflow.mjs";
 
 export async function processPeriodicZones(combat, changes, { pulse = dispatchAutomationPulse } = {}) {
-  if (!enabled() || !isGmAuthority() || !isForwardTurn(combat, changes) || !combat.scene) return;
-  const scene = combat.scene, previous = combat.combatants?.get?.(combat.previous?.combatantId)
-    ?? combat.turns?.[combat.previous?.turn];
-  const targetDocument = scene.tokens?.get?.(previous?.tokenId) ?? [...(scene.tokens ?? [])].find(doc => doc.id === previous?.tokenId);
+  if (!enabled() || !isGmAuthority() || !isForwardTurn(combat, changes)) return;
+  const endingTurn = { ...combat.previous }, previous = combat.combatants?.get?.(endingTurn.combatantId)
+    ?? combat.turns?.[endingTurn.turn];
+  // Foundry 14 supports scene-unlinked and multi-scene encounters. Individual
+  // Combatants retain sceneId/token even when combat.scene is null. Never use
+  // the GM's currently viewed scene to guess where the ending creature is.
+  const endingToken = previous?.token, scene = endingToken?.parent
+    ?? (previous?.sceneId ? game.scenes?.get?.(previous.sceneId) : null) ?? combat.scene;
+  if (!scene) return;
+  const targetDocument = endingToken ?? scene.tokens?.get?.(previous?.tokenId)
+    ?? [...(scene.tokens ?? [])].find(doc => doc.id === previous?.tokenId);
   if (!targetDocument?.actor) return;
   for (const template of [...(scene.regions ?? []), ...(scene.templates ?? [])]) {
     const flags = template.flags?.[MODULE_ID], spec = flags?.periodicZone;
@@ -30,7 +37,7 @@ export async function processPeriodicZones(combat, changes, { pulse = dispatchAu
     if (!inside) continue;
     await pulse({ scene, sourceToken: source.object ?? { actor: source.actor, document: source }, sourceItem: item, template,
       targets: [targetDocument.object ?? { actor: targetDocument.actor, document: targetDocument }], event: spec.event,
-      eventKey: `zone:${flags.areaCastId}:${targetDocument.uuid}:${combat.id}:${combat.previous.round}:${combat.previous.turn}` });
+      eventKey: `zone:${flags.areaCastId}:${targetDocument.uuid}:${combat.id}:${endingTurn.round}:${endingTurn.turn}` });
   }
 }
 export function installPeriodicZoneHooks() {
