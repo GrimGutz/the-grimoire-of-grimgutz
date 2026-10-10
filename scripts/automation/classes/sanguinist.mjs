@@ -458,18 +458,6 @@ async function handleMarkBloodSpell(actor) {
   return (await import("./sanguinist-combat.mjs")).armBloodSpell(actor);
 }
 
-async function legacyMarkBloodSpell(actor) {
-  const used = Number(actor.getFlag(MODULE_ID, FLAGS.SANGUINIST_BLOOD_SPELL_USED) ?? 0);
-  const maximum = Math.max(1, proficiency(actor));
-  if (used >= maximum) {
-    notify(`${actor.name}: изменение заклинания в Кровавое уже использовано ${used}/${maximum} раз до продолжительного отдыха.`, "warn");
-    return false;
-  }
-  await actor.setFlag(MODULE_ID, FLAGS.SANGUINIST_BLOOD_SPELL_USED, used + 1);
-  await chat(actor, `<p><strong>${actor.name}: Ученик крови.</strong> Следующее/текущее заклинание считается Кровавым в дополнение к другим школам. Использований до продолжительного отдыха: ${used + 1}/${maximum}.</p>`);
-  return true;
-}
-
 async function chooseSpellLevel(title) {
   return promptNumber({ title, label: "Уровень заклинания", min: 0, max: 9, defaultValue: 1 });
 }

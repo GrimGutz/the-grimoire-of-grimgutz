@@ -99,10 +99,8 @@ async function applyStratagem(actor, data) {
       throw Error("Нужен подтверждённый урон союзника в этом ходу и дистанция 60 футов до него или цели.");
   }
   if (["wolf", "retreat"].includes(rule)) {
-    if (!await confirmOwner(selected[0].actor, item.name, "Использовать реакцию, выполнить перемещение вручную и продолжить?")) return false;
-    // Native movement is deliberately not replaced by teleportation.
-    if (!await confirmOwner(actor, item.name, "Перемещение союзника завершено?")) return false;
-    if (rule === "wolf") { [victim] = await chooseSceneTokens(actor, scene, { title: "Цель следующего попадания", relation: token => enemy(token) && inFeet(selected[0], token, 15, scene) }) ?? []; if (!victim) return false; }
+    if (!await confirmOwner(selected[0].actor, item.name, "Согласны использовать реакцию и после применения стратагемы переместиться вручную на половину скорости?")) return false;
+    if (rule === "wolf") { [victim] = await chooseSceneTokens(actor, scene, { title: "Цель: после перемещения она должна быть в 15 футах", relation: enemy }) ?? []; if (!victim) return false; }
   }
   if (rule === "contest") {
     mode = await askOwner(actor, { title: item.name, choices: ["arc", "inv", "dec", "prf", "slt", "sur"].map(skill => [skill, CONFIG.DND5E.skills[skill].label]) });
@@ -124,6 +122,7 @@ async function applyStratagem(actor, data) {
   }
   const preparedAttack = rule === "strike" ? await prepareReactionAttack(selected[0], victim, {name: item.name}) : null;
   if (rule === "strike" && !preparedAttack) return false;
+  const eligibleAllies = [...scene.tokens].filter(allies);
   const native = await useNativeUtility(activity);
   if (native === false || native?.aborted) return false;
   await handleStratagemUse(activity);
@@ -134,6 +133,17 @@ async function applyStratagem(actor, data) {
   const commandId = native.id ?? foundry.utils.randomID();
   for (const target of selected) await target.actor.setFlag(MODULE_ID, "leaderStratagemReceived", leaderReceiptData(scene, commandId));
   const add = (target, options) => addCombatBenefit(source, target, item, { commandId, ...options });
+  if (["wolf", "retreat"].includes(rule)) {
+    const movingEffect = await add(selected[0], rule === "retreat"
+      ? {kind: "opportunity-ac", amount: level, expiry: "sourceStart"}
+      : {kind: "disengage", movementProtection: true});
+    // Protect the actual movement, not a movement that has already happened.
+    if (!await confirmOwner(selected[0].actor, item.name, "Теперь выполните перемещение вручную. Подтвердить его окончание?")) return {status: "needs-review"};
+    if (rule === "wolf") {
+      await movingEffect.delete();
+      if (!inFeet(selected[0], victim, 15, scene)) throw Error("Выбранная цель после перемещения не в пределах 15 футов. Сыгранное перемещение/действие не откатывается; требуется решение GM.");
+    }
+  }
   if (rule === "word") { const action = activity.activation?.type === "action"; await giveLeaderTemporaryHp(source, selected[0], item,
     await roll(actor, action ? `1d4 + ${level + prof}` : `1d4 + ${Math.floor(prof / 2)}`, item.name), "targetEnd"); }
   if (rule === "example") for (const target of selected) await giveLeaderTemporaryHp(source, target, item, Math.min(level, Math.floor(amount / 2)), "targetEnd");
@@ -149,8 +159,7 @@ async function applyStratagem(actor, data) {
     else for (const target of selected) await add(target, { kind: "caution", against: [victim.uuid], remaining: 1 });
   }
   if (rule === "retreat") {
-    await add(selected[0], { kind: "opportunity-ac", amount: level, expiry: "sourceStart" });
-    for (const target of [...scene.tokens].filter(token => allies(token) && inFeet(source, token, 5, scene))) await giveLeaderTemporaryHp(source, target, item, Math.floor(prof / 2));
+    for (const target of eligibleAllies.filter(token => inFeet(source, token, 5, scene))) await giveLeaderTemporaryHp(source, target, item, Math.floor(prof / 2));
   }
   if (rule === "guiding") await add(source, { kind: "guiding-magic", amount: level });
   if (rule === "help") {
@@ -213,13 +222,16 @@ export function installLeaderStratagemHooks() {
   Hooks.on("preUpdateActor", (actor, changes, options) => {
     const record = actor.getFlag?.(MODULE_ID, "combatTempHp"), next = changes["system.attributes.hp.temp"] ?? changes.system?.attributes?.hp?.temp;
     if (!record || next === undefined || options?.[MODULE_ID]?.tempHpGrant) return;
-    if (options?.[MODULE_ID]?.combatDamage && Number(next) <= Number(actor.system.attributes.hp.temp))
-      changes[`flags.${MODULE_ID}.combatTempHp`] = { ...record, remaining: Number(next) };
-    else changes[`flags.${MODULE_ID}.-=combatTempHp`] = null;
+    if (changes[`flags.${MODULE_ID}.combatTempHp`] ?? changes.flags?.[MODULE_ID]?.combatTempHp) return;
+    changes[`flags.${MODULE_ID}.-=combatTempHp`] = null;
   });
-  Hooks.on("dnd5e.preApplyDamage", (actor, amount, _updates, options) => { if (amount > 0 && actor.getFlag?.(MODULE_ID, "combatTempHp")) {
-    options[MODULE_ID] ??= {}; options[MODULE_ID].combatDamage = true;
-  } });
+  Hooks.on("dnd5e.preApplyDamage", (actor, amount, updates) => {
+    const record = actor.getFlag?.(MODULE_ID, "combatTempHp"), next = updates["system.attributes.hp.temp"] ?? updates.system?.attributes?.hp?.temp;
+    // Actor5e.applyDamage does not forward options to update(). Carry the
+    // remaining pool IN the confirmed update, as the native soul aura does.
+    if (amount > 0 && record && next !== undefined && Number(next) <= Number(actor.system.attributes.hp.temp))
+      updates[`flags.${MODULE_ID}.combatTempHp`] = {...record, remaining: Number(next)};
+  });
   Hooks.on("deleteActiveEffect", effect => { const record = effect.parent?.getFlag?.(MODULE_ID, "combatTempHp");
     if (effect.parent?.isOwner && record?.effectUuid === effect.uuid) { const update = { [`flags.${MODULE_ID}.-=combatTempHp`]: null };
       if (Number(effect.parent.system.attributes.hp.temp) === record.remaining) update["system.attributes.hp.temp"] = 0;

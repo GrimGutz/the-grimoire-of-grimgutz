@@ -13,7 +13,7 @@ async function journal() {
   const existing = [...(game.journal ?? [])].find(flag);
   if (existing) return existing;
   if (!journalPromise) journalPromise = JournalEntry.create({ name: "Гримуар: журнал автоматизации (GM)",
-    ownership: { default: 0 }, flags: { [MODULE_ID]: { automationLedger: true, events: [] } } })
+    ownership: { default: 0 }, flags: { [MODULE_ID]: { schemaVersion: 1, automationLedger: true, events: [] } } })
     .finally(() => { journalPromise = null; });
   return journalPromise;
 }
@@ -87,7 +87,7 @@ export async function listAutomationEvents() {
 export async function runAutomationEvent(record, operation, options) {
   if (!enabled() || !isGmAuthority()) return { status: "forbidden" };
   if (!record.id || !record.kind || !record.sceneId) throw Error("Неполное событие автоматизации.");
-  const result = await ledger.run({ createdAt: Number(game.time?.worldTime ?? 0), sessionId, ...record }, operation, options);
+  const result = await ledger.run({ version: 1, createdAt: Number(game.time?.worldTime ?? 0), sessionId, ...record }, operation, options);
   if (result.status === "queued") notify("Срабатывание сохранено в панели Гримуара. GM должен открыть его сцену и подтвердить результат.", "warn");
   return result;
 }
@@ -95,6 +95,7 @@ export async function resolvePendingAutomation(id, decision) {
   if (!isGmAuthority() || !game.user?.isGM || !enabled()) throw Error("Очередью управляет только активный GM при включённой автоматизации.");
   const record = (await listAutomationEvents()).find(event => event.id === id);
   if (!record) throw Error("Событие не найдено.");
+  if (record.version != null && record.version !== 1) throw Error("Версия события не поддерживается; требуется ручная проверка.");
   if (decision === "apply" && (!canvas?.ready || canvas.scene?.id !== record.sceneId)) throw Error("Сначала откройте сцену события.");
   return ledger.resolve(id, decision, entry => {
     const resolve = resolvers.get(entry.kind);

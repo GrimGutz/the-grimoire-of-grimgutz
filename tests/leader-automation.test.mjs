@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { STRATAGEM_RULES, leaderDie, leaderDistance, movementChanges } from "../scripts/automation/classes/leader-stratagems.mjs";
+import { STRATAGEM_RULES, leaderDie, leaderDistance, movementChanges, installLeaderStratagemHooks } from "../scripts/automation/classes/leader-stratagems.mjs";
 import { maximizeHitDiceParts, resumeLeaderHitDie } from "../scripts/automation/classes/leader-events.mjs";
 import { matchesAttackBenefit } from "../scripts/automation/shared/combat-benefits.mjs";
 import { leaderDocuments as documents } from "../src/packs/leader-features.mjs";
@@ -48,4 +48,14 @@ test("dodge and marks distinguish the recipient's attacking and defending roles"
   const attacker = { uuid: "recipient" }, target = { uuid: "enemy" };
   assert.equal(matchesAttackBenefit(effect("dodge"), { attacker, target }), false);
   assert.equal(matchesAttackBenefit(effect("attack-advantage"), { attacker, target }), true);
+});
+test("temporary HP pool survives native damage even though Actor5e drops application options before update", () => {
+  const callbacks = new Map(); globalThis.Hooks = {on: (name, handler) => callbacks.set(name, handler)};
+  const record = {remaining: 10, effectUuid: "pool"}, actor = {getFlag: () => record, system: {attributes: {hp: {temp: 10}}}};
+  installLeaderStratagemHooks();
+  const updates = {"system.attributes.hp.temp": 6};
+  callbacks.get("dnd5e.preApplyDamage")(actor, 4, updates, {});
+  callbacks.get("preUpdateActor")(actor, updates, {});
+  assert.equal(updates[`flags.${MODULE_ID}.combatTempHp`].remaining, 6);
+  assert.equal(updates[`flags.${MODULE_ID}.-=combatTempHp`], undefined);
 });

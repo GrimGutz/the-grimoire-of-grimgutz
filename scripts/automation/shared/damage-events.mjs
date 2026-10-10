@@ -93,6 +93,7 @@ registerGmRequest("prepare-damage-event", (actor, data, context) => {
     const card = data.itemCardUuid && await fromUuid(data.itemCardUuid);
     const cardUuid = card?.documentName === "ChatMessage" && (card.getAssociatedActor?.()?.uuid === actor.uuid || card.speaker?.actor === actor.id) ? card.uuid : null;
     const result = { status: "success", bonuses, context: { key: data.key, sourceActorUuid: actor.uuid, itemCardUuid: cardUuid,
+      confirmationNonce: foundry.utils.randomID(),
       sourceTokenUuid: attacker.uuid, targetTokenUuid: target.uuid, activityUuid: activity.uuid, workflowId: data.workflowId, sceneId: attacker.parent.id,
       bloodSpell: data.bloodSpell === true,
       bloodDrain: data.bloodDrain === true && (actor.getFlag(MODULE_ID, "bloodDrainLink")?.targetTokenUuid === target.uuid
@@ -101,6 +102,10 @@ registerGmRequest("prepare-damage-event", (actor, data, context) => {
       damageType: data.damageType,
       benefits: bonuses.map(bonus => bonus.effectUuid).filter(Boolean), ...extra } };
     prepared.set(data.key, result); if (prepared.size > 500) prepared.delete(prepared.keys().next().value);
+    if (cardUuid) {
+      const pending = card.getFlag(MODULE_ID, "preparedDamageEvents") ?? {};
+      await card.setFlag(MODULE_ID, "preparedDamageEvents", {...pending, [data.key]: result.context});
+    }
     return result;
   });
   reservationChain = operation; return operation;
@@ -129,6 +134,36 @@ export async function finishDamageReservations(workflow) {
   if (!workflow?.aborted || !workflow.actor) return;
   return requestGm("release-damage-reservations", workflow.actor, {workflowId: workflow.id,
     targets: [...(workflow.targets ?? [])].map(token => tokenRef(token).uuid)});
+}
+export function damageHealthSignature(actor, nonce) {
+  const hp = actor.system?.attributes?.hp ?? {}, input = JSON.stringify([nonce, hp.value, hp.temp ?? 0]);
+  let hash = 2166136261;
+  for (let i = 0; i < input.length; i++) hash = Math.imul(hash ^ input.charCodeAt(i), 16777619);
+  return (hash >>> 0).toString(16);
+}
+registerGmRequest("confirm-damage-event", async (actor, data) => {
+  const event = data.event, cached = prepared.get(event?.key)?.context;
+  const card = event?.itemCardUuid && await fromUuid(event.itemCardUuid);
+  const context = cached ?? card?.getFlag(MODULE_ID, "preparedDamageEvents")?.[event?.key];
+  const target = context && await fromUuid(context.targetTokenUuid);
+  if (!context || context.confirmationNonce !== event.confirmationNonce || target?.actor?.uuid !== actor.uuid
+    || data.healthSignature !== damageHealthSignature(actor, context.confirmationNonce) || !Number.isFinite(data.amount)) {
+    if (event?.key && event.sceneId) await runAutomationEvent({id: `damage-review:${event.key}`, kind: "confirmed-damage-review", sceneId: event.sceneId,
+      sourceActorUuid: event.sourceActorUuid, targetTokenUuid: event.targetTokenUuid, name: "Подтверждение урона: нужна проверка"}, () => ({status: "needs-review"}));
+    return {status: "needs-review"};
+  }
+  // Never broadcast hidden NPC HP. The zero-HP transition needs only a boolean.
+  const verified = {...context, beforeHp: data.wasAlive ? 1 : 0};
+  return emitConfirmedDamage(actor, data.amount, {[MODULE_ID]: {damageEvent: verified}});
+});
+export async function confirmDamageApplication(actor, amount, options) {
+  const event = options?.[MODULE_ID]?.damageEvent;
+  if (!enabled() || !event) return;
+  if (isGmAuthority()) return emitConfirmedDamage(actor, amount, options);
+  return requestGm("confirm-damage-event", actor, {amount, event: {key: event.key, confirmationNonce: event.confirmationNonce,
+    itemCardUuid: event.itemCardUuid, sceneId: event.sceneId, sourceActorUuid: event.sourceActorUuid, targetTokenUuid: event.targetTokenUuid},
+    wasAlive: Number(event.beforeHp) > 0, healthSignature: damageHealthSignature(actor, event.confirmationNonce)},
+    {requestId: `confirm-damage:${event.key}`});
 }
 export async function prepareConfirmedDamage(token, { workflow, damageItem }) {
   if (!enabled() || !workflow?.actor || !token?.actor || workflow.aborted) return;
@@ -161,6 +196,6 @@ export function installDamageEventHooks() {
   Hooks.on("dnd5e.preApplyDamage", (actor, _amount, _updates, options) => {
     if (options?.[MODULE_ID]?.damageEvent) options[MODULE_ID].damageEvent.beforeHp = Number(actor.system.attributes.hp.value);
   });
-  Hooks.on("dnd5e.applyDamage", (actor, amount, options) => { void emitConfirmedDamage(actor, amount, options)
+  Hooks.on("dnd5e.applyDamage", (actor, amount, options) => { void confirmDamageApplication(actor, amount, options)
     .catch(error => console.error(`${MODULE_ID} | Damage confirmation failed`, error)); });
 }

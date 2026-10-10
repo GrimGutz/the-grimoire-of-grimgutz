@@ -40,7 +40,7 @@ export async function addCombatBenefit(source, target, item, { kind, name = item
   if (!isGmAuthority()) throw Error("Боевые бонусы создаёт активный GM.");
   const sourceDoc = tokenRef(source), targetDoc = tokenRef(target), actor = targetDoc.actor;
   const combat = game.combats?.find?.(combat => combat.started && combat.scene?.id === sourceDoc.parent?.id) ?? game.combat;
-  const state = { kind, sourceTokenUuid: sourceDoc.uuid, sourceActorUuid: sourceDoc.actor.uuid, sourceItemUuid: item.uuid,
+  const state = { version: 1, kind, sourceTokenUuid: sourceDoc.uuid, sourceActorUuid: sourceDoc.actor.uuid, sourceItemUuid: item.uuid,
     targetTokenUuid: targetDoc.uuid, remaining, expiry, combatId: combat?.started ? combat.id : null,
     createdTurn: turnKey(combat), skipCurrentEnd: ["targetEnd", "sourceEnd"].includes(expiry)
       && combat?.combatant?.tokenId === (expiry === "sourceEnd" ? sourceDoc.id : targetDoc.id),
@@ -49,7 +49,7 @@ export async function addCombatBenefit(source, target, item, { kind, name = item
     : temporaryEffectTiming({ seconds: 6 });
   const [effect] = await actor.createEmbeddedDocuments("ActiveEffect", [{ name, img: item.img, type: "base", origin: item.uuid,
     transfer: false, disabled: false, showIcon: 1, statuses: [], ...timing,
-    flags: { [MODULE_ID]: { combatBenefit: state } }, system: { changes } }]);
+    flags: { [MODULE_ID]: { schemaVersion: 1, automation: {version: 1, kind: "effect", id: `combat-${kind}`, data: {engine: "combat-benefits"}}, combatBenefit: state } }, system: { changes } }]);
   return effect;
 }
 export async function consumeBenefit(effect, key) {

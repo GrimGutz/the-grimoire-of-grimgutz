@@ -28,6 +28,7 @@ import { installCombatBenefitHooks, prepareCombatAttackBenefits, commitCombatAtt
 import { installDamageEventHooks, prepareConfirmedDamage, finishDamageReservations } from "./shared/damage-events.mjs";
 import { installLeaderStratagemHooks, useLeaderStratagem } from "./classes/leader-stratagems.mjs";
 import { installLeaderEventHooks, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll } from "./classes/leader-events.mjs";
+import {installLeaderComfortHooks, prepareComfortHealing, finishComfortHealing} from "./classes/leader-comfort.mjs";
 import { installLeaderPresenceHooks, chooseLeaderPresenceTargets, handleLeaderCritical, handleDistractingPresence, prepareLeaderHealing } from "./classes/leader-presences.mjs";
 import { installSanguinistCombatHooks, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves } from "./classes/sanguinist-combat.mjs";
 import { installInsectCombatHooks, handleInsectBiteHit, useInsectBloodDrain, endInsectBloodDrain } from "./classes/insect-combat.mjs";
@@ -998,6 +999,7 @@ function installHooks() {
   installDamageEventHooks();
   installLeaderStratagemHooks();
   installLeaderEventHooks();
+  installLeaderComfortHooks();
   installLeaderPresenceHooks();
   installSanguinistCombatHooks();
   installInsectCombatHooks();
@@ -1175,7 +1177,7 @@ function installHooks() {
 }
 
 export function getMidiHookHandlers() {
-  return { handleHollowWeaponHit, prepareHollowCast, handleGuardianWeaponHit, prepareArmorSave, finishDefenseReactions, handleInsectBiteHit, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
+  return { prepareComfortHealing, finishComfortHealing, handleHollowWeaponHit, prepareHollowCast, handleGuardianWeaponHit, prepareArmorSave, finishDefenseReactions, handleInsectBiteHit, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
     prepareLeaderHealing, handleLeaderCritical, handleDistractingPresence, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
     prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,

@@ -1,6 +1,9 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 
 export const MIDI_QOL_HOOKS = [
+  ["midi-qol.preDamageRoll", "prepareComfortHealing"],
+  ["midi-qol.DamageRollComplete", "finishComfortHealing"],
+  ["midi-qol.preCleanup", "finishComfortHealing"],
   ["midi-qol.preCleanup", "finishDamageReservations"],
   ["midi-qol.preCleanup", "finishBloodSpell"],
   ["midi-qol.preCleanup", "finishDefenseReactions"],
