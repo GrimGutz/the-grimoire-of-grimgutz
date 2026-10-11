@@ -37,6 +37,7 @@ import { installHollowCombatHooks, handleHollowWeaponHit, prepareHollowCast } fr
 import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
 import {installWitchBladeHooks} from "./classes/witch-blade.mjs";
 import {installRitualistZoneHooks} from "./classes/ritualist-zones.mjs";
+import {installJuggernautRegenerationHooks, configureJuggernautRegeneration} from "./classes/juggernaut-regeneration.mjs";
 import {applyWeaponBuffReach} from "./shared/weapon-buffs.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
@@ -561,6 +562,7 @@ function actionFromActivity(activity) {
 }
 
 const COMMON_ACTIVITY_ACTIONS = new Map([
+  ["configure-juggernaut-regeneration", async actor => configureJuggernautRegeneration(actor)],
   ["choose-leader-presence-targets", async (actor, activity) => chooseLeaderPresenceTargets(actor, automationData(activity).leaderPresenceKey ?? itemIdentifier(activity.item))],
   ["choose-carnage-aura-type", async actor => chooseCarnageAuraType(actor)],
   ["toggle-gwm", async (actor, activity, context) => toggleGreatWeaponMaster(actor)],
@@ -1013,6 +1015,7 @@ function installHooks() {
   installAreaActivityHooks({ validate: validateActivityUse });
   installWitchBladeHooks();
   installRitualistZoneHooks();
+  installJuggernautRegenerationHooks();
   Hooks.on("midi-qol.preTargetingV2", ({workflow}) => applyWeaponBuffReach(workflow?.activity));
   Hooks.on("dnd5e.preUseActivity", applyWeaponBuffReach);
   installTemporaryEffectHooks();
