@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
 import { MODULE_ID } from "../scripts/automation/shared/constants.mjs";
-import { synchronizeSummonLifecycle } from "../scripts/automation/shared/summon-lifecycle.mjs";
+import { synchronizeSummonLifecycle, manageSummons } from "../scripts/automation/shared/summon-lifecycle.mjs";
 
 let actors, scene, owner;
 beforeEach(() => {
@@ -55,4 +55,21 @@ test("lost ritualist concentration makes the spirit hostile without deleting it"
   assert.equal(actor.ownership.player, 2);
   game.time.worldTime = 600;
   await synchronizeSummonLifecycle(); assert.equal(game.actors.length, 0);
+});
+
+test("regaining spirits validates the concentration limit before action cost or roll", async () => {
+  const spirit = summon({seconds: 600});
+  spirit.flags[MODULE_ID].summonLifecycle.controlled = false;
+  spirit.flags[MODULE_ID].summonLifecycle.activityUuid = "summoning";
+  owner.concentration = {effects: new Set(["another-spell"])};
+  owner.system = {attributes: {concentration: {limit: 1}}}; owner.items = [];
+  let cost = 0, rolls = 0;
+  owner.rollConcentration = async () => {rolls++; return [{total: 20}];};
+  owner.beginConcentrating = async () => ({uuid: "new-concentration"});
+  const action = {actor: owner, id: "regain", toObject: () => ({type: "utility"}), item: {clone: () => ({system: {activities: new Map([["regain", {}]])}})}};
+  globalThis.fromUuid = async uuid => uuid === "regain" ? action : uuid === "summoning" ? {} : owner;
+  globalThis.foundry = {utils: {randomID: () => "busy-concentration"}};
+  globalThis.MidiQOL = {completeActivityUse: async () => {cost++; return true;}};
+  await assert.rejects(manageSummons(owner, {action: "regain", dc: 10, activityUuid: "regain"}), /другую концентрацию/);
+  assert.equal(cost, 0); assert.equal(rolls, 0);
 });

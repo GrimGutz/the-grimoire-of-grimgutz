@@ -3,6 +3,7 @@ import { isGmAuthority, registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import {useNativeUtility} from "./native-actions.mjs";
 import {findFeature} from "./helpers.mjs";
+import {classLevel} from "./selectors.mjs";
 
 const operationQueue = new Map();
 let synchronizationRequested = false;
@@ -89,20 +90,26 @@ registerGmRequest("manage-summons", async (owner, data) => {
   } else if (data.action === "regain") {
     const dc = Number(data.dc);
     if (!Number.isFinite(dc) || dc < 1) throw Error("Укажите СЛ предыдущей проверки концентрации.");
+    const lost = owned.filter(actor => flag(actor, "summonLifecycle")?.controlled === false);
+    if (!lost.length) return false;
+    const lifecycle = flag(lost[0], "summonLifecycle");
+    const activity = lifecycle.activityUuid ? await fromUuid(lifecycle.activityUuid) : null;
+    if (!activity || !owner.beginConcentrating) throw Error("Не найдена активность концентрации духов.");
+    if ((owner.concentration?.effects?.size ?? 0) >= Number(owner.system?.attributes?.concentration?.limit ?? 1)) {
+      throw Error("Сначала завершите другую концентрацию, чтобы вернуть контроль духов.");
+    }
     if (data.activityUuid) {
       const action = await fromUuid(data.activityUuid);
-      if (action?.actor?.uuid !== owner.uuid || !owned.some(actor => flag(actor, "summonLifecycle")?.controlled === false)) return false;
-      const result = await useNativeUtility(action, {dataPatch: {activation: {type: findFeature(owner, "mind-body-and-soul") ? "bonus" : "action", value: 1, override: true},
+      if (action?.actor?.uuid !== owner.uuid) return false;
+      const result = await useNativeUtility(action, {dataPatch: {activation: {type: classLevel(owner, "ritualist") >= 2 && findFeature(owner, "mind-body-and-soul") ? "bonus" : "action", value: 1, override: true},
         consumption: {targets: [], spellSlot: false, scaling: {allowed: false, max: ""}}}});
       if (result === false || result?.aborted) return false; if (!result) return {status: "needs-review"};
     }
     const rolls = await owner.rollConcentration({ target: dc }, { configure: false });
     if (!rolls?.length || Number(rolls[0].total) < dc) return { status: "failed", error: "Проверка восстановления контроля не пройдена." };
-    const lost = owned.filter(actor => flag(actor, "summonLifecycle")?.controlled === false);
     if (lost.length) {
-      const lifecycle = flag(lost[0], "summonLifecycle");
-      const activity = lifecycle.activityUuid ? await fromUuid(lifecycle.activityUuid) : null;
-      if (!activity || !owner.beginConcentrating) throw Error("Не найдена активность концентрации духов.");
+      // The owner may start another concentration while their roll is open.
+      // Do not overwrite it; the action was genuinely attempted and stays spent.
       if ((owner.concentration?.effects?.size ?? 0) >= Number(owner.system?.attributes?.concentration?.limit ?? 1)) {
         throw Error("Сначала завершите другую концентрацию, чтобы вернуть контроль духов.");
       }
