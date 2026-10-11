@@ -36,6 +36,7 @@ import { installDefenseHooks, handleGuardianWeaponHit, prepareArmorSave, finishD
 import { installHollowCombatHooks, handleHollowWeaponHit, prepareHollowCast } from "./transformations/hollow-combat.mjs";
 import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
 import {installWitchBladeHooks} from "./classes/witch-blade.mjs";
+import {installRitualistZoneHooks} from "./classes/ritualist-zones.mjs";
 import {applyWeaponBuffReach} from "./shared/weapon-buffs.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
@@ -1011,6 +1012,7 @@ function installHooks() {
   installZoneHooks();
   installAreaActivityHooks({ validate: validateActivityUse });
   installWitchBladeHooks();
+  installRitualistZoneHooks();
   Hooks.on("midi-qol.preTargetingV2", ({workflow}) => applyWeaponBuffReach(workflow?.activity));
   Hooks.on("dnd5e.preUseActivity", applyWeaponBuffReach);
   installTemporaryEffectHooks();

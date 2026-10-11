@@ -89,14 +89,15 @@ export function areaPlacementAllowed(document, source, spec, scene, originalPoin
   const point = originalPoint ?? templateOrigin(document);
   if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return true; // Other native shapes are measured by Midi.
   const doc = source.document ?? source, gridSize = Number(scene.grid?.size ?? 100);
+  const center = source.center ?? doc.getCenterPoint?.() ?? {x: Number(doc.x) + Number(doc.width ?? 1) * gridSize / 2, y: Number(doc.y) + Number(doc.height ?? 1) * gridSize / 2};
   if (spec.origin === "self") {
     const x = Number(doc.x ?? source.center.x - gridSize / 2), y = Number(doc.y ?? source.center.y - gridSize / 2);
     return point.x >= x - 1 && point.x <= x + Number(doc.width ?? 1) * gridSize + 1
       && point.y >= y - 1 && point.y <= y + Number(doc.height ?? 1) * gridSize + 1;
   }
   if (Number(spec.maxRange) > 0) {
-    const measured = canvas.grid?.measurePath?.([source.center, point])?.distance
-      ?? Math.hypot(source.center.x - point.x, source.center.y - point.y) / gridSize * scene.grid.distance;
+    const measured = (canvas.scene?.id === scene.id ? canvas.grid?.measurePath?.([center, point])?.distance : null)
+      ?? Math.hypot(center.x - point.x, center.y - point.y) / gridSize * scene.grid.distance;
     return measured <= feetToSceneUnits(spec.maxRange, scene);
   }
   return true;

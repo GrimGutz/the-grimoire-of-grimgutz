@@ -11,8 +11,17 @@ import { abilityMod } from "../shared/dnd5e.mjs";
 import { choiceDialog, numberDialog } from "../shared/dialogs.mjs";
 import { createSummonedGroup } from "../shared/summons.mjs";
 import { manageSummons } from "../shared/summon-lifecycle.mjs";
+import {flaggedPassiveEffectData, syncFlaggedPassiveEffects} from "../effects/passive-helpers.mjs";
 
 const ritualistSyncs = new Set();
+const ritualistPassiveSyncs = new Set();
+export async function syncRitualistPassiveEffects(actor) {
+  return syncFlaggedPassiveEffects(actor, ritualistPassiveSyncs, MODULE_ID, "ritualistPassive", () => {
+    const feature = findFeature(actor, "mind-body-and-soul");
+    return feature && ritualistLevel(actor) >= 2 ? [flaggedPassiveEffectData(MODULE_ID, "ritualistPassive", {key: "mind-body-and-soul", feature,
+      changes: [{key: "system.attributes.concentration.roll.mode", value: "1", type: "upgrade", phase: "final", priority: 20}]})] : [];
+  });
+}
 
 export function ritualistClass(actor) {
   return actor?.items?.find(item => item.type === "class" && itemIdentifier(item) === "ritualist");
@@ -87,10 +96,11 @@ async function syncUses(feature, maximum) {
 
 export async function syncRitualistResources(actor, { notifyResult = false } = {}) {
   if (!actor?.isOwner || !isAutomationAuthority(actor) || ritualistSyncs.has(actor.uuid)) return false;
-  if (!ritualistClass(actor)) return false;
+  if (!ritualistClass(actor)) {await syncRitualistPassiveEffects(actor); return false;}
 
   ritualistSyncs.add(actor.uuid);
   try {
+    await syncRitualistPassiveEffects(actor);
     const changed = await syncUses(findFeature(actor, "binding-ritual"), ritualistRitualPoints(actor));
     if (notifyResult && changed) notify(`${actor.name}: ритуальные очки Ритуалиста синхронизированы.`);
     return changed;
@@ -288,7 +298,8 @@ export async function regainRitualistSpirits(actor) {
   const dc = await numberDialog({ title: "Вернуть контроль духов", label: "СЛ предыдущей проверки концентрации", min: 1, max: 100, defaultValue: actor.getFlag(MODULE_ID, "lastConcentrationDC") ?? 10,
     hint: "Укажите прежнюю СЛ: она не определяется автоматически, если проверка выполнялась вручную." });
   if (dc == null) return false;
-  return manageSummons(actor, { action: "regain", source: "binding-ritual", dc });
+  const activity = [...(findFeature(actor, "binding-ritual")?.system.activities?.values?.() ?? [])].find(a => automationData(a).action === "regain-ritualist-spirits");
+  return manageSummons(actor, { action: "regain", source: "binding-ritual", dc, activityUuid: activity?.uuid });
 }
 
 export async function rollRitualistSpiritAgony(actor) {

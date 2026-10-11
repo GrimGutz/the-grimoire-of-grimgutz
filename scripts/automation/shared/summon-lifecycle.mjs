@@ -1,6 +1,8 @@
 import { MODULE_ID } from "./constants.mjs";
 import { isGmAuthority, registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
+import {useNativeUtility} from "./native-actions.mjs";
+import {findFeature} from "./helpers.mjs";
 
 const operationQueue = new Map();
 let synchronizationRequested = false;
@@ -87,6 +89,13 @@ registerGmRequest("manage-summons", async (owner, data) => {
   } else if (data.action === "regain") {
     const dc = Number(data.dc);
     if (!Number.isFinite(dc) || dc < 1) throw Error("Укажите СЛ предыдущей проверки концентрации.");
+    if (data.activityUuid) {
+      const action = await fromUuid(data.activityUuid);
+      if (action?.actor?.uuid !== owner.uuid || !owned.some(actor => flag(actor, "summonLifecycle")?.controlled === false)) return false;
+      const result = await useNativeUtility(action, {dataPatch: {activation: {type: findFeature(owner, "mind-body-and-soul") ? "bonus" : "action", value: 1, override: true},
+        consumption: {targets: [], spellSlot: false, scaling: {allowed: false, max: ""}}}});
+      if (result === false || result?.aborted) return false; if (!result) return {status: "needs-review"};
+    }
     const rolls = await owner.rollConcentration({ target: dc }, { configure: false });
     if (!rolls?.length || Number(rolls[0].total) < dc) return { status: "failed", error: "Проверка восстановления контроля не пройдена." };
     const lost = owned.filter(actor => flag(actor, "summonLifecycle")?.controlled === false);
