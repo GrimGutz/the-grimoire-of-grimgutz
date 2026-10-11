@@ -1,4 +1,4 @@
-import {mkdtemp, rm} from "node:fs/promises";
+import {cp, mkdtemp, rm} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {fileURLToPath} from "node:url";
@@ -26,9 +26,12 @@ try {
   const archive = path.join(temp, "head.tar");
   execFileSync("git", ["archive", "--format=tar", `--output=${archive}`, "HEAD", "packs"], {cwd: root});
   execFileSync("tar", ["-xf", archive, "-C", temp]);
+  // LevelDB can rotate/compact files on open despite a nominal readOnly option.
+  // Audit a disposable copy, never the user's actual compendium directories.
+  await cp(path.join(root, "packs"), path.join(temp, "live-packs"), {recursive: true});
   const differences = [];
   for (const pack of packs) {
-    const head = await records(path.join(temp, "packs", pack)), live = await records(path.join(root, "packs", pack));
+    const head = await records(path.join(temp, "packs", pack)), live = await records(path.join(temp, "live-packs", pack));
     for (const key of new Set([...head.keys(), ...live.keys()])) {
       if (JSON.stringify(normalize(head.get(key))) !== JSON.stringify(normalize(live.get(key))))
         differences.push({pack, key, name: live.get(key)?.name ?? head.get(key)?.name});
