@@ -8,6 +8,8 @@ import {sourceTokenForActor} from "../shared/zones.mjs";
 import {areaPlacementAllowed} from "../shared/area-activities.mjs";
 import {tokenOccupiedPoints, feetToSceneUnits} from "../shared/spatial.mjs";
 
+const recipientCache = new WeakMap();
+
 export function protectiveZoneContains(zone, token, scene) {
   if (Number(token.elevation ?? 0) < (zone.elevation?.bottom ?? -Infinity) || Number(token.elevation ?? 0) > (zone.elevation?.top ?? Infinity)) return false;
   const points = tokenOccupiedPoints(token.object ?? token, scene), shape = zone.shapes?.[0];
@@ -25,12 +27,14 @@ export async function syncProtectiveZones(scene) {
   if (!scene || !enabled() || !isGmAuthority()) return;
   const zones = [...(scene.regions ?? []), ...(scene.templates ?? [])].filter(zone => zone.flags?.[MODULE_ID]?.protectiveZone
     && Number(zone.flags[MODULE_ID].zoneExpiresAt) > Number(game.time.worldTime));
-  const desired = new Map(), actors = new Map([...(game.actors ?? [])].map(actor => [actor.uuid, actor]));
+  const desired = new Map(), actors = new Map(recipientCache.get(scene) ?? []);
+  if (!recipientCache.has(scene)) for (const actor of game.actors ?? [])
+    if ([...(actor.effects ?? [])].some(effect => effect.getFlag?.(MODULE_ID, "protectiveZoneRecipient")?.sceneId === scene.id)) actors.set(actor.uuid, actor);
   for (const token of scene.tokens ?? []) if (token.actor) actors.set(token.actor.uuid, token.actor);
   for (const zone of zones) {
     const source = await fromUuid(zone.flags[MODULE_ID].protectiveZone.sourceTokenUuid); if (!source) continue;
     for (const token of scene.tokens ?? []) if (token.actor && protectiveZoneContains(zone, token, scene)) {
-      const friendly = token.disposition === source.disposition;
+      const friendly = token.actor.uuid === source.actor?.uuid || Boolean(source.disposition && token.disposition === source.disposition);
       // Neutral creatures receive neither allied immunity nor hostile slowing.
       if (!friendly && (!token.disposition || !source.disposition)) continue;
       const key = `${token.actor.uuid}:${zone.uuid}`;
@@ -53,6 +57,8 @@ export async function syncProtectiveZones(scene) {
     type: "base", transfer: false, disabled: false, start: null, duration: {value: null, units: "seconds", expiry: null, expired: false},
     origin: zone.flags[MODULE_ID].protectiveZone.itemUuid, flags: {[MODULE_ID]: {protectiveZoneRecipient: {sceneId: scene.id, zoneUuid: zone.uuid, friendly}}},
     system: {changes: protectiveZoneChanges(friendly, actor)}}]);
+  recipientCache.set(scene, new Map([...actors].filter(([, actor]) => [...(actor.effects ?? [])]
+    .some(effect => effect.getFlag?.(MODULE_ID, "protectiveZoneRecipient")?.sceneId === scene.id))));
 }
 registerGmRequest("ritualist-protective-zone", async (actor, data, {requestId}) => {
   const zone = await fromUuid(data.zoneUuid), activity = await fromUuid(data.activityUuid), source = await fromUuid(data.sourceUuid);
@@ -89,7 +95,12 @@ export async function useProtectiveRitual(activity) {
     placed = scene.regions?.get?.(placed.id) ?? placed;
     result = await requestGm("ritualist-protective-zone", actor, {zoneUuid: placed.uuid, activityUuid: activity.uuid, sourceUuid: source.document.uuid}, {requestId: `protective:${placed.uuid}`, timeoutMs: 120000});
     return result;
-  } catch (error) {if (error) notify(error.message, "warn"); return false;}
+  } catch (error) {
+    if (error) notify(error.message, "warn");
+    // A thrown request after placement is not proof that the GM did not spend
+    // the resource. Keep that template until the native receipt is reviewed.
+    result = placed ? {status: "needs-review", error: error?.message} : false; return result;
+  }
   finally {pending.delete(actor.uuid); if (placed && (result === false || ["failed", "cancelled"].includes(result?.status) || !result)) await placed.delete();}
 }
 export function protectiveZoneScheduler(synchronize = syncProtectiveZones) {

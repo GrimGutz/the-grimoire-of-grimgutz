@@ -40,7 +40,7 @@ export async function automationPanelData(actorOrUuid = null, actionHandlers = n
       const source = await visibleName(benefit?.sourceTokenUuid ?? flags[FLAGS.AURA_SOURCE] ?? flags.hollowWeakening?.sourceTokenUuid ?? effect.origin);
       records.push({category, name: effect.name, actor: actor.name, source, targets: actor.name,
         expires: effect.remainingSeconds === null ? benefit?.expiry ?? "Без таймера" : `${effect.remainingSeconds} сек.`,
-        remaining: benefit?.remaining ?? "—", reason: [...effect.reasons, ...(benefit?.reserved ? ["Ожидает подтверждения броска / урона"] : []),
+        remaining: benefit?.remaining ?? "—", reason: [...effect.reasons, ...effect.warnings, ...(benefit?.reserved ? ["Ожидает подтверждения броска / урона"] : []),
           ...(benefit?.dash ? [`Рывок: +${benefit.additionalMovement} ${benefit.movementUnits ?? "ft"} перемещения; прыжок в длину с разбега ${benefit.longJumpFeet} футов. Перемещение вручную.`] : []),
           ...(flags.repeatSaveReview ? ["Спасбросок требует проверки"] : [])].join(", ") || "Доступен",
         // Persistent passives and aura recipients cannot be ended here: the engine would recreate them.
@@ -56,6 +56,10 @@ export async function automationPanelData(actorOrUuid = null, actionHandlers = n
     if (report.links.bloodDrain) records.push({category: "Высасывание крови", name: "Активная связь", actor: actor.name, source: actor.name,
       targets: await visibleName(report.links.bloodDrain.targetTokenUuid), expires: "Пока выполнены условия", remaining: "Раз в раунд",
       reason: "Проверяется дистанция и допустимость цели", drainActor: actor.uuid});
+    for (const application of Object.values(report.nativeApplications ?? {}).filter(row => row.state === "needs-review"))
+      records.push({category: "Неподтверждённые применения", name: application.action, actor: actor.name, source: actor.name,
+        targets: application.requestId, expires: "Ручная проверка, без автоматического повтора", remaining: "—",
+        reason: application.error ?? (application.expenseConfirmed ? "Расход подтверждён; результат требуется проверить" : "Midi не подтвердил расход или результат")});
     for (const item of report.items) for (const action of item.actions.filter(action => action.reasons.length)) records.push({category: "Недоступные способности",
       name: `${item.name}: ${action.name}`, actor: actor.name, source: actor.name, targets: "—", expires: "—", remaining: item.resources.available ?? "—", reason: action.reasons.join(", ")});
   }

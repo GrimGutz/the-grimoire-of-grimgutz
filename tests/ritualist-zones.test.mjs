@@ -45,3 +45,14 @@ test("movement during protective zone synchronization is replayed with the final
   scene.position = 3; schedule(scene); release();
   await Promise.all([first, second]); assert.deepEqual(positions, [1, 3]);
 });
+
+test("neutral dispositions do not turn unrelated creatures into protective-circle allies", async () => {
+  const scene = {id: "neutral", grid: {size: 100, distance: 5}, tokens: [], regions: []};
+  const actor = {uuid: "Actor.neutral", effects: [], async createEmbeddedDocuments() {assert.fail("unrelated neutral ally");}};
+  scene.tokens = [{actor, disposition: 0, x: 0, y: 0, width: 1, height: 1}];
+  scene.regions = [{uuid: "zone", shapes: [{type: "circle", x: 50, y: 50, radius: 600}],
+    flags: {[MODULE_ID]: {protectiveZone: {sourceTokenUuid: "source"}, zoneExpiresAt: 600}}}];
+  globalThis.game = {settings: {get: () => true}, user: {isGM: true}, time: {worldTime: 0}, actors: []};
+  globalThis.canvas = {}; globalThis.fromUuid = async () => ({disposition: 0, actor: {uuid: "Actor.other"}});
+  await syncProtectiveZones(scene);
+});
