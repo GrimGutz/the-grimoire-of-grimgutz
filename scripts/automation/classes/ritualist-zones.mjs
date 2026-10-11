@@ -90,6 +90,21 @@ export async function useProtectiveRitual(activity) {
   } catch (error) {if (error) notify(error.message, "warn"); return false;}
   finally {pending.delete(actor.uuid); if (placed && (result === false || ["failed", "cancelled"].includes(result?.status) || !result)) await placed.delete();}
 }
+export function protectiveZoneScheduler(synchronize = syncProtectiveZones) {
+  const scheduled = new Map();
+  return scene => {
+    if (!scene) return;
+    const existing = scheduled.get(scene.id);
+    if (existing) {existing.requested = true; return existing.promise;}
+    const state = {requested: true};
+    // Token/Actor updates received during document writes must be coalesced,
+    // not discarded: the final position still needs a full synchronization.
+    state.promise = Promise.resolve().then(async () => {
+      do {state.requested = false; await synchronize(scene);} while (state.requested);
+    }).finally(() => scheduled.delete(scene.id));
+    scheduled.set(scene.id, state); return state.promise;
+  };
+}
 export function installRitualistZoneHooks() {
   const intercept = activity => {
     if (!enabled() || activity?.flags?.[MODULE_ID]?.leaderResolved) return;
@@ -99,12 +114,8 @@ export function installRitualistZoneHooks() {
   };
   Hooks.on("midi-qol.preTargetingV2", ({workflow}) => intercept(workflow?.activity));
   Hooks.on("dnd5e.preUseActivity", intercept);
-  const scheduled = new Map();
-  const sync = scene => {
-    if (!scene || scheduled.has(scene.id)) return;
-    const task = Promise.resolve().then(() => syncProtectiveZones(scene)).catch(error => console.error(`${MODULE_ID} | Protective zone`, error))
-      .finally(() => scheduled.delete(scene.id)); scheduled.set(scene.id, task);
-  };
+  const schedule = protectiveZoneScheduler();
+  const sync = scene => {void schedule(scene)?.catch(error => console.error(`${MODULE_ID} | Protective zone`, error));};
   Hooks.on("updateToken", token => sync(token.parent));
   Hooks.on("deleteToken", token => sync(token.parent));
   Hooks.on("updateActor", () => {for (const scene of game.scenes ?? []) sync(scene);});

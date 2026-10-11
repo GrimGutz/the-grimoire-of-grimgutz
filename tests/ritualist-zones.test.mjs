@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {test} from "node:test";
-import {protectiveZoneChanges, protectiveZoneContains, syncProtectiveZones} from "../scripts/automation/classes/ritualist-zones.mjs";
+import {protectiveZoneChanges, protectiveZoneContains, syncProtectiveZones, protectiveZoneScheduler} from "../scripts/automation/classes/ritualist-zones.mjs";
 import {MODULE_ID} from "../scripts/automation/shared/constants.mjs";
 test("protective ritual immunities are not granted to enemies, and slowing does not grant new movement modes", () => {
   const actor = {system: {attributes: {movement: {walk: 30, fly: 0}}}};
@@ -29,4 +29,19 @@ test("protective ritual uses occupied spaces of large tokens and fixed Region ge
   const zone = {shapes: [{type: "circle", x: 50, y: 50, radius: 120}]};
   assert.equal(protectiveZoneContains(zone, {x: 100, y: 0, width: 2, height: 2}, scene), true);
   assert.equal(protectiveZoneContains(zone, {x: 500, y: 0, width: 1, height: 1}, scene), false);
+});
+
+test("movement during protective zone synchronization is replayed with the final position", async () => {
+  const scene = {id: "one", position: 1}, positions = [];
+  let release, entered;
+  const gate = new Promise(resolve => {release = resolve;});
+  const start = new Promise(resolve => {entered = resolve;});
+  const schedule = protectiveZoneScheduler(async current => {
+    positions.push(current.position);
+    if (positions.length === 1) {entered(); await gate;}
+  });
+  const first = schedule(scene); await start;
+  scene.position = 2; const second = schedule(scene);
+  scene.position = 3; schedule(scene); release();
+  await Promise.all([first, second]); assert.deepEqual(positions, [1, 3]);
 });
