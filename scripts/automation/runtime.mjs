@@ -38,6 +38,7 @@ import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activit
 import {installWitchBladeHooks} from "./classes/witch-blade.mjs";
 import {installRitualistZoneHooks} from "./classes/ritualist-zones.mjs";
 import {installJuggernautRegenerationHooks, configureJuggernautRegeneration} from "./classes/juggernaut-regeneration.mjs";
+import {installRitualistSpiritHooks, chooseRitualistSpiritRecipients} from "./classes/ritualist-spirits.mjs";
 import {applyWeaponBuffReach} from "./shared/weapon-buffs.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
@@ -562,6 +563,7 @@ function actionFromActivity(activity) {
 }
 
 const COMMON_ACTIVITY_ACTIONS = new Map([
+  ["choose-ritualist-spirit-targets", async actor => chooseRitualistSpiritRecipients(actor)],
   ["configure-juggernaut-regeneration", async actor => configureJuggernautRegeneration(actor)],
   ["choose-leader-presence-targets", async (actor, activity) => chooseLeaderPresenceTargets(actor, automationData(activity).leaderPresenceKey ?? itemIdentifier(activity.item))],
   ["choose-carnage-aura-type", async actor => chooseCarnageAuraType(actor)],
@@ -1016,6 +1018,7 @@ function installHooks() {
   installWitchBladeHooks();
   installRitualistZoneHooks();
   installJuggernautRegenerationHooks();
+  installRitualistSpiritHooks();
   Hooks.on("midi-qol.preTargetingV2", ({workflow}) => applyWeaponBuffReach(workflow?.activity));
   Hooks.on("dnd5e.preUseActivity", applyWeaponBuffReach);
   installTemporaryEffectHooks();

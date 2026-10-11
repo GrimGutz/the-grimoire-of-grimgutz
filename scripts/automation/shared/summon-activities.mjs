@@ -13,6 +13,11 @@ export function summonActivities(specifications = []) {
       target: { affects: { type: "creature", count: "1", choice: true }, prompt: true, override: true },
       ...(spec.action ? { flags: { [MODULE_ID]: { action: spec.action, schemaVersion: 1,
         automation: { version: 1, kind: "activity", id: spec.action, action: { id: spec.action, data: {} } } } } } : {}) };
+    if (spec.metadata) {activity.flags ??= {}; activity.flags[MODULE_ID] = {...activity.flags[MODULE_ID], ...spec.metadata};}
+    if (spec.longRange) {
+      activity.range.special = `Обычная/дальняя дистанция: ${spec.range}/${spec.longRange} футов`;
+      activity.flags ??= {}; activity.flags[MODULE_ID] = {...activity.flags[MODULE_ID], normalRange: spec.range, longRange: spec.longRange};
+    }
     if (type === "attack") activity.attack = { flat: true, bonus: String(spec.attackBonus ?? 0), ability: "", type: { value: spec.attackType ?? "melee", classification: "weapon" } };
     if (["attack", "damage", "save"].includes(type)) activity.damage = { includeBase: false, parts: spec.formula != null ? [part] : [], ...(type === "save" ? { onSave: spec.onSave ?? "none" } : {}) };
     if (type === "save") activity.save = { ability: [spec.saveAbility ?? "wis"], dc: { calculation: "", formula: String(spec.dc ?? 10) } };

@@ -228,6 +228,7 @@ function ritualistSpiritSummon(actor, index, total, activity, replaceConcentrati
     source: "binding-ritual",
     lifecycle: { seconds: 600, concentration: "hostile", activityUuid: activity?.uuid ?? null, replaceConcentration },
     variant,
+    ritualistRules: {level: ritualistLevel(actor), dc: ritualistSpiritSaveDC(actor), conMod: abilityMod(actor, "con"), wisMod: abilityMod(actor, "wis")},
     size: "med",
     type: "undead",
     ac: 11,
@@ -253,7 +254,9 @@ function ritualistSpiritSummon(actor, index, total, activity, replaceConcentrati
       name: "Варианты духов",
       activities: variant === "life" ? [{ name: "Дух жизни: лечение", type: "heal", formula: `${Math.max(1, ritualistLevel(actor))}d6`, range: 30, selfCost: { value: 14, type: "force", excludeTypes: ["undead", "construct"] } }]
         : variant === "protection" ? [{ name: "Дух защиты: защитить союзника", type: "utility", activation: "special", range: 30, action: "summon-spirit-protection", condition: "Когда союзник в пределах 30 футов получает урон от атаки или заклинания" }]
-        : variant === "sorrow" ? [{ name: "Скорбная песня", type: "save", formula: "1d4", damageType: "force", saveAbility: "con", dc: ritualistSpiritSaveDC(actor), range: 30 }]
+        : variant === "sorrow" ? [{ name: "Скорбная песня", type: "save", formula: "1d4", damageType: "force", saveAbility: "con", dc: ritualistSpiritSaveDC(actor), range: 30, metadata: {ritualistSorrow: true} }]
+        : variant === "blood-song" ? [{name: "Кровавая песня", type: "attack", attackType: "ranged", attackBonus: 4, formula: "2d6 + 2", damageType: "necrotic", range: 30, longRange: 60, metadata: {ritualistBloodSong: true}}]
+        : variant === "possibilities" ? [{name: "Выбрать получателей временных хитов", type: "utility", activation: "special", action: "choose-ritualist-spirit-targets"}]
         : variant === "destruction" ? [{ name: "Разрушение: урон за один раунд", type: "save", formula: "1d6", damageType: "force", saveAbility: "wis", dc: ritualistSpiritSaveDC(actor), onSave: "half", range: 15, activation: "special",
           condition: "Только при уничтожении/исчезновении духа. Укажите число к6 за прожитые раунды, максимум 8; цели — враги в 15 футах." }]
         : variant === "agony" ? [{ name: "Дух агонии", type: "save", formula: `${Math.max(1, ritualistLevel(actor))}d6`, damageType: "psychic", saveAbility: "wis", dc: ritualistSpiritSaveDC(actor), range: 30, activation: "special",
