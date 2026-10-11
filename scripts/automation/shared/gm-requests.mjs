@@ -5,6 +5,8 @@ const handlers = new Map();
 const pending = new Map();
 const completed = new Map();
 const replies = new Map();
+const localRequests = new Map();
+let localGame;
 let installed = false;
 
 export function registerGmRequest(type, handler) { handlers.set(type, handler); }
@@ -63,9 +65,17 @@ export async function requestGm(type, owner, data, { timeoutMs = 15000, requestI
   const handler = handlers.get(type);
   if (!handler) throw new Error(`Unknown GM request: ${type}`);
   if (isGmAuthority()) {
-    const result = await handler(owner, data, { requesterId: game.user.id, requestId });
-    replies.set(requestId, { ...result, requestId });
-    return replies.get(requestId);
+    if (localGame !== game) { localRequests.clear(); localGame = game; }
+    const key = `${type}:${owner.uuid}:${requestId}`;
+    if (!localRequests.has(key)) {
+      const operation = Promise.resolve().then(() => handler(owner, data, {requesterId: game.user.id, requestId}))
+        .then(result => { const reply = {...result, requestId}; replies.set(requestId, reply); return reply; });
+      localRequests.set(key, operation);
+      // Share concurrent callbacks only. Completed requests must still run
+      // their document/receipt validation (e.g. a changed damage card).
+      void operation.finally(() => localRequests.delete(key)).catch(() => {});
+    }
+    return localRequests.get(key);
   }
   const gm = game.users?.activeGM;
   if (!gm) return { requestId, status: "failed", error: "Нужен активный GM." };

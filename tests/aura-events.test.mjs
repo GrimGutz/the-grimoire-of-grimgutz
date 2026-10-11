@@ -49,6 +49,16 @@ test("aura pulses use the specified source/target turn, never movement sync", as
   assert.equal(pulses.length, 2); assert.equal(pulses[1].event.trigger, "targetStart"); assert.equal(pulses[1].event.save, "con");
 });
 
+test("turn auras work in scene-unlinked combat and snapshot before async synchronization", async () => {
+  const source = token(actor("fiend", "character", "spirit-fiend"), "fiend"), enemy = token(actor("enemy"), "enemy");
+  source.document.parent = scene;
+  frames = [frame("spirit-vessel-fiend-flames", source, [enemy])];
+  const encounter = combat("fiend"); encounter.scene = null; encounter.combatant.token = source.document;
+  const ctx = context(); ctx.synchronize = async () => {encounter.round = 9;};
+  await createAuraEventEngine(ctx).turn(encounter, {turn: 0});
+  assert.equal(pulses.length, 1); assert.ok(pulses[0].eventKey.includes(":combat:1:0:"));
+});
+
 test("duplicate callbacks and a GM reload do not repeat an already claimed aura pulse", async () => {
   const source = token(actor("fiend", "character", "spirit-fiend"), "fiend"), enemy = token(actor("enemy"), "enemy", 100);
   frames = [frame("spirit-vessel-fiend-flames", source, [enemy])]; tokens = [source, enemy];

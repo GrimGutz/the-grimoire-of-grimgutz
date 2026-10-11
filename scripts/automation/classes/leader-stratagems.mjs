@@ -12,6 +12,7 @@ import { dispatchAutomationPulse } from "../midi/aura-workflow.mjs";
 import { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs";
 import { isAuraIncapacitated } from "../shared/aura-conditions.mjs";
 import {leaderReceipt, leaderReceiptData} from "../shared/leader-receipts.mjs";
+import { encounterForScene } from "../shared/combat-flow.mjs";
 
 export const STRATAGEM_RULES = Object.freeze({
   "stratagem-cunning-ruse": "contest", "stratagem-battle-cry": "battle-cry", "stratagem-command-caution": "caution",
@@ -59,7 +60,7 @@ async function applyStratagem(actor, data) {
     || !STRATAGEM_RULES[itemIdentifier(item)] || !validateStratagemUse(activity)) throw Error("Стратагема недоступна.");
   const scene = source.parent, level = leaderLevel(actor), prof = Number(actor.system.attributes.prof), rule = STRATAGEM_RULES[itemIdentifier(item)];
   if (isAuraIncapacitated(actor) || (activity.activation?.type === "reaction" && !canReact(actor))) return false;
-  const combat = game.combats?.find?.(entry => entry.started && entry.scene?.id === scene.id);
+  const combat = encounterForScene(scene, source);
   if (["battle-cry", "guiding", "line"].includes(rule) && combat?.combatant?.tokenId !== source.id)
     throw Error("Эта стратагема применяется в начале собственного хода; подтвердите момент в своём ходу.");
   if (["battle-cry", "guiding", "line"].includes(rule) && !await confirmOwner(actor, item.name, "Подтвердить: сейчас начало вашего хода?")) return false;

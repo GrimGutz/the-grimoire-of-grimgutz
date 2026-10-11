@@ -2,7 +2,7 @@ import { MODULE_ID } from "./constants.mjs";
 import { isEffectActive, automationActors, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { enabled, findFeature } from "./helpers.mjs";
 import { isGmAuthority, registerGmRequest, requestGm } from "./gm-requests.mjs";
-import { isForwardTurn } from "./combat-flow.mjs";
+import { isForwardTurn, combatTurnSnapshot, encounterForScene } from "./combat-flow.mjs";
 import { tokenSceneDistance, feetToSceneUnits } from "./spatial.mjs";
 import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
 import { isAuraIncapacitated, isAuraDefeated } from "./aura-conditions.mjs";
@@ -13,8 +13,7 @@ const attackProviders = new Set();
 export function onPrepareAttack(provider) { attackProviders.add(provider); }
 export const tokenRef = token => token?.document ?? token;
 export const turnKey = combat => combat?.started ? `${combat.id}:${combat.round}:${combat.turn}` : null;
-export function combatForScene(scene) { return game.combats?.find?.(combat => combat.started && combat.scene?.id === scene?.id)
-  ?? (game.combat?.started && game.combat.scene?.id === scene?.id ? game.combat : null); }
+export function combatForScene(scene, token = null) { return encounterForScene(scene, token); }
 export function sceneToken(scene, uuid) { return [...(scene?.tokens ?? [])].find(token => token.uuid === uuid); }
 export function inFeet(a, b, feet, scene) { return tokenSceneDistance(a?.object ?? a, b?.object ?? b, scene) <= feetToSceneUnits(feet, scene); }
 export function meleeReach(actor) {
@@ -39,7 +38,7 @@ export async function recordModuleReaction(actor, scene) {
 export async function addCombatBenefit(source, target, item, { kind, name = item.name, remaining = null, expiry = "sourceStart", changes = [], ...data }) {
   if (!isGmAuthority()) throw Error("Боевые бонусы создаёт активный GM.");
   const sourceDoc = tokenRef(source), targetDoc = tokenRef(target), actor = targetDoc.actor;
-  const combat = game.combats?.find?.(combat => combat.started && combat.scene?.id === sourceDoc.parent?.id) ?? game.combat;
+  const combat = combatForScene(sourceDoc.parent, sourceDoc);
   const state = { version: 1, kind, sourceTokenUuid: sourceDoc.uuid, sourceActorUuid: sourceDoc.actor.uuid, sourceItemUuid: item.uuid,
     targetTokenUuid: targetDoc.uuid, remaining, expiry, combatId: combat?.started ? combat.id : null,
     createdTurn: turnKey(combat), skipCurrentEnd: ["targetEnd", "sourceEnd"].includes(expiry)
@@ -87,16 +86,22 @@ export function matchesAttackBenefit(effect, { attacker, target, weapon = false,
 }
 export async function cleanupCombatBenefits(combat, changes) {
   if (!enabled() || !isGmAuthority() || !isForwardTurn(combat, changes)) return;
-  const previous = combat.combatants?.get?.(combat.previous?.combatantId) ?? combat.turns?.[combat.previous?.turn];
+  const snapshot = combatTurnSnapshot(combat);
   for (const actor of automationActors()) for (const effect of activeBenefits(actor)) {
     const data = benefitData(effect);
     if (data.combatId !== combat.id || data.createdTurn === turnKey(combat)) continue;
-    const source = sceneToken(combat.scene, data.sourceTokenUuid), target = sceneToken(combat.scene, data.targetTokenUuid);
+    const resolve = async uuid => {
+      const id = uuid?.split(".")[1], scene = game.scenes?.get?.(id) ?? (combat.scene?.id === id ? combat.scene : null);
+      return sceneToken(scene, uuid) ?? (globalThis.fromUuid ? await fromUuid(uuid) : null);
+    };
+    const source = await resolve(data.sourceTokenUuid), target = await resolve(data.targetTokenUuid);
     if (!source || !target) { await effect.delete(); continue; }
-    const matches = (data.expiry === "sourceStart" && combat.combatant?.tokenId === source.id)
-      || (data.expiry === "targetStart" && combat.combatant?.tokenId === target.id)
-      || (data.expiry === "sourceEnd" && previous?.tokenId === source.id)
-      || (data.expiry === "targetEnd" && previous?.tokenId === target.id);
+    const matchesToken = (entry, token) => entry.tokenUuid ? entry.tokenUuid === token.uuid
+      : entry.scene?.id === token.parent?.id && entry.tokenId === token.id;
+    const matches = (data.expiry === "sourceStart" && matchesToken(snapshot.current, source))
+      || (data.expiry === "targetStart" && matchesToken(snapshot.current, target))
+      || (data.expiry === "sourceEnd" && matchesToken(snapshot.previous, source))
+      || (data.expiry === "targetEnd" && matchesToken(snapshot.previous, target));
     if (!matches) continue;
     if (data.skipCurrentEnd) await effect.setFlag(MODULE_ID, "combatBenefit", { ...data, skipCurrentEnd: false });
     else await effect.delete();

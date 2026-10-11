@@ -4,7 +4,7 @@ import { enabled, findFeature, itemIdentifier, notify } from "./helpers.mjs";
 import { auraFeature } from "./aura-definitions.mjs";
 import { tokensInAuraTemplate } from "./aura-templates.mjs";
 import { feetToSceneUnits, tokenSceneDistance } from "./spatial.mjs";
-import { isForwardTurn } from "./combat-flow.mjs";
+import { isForwardTurn, combatTurnSnapshot } from "./combat-flow.mjs";
 import { choiceDialog } from "./dialogs.mjs";
 import { registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { dispatchAutomationPulse } from "../midi/aura-workflow.mjs";
@@ -76,20 +76,20 @@ export function createAuraEventEngine({ synchronize, framesForScene, tokensForSc
       template: frame.template, targets, event, eventKey: claimKey, scene });
   }
   async function turn(combat, changes) {
-    if (!isAuthority() || !enabled() || !isForwardTurn(combat, changes) || !combat.scene) return false;
-    const scene = combat.scene, turnId = `${combat.id}:${combat.round}:${combat.turn}`;
-    const currentId = combat.combatant?.tokenId, previousId = combat.previous?.tokenId
-      ?? combat.combatants?.get?.(combat.previous?.combatantId)?.tokenId ?? combat.turns?.[combat.previous?.turn]?.tokenId;
-    await synchronize(scene);
-    const frames = [...framesForScene(scene)];
+    if (!isAuthority() || !enabled() || !isForwardTurn(combat, changes)) return false;
+    const snapshot = combatTurnSnapshot(combat);
+    const scenes = [...new Map([snapshot.previous.scene, snapshot.current.scene].filter(Boolean).map(scene => [scene.id, scene])).values()];
+    const byScene = [];
+    for (const scene of scenes) { await synchronize(scene); byScene.push({scene, frames: [...framesForScene(scene)]}); }
     return enqueue(async () => {
-      for (const frame of frames) for (const event of frame.definition.events ?? []) {
+      for (const {scene, frames} of byScene) for (const frame of frames) for (const event of frame.definition.events ?? []) {
+        const entry = event.trigger.endsWith("End") ? snapshot.previous : snapshot.current;
+        if (entry.scene?.id !== scene.id) continue;
+        const matches = token => entry.tokenUuid ? token.document.uuid === entry.tokenUuid : token.document.id === entry.tokenId;
         let targets = [];
-        if (event.trigger === "sourceStart" && frame.sourceToken.document.id === currentId) targets = frame.targets;
-        if (event.trigger === "sourceEnd" && frame.sourceToken.document.id === previousId) targets = frame.targets;
-        if (event.trigger === "targetStart") targets = frame.targets.filter(token => token.document.id === currentId);
-        if (event.trigger === "targetEnd") targets = frame.targets.filter(token => token.document.id === previousId);
-        await once(frame, event, `${event.trigger}:${turnId}:${event.trigger.startsWith("target") ? (event.trigger === "targetStart" ? currentId : previousId) : ""}`, targets, scene);
+        if (event.trigger.startsWith("source") && matches(frame.sourceToken)) targets = frame.targets;
+        if (event.trigger.startsWith("target")) targets = frame.targets.filter(matches);
+        await once(frame, event, `${event.trigger}:${snapshot.id}:${entry.round}:${entry.turn}:${entry.tokenUuid ?? entry.tokenId ?? ""}`, targets, scene);
       }
       return true;
     });

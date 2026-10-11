@@ -23,6 +23,7 @@ beforeEach(() => {
   globalThis.canvas = { ready: true, scene };
   globalThis.foundry = { utils: { randomID: () => `request${++sequence}`, deepClone: structuredClone } };
   globalThis.fromUuid = async uuid => documents.get(uuid);
+  documents.set(owner.uuid, owner);
   globalThis.ChatMessage = { getSpeaker: () => ({}) };
   globalThis.ui = { notifications: { warn() {} } };
 });
@@ -34,6 +35,14 @@ test("zone temporary HP never replace a higher existing total", async () => {
   const result = await applyTemporaryHp([{ actor: high }, { actor: low }], 10, { sourceActor: owner });
   assert.equal(result.applied.length, 2);
   assert.equal(high.system.attributes.hp.temp, 15); assert.equal(low.system.attributes.hp.temp, 10);
+});
+
+test("Region zones expire and disappear when their source is deleted", async () => {
+  let deleted = 0;
+  scene.regions = [{uuid: "Scene.player-scene.Region.zone", flags: {[MODULE_ID]: {zoneTemplate: true, sourceActor: owner.uuid, zoneExpiresAt: 60}},
+    async delete() {deleted++;}}];
+  game.time.worldTime = 59; await cleanupZoneTemplates(); assert.equal(deleted, 0);
+  documents.delete(owner.uuid); await cleanupZoneTemplates(); assert.equal(deleted, 1);
 });
 
 test("zone creation converts feet and hidden indicators stay hidden on another GM scene", async () => {

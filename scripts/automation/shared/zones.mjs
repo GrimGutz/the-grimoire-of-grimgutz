@@ -61,13 +61,14 @@ async function createZoneLocally(owner, data, { requestId }) {
 
 export async function cleanupZoneTemplates() {
   if (!isGmAuthority()) return;
-  for (const scene of game.scenes ?? []) for (const template of [...(scene.templates ?? [])]) {
+  for (const scene of game.scenes ?? []) for (const template of [...(scene.regions ?? []), ...(scene.templates ?? [])]) {
     const flags = template.flags?.[MODULE_ID];
     if (!flags?.zoneTemplate) continue;
     try {
       const expired = flags.zoneExpiresAt != null && Number(flags.zoneExpiresAt) <= Number(game.time?.worldTime ?? 0);
       const concentrationLost = flags.zoneConcentrationEffect && !isEffectActive(await fromUuid(flags.zoneConcentrationEffect));
-      if (expired || concentrationLost) await template.delete();
+      const sourceLost = flags.sourceActor && !await fromUuid(flags.sourceActor);
+      if (expired || concentrationLost || sourceLost) await template.delete();
     } catch (error) { console.error(`${MODULE_ID} | Zone cleanup failed for ${template.uuid}`, error); }
   }
 }
