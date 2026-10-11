@@ -3,6 +3,7 @@ import {enabled, itemIdentifier, itemUses, notify, automationAction} from "../sh
 import {regainRitualistSpirits} from "./ritualist.mjs";
 import {isGmAuthority, registerGmRequest, requestGm} from "../shared/gm-requests.mjs";
 import {useNativeUtility} from "../shared/native-actions.mjs";
+import {applyNativeOnce, nativeApplicationReply} from "../shared/native-applications.mjs";
 import {sourceTokenForActor} from "../shared/zones.mjs";
 import {areaPlacementAllowed} from "../shared/area-activities.mjs";
 import {tokenOccupiedPoints, feetToSceneUnits} from "../shared/spatial.mjs";
@@ -53,23 +54,24 @@ export async function syncProtectiveZones(scene) {
     origin: zone.flags[MODULE_ID].protectiveZone.itemUuid, flags: {[MODULE_ID]: {protectiveZoneRecipient: {sceneId: scene.id, zoneUuid: zone.uuid, friendly}}},
     system: {changes: protectiveZoneChanges(friendly, actor)}}]);
 }
-registerGmRequest("ritualist-protective-zone", async (actor, data) => {
+registerGmRequest("ritualist-protective-zone", async (actor, data, {requestId}) => {
   const zone = await fromUuid(data.zoneUuid), activity = await fromUuid(data.activityUuid), source = await fromUuid(data.sourceUuid);
   if (!zone || source?.actor?.uuid !== actor.uuid || activity?.actor?.uuid !== actor.uuid || itemIdentifier(activity.item) !== "protective-ritual"
     || zone.parent?.id !== source.parent?.id || !areaPlacementAllowed(zone, source.object ?? source, {origin: "point", maxRange: 60}, zone.parent)) throw Error("Некорректная зона ритуала.");
+  const previous = nativeApplicationReply(actor, requestId); if (previous) return previous;
   if (zone.flags?.[MODULE_ID]?.protectiveZone) return true;
   const radius = feetToSceneUnits(30, zone.parent) / Number(zone.parent.grid.distance) * Number(zone.parent.grid.size);
   if (zone.shapes ? zone.shapes.length !== 1 || zone.shapes[0].type !== "circle" || Math.abs(zone.shapes[0].radius - radius) > 1
     : zone.t !== "circle" || Math.abs(zone.distance - feetToSceneUnits(30, zone.parent)) > 0.01) throw Error("Ритуалу требуется круг радиусом 30 футов.");
   if (itemUses(activity.item).remaining < 1) return false;
-  const result = await useNativeUtility(activity);
-  if (result === false || result?.aborted) return false;
-  if (!result) return {status: "needs-review"};
-  await zone.update({[`flags.${MODULE_ID}.zoneTemplate`]: true, [`flags.${MODULE_ID}.sourceActor`]: actor.uuid,
-    hidden: Boolean(source.hidden),
-    [`flags.${MODULE_ID}.zoneExpiresAt`]: Number(game.time.worldTime) + 600,
-    [`flags.${MODULE_ID}.protectiveZone`]: {sourceTokenUuid: source.uuid, itemUuid: activity.item.uuid}});
-  await syncProtectiveZones(zone.parent); return true;
+  return applyNativeOnce(actor, {requestId, action: "ritualist-protective-zone", activityUuid: activity.uuid},
+    () => useNativeUtility(activity), async () => {
+      await zone.update({[`flags.${MODULE_ID}.zoneTemplate`]: true, [`flags.${MODULE_ID}.sourceActor`]: actor.uuid,
+        hidden: Boolean(source.hidden),
+        [`flags.${MODULE_ID}.zoneExpiresAt`]: Number(game.time.worldTime) + 600,
+        [`flags.${MODULE_ID}.protectiveZone`]: {sourceTokenUuid: source.uuid, itemUuid: activity.item.uuid}});
+      await syncProtectiveZones(zone.parent); return true;
+    });
 });
 const pending = new Set();
 export async function useProtectiveRitual(activity) {

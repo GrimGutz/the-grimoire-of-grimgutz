@@ -4,6 +4,7 @@ import { ownedAreaActivity, useAreaActivity } from "../shared/area-activities.mj
 import {askOwner, confirmOwner} from "../shared/owner-prompts.mjs";
 import {registerGmRequest, requestGm} from "../shared/gm-requests.mjs";
 import {useNativeUtility} from "../shared/native-actions.mjs";
+import {applyNativeOnce, nativeApplicationReply} from "../shared/native-applications.mjs";
 import {enabled, automationAction} from "../shared/helpers.mjs";
 import {
   createWeaponBuff,
@@ -118,14 +119,22 @@ export function availableWitchSlots(actor) {
     .map(([key, slot]) => ({key, level: Number(slot.level ?? key.replace("spell", "")), remaining: Number(slot.value)}))
     .filter(slot => Number.isInteger(slot.level) && slot.level > 0);
 }
-async function useChosenWitchBuff(actor, action, activity) {
+const witchBuffRequests = new Map();
+async function useChosenWitchBuff(actor, action, activity, requestId) {
   activity ??= [...(findFeature(actor, action === "activate-witch-crystallization" ? "witch-crystallization" : "ethereal-storm")?.system.activities?.values?.() ?? [])][0];
   if (!activity) return false;
-  return requestGm("witch-chosen-weapon-buff", actor, {activityUuid: activity.uuid, action});
+  const key = `${actor.uuid}:${action}`;
+  if (!witchBuffRequests.has(key)) {
+    const operation = requestGm("witch-chosen-weapon-buff", actor, {activityUuid: activity.uuid, action}, requestId ? {requestId} : {});
+    witchBuffRequests.set(key, operation);
+    void operation.finally(() => witchBuffRequests.delete(key)).catch(() => {});
+  }
+  return witchBuffRequests.get(key);
 }
-registerGmRequest("witch-chosen-weapon-buff", async (actor, data) => {
+registerGmRequest("witch-chosen-weapon-buff", async (actor, data, {requestId}) => {
   const activity = await fromUuid(data.activityUuid);
   if (activity?.actor?.uuid !== actor.uuid || automationAction(activity) !== data.action || !witchBladeClass(actor)) throw Error("Не найдена оружейная способность.");
+  const previous = nativeApplicationReply(actor, requestId); if (previous) return previous;
   const crystal = data.action === "activate-witch-crystallization", feature = activity.item;
   const weapons = [...actor.items].filter(item => item.type === "weapon" && item.system.equipped !== false
     && [...(item.system.activities?.values?.() ?? [])].some(a => a.type === "attack" && a.attack?.type?.value === "melee"));
@@ -142,24 +151,25 @@ registerGmRequest("witch-chosen-weapon-buff", async (actor, data) => {
   }
   const resource = witchHunterFeature(actor);
   if (!crystal && witchBladeRagePoints(actor).remaining < 1) return false;
-  const native = await useNativeUtility(activity, {dataPatch: {consumption: {spellSlot: false, scaling: {allowed: false, max: ""},
-    targets: [crystal ? {type: "attribute", target: `spells.${slot.key}.value`, value: "1"} : {type: "itemUses", target: resource.id, value: "1"}]}}});
-  if (native === false || native?.aborted) return false;
-  if (!native) return {status: "needs-review"};
-  if (crystal && slot.level < 2) { await postWeaponBuffMessage(actor, feature.name, "Ячейка первого круга потрачена; по правилу критический порог не меняется. Пустой эффект не создан."); return true; }
-  await createWeaponBuff(actor, {key: crystal ? "witch-crystallization" : "ethereal-storm", name: feature.name, sourceItem: feature,
-    duration: {seconds: 60}, data: {weaponUuids: ids, ...(crystal ? {criticalThresholdReduction: Math.floor(slot.level / 2), slotLevel: slot.level} : {reach: 30})},
-    description: "<p>Действует только на выбранное оружие. Срок 1 минута — домашнее правило мира.</p>"});
-  return true;
+  if (ids.some(uuid => ![...actor.items].some(w => w.uuid === uuid && w.system.equipped !== false && weapons.includes(w)))) return false;
+  return applyNativeOnce(actor, {requestId, action: data.action, activityUuid: activity.uuid},
+    () => useNativeUtility(activity, {dataPatch: {consumption: {spellSlot: false, scaling: {allowed: false, max: ""},
+      targets: [crystal ? {type: "attribute", target: `spells.${slot.key}.value`, value: "1"} : {type: "itemUses", target: resource.id, value: "1"}]}}}),
+    async () => {
+      if (crystal && slot.level < 2) {await postWeaponBuffMessage(actor, feature.name, "Ячейка первого круга потрачена; по правилу критический порог не меняется. Пустой эффект не создан."); return true;}
+      return createWeaponBuff(actor, {key: crystal ? "witch-crystallization" : "ethereal-storm", name: feature.name, sourceItem: feature,
+        duration: {seconds: 60}, data: {weaponUuids: ids, ...(crystal ? {criticalThresholdReduction: Math.floor(slot.level / 2), slotLevel: slot.level} : {reach: 30})},
+        description: "<p>Действует только на выбранное оружие. Срок 1 минута — домашнее правило мира.</p>"});
+    });
 });
 
 export function installWitchBladeHooks() {
-  const intercept = activity => {
+  const intercept = (activity, workflow) => {
     if (!enabled() || automationData(activity).leaderResolved || !["activate-witch-crystallization", "activate-ethereal-storm"].includes(automationAction(activity))) return;
-    void useChosenWitchBuff(activity.actor, automationAction(activity), activity).catch(error => notify(error.message, "warn")); return false;
+    void useChosenWitchBuff(activity.actor, automationAction(activity), activity, workflow?.uuid ? `witch:${workflow.uuid}` : undefined).catch(error => notify(error.message, "warn")); return false;
   };
-  Hooks.on("midi-qol.preTargetingV2", ({workflow}) => intercept(workflow?.activity));
-  Hooks.on("dnd5e.preUseActivity", intercept);
+  Hooks.on("midi-qol.preTargetingV2", ({workflow}) => intercept(workflow?.activity, workflow));
+  Hooks.on("dnd5e.preUseActivity", activity => intercept(activity));
 }
 
 export async function activateEtherealStorm(actor, activity) {

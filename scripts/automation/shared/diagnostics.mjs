@@ -88,6 +88,7 @@ export async function inspectAutomation(actorOrUuid, { actionHandlers = new Map(
     dependencies, authority: { activeGM: activeGM?.id ?? null, currentUser: game.user?.id ?? null,
       moduleSocket: game.modules?.get(MODULE_ID)?.socket === true }, sourceError, effects, items, summons,
     summonRequests: structuredClone(actor.getFlag?.(MODULE_ID, "summonRequests") ?? {}),
+    nativeApplications: structuredClone(actor.getFlag?.(MODULE_ID, "nativeApplications") ?? {}),
     links: { bloodDrain: structuredClone(actor.getFlag?.(MODULE_ID, "bloodDrainLink") ?? null),
       leaderPresences: structuredClone(actor.getFlag?.(MODULE_ID, "leaderPresenceRecipients") ?? []),
       bloodSpell: structuredClone(actor.getFlag?.(MODULE_ID, "bloodSpellArmed") ?? null) },
