@@ -10,7 +10,7 @@ test("every authored activity has a real callable action registration", async ()
   for (const pack of ["classes", "subclasses", "features", "transformations", "spells", "equipment", "bestiary"]) {
     const { documents } = await import(`../src/packs/${pack}.mjs`);
     for (const document of documents) {
-      for (const item of [document, ...(document.items ?? [])]) {
+      for (const item of [document, ...(document._embeddedItems ?? document.items ?? [])]) {
         for (const activity of Object.values(item.system?.activities ?? {})) {
           const action = automationAction(activity);
           if (!action) continue;

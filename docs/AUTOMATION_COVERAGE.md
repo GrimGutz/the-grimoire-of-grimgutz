@@ -1,0 +1,954 @@
+# Реестр покрытия автоматизации
+
+Сгенерирован `npm run coverage`. Включает все карточки семи библиотек и вложенные особенности NPC.
+
+Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
+
+- автоматизировано: 258
+- частично: 249
+- обоснованно вручную: 79
+- требует исправления: 353
+
+Полные основания и замечания: [AUTOMATION_COVERAGE.json](AUTOMATION_COVERAGE.json).
+
+| Библиотека / карточка | Статус | Обработчики | Проверки |
+| --- | --- | --- | --- |
+| classes / Сокрушитель | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Лидер | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Рыцарь смерти | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Еретик | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Лесной владыка | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Абберант | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Ведьмин клинок | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Джаггернаут | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Пожиратель душ | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Страж / Guardian | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Крестоносец / Crusader | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Воитель фей / Fey Warrior | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Призрачный Странник / Ghost Walker | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Мерцающий / Blinker | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Падший жрец / Fallen Priest | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Чумной маг / Plague Doctor | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Владыка насекомых / Insect Lord | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Харроуер / Gambler | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Хранитель / Keeper | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Маг крови | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Онмёджи / Onmyoji | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Ритуалист / Ritualist | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Воин тьмы / Dark Warrior | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Дьяволопоклонник / Devil Worshipper | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Нетерильский арканист / Netherese Arcanist | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Сосуд Духа / Spirit Vessel | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Оракул / Oracle | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Демонолог / Demonologist | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Сангвинист / Sanguinist | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Создатель големов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Искатель мифов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Духовный медиум | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Дикий укротитель | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Школа стали | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Абберация | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Небожитель / Celestial | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Элементаль: Земля | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Элементаль: Воздух | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Элементаль: Огонь | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Элементаль: Вода | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Фея | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Исчадие | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Нежить | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| transformations / Трансформация: Порождение убийств / Murderspawn | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| transformations / Трансформация: Полый / Hollow | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
+| features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
+| features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
+| features / Убийца гигантов | требует исправления | — | нужна отдельная проверка |
+| features / Техники Сокрушителя | требует исправления | — | нужна отдельная проверка |
+| features / Импульс | требует исправления | — | нужна отдельная проверка |
+| features / Стальная воля | частично | module:arm-steel-will | tests/registrations.test.mjs |
+| features / Стальной гигант | частично | module:sync-steel-giant | tests/registrations.test.mjs |
+| features / Адаптивность | частично | module:toggle-style | tests/registrations.test.mjs |
+| features / Превосходный контроль | требует исправления | — | нужна отдельная проверка |
+| features / Мощное сокрушение | требует исправления | — | нужна отдельная проверка |
+| features / Мощное раскалывание | требует исправления | — | нужна отдельная проверка |
+| features / Несокрушимость | требует исправления | — | нужна отдельная проверка |
+| features / Кузнечное ремесло | частично | module:smithing | tests/registrations.test.mjs |
+| features / Сокрушение гигантов | требует исправления | — | нужна отдельная проверка |
+| features / Боевая тренировка | частично | module:school-steel-choose-weapons, module:school-steel-bonus-attack | tests/registrations.test.mjs |
+| features / Калечащие удары | частично | dnd5e:utility | tools/validate.mjs |
+| features / Мастер металла | частично | module:sync-school-steel | tests/registrations.test.mjs |
+| features / Фирменный приём | требует исправления | — | нужна отдельная проверка |
+| features / Стальной шторм | требует исправления | — | нужна отдельная проверка |
+| features / Имперская досягаемость | требует исправления | — | нужна отдельная проверка |
+| features / Металлист | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Стратагемы командования | требует исправления | — | нужна отдельная проверка |
+| features / Мгновение славы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Проблеск гения | частично | module:arm-glimpse-of-genius | tests/registrations.test.mjs |
+| features / Экспертность лидерства | требует исправления | — | нужна отдельная проверка |
+| features / Дирижёр поля боя | требует исправления | — | нужна отдельная проверка |
+| features / Мастер построения | требует исправления | — | нужна отдельная проверка |
+| features / Командир на передовой | требует исправления | — | нужна отдельная проверка |
+| features / Универсальный коммуникатор | требует исправления | — | нужна отдельная проверка |
+| features / Идеальная координация | обоснованно вручную | — | нужна отдельная проверка |
+| features / Присутствие лидера | требует исправления | — | нужна отдельная проверка |
+| features / Успокаивающее присутствие | частично | module:choose-leader-presence-targets, aura:leader-calming-presence | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Отвлекающее присутствие | частично | module:choose-leader-presence-targets, aura:leader-distracting-presence | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Буйное присутствие | частично | module:choose-leader-presence-targets, aura:leader-boisterous-presence | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Тактическое присутствие | частично | module:choose-leader-presence-targets, aura:leader-tactical-presence | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Проницательное присутствие | частично | module:choose-leader-presence-targets, aura:leader-insightful-presence | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Вдохновляющее присутствие | частично | module:choose-leader-presence-targets, aura:leader-inspiring-presence | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Хитрая уловка | автоматизировано | leader-stratagem:contest | tests/leader-use.test.mjs |
+| features / Боевой клич | частично | leader-stratagem:battle-cry | tests/leader-use.test.mjs |
+| features / Приказ к осторожности | автоматизировано | leader-stratagem:caution | tests/leader-use.test.mjs |
+| features / Направить атаку | автоматизировано | dnd5e:utility, leader-stratagem:direct | tools/validate.mjs, tests/leader-use.test.mjs |
+| features / Отступить и перегруппироваться | частично | leader-stratagem:retreat | tests/leader-use.test.mjs |
+| features / Направляющая магия | частично | leader-stratagem:guiding | tests/leader-use.test.mjs |
+| features / Протянутая рука помощи | частично | leader-stratagem:help | tests/leader-use.test.mjs |
+| features / Держать строй | автоматизировано | leader-stratagem:line | tests/leader-use.test.mjs |
+| features / Вдохновляющее слово | автоматизировано | dnd5e:utility, leader-stratagem:word | tools/validate.mjs, tests/leader-use.test.mjs |
+| features / Личный пример | автоматизировано | leader-stratagem:example | tests/leader-use.test.mjs |
+| features / Берегись! | автоматизировано | leader-stratagem:dodge | tests/leader-use.test.mjs |
+| features / Положительное/отрицательное подкрепление | автоматизировано | dnd5e:utility, leader-stratagem:reinforce | tools/validate.mjs, tests/leader-use.test.mjs |
+| features / Утешающий комфорт | автоматизировано | leader-stratagem:comfort | tests/leader-use.test.mjs |
+| features / Протрубить атаку/отступление | автоматизировано | leader-stratagem:charge | tests/leader-use.test.mjs |
+| features / Тонкая дезинформация | автоматизировано | leader-stratagem:mark | tests/leader-use.test.mjs |
+| features / Удар полководца | частично | leader-stratagem:strike | tests/leader-use.test.mjs |
+| features / Тактика волчьей стаи | частично | leader-stratagem:wolf | tests/leader-use.test.mjs |
+| features / Мистическая сила | требует исправления | — | нужна отдельная проверка |
+| features / Нежить | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Сопротивление магии | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Сильная нежить | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Боевая нежить | частично | aura:death-knight-battle-undead | tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Дополнительная атака Рыцаря смерти | требует исправления | — | нужна отдельная проверка |
+| features / Оккультные дары | частично | module:choose-occult-ability, module:use-occult-points | tests/registrations.test.mjs |
+| features / Отмеченный порчей | требует исправления | — | нужна отдельная проверка |
+| features / Гнусные силы | требует исправления | — | нужна отдельная проверка |
+| features / Запретный талант | обоснованно вручную | — | нужна отдельная проверка |
+| features / Искажённое тело | требует исправления | — | нужна отдельная проверка |
+| features / Проклятая плоть | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Острое тёмное зрение | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Оккультная магия | обоснованно вручную | — | нужна отдельная проверка |
+| features / Неугомонный | требует исправления | — | нужна отдельная проверка |
+| features / Теневые карманы | требует исправления | — | нужна отдельная проверка |
+| features / Пожиратель душ | требует исправления | — | нужна отдельная проверка |
+| features / Нечестивость | обоснованно вручную | — | нужна отдельная проверка |
+| features / Слабая гравитация | обоснованно вручную | — | нужна отдельная проверка |
+| features / Чёрствый | требует исправления | — | нужна отдельная проверка |
+| features / Циничный | обоснованно вручную | — | нужна отдельная проверка |
+| features / Гордый | требует исправления | — | нужна отдельная проверка |
+| features / Нежить порчи | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Изгнать свет | требует исправления | — | нужна отдельная проверка |
+| features / Таинственный шаг | требует исправления | — | нужна отдельная проверка |
+| features / Скрытое присутствие | требует исправления | — | нужна отдельная проверка |
+| features / Откровенное зрение | требует исправления | — | нужна отдельная проверка |
+| features / Теневой дворецкий | требует исправления | — | нужна отдельная проверка |
+| features / Теневая марионетка | требует исправления | — | нужна отдельная проверка |
+| features / Оборотень | требует исправления | — | нужна отдельная проверка |
+| features / Нечестивая мантра | требует исправления | — | нужна отдельная проверка |
+| features / Скрытник Бездны | требует исправления | — | нужна отдельная проверка |
+| features / Искажённое тело: Улучшение характеристик | требует исправления | — | нужна отдельная проверка |
+| features / Взгляд за грань | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Искажённая сила | обоснованно вручную | — | нужна отдельная проверка |
+| features / Проклятые удары | обоснованно вручную | — | нужна отдельная проверка |
+| features / Тёмная стража | требует исправления | — | нужна отдельная проверка |
+| features / Осквернённое сердце | требует исправления | — | нужна отдельная проверка |
+| features / Жуткая ловкость | требует исправления | — | нужна отдельная проверка |
+| features / Запретная плоть | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Призрачный полёт | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Гульская мощь | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Чарующее обаяние | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Тёмная команда | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Мерцание и уклонение | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Призрачное присутствие | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Взрыв Ид | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Внушающий страх | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Затемняющая тайна | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Оккультный шаг | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Предзнаменование смерти | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Пройти незамеченным | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Глаз хищника | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Теневой взрыв | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Ткач теней | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Прикосновение порчи | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Сверхъестественные конечности | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Нечестивая сила | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Нечестивая кара | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Нечестивая мощь | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Невысказанные слова | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Посредник проклятий | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Фантомное «Я» | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Теневая форма | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Связывание духа | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Властелин ужаса | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Мысленный шпион | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Нечестивая ловкость | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Нечестивый круг | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Исчезновение | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Кукловод трупов | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Пожиратель снов | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Жуткие видения | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Творец мрака | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Преследующее проклятие | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Похититель разума | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Фантомный плащ | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Поразить живое/неживое | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Нечестивое оружие | частично | module:use-occult-points | tests/registrations.test.mjs |
+| features / Древесный родич | требует исправления | — | нужна отдельная проверка |
+| features / Магия природы | частично | module:choose-forest-base-class | tests/registrations.test.mjs |
+| features / Чувство природы | требует исправления | — | нужна отдельная проверка |
+| features / Коракожа | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Сила дуба | частично | module:forest-unarmed-damage | tests/registrations.test.mjs |
+| features / Рост ели | требует исправления | — | нужна отдельная проверка |
+| features / Сердце дуба | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Лесная мощь | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Пустить корни | частично | module:take-root, module:withdraw-roots | tests/registrations.test.mjs |
+| features / Смертельная точность | частично | module:arm-deadly-precision | tests/registrations.test.mjs |
+| features / Рефлексы чудовища | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Чувство арканы | требует исправления | — | нужна отдельная проверка |
+| features / Токсичная кровь | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Энергичная природа | частично | module:vigorous-nature | tests/registrations.test.mjs |
+| features / Финальные изменения | требует исправления | — | нужна отдельная проверка |
+| features / Финальные изменения: Сила | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Финальные изменения: Ловкость | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Вариант: Неестественные черты | обоснованно вручную | — | нужна отдельная проверка |
+| features / Неестественная черта: Когти | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| features / Неестественная черта: Клыки | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| features / Неестественная черта: Сгоревшие вены | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Неестественная черта: Кошачьи глаза | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Неестественная черта: Чутьё | обоснованно вручную | — | нужна отдельная проверка |
+| features / Неестественная черта: Альбинос | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Чародейство | требует исправления | — | нужна отдельная проверка |
+| features / Охотник на ведьм | частично | module:activate-witch-hunter-empower, dnd5e:utility | tests/registrations.test.mjs, tools/validate.mjs |
+| features / Мертвая зона | частично | module:use-witch-blade-rage | tests/registrations.test.mjs |
+| features / Печать Ведьминого клинка | частично | module:use-witch-blade-rage, module:use-witch-blade-seal-evil | tests/registrations.test.mjs |
+| features / Великий замысел | требует исправления | — | нужна отдельная проверка |
+| features / Эфирный ветер | требует исправления | — | нужна отдельная проверка |
+| features / Закаленный разум | требует исправления | — | нужна отдельная проверка |
+| features / Колдовская кристаллизация | частично | module:activate-witch-crystallization | tests/registrations.test.mjs |
+| features / Эфирный толчок | частично | module:use-witch-blade-rage | tests/registrations.test.mjs |
+| features / Бастион чародея | частично | dnd5e:utility | tools/validate.mjs |
+| features / Эфирная буря | частично | module:activate-ethereal-storm | tests/registrations.test.mjs |
+| features / Нематериальный вихрь | частично | module:open-immaterial-whirlwind | tests/registrations.test.mjs |
+| features / Славное выживание | требует исправления | — | нужна отдельная проверка |
+| features / Регенерирующая душа | частично | dnd5e:utility, runtime:classes/juggernaut-regeneration | tools/validate.mjs, tests/juggernaut-regeneration.test.mjs |
+| features / Недостаток регенерации | частично | module:configure-juggernaut-regeneration | tests/registrations.test.mjs |
+| features / Отрицание смерти | требует исправления | — | нужна отдельная проверка |
+| features / Несгибаемость | требует исправления | — | нужна отдельная проверка |
+| features / Что за рана? | обоснованно вручную | — | нужна отдельная проверка |
+| features / Объять жизнь | требует исправления | — | нужна отдельная проверка |
+| features / Неподвижный объект | требует исправления | — | нужна отдельная проверка |
+| features / Малая регенерация | требует исправления | — | нужна отдельная проверка |
+| features / Отказ от смерти | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Что за раны? | требует исправления | — | нужна отдельная проверка |
+| features / Объять жизнь (улучшение) | требует исправления | — | нужна отдельная проверка |
+| features / Большая регенерация | требует исправления | — | нужна отдельная проверка |
+| features / Неудержимая сила | требует исправления | — | нужна отдельная проверка |
+| features / Разрыв души | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| features / Поглощение души | обоснованно вручную | — | нужна отдельная проверка |
+| features / Обмен душами | обоснованно вручную | — | нужна отдельная проверка |
+| features / Осколок души | частично | module:activate-soul-shard | tests/registrations.test.mjs |
+| features / Сила души | обоснованно вручную | — | нужна отдельная проверка |
+| features / Призвание стража | требует исправления | — | нужна отдельная проверка |
+| features / Метка стража | требует исправления | — | нужна отдельная проверка |
+| features / Специализация защиты | требует исправления | — | нужна отдельная проверка |
+| features / Жертвенный бросок | обоснованно вручную | — | нужна отдельная проверка |
+| features / Защитная магия | обоснованно вручную | — | нужна отдельная проверка |
+| features / Выдержать боль | частично | dnd5e:utility | tools/validate.mjs |
+| features / Мощное возмездие | обоснованно вручную | — | нужна отдельная проверка |
+| features / Божественное возмездие | частично | dnd5e:utility | tools/validate.mjs |
+| features / Яростное возмездие | обоснованно вручную | — | нужна отдельная проверка |
+| features / Прыжковое возмездие | обоснованно вручную | — | нужна отдельная проверка |
+| features / Воинское возмездие | обоснованно вручную | — | нужна отдельная проверка |
+| features / Планарное возмездие | обоснованно вручную | — | нужна отдельная проверка |
+| features / Заклинательное возмездие | обоснованно вручную | — | нужна отдельная проверка |
+| features / Угрожающее возмездие | частично | dnd5e:utility | tools/validate.mjs |
+| features / Непоколебимость | требует исправления | — | нужна отдельная проверка |
+| features / Мощное возмездие (улучшение) | требует исправления | — | нужна отдельная проверка |
+| features / Несгибаемость | требует исправления | — | нужна отдельная проверка |
+| features / Чудеса Крестоносца | требует исправления | — | нужна отдельная проверка |
+| features / Ярость | частично | module:activate-crusader-rage, dnd5e:utility | tests/registrations.test.mjs, tools/validate.mjs |
+| features / Эгида крестоносца | обоснованно вручную | — | нужна отдельная проверка |
+| features / Божественная преданность | автоматизировано | dnd5e:ActiveEffect, aura:crusader-divine-devotion | tests/passives.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Освящение | частично | module:use-crusader-consecration | tests/registrations.test.mjs |
+| features / Осуждение | частично | module:condemn-crusader-target | tests/registrations.test.mjs |
+| features / Трансформация в фею | требует исправления | — | нужна отдельная проверка |
+| features / Заговоры Воителя фей | обоснованно вручную | — | нужна отдельная проверка |
+| features / Зов Страны Фей | обоснованно вручную | — | нужна отдельная проверка |
+| features / Очаровательная защита | требует исправления | — | нужна отдельная проверка |
+| features / Химерическое оружие | требует исправления | — | нужна отдельная проверка |
+| features / Постоянное проявление | обоснованно вручную | — | нужна отдельная проверка |
+| features / Магия фей | обоснованно вручную | — | нужна отдельная проверка |
+| features / Фейская кожа | обоснованно вручную | — | нужна отдельная проверка |
+| features / Маска | обоснованно вручную | — | нужна отдельная проверка |
+| features / Кровь фей | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Глаза феи | частично | dnd5e:utility, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Облик феи | частично | dnd5e:utility, dnd5e:Advancement | tools/validate.mjs, tests/progression.test.mjs |
+| features / Скорость фей | частично | dnd5e:Advancement, dnd5e:ActiveEffect | tests/progression.test.mjs, tests/passives.test.mjs |
+| features / Непреодолимые чары | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Неистребимая жизнь | частично | dnd5e:utility | tools/validate.mjs |
+| features / Адепт исцеления | частично | dnd5e:utility | tools/validate.mjs |
+| features / Грациозный боец | обоснованно вручную | — | нужна отдельная проверка |
+| features / Тронутый Смертью | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Форма Духа | частично | module:activate-spirit-form, module:end-spirit-form, dnd5e:utility | tests/registrations.test.mjs, tools/validate.mjs |
+| features / Одержимость | частично | dnd5e:utility | tools/validate.mjs |
+| features / Призрачный Шаг | требует исправления | — | нужна отдельная проверка |
+| features / Потустороннее Присутствие | автоматизировано | dnd5e:save | tools/validate.mjs |
+| features / Высосать Душу | частично | dnd5e:utility | tools/validate.mjs |
+| features / Родственный Дух | обоснованно вручную | — | нужна отдельная проверка |
+| features / Незаконченное Дело | частично | module:summon-ghost-walker-spirit | tests/registrations.test.mjs |
+| features / Внутреннее Мерцание | частично | module:use-inner-blink | tests/registrations.test.mjs |
+| features / Мерцание с разворотом | обоснованно вручную | — | нужна отдельная проверка |
+| features / Сдвиг в сторону | частично | module:activate-sideways-shift | tests/registrations.test.mjs |
+| features / Мерцающий шаг | обоснованно вручную | — | нужна отдельная проверка |
+| features / Улучшенная техника | требует исправления | — | нужна отдельная проверка |
+| features / Мерцающее запястье | обоснованно вручную | — | нужна отдельная проверка |
+| features / Внешнее Мерцание | частично | module:use-outer-blink | tests/registrations.test.mjs |
+| features / Чувство сдвига | обоснованно вручную | — | нужна отдельная проверка |
+| features / Исчезновение | требует исправления | — | нужна отдельная проверка |
+| features / Чудесное возвращение домой | требует исправления | — | нужна отдельная проверка |
+| features / Еретик | обоснованно вручную | — | нужна отдельная проверка |
+| features / Чтение заклинаний | частично | module:sync-fallen-priest-spellcasting | tests/registrations.test.mjs |
+| features / Изгнание нежити | частично | dnd5e:utility | tools/validate.mjs |
+| features / Сопротивление божественному | обоснованно вручную | — | нужна отдельная проверка |
+| features / Поглощение силы | частично | dnd5e:utility | tools/validate.mjs |
+| features / Копирование божественного | обоснованно вручную | — | нужна отдельная проверка |
+| features / Копирование арканы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Скрытая атака Чумного мага | частично | module:roll-plague-sneak-attack | tests/registrations.test.mjs |
+| features / Разносчик заболеваний | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Оборванец | обоснованно вручную | — | нужна отдельная проверка |
+| features / Касание болезни | частично | dnd5e:utility | tools/validate.mjs |
+| features / Умная инфекция | частично | module:create-smart-infection, module:clear-smart-infections | tests/registrations.test.mjs |
+| features / Инфицирование ран | требует исправления | — | нужна отдельная проверка |
+| features / Форма болезни | частично | module:activate-disease-form, module:end-disease-form, dnd5e:utility | tests/registrations.test.mjs, tools/validate.mjs |
+| features / Хитиновый панцирь | требует исправления | — | нужна отдельная проверка |
+| features / Насекомое-фамильяр | частично | module:summon-insect-familiar | tests/registrations.test.mjs |
+| features / Природное оружие | частично | module:roll-insect-tail-sting, module:roll-insect-bone-blades | tests/registrations.test.mjs |
+| features / Высасывание крови | частично | dnd5e:attack, dnd5e:damage | tools/validate.mjs |
+| features / Шевелящаяся броня | частично | module:use-crawling-armor | tests/registrations.test.mjs |
+| features / Изрыгание насекомых | частично | module:roll-insect-spew | tests/registrations.test.mjs |
+| features / Разум роя | частично | module:summon-insect-swarm | tests/registrations.test.mjs |
+| features / Ползучий глаз | частично | module:detach-crawling-eye, module:return-crawling-eye | tests/registrations.test.mjs |
+| features / Колода Астральных Тайн | частично | module:draw-astral-card, module:use-held-astral-card, module:discard-held-astral-card | tests/registrations.test.mjs |
+| features / Сдавай Их | частично | module:deal-them | tests/registrations.test.mjs |
+| features / Плутам везёт | частично | module:rogues-are-lucky | tests/registrations.test.mjs |
+| features / В Рукаве | частично | module:store-sleeved-card, module:use-sleeved-card | tests/registrations.test.mjs |
+| features / Тузы бьют | частично | module:aces-beat | tests/registrations.test.mjs |
+| features / Страж и подопечный | частично | module:sync-keeper-ally-points, module:summon-keeper-ally, module:roll-keeper-ally-strike | tests/registrations.test.mjs |
+| features / Таланты союзника | обоснованно вручную | — | нужна отдельная проверка |
+| features / Специализация: Создатель големов | обоснованно вручную | — | нужна отдельная проверка |
+| features / Специализация: Искатель мифов | обоснованно вручную | — | нужна отдельная проверка |
+| features / Специализация: Духовный медиум | обоснованно вручную | — | нужна отдельная проверка |
+| features / Специализация: Дикий укротитель | обоснованно вручную | — | нужна отдельная проверка |
+| features / Стратегия и синергия | обоснованно вручную | — | нужна отдельная проверка |
+| features / Едины и защищены | требует исправления | — | нужна отдельная проверка |
+| features / Отдых и восстановление | частично | module:roll-keeper-rest-recovery | tests/registrations.test.mjs |
+| features / Могущество и магия | частично | module:roll-keeper-might-damage | tests/registrations.test.mjs |
+| features / Использование заклинаний | требует исправления | — | нужна отдельная проверка |
+| features / Магия крови | частично | module:apply-blood-magic-cost | tests/registrations.test.mjs |
+| features / Холст плоти | требует исправления | — | нужна отдельная проверка |
+| features / Пир павших | требует исправления | — | нужна отдельная проверка |
+| features / Перенос крови | требует исправления | — | нужна отдельная проверка |
+| features / Сангвинистическая стойкость | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Жертва | частично | module:roll-blood-mage-sacrifice | tests/registrations.test.mjs |
+| features / Кровный трэлл | требует исправления | — | нужна отдельная проверка |
+| features / Малефикар | требует исправления | — | нужна отдельная проверка |
+| features / Сангвиническая сила | требует исправления | — | нужна отдельная проверка |
+| features / Ки | частично | module:sync-onmyoji-resources | tests/registrations.test.mjs |
+| features / Талисман Шикигами | частично | module:summon-onmyoji-shikigami | tests/registrations.test.mjs |
+| features / Обряд Очищения | частично | dnd5e:utility | tools/validate.mjs |
+| features / Шикигами Призрачный Охотник | обоснованно вручную | — | нужна отдельная проверка |
+| features / Место Духа | обоснованно вручную | — | нужна отдельная проверка |
+| features / Дух Алкоголя | частично | module:use-onmyoji-ki | tests/registrations.test.mjs |
+| features / Дух Книги | частично | module:use-onmyoji-ki | tests/registrations.test.mjs |
+| features / Дух Огня | частично | module:use-onmyoji-ki | tests/registrations.test.mjs |
+| features / Дух Еды | частично | module:use-onmyoji-ki | tests/registrations.test.mjs |
+| features / Дух Горы | частично | module:use-onmyoji-ki | tests/registrations.test.mjs |
+| features / Дух Стали | частично | module:use-onmyoji-ki | tests/registrations.test.mjs |
+| features / Дух Воды | частично | module:use-onmyoji-ki | tests/registrations.test.mjs |
+| features / Дух Дерева | частично | module:use-onmyoji-ki | tests/registrations.test.mjs |
+| features / Дух Богатства | частично | module:use-onmyoji-ki | tests/registrations.test.mjs |
+| features / Дух Ветра | частично | module:use-onmyoji-ki | tests/registrations.test.mjs |
+| features / Ритуал привязки | частично | module:sync-ritualist-resources, module:summon-ritualist-spirits, module:dismiss-ritualist-spirits, module:regain-ritualist-spirits, module:show-ritualist-spirit-dc, module:roll-ritualist-spirit-agony, module:roll-ritualist-spirit-life, module:roll-ritualist-spirit-protection, module:roll-ritualist-spirit-sorrow, module:roll-ritualist-spirit-destruction-die, runtime:classes/ritualist-spirits | tests/registrations.test.mjs, tests/ritualist-spirits.test.mjs |
+| features / Духовное зрение | требует исправления | — | нужна отдельная проверка |
+| features / Разум, тело и душа | автоматизировано | runtime:classes/ritualist | tests/ritualist-zones.test.mjs |
+| features / Ритуал защиты | требует исправления | — | нужна отдельная проверка |
+| features / Канал духов | частично | module:show-ritualist-spirit-channel | tests/registrations.test.mjs |
+| features / Эфирный странник | обоснованно вручную | — | нужна отдельная проверка |
+| features / Масло чёрной магии | частично | module:apply-black-magic-oil, module:sync-dark-warrior-resources | tests/registrations.test.mjs |
+| features / Эликсир чёрной магии | частично | module:drink-dark-warrior-elixir | tests/registrations.test.mjs |
+| features / Улучшенное чёрное масло | требует исправления | — | нужна отдельная проверка |
+| features / Улучшенный эликсир | частично | module:sync-dark-warrior-resources | tests/registrations.test.mjs |
+| features / Тёмное сопротивление | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Очернение оружия | обоснованно вручную | — | нужна отдельная проверка |
+| features / Базовая характеристика заклинаний | частично | module:choose-devil-worshipper-ability | tests/registrations.test.mjs |
+| features / Адское пламя | обоснованно вручную | — | нужна отдельная проверка |
+| features / Бесовский фамильяр | частично | module:summon-devil-imp-familiar | tests/registrations.test.mjs |
+| features / Зрение дьявола | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Тёмная удача | частично | module:show-dark-luck | tests/registrations.test.mjs |
+| features / Тихий шёпот | обоснованно вручную | — | нужна отдельная проверка |
+| features / Усиленные чары | частично | module:show-empowered-charms | tests/registrations.test.mjs |
+| features / Ярость адского огня | требует исправления | — | нужна отдельная проверка |
+| features / Дьявольская гвизарма | частично | module:summon-devil-glaive, module:roll-devil-glaive-damage, module:roll-devil-glaive-grapple-damage | tests/registrations.test.mjs |
+| features / Аура опустошённых душ | частично | module:gain-devil-soul-aura-temp-hp, aura:devil-devastated-souls | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Учёный арканист | частично | module:show-scholar-arcanist | tests/registrations.test.mjs |
+| features / Нетерильский гримуар | обоснованно вручную | — | нужна отдельная проверка |
+| features / Мини-мифаль | частично | module:activate-mini-mythal, module:teleport-in-mini-mythal, module:overload-mini-mythal | tests/registrations.test.mjs |
+| features / Древнее знание | частично | module:use-ancient-knowledge | tests/registrations.test.mjs |
+| features / Великие заклинания | частично | module:cast-netherese-great-spell | tests/registrations.test.mjs |
+| features / Уполовиненное эго | обоснованно вручную | — | нужна отдельная проверка |
+| features / Магия договора | частично | module:choose-spirit-vessel-ability | tests/registrations.test.mjs |
+| features / Тип Духа | требует исправления | — | нужна отдельная проверка |
+| features / Концентрированный удар | частично | module:choose-spirit-vessel-strike-damage, module:roll-spirit-vessel-concentrated-strike | tests/registrations.test.mjs |
+| features / Улучшение характеристики | частично | module:show-spirit-vessel-ability-improvement | tests/registrations.test.mjs |
+| features / Поток | частично | module:activate-spirit-flow | tests/registrations.test.mjs |
+| features / Метафизическое воплощение | требует исправления | — | нужна отдельная проверка |
+| features / Дух: Абберация | частично | module:spirit-vessel-aberration-charm | tests/registrations.test.mjs |
+| features / Дух: Небожитель / Celestial | требует исправления | — | нужна отдельная проверка |
+| features / Дух: Элементаль Земли | обоснованно вручную | — | нужна отдельная проверка |
+| features / Дух: Элементаль Воздуха | обоснованно вручную | — | нужна отдельная проверка |
+| features / Дух: Элементаль Огня | обоснованно вручную | — | нужна отдельная проверка |
+| features / Дух: Элементаль Воды | обоснованно вручную | — | нужна отдельная проверка |
+| features / Дух: Фея | частично | module:spirit-vessel-fey-charm | tests/registrations.test.mjs |
+| features / Дух: Исчадие | частично | module:spirit-vessel-fiend-flames, aura:spirit-vessel-fiend-flames | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Дух: Нежить | частично | module:spirit-vessel-undead-frighten | tests/registrations.test.mjs |
+| features / Воздействие на судьбы | частично | module:sync-oracle-resources, module:oracle-fate-miss, module:oracle-mysterious-guidance, module:oracle-balancing-ritual | tests/registrations.test.mjs |
+| features / Первый секрет Оракула | частично | module:oracle-free-scrying, module:oracle-read-threads | tests/registrations.test.mjs |
+| features / Переплетение связей | частично | module:oracle-remove-dissonance-slot, module:oracle-restore-slot-dissonance | tests/registrations.test.mjs |
+| features / Чувство судьбы | частично | module:oracle-danger | tests/registrations.test.mjs |
+| features / Главный секрет оракула | частично | module:oracle-astral-projection, module:oracle-exchange-fates, module:oracle-fate-scissors | tests/registrations.test.mjs |
+| features / Очарование демонов | частично | module:show-demonologist-demon-charm | tests/registrations.test.mjs |
+| features / Инфернальный фамильяр | частично | module:show-demonologist-infernal-familiar | tests/registrations.test.mjs |
+| features / Мастер призыва | частично | module:use-demonologist-master-summoner | tests/registrations.test.mjs |
+| features / Тёмное знание | частично | module:cast-demonologist-protection, module:cast-demonologist-spirit-guardians | tests/registrations.test.mjs |
+| features / Демоническое сопротивление | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Демоническая живучесть | частично | module:activate-demonic-vitality, aura:demonologist-vitality | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Демонический разум | частично | module:cast-demonologist-detect-thoughts, dnd5e:ActiveEffect | tests/registrations.test.mjs, tests/passives.test.mjs |
+| features / Удвоенный призыв | частично | module:use-demonologist-double-summon | tests/registrations.test.mjs |
+| features / Доминация | частично | module:show-demonologist-domination | tests/registrations.test.mjs |
+| features / Кровавая магия | частично | module:sync-sanguinist-resources, module:gain-sanguinist-blood-point, module:spend-sanguinist-blood-points | tests/registrations.test.mjs |
+| features / Гематургия | частично | module:use-hematurgy | tests/registrations.test.mjs |
+| features / Накладывание заклинаний | частично | module:show-sanguinist-spellcasting | tests/registrations.test.mjs |
+| features / Ученик крови | частично | module:cast-blood-reading, module:mark-sanguinist-blood-spell | tests/registrations.test.mjs |
+| features / Багровая сила | частично | module:sanguine-power-hit-die, module:sanguine-power-blood-point | tests/registrations.test.mjs |
+| features / Жизненное восстановление | частично | module:show-vital-restoration | tests/registrations.test.mjs |
+| features / Кровавая совместимость | частично | module:show-blood-compatibility | tests/registrations.test.mjs |
+| features / Моя собственная кровь | частично | module:use-my-own-blood-recovery | tests/registrations.test.mjs |
+| features / Кровь других | частично | module:gain-sanguinist-blood-points-others | tests/registrations.test.mjs |
+| features / Ритуальное жертвоприношение | частично | module:show-ritual-sacrifice | tests/registrations.test.mjs |
+| features / Багровое мастерство | требует исправления | — | нужна отдельная проверка |
+| features / Артериальная марионетка | частично | module:use-arterial-puppetry | tests/registrations.test.mjs |
+| features / Кровавая обратная связь | частично | module:use-blood-backlash | tests/registrations.test.mjs |
+| features / Кровопускание | частично | module:use-bloodletting | tests/registrations.test.mjs |
+| features / Ушиб | частично | module:use-contusion | tests/registrations.test.mjs |
+| features / Багровая ярость | частично | module:use-crimson-fury | tests/registrations.test.mjs |
+| features / Багровая буря | частично | module:use-sanguine-storm | tests/registrations.test.mjs |
+| features / Переливание | частично | module:use-transfusion | tests/registrations.test.mjs |
+| features / Вампиризм | частично | module:use-vampirism | tests/registrations.test.mjs |
+| features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
+| features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
+| features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |
+| features / Форма убийцы (2-й уровень) | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| features / Да начнётся резня | обоснованно вручную | — | нужна отдельная проверка |
+| features / Смертельный бег | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Смертоносный охотник | обоснованно вручную | — | нужна отдельная проверка |
+| features / Алгофобия | обоснованно вручную | — | нужна отдельная проверка |
+| features / Неудержимый | обоснованно вручную | — | нужна отдельная проверка |
+| features / Аура резни | частично | module:choose-carnage-aura-type, aura:murderspawn-carnage | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Первобытные рефлексы | частично | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Жажда смерти | обоснованно вручную | — | нужна отдельная проверка |
+| features / Виновный | обоснованно вручную | — | нужна отдельная проверка |
+| features / Неубиваемый | обоснованно вручную | — | нужна отдельная проверка |
+| features / Какофония смерти | обоснованно вручную | — | нужна отдельная проверка |
+| features / Идеальная разделка | обоснованно вручную | — | нужна отдельная проверка |
+| features / Воплощение убийства | частично | dnd5e:utility | tools/validate.mjs |
+| features / Избранный убийцы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Истребитель магии | частично | module:gain-hollow-charge, module:use-hollow-charges | tests/registrations.test.mjs |
+| features / Негативное тело | автоматизировано | dnd5e:ActiveEffect | tests/passives.test.mjs |
+| features / Полая душа | обоснованно вручную | — | нужна отдельная проверка |
+| features / Выжигание заклинаний | частично | module:use-hollow-charges | tests/registrations.test.mjs |
+| features / Аура маскировки | частично | aura:hollow-masking-aura | tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Негативный взгляд | обоснованно вручную | — | нужна отдельная проверка |
+| features / Разрушающие удары | обоснованно вручную | — | нужна отдельная проверка |
+| features / Магическая несовместимость | обоснованно вручную | — | нужна отдельная проверка |
+| features / Ослабление чар | частично | module:use-hollow-charges | tests/registrations.test.mjs |
+| features / Укреплённая душа | частично | runtime:midi/spell-resistance | tests/spell-resistance.test.mjs |
+| features / Рассеивание | частично | module:use-hollow-charges | tests/registrations.test.mjs |
+| features / Негативная пелена | частично | module:use-hollow-charges | tests/registrations.test.mjs |
+| features / Резистентное тело | обоснованно вручную | — | нужна отдельная проверка |
+| features / Высшее проклятие | частично | module:use-hollow-charges | tests/registrations.test.mjs |
+| features / Рана в магии | обоснованно вручную | — | нужна отдельная проверка |
+| features / Мистическая аннуляция | частично | module:use-hollow-charges | tests/registrations.test.mjs |
+| features / Уничтожитель эфира | частично | module:use-hollow-charges | tests/registrations.test.mjs |
+| features / Магическое ингибирование | обоснованно вручную | — | нужна отдельная проверка |
+| equipment / Цвайхандер | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| equipment / Огромный молот | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| equipment / Нодати | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| equipment / Одати | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| equipment / Нагамаки | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| equipment / Когти Порождения убийств (ур. 2) | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| equipment / Когти Порождения убийств (ур. 3) | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| equipment / Когти Порождения убийств (ур. 4) | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| spells / Древесное лечение | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| spells / Бог из стали | частично | dnd5e:Item-spell | tools/validate.mjs |
+| spells / Мстительное пламя | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Врата бесконечности | частично | dnd5e:Item-spell | tools/validate.mjs |
+| spells / Перо правосудия | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Челюсти пожирателя звезд | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Колдовская стрела | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Кровавое копье | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Намек | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| spells / Дар хаоса | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Какофонический вопль | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Подчинение крови / Перенос крови | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Кровный трэлл | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Парящий остров Проктива / Proctiv's Floating Island | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| spells / Вечное солнце Амаунатора / Amaunator's Eternal Sun | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| spells / Огненная катаракта / Fiery Cataract | частично | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Поток Дилювиаля / Diluvial Torrent | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Ужасная засуха / Horrible Drought | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Смертоносный ветер Толодина / Tolodine's Killing Wind | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| spells / Тварь о тысяче ног / Beast of a Thousand Legs | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Фантом: Воин Тьмы | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Тёмное сопротивление | требует исправления | — | нужна отдельная проверка |
+| bestiary / Демонический глаз | требует исправления | — | нужна отдельная проверка |
+| bestiary / Демонические крылья | требует исправления | — | нужна отдельная проверка |
+| bestiary / Очернённое оружие | требует исправления | — | нужна отдельная проверка |
+| bestiary / Чёрные ритуалы | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака | требует исправления | — | нужна отдельная проверка |
+| bestiary / Очернённый двуручный меч | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Ужасающий облик | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Улучшенный эликсир чёрной магии | требует исправления | — | нужна отдельная проверка |
+| bestiary / Адская сила | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Адский щит | требует исправления | — | нужна отдельная проверка |
+| bestiary / Возмездие тьмы | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Абберант | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Чувство арканы | требует исправления | — | нужна отдельная проверка |
+| bestiary / Финальные изменения | требует исправления | — | нужна отдельная проверка |
+| bestiary / Нестественные черты | требует исправления | — | нужна отдельная проверка |
+| bestiary / Когти | требует исправления | — | нужна отдельная проверка |
+| bestiary / Чудовищные глаза | требует исправления | — | нужна отдельная проверка |
+| bestiary / Чудовищные рефлексы | требует исправления | — | нужна отдельная проверка |
+| bestiary / Магия био-искажения | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Смертельная точность | требует исправления | — | нужна отдельная проверка |
+| bestiary / Искажающий коготь | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Энергетическая природа | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Смертоносный выпад | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Ведьмин Клинок | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Закалённый разум | требует исправления | — | нужна отдельная проверка |
+| bestiary / Оккультный резерв | требует исправления | — | нужна отдельная проверка |
+| bestiary / Охотник на ведьм | требует исправления | — | нужна отдельная проверка |
+| bestiary / Печать Ведьминого Клинка | требует исправления | — | нужна отдельная проверка |
+| bestiary / Чары охотника | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака | требует исправления | — | нужна отдельная проверка |
+| bestiary / Ведьмин клинок | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Мёртвая зона | требует исправления | — | нужна отдельная проверка |
+| bestiary / Нематериальный вихрь | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Какофонический вопль | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Эфирная буря | требует исправления | — | нужна отдельная проверка |
+| bestiary / Бастион чародея | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Фантом: Владыка Насекомых | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Хитиновый панцирь | требует исправления | — | нужна отдельная проверка |
+| bestiary / Шевелящаяся броня | требует исправления | — | нужна отдельная проверка |
+| bestiary / Дитя Инкубатора | требует исправления | — | нужна отдельная проверка |
+| bestiary / Разум роя | требует исправления | — | нужна отдельная проверка |
+| bestiary / Рой Плетения | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Природное оружие | требует исправления | — | нужна отдельная проверка |
+| bestiary / Хитиновые жала | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Ползучий глаз | требует исправления | — | нужна отдельная проверка |
+| bestiary / Высасывание жизни | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Изрыгание насекомых | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Фантом: Воитель Фей | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Кровь фей — Лазурный разум | требует исправления | — | нужна отдельная проверка |
+| bestiary / Защита от магии — Непреодолимые чары | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фейская кожа — Уязвимость к Железу | требует исправления | — | нужна отдельная проверка |
+| bestiary / Чары Очарования | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Химерический клинок | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фейская рапира | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Всплеск действий | требует исправления | — | нужна отдельная проверка |
+| bestiary / Быстрые ноги — Всплеск скорости | требует исправления | — | нужна отдельная проверка |
+| bestiary / Уход от опасности — Грациозный сдвиг | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Демонолог | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Очарование демонов | требует исправления | — | нужна отдельная проверка |
+| bestiary / Тёмное знание и Глаза Бездны | требует исправления | — | нужна отдельная проверка |
+| bestiary / Инфернальный фамильяр — квазит | требует исправления | — | нужна отдельная проверка |
+| bestiary / Доминация | требует исправления | — | нужна отдельная проверка |
+| bestiary / Книга Чародейства Бездны | требует исправления | — | нужна отдельная проверка |
+| bestiary / Огненный снаряд | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Кинжал Бездны | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Удвоенный призыв | требует исправления | — | нужна отдельная проверка |
+| bestiary / Духовные стражи Бездны | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Демоническая живучесть | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Мастер призыва | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Джаггернаут | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Славное выживание | требует исправления | — | нужна отдельная проверка |
+| bestiary / Регенерирующая душа — Плоть тролля | требует исправления | — | нужна отдельная проверка |
+| bestiary / Отказ от смерти | требует исправления | — | нужна отдельная проверка |
+| bestiary / Несгибаемый бастион | требует исправления | — | нужна отдельная проверка |
+| bestiary / Неподкупный объект | требует исправления | — | нужна отдельная проверка |
+| bestiary / Осадное тело | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Осада плоти | требует исправления | — | нужна отдельная проверка |
+| bestiary / Тяжёлый осадный клеймор | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Удар щитом | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Подавление строя | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Объятья жизни | требует исправления | — | нужна отдельная проверка |
+| bestiary / Что за рана? | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Дьяволопоклонник | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Тёмная удача | требует исправления | — | нужна отдельная проверка |
+| bestiary / Помощь Дьявола | требует исправления | — | нужна отдельная проверка |
+| bestiary / Бесовский фамильяр | требует исправления | — | нужна отдельная проверка |
+| bestiary / Усиленные чары | требует исправления | — | нужна отдельная проверка |
+| bestiary / Ярость адского огня | требует исправления | — | нужна отдельная проверка |
+| bestiary / Аура опустошённых душ | автоматизировано | aura:devil-devastated-souls | tests/auras.test.mjs, tests/aura-events.test.mjs |
+| bestiary / Книга Адского Пламени | требует исправления | — | нужна отдельная проверка |
+| bestiary / Огненный снаряд | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Дьявольская гвизарма | требует исправления | — | нужна отдельная проверка |
+| bestiary / Атака гвизармой | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Адский захват гвизармой | требует исправления | — | нужна отдельная проверка |
+| bestiary / Истязание гвизармы | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Тихое заклятие | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Еретик | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Оккультные маги | требует исправления | — | нужна отдельная проверка |
+| bestiary / Нечестивость | требует исправления | — | нужна отдельная проверка |
+| bestiary / Оккультный резерв | требует исправления | — | нужна отдельная проверка |
+| bestiary / Оккультное колдовство | требует исправления | — | нужна отдельная проверка |
+| bestiary / Теневой взрыв | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Похититель разума — Кукловод | требует исправления | — | нужна отдельная проверка |
+| bestiary / Нечестивый кинжал | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Тактический оккультизм | требует исправления | — | нужна отдельная проверка |
+| bestiary / Нечестивая мощь | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Оккультный шаг | требует исправления | — | нужна отдельная проверка |
+| bestiary / Нечестивое оружие | требует исправления | — | нужна отдельная проверка |
+| bestiary / Исчезновение | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Харроуер (Картёжник) | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Колода Астральных Тайн | требует исправления | — | нужна отдельная проверка |
+| bestiary / 1. Весы | требует исправления | — | нужна отдельная проверка |
+| bestiary / 2. Башня | требует исправления | — | нужна отдельная проверка |
+| bestiary / 3. Стрела | требует исправления | — | нужна отдельная проверка |
+| bestiary / 4. Копьё | требует исправления | — | нужна отдельная проверка |
+| bestiary / 5. Кувшин | требует исправления | — | нужна отдельная проверка |
+| bestiary / 6. Шпиль | требует исправления | — | нужна отдельная проверка |
+| bestiary / Плутам везёт | требует исправления | — | нужна отдельная проверка |
+| bestiary / В рукаве | требует исправления | — | нужна отдельная проверка |
+| bestiary / Карточная магия | требует исправления | — | нужна отдельная проверка |
+| bestiary / Бритвенная карта | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Сдавай их | требует исправления | — | нужна отдельная проверка |
+| bestiary / Тузы бьют | требует исправления | — | нужна отдельная проверка |
+| bestiary / Карточный финт | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Судейский расклад | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Крестоносец | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Божественная преданность | требует исправления | — | нужна отдельная проверка |
+| bestiary / Священное снаряжение | требует исправления | — | нужна отдельная проверка |
+| bestiary / Священная магия | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Праведный суд | требует исправления | — | нужна отдельная проверка |
+| bestiary / Двуручный святой молот | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Осуждение | требует исправления | — | нужна отдельная проверка |
+| bestiary / Вход в Ярость | требует исправления | — | нужна отдельная проверка |
+| bestiary / Несокрушимая воля | требует исправления | — | нужна отдельная проверка |
+| bestiary / Святая стойкость | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Праведная кара | требует исправления | — | нужна отдельная проверка |
+| bestiary / Освящение | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Эгида крестоносца | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Лесной Владыка | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Сердце дуба | требует исправления | — | нужна отдельная проверка |
+| bestiary / Древесный родич | требует исправления | — | нужна отдельная проверка |
+| bestiary / Заклинания природы | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Сила дуба | требует исправления | — | нужна отдельная проверка |
+| bestiary / Удар ветвью | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Древесный сон | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Пустить корни | требует исправления | — | нужна отдельная проверка |
+| bestiary / Коряжка | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Лидер | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Тактическое присутствие — Аура командования | частично | aura:npc-leader-command | tests/auras.test.mjs, tests/aura-events.test.mjs |
+| bestiary / Идеальная координация | требует исправления | — | нужна отдельная проверка |
+| bestiary / Стратагемы командования | требует исправления | — | нужна отдельная проверка |
+| bestiary / Отступить и перегруппироваться | требует исправления | — | нужна отдельная проверка |
+| bestiary / Протянуть руку помощи | требует исправления | — | нужна отдельная проверка |
+| bestiary / Держать строй | требует исправления | — | нужна отдельная проверка |
+| bestiary / Тактический шаг | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Тактический выпад | требует исправления | — | нужна отдельная проверка |
+| bestiary / Командирское копьё | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Направить атаку | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мгновение славы — Сейчас или никогда | требует исправления | — | нужна отдельная проверка |
+| bestiary / Проницательный умысел | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мгновение славы — Поверь в себя | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Маг Крови | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Холст плоти | требует исправления | — | нужна отдельная проверка |
+| bestiary / Малефикар — Слабость | требует исправления | — | нужна отдельная проверка |
+| bestiary / Сотворение заклинаний Магии Крови | требует исправления | — | нужна отдельная проверка |
+| bestiary / Гримуар Гемомантии | требует исправления | — | нужна отдельная проверка |
+| bestiary / Кровавый снаряд | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Ритуальный кинжал | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Пир павших | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Подчинение крови | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Перенос крови | требует исправления | — | нужна отдельная проверка |
+| bestiary / Жертва во имя магии | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Фантом: Мерцающий | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Внутреннее мерцание | требует исправления | — | нужна отдельная проверка |
+| bestiary / Сдвиг в сторону | требует исправления | — | нужна отдельная проверка |
+| bestiary / Чудесное возвращение домой | требует исправления | — | нужна отдельная проверка |
+| bestiary / Магия Координат | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Разрыв координат | требует исправления | — | нужна отдельная проверка |
+| bestiary / Пространственный разрез | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Внешнее мерцание | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Чувство сдвига | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мерцающий шаг | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мерцание с разворотом | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Нетерийский Арканист | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Учёный арканист | требует исправления | — | нужна отдельная проверка |
+| bestiary / Древнее знание | требует исправления | — | нужна отдельная проверка |
+| bestiary / Истощение Великих Заклинаний | требует исправления | — | нужна отдельная проверка |
+| bestiary / Плетение Нетерила | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мистический заряд | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Развёртывание Мини-мифала | требует исправления | — | нужна отдельная проверка |
+| bestiary / Защитный барьер | требует исправления | — | нужна отдельная проверка |
+| bestiary / Пространственный контроль | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Поток Илионида — Великое заклинание | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Перегрузка Плетения | требует исправления | — | нужна отдельная проверка |
+| bestiary / Поглощение мифала | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Онмёдзи | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Обряд очищения | требует исправления | — | нужна отдельная проверка |
+| bestiary / Место Духа | требует исправления | — | нужна отдельная проверка |
+| bestiary / Энергия Ки | требует исправления | — | нужна отдельная проверка |
+| bestiary / Магия Свитков | требует исправления | — | нужна отдельная проверка |
+| bestiary / Священное пламя | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Ритуальный посох | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Талисман Шикигами — Шикигами Призрачный Охотник | требует исправления | — | нужна отдельная проверка |
+| bestiary / Атака Шикигами | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Призыв Мирового Духа | требует исправления | — | нужна отдельная проверка |
+| bestiary / Дух Огня — Очищение | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Дух Стали — Твёрдость | требует исправления | — | нужна отдельная проверка |
+| bestiary / Дух Ветра — Свобода | требует исправления | — | нужна отдельная проверка |
+| bestiary / Малая Великая Чара стихий | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Защитный Обряд Омамори | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Оракул | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Истинное видение | требует исправления | — | нужна отдельная проверка |
+| bestiary / Дилемма Диссонанса | требует исправления | — | нужна отдельная проверка |
+| bestiary / Штраф Диссонанса | требует исправления | — | нужна отдельная проверка |
+| bestiary / Нити Времени | требует исправления | — | нужна отдельная проверка |
+| bestiary / Нить судьбы | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Воздействие на судьбу | требует исправления | — | нужна отдельная проверка |
+| bestiary / Промах | требует исправления | — | нужна отдельная проверка |
+| bestiary / Попадание | требует исправления | — | нужна отдельная проверка |
+| bestiary / Главный секрет Оракула | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Переплетение связей | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Баланс судьбы | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Фантом: Падший Жрец | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Отступничество | требует исправления | — | нужна отдельная проверка |
+| bestiary / Сопротивление божественному | требует исправления | — | нужна отдельная проверка |
+| bestiary / Изгнание нежити | требует исправления | — | нужна отдельная проверка |
+| bestiary / Украденное Плетение | требует исправления | — | нужна отдельная проверка |
+| bestiary / Осквернённое пламя | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Нечестивый посох | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Поглощение силы | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Карантинные арканы | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Зеркальный догмат | требует исправления | — | нужна отдельная проверка |
+| bestiary / Копирование божественного | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Фантом: Пожиратель Душ | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Омерзение природы | требует исправления | — | нужна отдельная проверка |
+| bestiary / Осколок души | требует исправления | — | нужна отдельная проверка |
+| bestiary / Магия поглощённых искр | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Разрыв души | требует исправления | — | нужна отдельная проверка |
+| bestiary / Разрыв души | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Сила души | требует исправления | — | нужна отдельная проверка |
+| bestiary / Поглощение души | требует исправления | — | нужна отдельная проверка |
+| bestiary / Обмен душами | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Призрачный Странник | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Тронутый смертью — Полуживой | требует исправления | — | нужна отдельная проверка |
+| bestiary / Духовное зрение | требует исправления | — | нужна отдельная проверка |
+| bestiary / Родственный дух | требует исправления | — | нужна отдельная проверка |
+| bestiary / Разорванная связь | требует исправления | — | нужна отдельная проверка |
+| bestiary / Призрачные обряды | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Поступь мертвеца | требует исправления | — | нужна отдельная проверка |
+| bestiary / Призрачное касание | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Одержимость | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Незаконченное дело | требует исправления | — | нужна отдельная проверка |
+| bestiary / Форма духа | требует исправления | — | нужна отдельная проверка |
+| bestiary / Эфирное скольжение | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Увядающая магия | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Бесплотная защита | требует исправления | — | нужна отдельная проверка |
+| bestiary / Потустороннее присутствие | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Фантом: Ритуалист | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Духовное зрение | требует исправления | — | нужна отдельная проверка |
+| bestiary / Разум и тело — Абсолютная концентрация | требует исправления | — | нужна отдельная проверка |
+| bestiary / Бережный круг защиты | требует исправления | — | нужна отдельная проверка |
+| bestiary / Оккультный резерв — Духовный пул | требует исправления | — | нужна отдельная проверка |
+| bestiary / Ритуальные заговоры | требует исправления | — | нужна отдельная проверка |
+| bestiary / Духовный луч | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Ритуальный посох | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Ритуал призыва | требует исправления | — | нужна отдельная проверка |
+| bestiary / Призванный дух | требует исправления | — | нужна отдельная проверка |
+| bestiary / Духовная атака | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Потеря контроля | требует исправления | — | нужна отдельная проверка |
+| bestiary / Призрачный удар | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Укрощение эго | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Духовная передача | требует исправления | — | нужна отдельная проверка |
+| bestiary / Канал духов — Кровь к плоти | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Сокрушитель | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Стиль огромного оружия — Раскалывание | требует исправления | — | нужна отдельная проверка |
+| bestiary / Убийца гигантов | требует исправления | — | нужна отдельная проверка |
+| bestiary / Импульс и стальная воля | требует исправления | — | нужна отдельная проверка |
+| bestiary / Стальной гигант — Несокрушимость | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Стальной шквал | требует исправления | — | нужна отдельная проверка |
+| bestiary / Струнный молот | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Техника: Раскалывание | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Техника: Превосходный контроль | требует исправления | — | нужна отдельная проверка |
+| bestiary / Техника: Адаптивность | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Сосуд Духа | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Усложнённое Эго — Двойное сопротивление | требует исправления | — | нужна отдельная проверка |
+| bestiary / Сонливость и беспокойный разум | требует исправления | — | нужна отдельная проверка |
+| bestiary / Концентрированный удар | требует исправления | — | нужна отдельная проверка |
+| bestiary / Магия Духовного Договора | требует исправления | — | нужна отдельная проверка |
+| bestiary / Луч духа | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Духовное прикосновение | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Экзамен Воли — Ангельское очарование | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Вход в Поток | требует исправления | — | нужна отдельная проверка |
+| bestiary / Превосходство ловкости | требует исправления | — | нужна отдельная проверка |
+| bestiary / Эфирная защита | требует исправления | — | нужна отдельная проверка |
+| bestiary / Ментальный прилив | требует исправления | — | нужна отдельная проверка |
+| bestiary / Тактический Поток | требует исправления | — | нужна отдельная проверка |
+| bestiary / Зеркальное отречение | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Фантом: Страж | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Призвание стража | требует исправления | — | нужна отдельная проверка |
+| bestiary / Непоколебимость | требует исправления | — | нужна отдельная проверка |
+| bestiary / Несгибаемость | требует исправления | — | нужна отдельная проверка |
+| bestiary / Стойкий защитник | требует исправления | — | нужна отдельная проверка |
+| bestiary / Снаряжение | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Карающий рубеж | требует исправления | — | нужна отдельная проверка |
+| bestiary / Тяжёлый палаш | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Метка стража | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мощное возмездие | требует исправления | — | нужна отдельная проверка |
+| bestiary / Прыжковое возмездие | требует исправления | — | нужна отдельная проверка |
+| bestiary / Возмездие спасением | требует исправления | — | нужна отдельная проверка |
+| bestiary / Угрожающее возмездие | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Выдержать боль | требует исправления | — | нужна отдельная проверка |
+| bestiary / Жертвенный бросок | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Хранитель | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Страж и подопечный | требует исправления | — | нужна отдельная проверка |
+| bestiary / Едины и защищены | требует исправления | — | нужна отдельная проверка |
+| bestiary / Уязвимые и незащищённые | требует исправления | — | нужна отдельная проверка |
+| bestiary / Инженерные арканы | требует исправления | — | нужна отдельная проверка |
+| bestiary / Магический разряд | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Инженерный клинок | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Проводник магии | требует исправления | — | нужна отдельная проверка |
+| bestiary / Наведение на брешь | требует исправления | — | нужна отдельная проверка |
+| bestiary / Экспресс-ремонт | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Перехват траектории | требует исправления | — | нужна отдельная проверка |
+| bestiary / Сконструированный голем | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Мультиатака | требует исправления | — | нужна отдельная проверка |
+| bestiary / Кулак стража | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Защитная стойка | требует исправления | — | нужна отдельная проверка |
+| bestiary / Стальной заслон | требует исправления | — | нужна отдельная проверка |
+| bestiary / Фантом: Чумной Доктор | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Разносчик заболеваний | требует исправления | — | нужна отдельная проверка |
+| bestiary / Скрытая атака инфекциониста | требует исправления | — | нужна отдельная проверка |
+| bestiary / Касание болезни | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Хирургическое заражение | требует исправления | — | нужна отдельная проверка |
+| bestiary / Чумной скальпель | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Инфекционная игла | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Форма болезни — Растворение тела | требует исправления | — | нужна отдельная проверка |
+| bestiary / Невидимость инфекции | требует исправления | — | нужна отдельная проверка |
+| bestiary / Бестелесная масса | требует исправления | — | нужна отдельная проверка |
+| bestiary / Аура заражения | частично | dnd5e:save, aura:npc-plague-infection | tools/validate.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| bestiary / Отделение умной инфекции | требует исправления | — | нужна отдельная проверка |
+| bestiary / 1 очко — Слежка | требует исправления | — | нужна отдельная проверка |
+| bestiary / 2 очка — Заражение | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / 3 очка — Кукловод | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Активация чумного поветрия | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Посмертный распад | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Гатц, Хранитель Вечного Гримуара(фаза 1) | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Аура Просвещения | автоматизировано | aura:gutz-enlightenment | tests/auras.test.mjs, tests/aura-events.test.mjs |
+| bestiary / Легендарное сопротивление | требует исправления | — | нужна отдельная проверка |
+| bestiary / Архивариус Трансформаций | требует исправления | — | нужна отдельная проверка |
+| bestiary / Живая Библиотека | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Аналитическое воздействие | требует исправления | — | нужна отдельная проверка |
+| bestiary / Клинок Истины | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Эффект обучения | требует исправления | — | нужна отдельная проверка |
+| bestiary / Таймкод Изменений | требует исправления | — | нужна отдельная проверка |
+| bestiary / Откат уязвимости | требует исправления | — | нужна отдельная проверка |
+| bestiary / Коррекция ошибок | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Саркастический анализ | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| bestiary / Редактирование Потока | требует исправления | — | нужна отдельная проверка |
+| bestiary / Это уже было в истории | требует исправления | — | нужна отдельная проверка |
+| bestiary / Лень разбираться | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Призыв Хроник Мастерства | требует исправления | — | нужна отдельная проверка |
+| bestiary / Правило боя | требует исправления | — | нужна отдельная проверка |
+| bestiary / Вариант 1 — Ослабленные | требует исправления | — | нужна отдельная проверка |
+| bestiary / Вариант 2 — Усиленные | требует исправления | — | нужна отдельная проверка |
+| bestiary / Конструктор Заклинаний Гатца | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Действия логова | требует исправления | — | нужна отдельная проверка |
+| bestiary / Диктующие условия | требует исправления | — | нужна отдельная проверка |
+| bestiary / Живая Библиотека: все заклинания жреца и паладина | требует исправления | — | нужна отдельная проверка |
+| bestiary / Карающий отблеск | автоматизировано | dnd5e:attack, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Длань заступника | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Клеймо воздаяния | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Последняя молитва | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Печать немого суда | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Причастие раны | автоматизировано | dnd5e:attack, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Цепи исповедника | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Глас небесного суда | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Хор кающихся | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Очищающий приговор | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Двойной обет стражей | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Врата последнего суда | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Крылья заступника | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Судящий столп | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Обет неугасимого сердца | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Погребальный колокол | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Хор непоколебимых | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Анафема святотатцу | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Литания возвращённого дыхания | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Сошествие архонта | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Купол семи печатей | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Небесный обвал | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Великое отпущение | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Седьмая труба | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Гатц, Хранитель Вечного Гримуара(фаза 2) | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
+| bestiary / Двойное Возвышение Престижа | требует исправления | — | нужна отдельная проверка |
+| bestiary / Парадокс Кровавой Ярости | требует исправления | — | нужна отдельная проверка |
+| bestiary / Удар возвращает жизнь | требует исправления | — | нужна отдельная проверка |
+| bestiary / Одиночество и увядание | требует исправления | — | нужна отдельная проверка |
+| bestiary / Сверхъестественная анатомия | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мультиатака — Стальное сечение | требует исправления | — | нужна отдельная проверка |
+| bestiary / Клинок Силы | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Разрушение доспехов | требует исправления | — | нужна отдельная проверка |
+| bestiary / Мёртвая зона | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Заготовленный приём | требует исправления | — | нужна отдельная проверка |
+| bestiary / Прицельные рывки | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| bestiary / Шторм клинков | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Разрубание мира | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Упреждающий выпад | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Скользящий шаг | требует исправления | — | нужна отдельная проверка |
+| bestiary / Перенятый опыт | требует исправления | — | нужна отдельная проверка |
+| bestiary / Наказание за промах | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Встречное парирование | автоматизировано | dnd5e:attack, dnd5e:Item-weapon | tools/validate.mjs |
+| bestiary / Перенаправление силы | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Анатомический укол | автоматизировано | dnd5e:save | tools/validate.mjs |
+| bestiary / Разрушение стойки | требует исправления | — | нужна отдельная проверка |
+| bestiary / Разрыв сухожилий | требует исправления | — | нужна отдельная проверка |
+| bestiary / Глухая пешая защита | требует исправления | — | нужна отдельная проверка |
+| bestiary / Действия логова | требует исправления | — | нужна отдельная проверка |
+| bestiary / Диктующие условия | требует исправления | — | нужна отдельная проверка |
+| bestiary / Живая Библиотека: все заклинания жреца и паладина | требует исправления | — | нужна отдельная проверка |
+| bestiary / Карающий отблеск | автоматизировано | dnd5e:attack, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Длань заступника | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Клеймо воздаяния | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Последняя молитва | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Печать немого суда | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Причастие раны | автоматизировано | dnd5e:attack, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Цепи исповедника | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Глас небесного суда | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Хор кающихся | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Очищающий приговор | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Двойной обет стражей | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Врата последнего суда | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Крылья заступника | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Судящий столп | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Обет неугасимого сердца | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Погребальный колокол | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Хор непоколебимых | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Анафема святотатцу | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Литания возвращённого дыхания | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Сошествие архонта | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Купол семи печатей | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Небесный обвал | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Великое отпущение | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| bestiary / Седьмая труба | автоматизировано | dnd5e:save, dnd5e:Item-spell | tools/validate.mjs |
