@@ -13,13 +13,14 @@ import {inspiringTemporaryHp} from "../shared/leader-presence-definitions.mjs";
 export const ritualSpiritRules = actor => actor.getFlag?.(MODULE_ID, "summonTemplate")?.ritualistRules ?? null;
 const variant = actor => actor.getFlag?.(MODULE_ID, "summonSource") === "binding-ritual" ? actor.getFlag(MODULE_ID, "summonTemplate")?.variant : null;
 export function spiritIsFriendly(source, target) {return source.disposition === target.disposition;}
+export function spiritIsEnemy(source, target) {return Number(source.disposition) * Number(target.disposition) < 0;}
 export const bloodSongHealing = damage => Math.max(0, Math.floor(Number(damage) / 2));
 const spiritItem = actor => [...(actor.items ?? [])].find(item => item.system?.activities?.size) ?? [...(actor.items ?? [])][0];
 export async function applyAgony(scene, target, workflowId) {
   for (const source of scene.tokens ?? []) {
     const rules = source.actor && ritualSpiritRules(source.actor);
     if (!rules || variant(source.actor) !== "agony" || Number(source.actor.system.attributes.hp.value) <= 0
-      || spiritIsFriendly(source, target) || !inFeet(source, target, 30, scene)) continue;
+      || !spiritIsEnemy(source, target) || !inFeet(source, target, 30, scene)) continue;
     await dispatchAutomationPulse({scene, sourceToken: source.object ?? {actor: source.actor, document: source}, sourceItem: spiritItem(source.actor),
       targets: [target.object ?? {actor: target.actor, document: target}], event: {save: "wis", dc: String(rules.dc), damage: [{formula: `${rules.level}d6`, type: "psychic"}]},
       eventKey: `ritual-agony:${source.uuid}:${workflowId}:${target.uuid}`});
@@ -84,7 +85,7 @@ export function installRitualistSpiritHooks() {
     if (enabled() && automationData(activity).ritualistBloodSong) {
       activity.updateSource?.({"range.value": automationData(activity).longRange ?? 60, "range.override": true});
     }
-    if (!enabled() || !automationData(activity).ritualistSorrow || automationData(activity).sorrowStatus) return;
+    if (!enabled() || automationData(activity).areaResolved || !automationData(activity).ritualistSorrow || automationData(activity).sorrowStatus) return;
     const status = await askOwner(activity.actor, {title: "Скорбная песня", choices: [["blinded", "Ослепление"], ["deafened", "Глухота"]]});
     if (!status) return false;
     activity.updateSource({[`flags.${MODULE_ID}.sorrowStatus`]: status});

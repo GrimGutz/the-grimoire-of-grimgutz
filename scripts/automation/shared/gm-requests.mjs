@@ -8,6 +8,9 @@ const replies = new Map();
 const localRequests = new Map();
 let localGame;
 let installed = false;
+const resultReply = (result, requestId) => result === true ? {status: "success", value: true, requestId}
+  : result === false ? {status: "cancelled", value: false, requestId}
+  : result === undefined ? {status: "needs-review", requestId} : {...result, requestId};
 
 export function registerGmRequest(type, handler) { handlers.set(type, handler); }
 export function gmRequestResult(requestId) { return replies.get(requestId) ?? { requestId, status: "pending" }; }
@@ -39,7 +42,7 @@ export async function receiveGmRequest(payload, senderUserId) {
       if (!owner || (!requester.isGM && !owner.testUserPermission?.(requester, "OWNER"))) {
         return { status: "failed", error: "Нет прав на владельца запроса.", requestId: payload.requestId };
       }
-      try { return { ...await handler(owner, payload.data, { requesterId: requester.id, requestId: payload.requestId }), requestId: payload.requestId }; }
+      try { return resultReply(await handler(owner, payload.data, { requesterId: requester.id, requestId: payload.requestId }), payload.requestId); }
       catch (error) {
         console.error(`${MODULE_ID} | GM request ${payload.type} failed`, error);
         return { status: "failed", error: error.message, requestId: payload.requestId };
@@ -69,7 +72,7 @@ export async function requestGm(type, owner, data, { timeoutMs = 15000, requestI
     const key = `${type}:${owner.uuid}:${requestId}`;
     if (!localRequests.has(key)) {
       const operation = Promise.resolve().then(() => handler(owner, data, {requesterId: game.user.id, requestId}))
-        .then(result => { const reply = {...result, requestId}; replies.set(requestId, reply); return reply; });
+        .then(result => { const reply = resultReply(result, requestId); replies.set(requestId, reply); return reply; });
       localRequests.set(key, operation);
       // Share concurrent callbacks only. Completed requests must still run
       // their document/receipt validation (e.g. a changed damage card).

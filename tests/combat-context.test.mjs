@@ -30,3 +30,8 @@ test("local GM retries share one operation instead of repeating prompts and expe
   await Promise.all([requestGm("retry-test", actor, {}, {requestId: "one"}), requestGm("retry-test", actor, {}, {requestId: "one"})]);
   assert.equal(count, 1);
 });
+test("boolean GM results are explicit cancellations, not truthy empty receipts", async () => {
+  globalThis.game = {user: {isGM: true, id: "gm"}};
+  registerGmRequest("boolean-test", async () => false);
+  assert.equal((await requestGm("boolean-test", {uuid: "Actor.a"}, {}, {requestId: "cancel"})).status, "cancelled");
+});

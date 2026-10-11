@@ -5,7 +5,7 @@ import {isGmAuthority, registerGmRequest, requestGm} from "../shared/gm-requests
 import {useNativeUtility} from "../shared/native-actions.mjs";
 import {sourceTokenForActor} from "../shared/zones.mjs";
 import {areaPlacementAllowed} from "../shared/area-activities.mjs";
-import {tokenOccupiedPoints} from "../shared/spatial.mjs";
+import {tokenOccupiedPoints, feetToSceneUnits} from "../shared/spatial.mjs";
 
 export function protectiveZoneContains(zone, token, scene) {
   if (Number(token.elevation ?? 0) < (zone.elevation?.bottom ?? -Infinity) || Number(token.elevation ?? 0) > (zone.elevation?.top ?? Infinity)) return false;
@@ -58,11 +58,15 @@ registerGmRequest("ritualist-protective-zone", async (actor, data) => {
   if (!zone || source?.actor?.uuid !== actor.uuid || activity?.actor?.uuid !== actor.uuid || itemIdentifier(activity.item) !== "protective-ritual"
     || zone.parent?.id !== source.parent?.id || !areaPlacementAllowed(zone, source.object ?? source, {origin: "point", maxRange: 60}, zone.parent)) throw Error("Некорректная зона ритуала.");
   if (zone.flags?.[MODULE_ID]?.protectiveZone) return true;
+  const radius = feetToSceneUnits(30, zone.parent) / Number(zone.parent.grid.distance) * Number(zone.parent.grid.size);
+  if (zone.shapes ? zone.shapes.length !== 1 || zone.shapes[0].type !== "circle" || Math.abs(zone.shapes[0].radius - radius) > 1
+    : zone.t !== "circle" || Math.abs(zone.distance - feetToSceneUnits(30, zone.parent)) > 0.01) throw Error("Ритуалу требуется круг радиусом 30 футов.");
   if (itemUses(activity.item).remaining < 1) return false;
   const result = await useNativeUtility(activity);
   if (result === false || result?.aborted) return false;
   if (!result) return {status: "needs-review"};
   await zone.update({[`flags.${MODULE_ID}.zoneTemplate`]: true, [`flags.${MODULE_ID}.sourceActor`]: actor.uuid,
+    hidden: Boolean(source.hidden),
     [`flags.${MODULE_ID}.zoneExpiresAt`]: Number(game.time.worldTime) + 600,
     [`flags.${MODULE_ID}.protectiveZone`]: {sourceTokenUuid: source.uuid, itemUuid: activity.item.uuid}});
   await syncProtectiveZones(zone.parent); return true;
@@ -84,7 +88,7 @@ export async function useProtectiveRitual(activity) {
     result = await requestGm("ritualist-protective-zone", actor, {zoneUuid: placed.uuid, activityUuid: activity.uuid, sourceUuid: source.document.uuid}, {requestId: `protective:${placed.uuid}`, timeoutMs: 120000});
     return result;
   } catch (error) {if (error) notify(error.message, "warn"); return false;}
-  finally {pending.delete(actor.uuid); if (placed && (result === false || result?.status === "failed" || !result)) await placed.delete();}
+  finally {pending.delete(actor.uuid); if (placed && (result === false || ["failed", "cancelled"].includes(result?.status) || !result)) await placed.delete();}
 }
 export function installRitualistZoneHooks() {
   const intercept = activity => {

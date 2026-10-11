@@ -89,7 +89,7 @@ export async function cleanupCombatBenefits(combat, changes) {
   const snapshot = combatTurnSnapshot(combat);
   for (const actor of automationActors()) for (const effect of activeBenefits(actor)) {
     const data = benefitData(effect);
-    if (data.combatId !== combat.id || data.createdTurn === turnKey(combat)) continue;
+    if (data.combatId !== snapshot.id || data.createdTurn === `${snapshot.id}:${snapshot.current.round}:${snapshot.current.turn}`) continue;
     const resolve = async uuid => {
       const id = uuid?.split(".")[1], scene = game.scenes?.get?.(id) ?? (combat.scene?.id === id ? combat.scene : null);
       return sceneToken(scene, uuid) ?? (globalThis.fromUuid ? await fromUuid(uuid) : null);
