@@ -35,6 +35,8 @@ import { installInsectCombatHooks, handleInsectBiteHit, useInsectBloodDrain, end
 import { installDefenseHooks, handleGuardianWeaponHit, prepareArmorSave, finishDefenseReactions } from "./classes/defensive-reactions.mjs";
 import { installHollowCombatHooks, handleHollowWeaponHit, prepareHollowCast } from "./transformations/hollow-combat.mjs";
 import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
+import {installWitchBladeHooks} from "./classes/witch-blade.mjs";
+import {applyWeaponBuffReach} from "./shared/weapon-buffs.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
 import { dismissRitualistSpirits, regainRitualistSpirits } from "./classes/ritualist.mjs";
@@ -1008,6 +1010,9 @@ function installHooks() {
   installAuraHooks();
   installZoneHooks();
   installAreaActivityHooks({ validate: validateActivityUse });
+  installWitchBladeHooks();
+  Hooks.on("midi-qol.preTargetingV2", ({workflow}) => applyWeaponBuffReach(workflow?.activity));
+  Hooks.on("dnd5e.preUseActivity", applyWeaponBuffReach);
   installTemporaryEffectHooks();
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateAdvancement);
   Hooks.on("dnd5e.preUseActivity", validateActivityUse);

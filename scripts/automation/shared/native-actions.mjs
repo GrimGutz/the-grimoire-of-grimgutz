@@ -4,10 +4,10 @@ import { canReact, tokenRef, recordModuleReaction, inFeet } from "./combat-benef
 import { isGmAuthority } from "./gm-requests.mjs";
 import { areaDamagePart } from "./area-definitions.mjs";
 
-export async function useNativeUtility(activity) {
+export async function useNativeUtility(activity, {dataPatch = {}} = {}) {
   if (!isGmAuthority()) throw Error("Активный GM сменился; действие требует проверки.");
   if (!globalThis.MidiQOL?.completeActivityUse) throw Error("Действие требует Midi-QOL.");
-  const original = activity.toObject(), data = { ...original, flags: { ...original.flags,
+  const original = activity.toObject(), data = { ...original, ...dataPatch, flags: { ...original.flags,
     [MODULE_ID]: { ...(original.flags?.[MODULE_ID] ?? {}), leaderResolved: true, action: "", moduleAction: "" } } };
   if (data.type === "utility") {
     data.roll = { formula: "", prompt: false, visible: false };

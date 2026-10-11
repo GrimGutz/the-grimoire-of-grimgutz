@@ -1,7 +1,10 @@
 import { automationData, findFeature, isAutomationAuthority, notify } from "../shared/helpers.mjs";
 import { clamp } from "../shared/dnd5e.mjs";
 import { ownedAreaActivity, useAreaActivity } from "../shared/area-activities.mjs";
-import { slotLevelDialog } from "../shared/dialogs.mjs";
+import {askOwner, confirmOwner} from "../shared/owner-prompts.mjs";
+import {registerGmRequest, requestGm} from "../shared/gm-requests.mjs";
+import {useNativeUtility} from "../shared/native-actions.mjs";
+import {enabled, automationAction} from "../shared/helpers.mjs";
 import {
   createWeaponBuff,
   postWeaponBuffMessage
@@ -106,65 +109,62 @@ export async function activateWitchHunterEmpower(actor, activity) {
   return true;
 }
 
-export async function activateWitchCrystallization(actor) {
-  if (!actor || !witchBladeClass(actor)) {
-    notify("Эта активность требует класс «Ведьмин клинок».", "warn");
-    return false;
+export async function activateWitchCrystallization(actor, activity = null) {
+  return useChosenWitchBuff(actor, "activate-witch-crystallization", activity);
+}
+
+export function availableWitchSlots(actor) {
+  return Object.entries(actor.system?.spells ?? {}).filter(([key, slot]) => /^(spell[1-9]|pact)$/.test(key) && Number(slot.value) > 0)
+    .map(([key, slot]) => ({key, level: Number(slot.level ?? key.replace("spell", "")), remaining: Number(slot.value)}))
+    .filter(slot => Number.isInteger(slot.level) && slot.level > 0);
+}
+async function useChosenWitchBuff(actor, action, activity) {
+  activity ??= [...(findFeature(actor, action === "activate-witch-crystallization" ? "witch-crystallization" : "ethereal-storm")?.system.activities?.values?.() ?? [])][0];
+  if (!activity) return false;
+  return requestGm("witch-chosen-weapon-buff", actor, {activityUuid: activity.uuid, action});
+}
+registerGmRequest("witch-chosen-weapon-buff", async (actor, data) => {
+  const activity = await fromUuid(data.activityUuid);
+  if (activity?.actor?.uuid !== actor.uuid || automationAction(activity) !== data.action || !witchBladeClass(actor)) throw Error("Не найдена оружейная способность.");
+  const crystal = data.action === "activate-witch-crystallization", feature = activity.item;
+  const weapons = [...actor.items].filter(item => item.type === "weapon" && item.system.equipped !== false
+    && [...(item.system.activities?.values?.() ?? [])].some(a => a.type === "attack" && a.attack?.type?.value === "melee"));
+  const ids = [];
+  for (let i = 0; i < (crystal ? 1 : 2); i++) {
+    const uuid = await askOwner(actor, {title: feature.name, label: "Рукопашное оружие", choices: weapons.filter(w => !ids.includes(w.uuid)).map(w => [w.uuid, w.name])});
+    if (!uuid) return false; ids.push(uuid);
   }
-  const feature = findFeature(actor, "witch-crystallization");
-  if (!feature) {
-    notify("Для кристаллизации нужна особенность «Колдовская кристаллизация».", "warn");
-    return false;
+  if (!await confirmOwner(actor, feature.name, crystal ? "Держите выбранное оружие одной рукой и не держите другое оружие?" : "Сражаетесь выбранной парой оружий?")) return false;
+  let slot;
+  if (crystal) {
+    const key = await askOwner(actor, {title: feature.name, label: "Доступная ячейка", choices: availableWitchSlots(actor).map(s => [s.key, `${s.level}-й круг (${s.remaining}), ${s.key === "pact" ? "договор" : "обычная"}`])});
+    slot = availableWitchSlots(actor).find(s => s.key === key); if (!slot) return false;
   }
-  const slotLevel = await slotLevelDialog({
-    title: "Колдовская кристаллизация",
-    label: "Потраченная ячейка",
-    maximum: 5,
-    confirmLabel: "Применить"
-  });
-  if (!slotLevel) return false;
-  const reduction = Math.floor(slotLevel / 2);
-  await createWeaponBuff(actor, {
-    key: "witch-crystallization",
-    name: `Колдовская кристаллизация (${slotLevel} круг)`,
-    sourceItem: feature,
-    img: feature.img,
-    duration: { seconds: 60 },
-    data: {
-      criticalThresholdReduction: reduction,
-      slotLevel
-    },
-    description: `<p>Критический порог melee weapon attacks уменьшается на ${reduction} от потраченной ячейки ${slotLevel}-го круга. Условие «одно рукопашное оружие в одной руке и нет другого оружия» подтверждается игроком/Мастером.</p>`
-  });
-  await postWeaponBuffMessage(actor, "Колдовская кристаллизация", reduction > 0
-    ? `Критический порог melee weapon attacks снижен на ${reduction} на 1 минуту.`
-    : "Ячейка 1-го круга не снижает критический порог по правилу «за каждые два уровня ячейки»; marker-эффект создан как напоминание.");
+  const resource = witchHunterFeature(actor);
+  if (!crystal && witchBladeRagePoints(actor).remaining < 1) return false;
+  const native = await useNativeUtility(activity, {dataPatch: {consumption: {spellSlot: false, scaling: {allowed: false, max: ""},
+    targets: [crystal ? {type: "attribute", target: `spells.${slot.key}.value`, value: "1"} : {type: "itemUses", target: resource.id, value: "1"}]}}});
+  if (native === false || native?.aborted) return false;
+  if (!native) return {status: "needs-review"};
+  if (crystal && slot.level < 2) { await postWeaponBuffMessage(actor, feature.name, "Ячейка первого круга потрачена; по правилу критический порог не меняется. Пустой эффект не создан."); return true; }
+  await createWeaponBuff(actor, {key: crystal ? "witch-crystallization" : "ethereal-storm", name: feature.name, sourceItem: feature,
+    duration: {seconds: 60}, data: {weaponUuids: ids, ...(crystal ? {criticalThresholdReduction: Math.floor(slot.level / 2), slotLevel: slot.level} : {reach: 30})},
+    description: "<p>Действует только на выбранное оружие. Срок 1 минута — домашнее правило мира.</p>"});
   return true;
+});
+
+export function installWitchBladeHooks() {
+  const intercept = activity => {
+    if (!enabled() || automationData(activity).leaderResolved || !["activate-witch-crystallization", "activate-ethereal-storm"].includes(automationAction(activity))) return;
+    void useChosenWitchBuff(activity.actor, automationAction(activity), activity).catch(error => notify(error.message, "warn")); return false;
+  };
+  Hooks.on("midi-qol.preTargetingV2", ({workflow}) => intercept(workflow?.activity));
+  Hooks.on("dnd5e.preUseActivity", intercept);
 }
 
 export async function activateEtherealStorm(actor, activity) {
-  if (!actor || !witchBladeClass(actor)) {
-    notify("Эта активность требует класс «Ведьмин клинок».", "warn");
-    return false;
-  }
-  if (!await useWitchBladeRage(actor, activity)) return false;
-  const feature = findFeature(actor, "ethereal-storm");
-  await createWeaponBuff(actor, {
-    key: "ethereal-storm",
-    name: "Эфирная буря",
-    sourceItem: feature,
-    img: feature?.img,
-    duration: { seconds: 60 },
-    data: {
-      reach: 30,
-      reminderOnly: true
-    },
-    description: "<p>Маркер: при сражении двумя оружиями досягаемость оружия увеличена до 30 футов. Изменение reach проверяется вручную, потому что Foundry не может безопасно изменить дальность только для конкретной пары оружий.</p>"
-  });
-  await postWeaponBuffMessage(actor, "Эфирная буря", "Маркер досягаемости 30 футов активен на 1 минуту. Атаки двумя оружиями и выбор подходящего оружия подтверждаются вручную.");
-  return true;
+  return useChosenWitchBuff(actor, "activate-ethereal-storm", activity);
 }
-
 export async function openImmaterialWhirlwind(actor, activity) {
   const chosen = activity?.item ? activity : ownedAreaActivity(actor, "immaterial-whirlwind", "open-immaterial-whirlwind");
   if (!chosen) { notify("Не найдена активность Нематериального вихря на персонаже.", "warn"); return false; }
