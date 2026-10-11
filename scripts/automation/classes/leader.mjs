@@ -11,6 +11,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { leaderClass } from "../shared/selectors.mjs";
+import {encounterForActor, combatTurnSnapshot} from "../shared/combat-flow.mjs";
 import {
   flaggedPassiveEffectData,
   syncFlaggedPassiveEffects
@@ -64,10 +65,10 @@ export async function syncLeaderPassiveEffects(actor) {
   return syncFlaggedPassiveEffects(actor, leaderPassiveSyncs, MODULE_ID, FLAGS.LEADER_PASSIVE, leaderPassiveDefinitions);
 }
 
-export function validateStratagemUse(activity) {
+export function validateStratagemUse(activity, combat = encounterForActor(activityActor(activity))) {
   const item = activityItem(activity);
   const actor = activityActor(activity);
-  if (automationData(item).stratagem !== true || !game.combat?.started) return true;
+  if (automationData(item).stratagem !== true || !combat?.started) return true;
   if (!actor?.getFlag(MODULE_ID, FLAGS.LEADER_STRATAGEM_LOCK)) return true;
   if (actor.getFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED)) return true;
   notify(`${actor.name}: новую стратагему можно использовать в начале следующего хода или через «Проблеск гения».`, "warn");
@@ -78,7 +79,7 @@ function frontlineCommanderEffect(actor) {
   return actor?.effects?.find(effect => effect.getFlag(MODULE_ID, FLAGS.FRONTLINE_EFFECT));
 }
 
-async function applyFrontlineCommander(actor) {
+async function applyFrontlineCommander(actor, snapshot) {
   if (!hasFeature(actor, "frontline-commander") || !actor.isOwner) return;
   const movement = actor.system.attributes?.movement ?? {};
   const changes = ["walk", "burrow", "climb", "fly", "swim"]
@@ -93,7 +94,7 @@ async function applyFrontlineCommander(actor) {
   if (!changes.length) return;
 
   const current = frontlineCommanderEffect(actor);
-  const usedDuringOwnTurn = game.combat?.combatant?.actor?.uuid === actor.uuid;
+  const usedDuringOwnTurn = snapshot?.current.actor?.uuid === actor.uuid;
   if (current) {
     await current.update({
       "system.changes": changes,
@@ -122,7 +123,7 @@ async function applyFrontlineCommander(actor) {
   }]);
 }
 
-export async function handleStratagemUse(activity) {
+export async function handleStratagemUse(activity, {combat = encounterForActor(activityActor(activity)), snapshot = combat && combatTurnSnapshot(combat)} = {}) {
   if (!enabled()) return;
   const item = activityItem(activity);
   const actor = activityActor(activity);
@@ -131,15 +132,15 @@ export async function handleStratagemUse(activity) {
   if (actor.getFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED)) {
     await actor.unsetFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED);
     notify(`${actor.name}: стратагема применена через «Проблеск гения».`);
-  } else if (game.combat?.started) {
+  } else if (combat?.started) {
     await actor.setFlag(MODULE_ID, FLAGS.LEADER_STRATAGEM_LOCK, {
-      combat: game.combat.id,
-      round: game.combat.round,
-      turn: game.combat.turn
+      combat: snapshot.id,
+      round: snapshot.current.round,
+      turn: snapshot.current.turn
     });
   }
 
-  await applyFrontlineCommander(actor);
+  await applyFrontlineCommander(actor, snapshot);
 }
 
 export async function beginLeaderTurn(actor) {

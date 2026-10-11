@@ -2,6 +2,7 @@ import { FLAGS, MODULE_ID, SETTINGS } from "./constants.mjs";
 import { automationActors, isEffectActive, isExpiredTemporaryEffect } from "../effects/temporary-effects.mjs";
 import { feetToSceneUnits, tokenSceneDistance } from "./spatial.mjs";
 import { installAuraEventHooks } from "./aura-events.mjs";
+import {combatTurnSnapshot, combatantToken} from "./combat-flow.mjs";
 import { AURA_DEFINITIONS, auraFeature } from "./aura-definitions.mjs";
 import { auraKey, auraIndicatorData, reconcileAuraIndicators, tokensInAuraTemplate } from "./aura-templates.mjs";
 import {
@@ -340,7 +341,13 @@ export function scheduleAuraSync(document) {
       const scene = game.scenes?.get?.(id) ?? [...(game.scenes ?? [])].find(scene => scene.id === id);
       if (scene) scheduledAuraScenes.set(id, scene);
     }
-    for (const combat of game.combats ?? []) if (combat.started && combat.scene) scheduledAuraScenes.set(combat.scene.id, combat.scene);
+    for (const combat of game.combats ?? []) if (combat.started) {
+      if (combat.scene) scheduledAuraScenes.set(combat.scene.id, combat.scene);
+      for (const participant of combat.combatants ?? combat.turns ?? []) {
+        const scene = combatantToken(combat, participant)?.parent;
+        if (scene) scheduledAuraScenes.set(scene.id, scene);
+      }
+    }
   }
   if (auraSyncTimeout) window.clearTimeout(auraSyncTimeout);
   auraSyncTimeout = window.setTimeout(() => {
@@ -380,7 +387,8 @@ export function installAuraHooks() {
     if (setting.key === `${MODULE_ID}.${SETTINGS.AUTOMATION}`) scheduleAuraSync();
   });
   Hooks.on("updateCombat", (combat, changes) => {
-    scheduleAuraSync(combat.scene);
+    const snapshot = combatTurnSnapshot(combat);
+    for (const scene of new Set([combat.scene, snapshot.current.scene, snapshot.previous.scene].filter(Boolean))) scheduleAuraSync(scene);
   });
   Hooks.on("deleteCombat", () => {
     scheduleAuraSync();

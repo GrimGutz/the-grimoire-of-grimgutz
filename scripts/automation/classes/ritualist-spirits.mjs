@@ -60,7 +60,7 @@ registerGmRequest("ritualist-sorrow-outcomes", async (actor, data) => {
     const target = await fromUuid(uuid); if (target?.parent?.id !== source?.parent?.id || target.actor.system.traits?.ci?.value?.has?.(data.status)) continue;
     await runAutomationEvent({id: `ritual-sorrow:${data.workflowId}:${uuid}`, kind: "ritualist-sorrow", sceneId: target.parent.id, sourceActorUuid: actor.uuid}, async () => {
       await target.actor.createEmbeddedDocuments("ActiveEffect", [{name: "Скорбная песня", type: "base", origin: activity.item.uuid, transfer: false, disabled: false,
-        statuses: [data.status], ...temporaryEffectTiming({rounds: Math.max(1, rules.wisMod), expiry: "turnEnd"}),
+        statuses: [data.status], ...temporaryEffectTiming({rounds: Math.max(1, rules.wisMod), expiry: "turnEnd", actor: target.actor}),
         flags: {[MODULE_ID]: {repeatSave: {ability: "con", dc: rules.dc, sourceItemUuid: activity.item.uuid, event: "turnEnd"}}, dae: {expiryMode: "delete"}}, system: {changes: []}}]); return true;
     });
   } return true;

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import {test} from "node:test";
-import {MODULE_ID} from "../scripts/automation/shared/constants.mjs";
+import {MODULE_ID, FLAGS} from "../scripts/automation/shared/constants.mjs";
 import {combatTurnSnapshot, encounterForScene} from "../scripts/automation/shared/combat-flow.mjs";
 import {cleanupCombatBenefits} from "../scripts/automation/shared/combat-benefits.mjs";
 import {registerGmRequest, requestGm} from "../scripts/automation/shared/gm-requests.mjs";
+import {validateStratagemUse, handleStratagemUse} from "../scripts/automation/classes/leader.mjs";
 test("scene-unlinked encounters preserve participant identity and immutable turn numbers", () => {
   const scene = {id: "one"}, token = {uuid: "Scene.one.Token.a", id: "a", parent: scene};
   const combat = {id: "c", started: true, scene: null, round: 2, turn: 1, combatant: {token},
@@ -34,4 +35,24 @@ test("boolean GM results are explicit cancellations, not truthy empty receipts",
   globalThis.game = {user: {isGM: true, id: "gm"}};
   registerGmRequest("boolean-test", async () => false);
   assert.equal((await requestGm("boolean-test", {uuid: "Actor.a"}, {}, {requestId: "cancel"})).status, "cancelled");
+});
+
+test("leader stratagem lock uses the actor's encounter, not the GM's selected combat", () => {
+  const actor = {uuid: "Actor.leader", getFlag: (_m, key) => key === FLAGS.LEADER_STRATAGEM_LOCK};
+  globalThis.game = {combat: {started: false}, combats: [{id: "actual", started: true, scene: null, turns: [{actor}]}]};
+  globalThis.ui = {notifications: {warn() {}}};
+  assert.equal(validateStratagemUse({actor, item: {flags: {[MODULE_ID]: {stratagem: true}}}}), false);
+});
+
+test("leader state and frontline speed retain their original turn across document awaits", async () => {
+  const flags = {}; let created;
+  const actor = {uuid: "Actor.leader", isOwner: true, effects: [], items: [{type: "feat", system: {identifier: "frontline-commander"}}],
+    system: {attributes: {movement: {walk: 30}}}, getFlag: (_m, key) => flags[key],
+    async setFlag(_m, key, value) {flags[key] = value; combat.round = 99; combat.combatant = {actor: {uuid: "other"}};},
+    async createEmbeddedDocuments(_type, rows) {created = rows[0]; return rows;}};
+  const combat = {id: "actual", started: true, scene: null, round: 1, turn: 0, combatant: {actor}, turns: [{actor}]};
+  globalThis.game = {user: {isGM: true}, users: [], settings: {get: () => true}, combat: {started: false}, combats: [combat]};
+  await handleStratagemUse({actor, item: {flags: {[MODULE_ID]: {stratagem: true}}}});
+  assert.deepEqual(flags[FLAGS.LEADER_STRATAGEM_LOCK], {combat: "actual", round: 1, turn: 0});
+  assert.equal(created.flags[MODULE_ID][FLAGS.FRONTLINE_EFFECT].skipCurrentTurnEnd, true);
 });

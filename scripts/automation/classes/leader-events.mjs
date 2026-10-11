@@ -246,10 +246,10 @@ export function installLeaderEventHooks() {
   });
   Hooks.on("updateCombat", (combat, changes) => {
     if (!isGmAuthority() || !enabled() || !isForwardTurn(combat, changes)) return;
-    const actor = combat.combatant?.actor;
+    const actor = combat.combatant?.actor, scene = combat.combatant?.token?.parent ?? combat.scene;
     for (const effect of activeBenefits(actor).filter(effect => benefitData(effect).kind === "start-disengage")) {
       void (async () => { if (canReact(actor) && await confirmOwner(actor, effect.name, "Использовать реакцию для Отхода?")) {
-        await MidiQOL.setReactionUsed(actor); await recordModuleReaction(actor, combat.combatant?.token?.parent ?? combat.scene);
+        await MidiQOL.setReactionUsed(actor); await recordModuleReaction(actor, scene);
         await effect.setFlag(MODULE_ID, "combatBenefit", { ...benefitData(effect), kind: "disengage", movementProtection: true }); }
       })().catch(error => console.error(`${MODULE_ID} | Disengage benefit failed`, error));
     }

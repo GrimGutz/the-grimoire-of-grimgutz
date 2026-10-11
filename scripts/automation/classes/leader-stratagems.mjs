@@ -12,7 +12,7 @@ import { dispatchAutomationPulse } from "../midi/aura-workflow.mjs";
 import { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs";
 import { isAuraIncapacitated } from "../shared/aura-conditions.mjs";
 import {leaderReceipt, leaderReceiptData} from "../shared/leader-receipts.mjs";
-import { encounterForScene } from "../shared/combat-flow.mjs";
+import { encounterForScene, combatTurnSnapshot } from "../shared/combat-flow.mjs";
 
 export const STRATAGEM_RULES = Object.freeze({
   "stratagem-cunning-ruse": "contest", "stratagem-battle-cry": "battle-cry", "stratagem-command-caution": "caution",
@@ -57,7 +57,7 @@ async function skillRoll(actor, skill, bonus = 0, advantage = false, disadvantag
 async function applyStratagem(actor, data) {
   const activity = await fromUuid(data.activityUuid), source = await fromUuid(data.sourceTokenUuid), item = activity?.item;
   if (!item || activity.actor?.uuid !== actor.uuid || source?.actor?.uuid !== actor.uuid || !leaderLevel(actor)
-    || !STRATAGEM_RULES[itemIdentifier(item)] || !validateStratagemUse(activity)) throw Error("Стратагема недоступна.");
+    || !STRATAGEM_RULES[itemIdentifier(item)] || !validateStratagemUse(activity, encounterForScene(source.parent, source))) throw Error("Стратагема недоступна.");
   const scene = source.parent, level = leaderLevel(actor), prof = Number(actor.system.attributes.prof), rule = STRATAGEM_RULES[itemIdentifier(item)];
   if (isAuraIncapacitated(actor) || (activity.activation?.type === "reaction" && !canReact(actor))) return false;
   const combat = encounterForScene(scene, source);
@@ -124,11 +124,12 @@ async function applyStratagem(actor, data) {
   const preparedAttack = rule === "strike" ? await prepareReactionAttack(selected[0], victim, {name: item.name}) : null;
   if (rule === "strike" && !preparedAttack) return false;
   const eligibleAllies = [...scene.tokens].filter(allies);
+  const snapshot = combat && combatTurnSnapshot(combat);
   const native = await useNativeUtility(activity);
   if (native === false || native?.aborted) return false;
-  await handleStratagemUse(activity);
   if (native === undefined) return { status: "needs-review" };
   if (!isGmAuthority()) return {status: "needs-review"};
+  await handleStratagemUse(activity, {combat, snapshot});
   if (activity.activation?.type === "reaction") await recordModuleReaction(actor, scene);
   if (["wolf", "retreat"].includes(rule)) { await globalThis.MidiQOL?.setReactionUsed?.(selected[0].actor); await recordModuleReaction(selected[0].actor, scene); }
   const commandId = native.id ?? foundry.utils.randomID();

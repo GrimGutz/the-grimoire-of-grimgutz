@@ -8,6 +8,7 @@ import {
   prepareModuleTemporaryEffectExpiry,
   temporaryEffectTiming
 } from "../scripts/automation/effects/temporary-effects.mjs";
+import {combatTurnSnapshot} from "../scripts/automation/shared/combat-flow.mjs";
 
 function setProperty(object, path, value) {
   const keys = path.split(".");
@@ -144,4 +145,25 @@ test("cleanup respects a turn-end event and only writes on the active GM", async
   game.users.activeGM.isSelf = false;
   await deleteExpiredModuleTemporaryEffects("turnEnd");
   assert.equal(calls, 1);
+});
+
+test("new effect timing selects an actor's scene-unlinked encounter instead of another battle", () => {
+  const actor = {uuid: "Actor.one"};
+  const own = {id: "own", started: true, turns: [{actor}]};
+  game.combat = {id: "other", started: true, turns: []}; game.combats = [own];
+  CONFIG.ActiveEffect.documentClass.getEffectStart = combat => ({combat: combat?.id ?? null});
+  assert.equal(temporaryEffectTiming({rounds: 1, actor}).start.combat, "own");
+});
+
+test("queued turn expiry uses the frozen ending participant and round after combat advances", async () => {
+  const actor = {uuid: "Actor.one"}, currentActor = {uuid: "Actor.two"};
+  const combat = {id: "own", started: true, round: 3, turn: 1, previous: {round: 3, turn: 0}, turns: [{actor}], combatant: {actor: currentActor}};
+  const turnSnapshot = combatTurnSnapshot(combat);
+  const doc = effect({value: 0, units: "turns", expiry: "turnEnd"}); doc.parent = actor;
+  let durationRound, deleted = 0;
+  doc.updateDuration = context => {durationRound = context.round; return {remaining: 0};};
+  actor.effects = [doc]; actor.deleteEmbeddedDocuments = async () => {deleted++;}; game.actors = [actor];
+  combat.round = 9; combat.previous = {round: 9, turn: 2}; combat.combatant = {actor: {uuid: "third"}};
+  await deleteExpiredModuleTemporaryEffects("turnEnd", {combat, turnSnapshot});
+  assert.equal(deleted, 1); assert.equal(durationRound, 3);
 });

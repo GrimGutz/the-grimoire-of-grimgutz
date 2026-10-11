@@ -50,7 +50,7 @@ export async function createWeaponBuff(actor, {
         [FLAGS.WEAPON_BUFF_DATA]: data
       }
     },
-    ...temporaryEffectTiming({ seconds: 60, ...duration }),
+    ...temporaryEffectTiming({ seconds: 60, ...duration, actor }),
     system: { changes }
   };
   const current = replace ? weaponBuffEffect(actor, key) : null;

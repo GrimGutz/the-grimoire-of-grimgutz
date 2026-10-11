@@ -19,10 +19,19 @@ export function combatTurnSnapshot(combat) {
   const prior = combat.combatants?.get?.(previous.combatantId) ?? combat.turns?.[previous.turn];
   const entry = (state, combatant) => {
     const token = combatantToken(combat, combatant);
-    return {...state, token, tokenUuid: token?.uuid ?? null, tokenId: token?.id ?? combatant?.tokenId ?? state.tokenId,
+    return {...state, combatantId: combatant?.id ?? state.combatantId, actor: token?.actor ?? combatant?.actor,
+      token, tokenUuid: token?.uuid ?? null, tokenId: token?.id ?? combatant?.tokenId ?? state.tokenId,
       scene: token?.parent ?? (combatant?.sceneId ? game.scenes?.get?.(combatant.sceneId) : null) ?? combat.scene};
   };
   return {id: combat.id, current: entry({round: combat.round, turn: combat.turn}, combat.combatant), previous: entry(previous, prior)};
+}
+
+export function encounterForActor(actor) {
+  if (!actor?.uuid) return null;
+  const encounters = [...new Set([game.combat, ...(game.combats ?? [])].filter(Boolean))].filter(combat => combat.started
+    && [...(combat.combatants ?? combat.turns ?? [])].some(c => (c.actor ?? combatantToken(combat, c)?.actor)?.uuid === actor?.uuid));
+  // Do not guess between several simultaneous encounters involving this actor.
+  return encounters.length === 1 ? encounters[0] : null;
 }
 
 export function encounterForScene(scene, token = null) {

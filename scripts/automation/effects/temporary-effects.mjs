@@ -1,4 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
+import {combatTurnSnapshot, encounterForActor} from "../shared/combat-flow.mjs";
 
 const TIME_UNITS = new Set(["seconds", "minutes", "hours", "days", "weeks", "months", "years"]);
 let cleanupRunning = null;
@@ -50,11 +51,11 @@ function defaultExpiry(units) {
   return TIME_UNITS.has(units) && elapsedTime ? "updateWorldTime" : "turnStart";
 }
 
-export function temporaryEffectTiming({ seconds = null, rounds = null, turns = null, expiry = null } = {}) {
+export function temporaryEffectTiming({ seconds = null, rounds = null, turns = null, expiry = null, actor = null } = {}) {
   const spec = durationSpec({ seconds, rounds, turns });
   if (!spec) return { duration: { value: null, units: "seconds", expiry: null, expired: false } };
   return {
-    start: CONFIG.ActiveEffect.documentClass.getEffectStart(game.combat?.started ? game.combat : null),
+    start: CONFIG.ActiveEffect.documentClass.getEffectStart(actor ? encounterForActor(actor) : game.combat?.started ? game.combat : null),
     duration: { ...spec, expiry: expiry ?? defaultExpiry(spec.units), expired: false }
   };
 }
@@ -96,17 +97,18 @@ export function prepareModuleTemporaryEffectExpiry(effect, update = null, option
   setField(target, "flags.dae.expiryMode", "delete");
 
   const suppliedStart = (update ?? creationData)?.start;
+  const actor = effect.actor ?? (effect.parent?.documentName === "Actor" ? effect.parent : null);
   const start = suppliedStart ?? (update ? null : sourceData(effect).start)
-    ?? CONFIG.ActiveEffect.documentClass.getEffectStart(game.combat?.started ? game.combat : null);
+    ?? CONFIG.ActiveEffect.documentClass.getEffectStart(actor ? encounterForActor(actor) : game.combat?.started ? game.combat : null);
   for (const [key, value] of Object.entries(start)) setField(target, `start.${key}`, value);
   if (!update) effect.updateSource(target);
 }
 
-export function isExpiredTemporaryEffect(effect, { elapsed = false } = {}) {
+export function isExpiredTemporaryEffect(effect, { elapsed = false, context = undefined } = {}) {
   const raw = sourceData(effect).duration ?? {};
   if (!durationSpec(raw)) return false;
   if (raw.expired === true) return true;
-  const duration = effect.updateDuration?.() ?? effect.duration ?? raw;
+  const duration = effect.updateDuration?.(context) ?? effect.duration ?? raw;
   if (duration.expired === true) return true;
   // A zero-turn effect may remain active until turnEnd/sourceEnd. The native
   // registry or cleanup event, not a damage roll, decides that boundary.
@@ -138,6 +140,16 @@ function expiryEventReached(effect, event, context) {
     return TIME_UNITS.has(raw.units) && (!raw.expiry || ["turnStart", "updateWorldTime"].includes(raw.expiry));
   }
   if (event === "updateWorldTime" && raw.expiry === "updateWorldTime") return true;
+  const snapshot = context?.turnSnapshot;
+  if (snapshot && ["turnEnd", "turnStart"].includes(raw.expiry) && event === raw.expiry) {
+    const start = effect.start ?? sourceData(effect).start ?? {}, combat = context.combat;
+    const startCombatId = start.combat?.id ?? start.combat;
+    const participant = startCombatId === combat.id ? combat.combatants?.get?.(start.combatant)
+      : combat.getCombatantsByActor?.(effect.actor ?? effect.parent)?.[0];
+    const actor = effect.actor ?? effect.parent, entry = event === "turnEnd" ? snapshot.previous : snapshot.current;
+    if (participant) return entry.combatantId ? participant.id === entry.combatantId : participant.turnNumber === entry.turn;
+    return Boolean(actor?.uuid && actor.uuid === entry.actor?.uuid);
+  }
   return effect.isExpiryEvent?.(event, context) ?? (TIME_UNITS.has(raw.units) && event === "updateWorldTime");
 }
 
@@ -146,7 +158,10 @@ async function cleanupPass(event, context) {
     // Only disposable actor-owned module effects. Item passives are never deleted here.
     const ids = [...(actor.effects ?? [])]
       .filter(effect => hasModuleFlag(effect) && effect.transfer !== true
-        && isExpiredTemporaryEffect(effect, { elapsed: true }) && expiryEventReached(effect, event, context))
+        && expiryEventReached(effect, event, context)
+        && isExpiredTemporaryEffect(effect, { elapsed: true, context: context.turnSnapshot ? {
+          round: context.turnSnapshot.current.round, turn: context.turnSnapshot.current.turn
+        } : undefined }))
       .map(effect => effect.id);
     if (!ids.length) continue;
     try {
@@ -161,12 +176,13 @@ async function cleanupPass(event, context) {
 
 export function deleteExpiredModuleTemporaryEffects(event = "ready", context = {}) {
   if (!game.users?.activeGM?.isSelf) return Promise.resolve();
-  cleanupEvents.set(event, context);
+  const key = `${event}:${context.turnSnapshot ? `${context.turnSnapshot.id}:${context.turnSnapshot.current.round}:${context.turnSnapshot.current.turn}` : "global"}`;
+  cleanupEvents.set(key, {event, context});
   if (cleanupRunning) return cleanupRunning;
   cleanupRunning = (async () => {
     while (cleanupEvents.size) {
-      const [nextEvent, nextContext] = cleanupEvents.entries().next().value;
-      cleanupEvents.delete(nextEvent);
+      const [key, {event: nextEvent, context: nextContext}] = cleanupEvents.entries().next().value;
+      cleanupEvents.delete(key);
       await cleanupPass(nextEvent, nextContext);
     }
   })().finally(() => { cleanupRunning = null; });
@@ -186,8 +202,9 @@ export function installTemporaryEffectHooks() {
   Hooks.on("updateWorldTime", () => cleanup("updateWorldTime"));
   Hooks.on("updateCombat", (combat, changes) => {
     if (Object.hasOwn(changes, "turn") || Object.hasOwn(changes, "round")) {
-      cleanup("turnEnd", { combat });
-      cleanup("turnStart", { combat });
+      const turnSnapshot = combatTurnSnapshot(combat);
+      cleanup("turnEnd", { combat, turnSnapshot });
+      cleanup("turnStart", { combat, turnSnapshot });
     }
   });
   // DAE marks source/target and other custom expiry events; do not reset them.
