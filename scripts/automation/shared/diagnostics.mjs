@@ -15,8 +15,10 @@ function effectReport(effect) {
   const reasons = [data.disabled && "disabled", effect.isSuppressed && "suppressed", expired && "expired"].filter(Boolean);
   const snapshot = data.flags?.[MODULE_ID]?.managedPassiveChanges;
   const edited = snapshot && snapshot !== migrationFingerprint(data.system?.changes ?? []);
+  const legacyWeaponScope = ["witch-crystallization", "ethereal-storm"].includes(data.flags?.[MODULE_ID]?.[FLAGS.WEAPON_BUFF_EFFECT])
+    && !data.flags?.[MODULE_ID]?.[FLAGS.WEAPON_BUFF_DATA]?.weaponUuids?.length;
   return { uuid: effect.uuid ?? null, name: effect.name, origin: data.origin ?? null, active: !reasons.length, reasons,
-    warnings: edited ? ["manual-passive-edit"] : [],
+    warnings: [edited && "manual-passive-edit", legacyWeaponScope && "legacy-weapon-scope-missing"].filter(Boolean),
     duration: structuredClone(duration), start: structuredClone(start), expiresAt,
     remainingSeconds: expiresAt === null ? null : Math.max(0, expiresAt - Number(game.time?.worldTime ?? 0)),
     changes: structuredClone(data.system?.changes ?? []), moduleFlags: structuredClone(data.flags?.[MODULE_ID] ?? {}) };

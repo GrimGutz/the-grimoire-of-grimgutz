@@ -20,3 +20,11 @@ test("a chosen weapon buff cannot affect a different weapon", () => {
   config.workflow = {targets: new Set([{actor: {system: {spells: {spell1: {max: 1}}}}}])};
   applyWeaponBuffAttackAutomation(config); assert.equal(config.rolls[0].options.advantage, true);
 });
+
+test("ambiguous legacy crystallizations do not empower all weapons or mutate old effects", () => {
+  const data = {criticalThresholdReduction: 2};
+  assert.equal(weaponBuffApplies(data, {uuid: "weapon"}, "witch-crystallization"), false);
+  assert.equal(weaponBuffApplies({reach: 30}, {uuid: "weapon"}, "ethereal-storm"), false);
+  assert.equal(weaponBuffApplies(data, {uuid: "weapon"}, "other-buff"), true);
+  assert.deepEqual(data, {criticalThresholdReduction: 2});
+});

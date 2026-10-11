@@ -111,7 +111,10 @@ function targetsHaveSpellSlots(targets) {
   return [...(targets ?? [])].some(token => hasSpellSlots(token?.actor));
 }
 
-export function weaponBuffApplies(data, item) {
+export function weaponBuffApplies(data, item, key = "") {
+  // Older versions did not record the selected weapon. Keep the document,
+  // but never guess that such a crystallization/storm empowers every weapon.
+  if (["witch-crystallization", "ethereal-storm"].includes(key) && !data.weaponUuids?.length) return false;
   return !data.weaponUuids || data.weaponUuids.includes(item?.uuid);
 }
 
@@ -132,8 +135,8 @@ export function applyWeaponBuffAttackAutomation(config) {
   const roll = config?.rolls?.[0];
   if (!actor || !isWeaponAttack(activity, item) || !roll) return;
 
-  for (const { data } of activeWeaponBuffs(actor)) {
-    if (!weaponBuffApplies(data, item)) continue;
+  for (const { key, data } of activeWeaponBuffs(actor)) {
+    if (!weaponBuffApplies(data, item, key)) continue;
     if (data.advantageAgainstSpellcasters && config.workflow?.targets?.size === 1 && targetsHaveSpellSlots(config.workflow.targets)) {
       roll.options ??= {};
       roll.options.advantage = true;
@@ -153,8 +156,8 @@ export function applyWeaponBuffDamageAutomation(config) {
   const roll = config?.rolls?.[0];
   if (!actor || !isWeaponAttack(activity, item) || !roll) return;
 
-  for (const { data } of activeWeaponBuffs(actor)) {
-    if (!weaponBuffApplies(data, item)) continue;
+  for (const { key, data } of activeWeaponBuffs(actor)) {
+    if (!weaponBuffApplies(data, item, key)) continue;
     if (data.damageBonus) appendRollPart(roll, data.damageBonus);
   }
 }
@@ -167,7 +170,7 @@ export function applyMidiWeaponBuffAttackAutomation(workflow) {
 
   const hasSpellcasterTarget = workflow.targets?.size === 1 && targetsHaveSpellSlots(workflow.targets);
   for (const { key, data } of buffs) {
-    if (!weaponBuffApplies(data, workflow.item)) continue;
+    if (!weaponBuffApplies(data, workflow.item, key)) continue;
     if (data.advantageAgainstSpellcasters && hasSpellcasterTarget) {
       workflow.attackRollModifierTracker?.advantage?.add?.(
         `${MODULE_ID}.${key}.spellcaster`,
@@ -181,7 +184,7 @@ export function applyWeaponBuffReach(activity) {
   if (!enabled() || !isMeleeWeaponAttack(activity, activity?.item)) return;
   // Native activity hooks receive ephemeral Item clones, never edit owned data.
   if (activity.item === activity.actor?.items?.get?.(activity.item.id)) return;
-  const reach = Math.max(0, ...activeWeaponBuffs(activity.actor).filter(({data}) => weaponBuffApplies(data, activity.item)).map(({data}) => Number(data.reach) || 0));
+  const reach = Math.max(0, ...activeWeaponBuffs(activity.actor).filter(({key, data}) => weaponBuffApplies(data, activity.item, key)).map(({data}) => Number(data.reach) || 0));
   if (reach) activity.updateSource?.({"range.value": reach, "range.units": "ft", "range.override": true});
 }
 
