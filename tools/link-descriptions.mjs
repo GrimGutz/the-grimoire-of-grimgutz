@@ -349,6 +349,10 @@ function buildTargets(packs) {
       targets.push({
         uuid: internalUuid(pack.name, document),
         documentId: document._id,
+        // Short technique names such as "Натиск"/"Стойкость" also occur as
+        // ordinary words or unrelated rules. Outside this class require an
+        // explicit authored UUID instead of inventing a cross-class reference.
+        scope: document.flags?.[MODULE_ID]?.flagellantFeature ? "flagellant" : null,
         aliases: [document.name, ...(INTERNAL_ALIASES[identifier] ?? [])]
       });
     }
@@ -413,7 +417,9 @@ export function linkDocumentDescriptions(packs) {
     for (const document of pack.documents) {
       const current = document.system?.description?.value;
       if (!current) continue;
-      const linked = linkHtml(current, targets, document._id);
+      const ownFlagellant = document.flags?.[MODULE_ID]?.flagellantFeature || document.flags?.[MODULE_ID]?.prestigeClass === "flagellant";
+      const scopedTargets = ownFlagellant ? targets : targets.filter(target => target.scope !== "flagellant");
+      const linked = linkHtml(current, scopedTargets, document._id);
       linksAdded += (linked.match(/@UUID\[/g)?.length ?? 0) - (current.match(/@UUID\[/g)?.length ?? 0);
       document.system.description.value = linked;
     }

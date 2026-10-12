@@ -13,6 +13,7 @@ import {installFlagellantHooks,seedFlagellantTracking,recordFlagellantHpLoss,obs
 import {requestGm,receiveGmRequest} from "../scripts/automation/shared/gm-requests.mjs";
 import {benefitData,turnKey,cleanupCombatBenefits} from "../scripts/automation/shared/combat-benefits.mjs";
 import {emitConfirmedDamage} from "../scripts/automation/shared/damage-events.mjs";
+import {linkDocumentDescriptions} from "../tools/link-descriptions.mjs";
 
 let actor,source,target,docs,answers,dice,prompts,messages,nativeCalls,hooks,seq,journal;
 function patch(base,changes){const out=structuredClone(base);for(const [key,value]of Object.entries(changes)){
@@ -231,4 +232,8 @@ test("all hooks are actually registered and manual/disabled mechanics are preser
   installFlagellantHooks();for(const name of ["midi-qol.preTargetingV2","midi-qol.preTargetSave","dnd5e.restCompleted","updateActor","updateToken","updateCombat","deleteActiveEffect"])assert.ok(hooks.get(name)?.every(fn=>typeof fn==="function"),name);
   const data=flagellantExpense(activity("force"),{use:true});assert.equal(data.activation.type,"special");assert.equal(data.consumption.targets[0].value,"1");
   game.settings.get=()=>false;await syncFlagellant(actor);assert.equal(actor.effects.length,0);
+});
+test("short Flagellant technique names never turn unrelated class text into false cross-class links",()=>{
+  const body="<p>Натиск, Стойкость, Исступление.</p>",old={_id:"unrelated",system:{description:{value:body}}},own={_id:"own",flags:{[MODULE_ID]:{flagellantFeature:true}},system:{description:{value:body}}};
+  linkDocumentDescriptions([{name:"features",documents:[...structuredClone(flagellantDocuments),old,own]}]);assert.equal(old.system.description.value,body);assert.ok(own.system.description.value.includes("@UUID["));
 });
