@@ -67,7 +67,7 @@ export async function cleanupZoneTemplates() {
     try {
       const expired = flags.zoneExpiresAt != null && Number(flags.zoneExpiresAt) <= Number(game.time?.worldTime ?? 0);
       const concentrationLost = flags.zoneConcentrationEffect && !isEffectActive(await fromUuid(flags.zoneConcentrationEffect));
-      const sourceToken = flags.periodicZone?.sourceTokenUuid ?? flags.protectiveZone?.sourceTokenUuid;
+      const sourceToken = flags.periodicZone?.sourceTokenUuid ?? flags.protectiveZone?.sourceTokenUuid ?? flags.hunterZone?.sourceTokenUuid;
       const sourceLost = (flags.sourceActor && !await fromUuid(flags.sourceActor)) || (sourceToken && !await fromUuid(sourceToken));
       if (expired || concentrationLost || sourceLost) await template.delete();
     } catch (error) { console.error(`${MODULE_ID} | Zone cleanup failed for ${template.uuid}`, error); }

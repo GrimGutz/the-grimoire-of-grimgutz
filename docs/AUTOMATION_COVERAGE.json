@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 258,
-    "partial": 288,
+    "automatic": 259,
+    "partial": 338,
     "manual": 90,
-    "review": 360
+    "review": 362
   },
   "records": [
     {
@@ -427,6 +427,20 @@
         "tests/progression.test.mjs"
       ],
       "note": " Advancement выдаёт особенности и выбор 2/3/4/6/7 известных техник, плюс один необязательный обмен при повышении уровня. Путь — стандартный подкласс. Настройте его через карточку Пути совершенства. Полное описание каждой"
+    },
+    {
+      "pack": "classes",
+      "id": "eb9ae29e45417519",
+      "name": "Охотник за головами / Bounty Hunter",
+      "key": "bounty-hunter",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " Advancement выдаёт особенности на уровнях 1–5. Настройте неизменяемую Характеристику охоты на карточке Добычи трофеев. Перетащите добытые трофеи из библиотеки, подтвердите их источник и наличие, затем выберите по одному"
     },
     {
       "pack": "subclasses",
@@ -6250,6 +6264,726 @@
         "tests/registrations.test.mjs"
       ],
       "note": " Кнопка совершает подходящую дополнительную атаку избранным оружием через Midi-QOL после подтверждения исходного события. Линия, смерть первоначальной цели и предел трёх атак подтверждаются. @UUID[Compendium.the-grimoire"
+    },
+    {
+      "pack": "features",
+      "id": "39a0f49ed18beb1d",
+      "name": "Добыча трофеев",
+      "key": "hunter-trophies",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопки настраивают неизменяемую Характеристику охоты и первоначальные выбранные трофеи. Источник/наличие подтверждаются GM на каждой карточке трофея. Запас общий: 4/7/10/13/16, пассивы уменьшают максимум на 2/3/4; смена"
+    },
+    {
+      "pack": "features",
+      "id": "ae864e6f676494db",
+      "name": "Одноразовые трофеи",
+      "key": "hunter-disposable",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "d8cd155692369e6a",
+      "name": "Разбор",
+      "key": "hunter-breakdown",
+      "status": "partial",
+      "entries": [
+        "runtime:classes/bounty-hunter-combat"
+      ],
+      "checks": [
+        "tests/bounty-hunter.test.mjs"
+      ],
+      "note": " При попадании оружием по одинокой враждебной цели предлагается одна брешь раз за ход: дополнительная кость типа оружия, скорость −10 до начала следующего хода либо реакции только против охотника. Счётчик отдельный от Ко"
+    },
+    {
+      "pack": "features",
+      "id": "352500165c14bc5c",
+      "name": "Гон добычи",
+      "key": "hunter-pursuit",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a95be894b59914c7",
+      "name": "Один на один",
+      "key": "hunter-duel",
+      "status": "partial",
+      "entries": [
+        "runtime:classes/bounty-hunter-combat"
+      ],
+      "checks": [
+        "tests/bounty-hunter.test.mjs"
+      ],
+      "note": " При отсутствии дееспособных союзников охотника в 10 футах +1к4 к атакам только по одинокой цели. −1к4 только её спасброскам против конкретного источника-охотника в Midi-QOL. Другие цели и спасброски не ослабляются. Нейт"
+    },
+    {
+      "pack": "features",
+      "id": "36dc9dde5e91241f",
+      "name": "Средний трофей",
+      "key": "hunter-medium",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "a13859ee7708eb7a",
+      "name": "Комбинация",
+      "key": "hunter-combination",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Подготовьте условный удар до атаки в этот же собственный ход, подтвердив прямолинейный разбег/успешный толчок. Подрезать требует попадания ближним оружием и спасброска Силы: при провале скорость 0 до начала следующего х"
+    },
+    {
+      "pack": "features",
+      "id": "8fa11c94fb8f3046",
+      "name": "Увеличение характеристик",
+      "key": "hunter-ability-improvement",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "b5b591b4ec6e226f",
+      "name": "Великий трофей",
+      "key": "hunter-major",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "92be3bb4c6d5a758",
+      "name": "Разжигание охоты",
+      "key": "hunter-rekindle",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/bounty-hunter-events"
+      ],
+      "checks": [
+        "tests/bounty-hunter.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "f74d9d42f6c41b59",
+      "name": "Малый трофей аберрации",
+      "key": "hunter-aberration-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "988f732f309d9417",
+      "name": "Средний трофей аберрации",
+      "key": "hunter-aberration-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Подтвердите провал спасброска Интеллекта/Мудрости/Харизмы; штатный расход общего запаса. Перебросок конкретного уже завершённого спасброска и добавление 1к4 выполняются вручную по исходным условиям, новый результат обяз"
+    },
+    {
+      "pack": "features",
+      "id": "6c6fec68050e7efc",
+      "name": "Великий трофей аберрации",
+      "key": "hunter-aberration-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выбор до бонуса мастерства видимых целей в 30 футах; штатный Midi-QOL спасбросок Мудрости и 8к8 психического урона (половина при успехе). Провал запрещает реакции до конца следующего хода источника. Трофей действует/дос"
+    },
+    {
+      "pack": "features",
+      "id": "3ea2edb50f6baa17",
+      "name": "Малый трофей зверя",
+      "key": "hunter-beast-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Бонусное действие и стоимость учитываются штатно; подтвердите движение до скорости. Перемещение остаётся под управлением игрока, не телепортирует токен автоматически. Защита от атак возможности относится только к этому "
+    },
+    {
+      "pack": "features",
+      "id": "794cb6fd5b8f1a89",
+      "name": "Средний трофей зверя",
+      "key": "hunter-beast-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "3ad5a9e31c968775",
+      "name": "Великий трофей зверя",
+      "key": "hunter-beast-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Предлагается после попадания оружием с подтверждённым прямолинейным разбегом 20 футов: раз за ход 8к6 типа оружия, для цели не больше Огромной — спасбросок Силы от падения ничком. Расход — только после согласия. Трофей "
+    },
+    {
+      "pack": "features",
+      "id": "0aba16a4207cb9ec",
+      "name": "Малый трофей небожителя",
+      "key": "hunter-celestial-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Нативное лечение 2к8 + модификатор Характеристики охоты выбранной цели в 5 футах, бонусным действием. Использования общего запаса расходуются только после выбора/согласия. Трофей действует/доступен только при подтверждё"
+    },
+    {
+      "pack": "features",
+      "id": "0abea424d617a426",
+      "name": "Средний трофей небожителя",
+      "key": "hunter-celestial-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выбор видимой цели в 30 футах и до двух перечисленных состояний; снимаются соответствующие эффекты, остальные не трогаются. Бонусное действие и общий ресурс учитываются штатно после выбора. Трофей действует/доступен тол"
+    },
+    {
+      "pack": "features",
+      "id": "835256871008465b",
+      "name": "Великий трофей небожителя",
+      "key": "hunter-celestial-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " После подтверждения угрозы 0 хитов, отсутствия мгновенной смерти и дистанции учитываются реакция/стоимость. Превентивная замена итогового урона, оставление 1 хита и временные хиты 3к8+бонус мастерства проверяются GM до "
+    },
+    {
+      "pack": "features",
+      "id": "5196ccb2d17de633",
+      "name": "Малый трофей конструкта",
+      "key": "hunter-construct-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "d81a9acb1ee414e7",
+      "name": "Средний трофей конструкта",
+      "key": "hunter-construct-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Подтвердите получение урона именно от атаки; штатные реакция и стоимость. 3к10+бонус мастерства вычитаются из конкретного ещё не применённого пакета вручную, без широкого постоянного сопротивления/повторного уменьшения."
+    },
+    {
+      "pack": "features",
+      "id": "960c894d72a84bfe",
+      "name": "Великий трофей конструкта",
+      "key": "hunter-construct-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Минутный эффект хранит доступность дополнительной атаки. В свой ход после промаха кнопка предлагает одну нативную атаку с преимуществом тем же оружием по той же цели; отдельный счётчик раз за ход. Повторная атака не акт"
+    },
+    {
+      "pack": "features",
+      "id": "775aba4833fc223d",
+      "name": "Малый трофей дракона",
+      "key": "hunter-dragon-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выбор противников в 30 футах и подтверждение зрения/слуха; штатный спасбросок Мудрости, испуг на минуту и повторный спасбросок в конце хода. Иммунитет к испугу сохраняется. Трофей действует/доступен только при подтвержд"
+    },
+    {
+      "pack": "features",
+      "id": "f54f0aae8c1157f5",
+      "name": "Средний трофей дракона",
+      "key": "hunter-dragon-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выбор конуса 30 футов или линии 60×5 футов и подтверждение замены одной атаки действия Атака. Шаблон размещается до расхода; цели определяются автоматически, спасбросок Ловкости и 6к6 выбранной стихии с половиной при ус"
+    },
+    {
+      "pack": "features",
+      "id": "44ef1ff232086c27",
+      "name": "Великий трофей дракона",
+      "key": "hunter-dragon-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "c9dcb0237164c170",
+      "name": "Малый трофей элементаля",
+      "key": "hunter-elemental-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "6a0d8ee1fa351fe8",
+      "name": "Средний трофей элементаля",
+      "key": "hunter-elemental-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Постоянные применимые параметры — настоящие эффекты. Дополнительный урон предлагается на подходящее попадание в свой ход, с отдельным счётчиком раз за ход; пассив не расходует ресурс, но уменьшает его максимум. Условие "
+    },
+    {
+      "pack": "features",
+      "id": "6ea0566f2e74d809",
+      "name": "Великий трофей элементаля",
+      "key": "hunter-elemental-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Размещаемая область радиусом 20 футов в 60 футах на минуту, без придуманной концентрации. Труднопроходимость отмечается на области; спасбросок Ловкости и 4к8 стихии при первом входе за ход либо в начале хода, не чаще ра"
+    },
+    {
+      "pack": "features",
+      "id": "4cdfa288f0cdea2f",
+      "name": "Малый трофей феи",
+      "key": "hunter-fey-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "59189200ba94e6ce",
+      "name": "Средний трофей феи",
+      "key": "hunter-fey-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Подтвердите видимое свободное место и согласного спутника подходящего размера в 5 футах; учитываются бонусное действие/стоимость. Токены перемещаются вручную с соблюдением 120 футов и пространства, без автоматического п"
+    },
+    {
+      "pack": "features",
+      "id": "7c5a350b35e2008f",
+      "name": "Великий трофей феи",
+      "key": "hunter-fey-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " До бонуса мастерства видимых целей в 60 футах; спасбросок Мудрости, сон на минуту, повторные спасброски и пробуждение при подтверждённом уроне. Иммунитет к очарованию учитывается, неизвестный иммунитет к магическому сну"
+    },
+    {
+      "pack": "features",
+      "id": "e129fc3e448a9b98",
+      "name": "Малый трофей исчадия",
+      "key": "hunter-fiend-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Предлагается при попадании оружием: 3к6 огня с расходом общего ресурса. Бонус принадлежит конкретной атаке/цели, не всем следующим попаданиям. Трофей действует/доступен только при подтверждённом физическом источнике, вы"
+    },
+    {
+      "pack": "features",
+      "id": "d56b5022a78242e6",
+      "name": "Средний трофей исчадия",
+      "key": "hunter-fiend-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " После подтверждённого снижения враждебной цели до 0 хитов кнопка даёт нативные временные хиты 4к8+модификатор охоты и учитывает стоимость. Перемещение до 20 футов без атак возможности остаётся ручным. Трофей действует/д"
+    },
+    {
+      "pack": "features",
+      "id": "59b0ffec24331522",
+      "name": "Великий трофей исчадия",
+      "key": "hunter-fiend-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Видимая цель в 60 футах: спасбросок Харизмы, опутывание на минуту и повторные спасброски. Запрет телепортации/планарного перемещения подтверждает GM; глобальной блокировки любых перемещений нет. Трофей действует/доступе"
+    },
+    {
+      "pack": "features",
+      "id": "b44202f3ab70d86e",
+      "name": "Малый трофей великана",
+      "key": "hunter-giant-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Подтвердите конкретный эффект толчка, притягивания или падения ничком; учитываются реакция и стоимость. Последствия отменяет GM в этом применении, а не глобально запрещает движение токена. Трофей действует/доступен толь"
+    },
+    {
+      "pack": "features",
+      "id": "8092915e0e5fbab6",
+      "name": "Средний трофей великана",
+      "key": "hunter-giant-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "22f19fd919e872ff",
+      "name": "Великий трофей великана",
+      "key": "hunter-giant-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Предлагается при попадании оружием: 6к8 дробящего урона, спасбросок Силы и падение ничком при провале. Толчок до 20 футов выполняется вручную; стоимость учитывается один раз. Трофей действует/доступен только при подтвер"
+    },
+    {
+      "pack": "features",
+      "id": "53b0c68ae04b36d7",
+      "name": "Малый трофей гуманоида",
+      "key": "hunter-humanoid-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "953e55344279df30",
+      "name": "Средний трофей гуманоида",
+      "key": "hunter-humanoid-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Подтвердите видимое существо в 30 футах и бросок к20 до объявления результата; учитываются реакция и стоимость. ±1к8 к конкретному броску применяется вручную, без постоянного бонуса ко всем последующим броскам. Трофей д"
+    },
+    {
+      "pack": "features",
+      "id": "fee0f5ce8f7ee231",
+      "name": "Великий трофей гуманоида",
+      "key": "hunter-humanoid-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выберите видимого врага в 60 футах и до двух союзников в 30 футах, подтвердив зрение/слух. Союзникам предлагаются нативные атаки оружием с расходом их реакции, только после их согласия; общий запас и бонусное действие и"
+    },
+    {
+      "pack": "features",
+      "id": "784a5250e87ad4fc",
+      "name": "Малый трофей чудовища",
+      "key": "hunter-monstrosity-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "a628a21f10f31496",
+      "name": "Средний трофей чудовища",
+      "key": "hunter-monstrosity-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка после попадания учитывает стоимость, предлагает нативную подходящую проверку с преимуществом и Характеристикой охоты. Допустимый размер, конкурирующая проверка/правила захвата и итог толчка/захвата подтверждаются"
+    },
+    {
+      "pack": "features",
+      "id": "28b6277ca6c05a20",
+      "name": "Великий трофей чудовища",
+      "key": "hunter-monstrosity-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Постоянные применимые параметры — настоящие эффекты. Дополнительный урон предлагается на подходящее попадание в свой ход, с отдельным счётчиком раз за ход; пассив не расходует ресурс, но уменьшает его максимум. Условие "
+    },
+    {
+      "pack": "features",
+      "id": "35a11f23c2418fdb",
+      "name": "Малый трофей слизи",
+      "key": "hunter-ooze-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Снимает свой захват после подтверждения причины, учитывает бонусное действие/стоимость. Перемещение до 15 футов и отсутствие атак возможности подтверждаются игроком, а не выдаются как защита на весь ход. Трофей действуе"
+    },
+    {
+      "pack": "features",
+      "id": "b192cbbfde837e70",
+      "name": "Средний трофей слизи",
+      "key": "hunter-ooze-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Подтвердите попадание по вам именно атакой ближнего боя; нативный урон 4к10 кислоты выбранному нападающему, реакция/стоимость учитываются штатно. Это не аура, не периодический урон и не ответ на любую потерю хитов. Троф"
+    },
+    {
+      "pack": "features",
+      "id": "b62042422ce832ec",
+      "name": "Великий трофей слизи",
+      "key": "hunter-ooze-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "9983a9d30f7491f9",
+      "name": "Малый трофей растения",
+      "key": "hunter-plant-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "0827b9bdf41cd7d3",
+      "name": "Средний трофей растения",
+      "key": "hunter-plant-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Размещаемая область радиусом 20 футов в 60 футах на минуту, труднопроходимость. Выберите поражаемых существ внутри: спасбросок Силы, опутывание, повторные спасброски в конце хода; выход снимает только опутывание этого и"
+    },
+    {
+      "pack": "features",
+      "id": "c11701acc9dc007c",
+      "name": "Великий трофей растения",
+      "key": "hunter-plant-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Минутный эффект регенерации: в начале собственного хода +бонус мастерства+2 хитов, только при хп>0 и отсутствии подтверждённого огненного урона с начала предыдущего хода. Обработчик не лечит при движении и не повторяет "
+    },
+    {
+      "pack": "features",
+      "id": "f96fea358d928f51",
+      "name": "Малый трофей нежити",
+      "key": "hunter-undead-minor",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Создаются только реальные применимые бонусы выбранного трофея: сопротивления, чувства, скорость, досягаемость и владения. Узкоусловные преимущества применяются только с подходящим контекстом, не превращаются в преимущес"
+    },
+    {
+      "pack": "features",
+      "id": "8cc8019dc84a2a49",
+      "name": "Средний трофей нежити",
+      "key": "hunter-undead-medium",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Нативные временные хиты 4к8 + модификатор охоты, не заменяющие больший запас. Преимущество от испуга связано только с сохранёнными временными хитами этого трофея, а не любым другим их источником. Трофей действует/доступ"
+    },
+    {
+      "pack": "features",
+      "id": "c8577b9239b6136c",
+      "name": "Великий трофей нежити",
+      "key": "hunter-undead-major",
+      "status": "partial",
+      "entries": [
+        "module:bounty-hunter-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Предлагается при попадании оружием: 6к8 некротического урона, минутный запрет лечения и повторные спасброски Телосложения. Ограничение связывается с конкретным источником; спорные обходы лечения проверяет GM. Трофей дей"
     },
     {
       "pack": "features",

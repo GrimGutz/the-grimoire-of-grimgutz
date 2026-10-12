@@ -37,6 +37,7 @@ import { oracleClassDocuments } from "./oracle-class.mjs";
 import { demonologistClassDocuments } from "./demonologist-class.mjs";
 import { sanguinistClassDocuments } from "./sanguinist-class.mjs";
 import {masterClassDocuments} from "./master-class.mjs";
+import {bountyHunterClassDocuments} from "./bounty-hunter-class.mjs";
 
 const TECHNIQUES = [
   "adaptability",
@@ -209,5 +210,6 @@ export const documents = [
   ...oracleClassDocuments,
   ...demonologistClassDocuments,
   ...sanguinistClassDocuments,
-  ...masterClassDocuments
+  ...masterClassDocuments,
+  ...bountyHunterClassDocuments
 ];

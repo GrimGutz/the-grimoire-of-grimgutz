@@ -88,9 +88,9 @@ try {
   });
 }
 
-if (documentCounts.classes !== 30) errors.push(`Expected 30 prestige classes, got ${documentCounts.classes ?? 0}`);
+if (documentCounts.classes !== 31) errors.push(`Expected 31 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 474) errors.push(`Expected 474 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.features !== 526) errors.push(`Expected 526 features, got ${documentCounts.features ?? 0}`);
 if (documentCounts.transformations !== 2) errors.push(`Expected 2 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 20) errors.push(`Expected 20 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
@@ -3286,6 +3286,21 @@ for (const path of ["blade", "archer", "arcana"]) {
   const subclass = subclassDocuments.find(document => document.system.identifier === `master-${path}`);
   if (!subclass || subclass.system.classIdentifier !== "master" || subclass.flags?.[manifest.id]?.masterSubclass !== path) errors.push(`Invalid Master path: ${path}`);
 }
+
+const hunter = classDocuments.find(document => document.system.identifier === "bounty-hunter");
+const hunterFeatures = [...allDocuments.values()].filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.hunterFeature).map(entry => entry.document);
+if (!hunter || hunter.system.hitDice !== "d10") errors.push("Bounty Hunter class with d10 hit die is missing");
+if (hunterFeatures.length !== 52) errors.push(`Expected 52 Bounty Hunter cards, got ${hunterFeatures.length}`);
+if (hunterFeatures.filter(document => document.flags[manifest.id].hunterTrophy).length !== 42) errors.push("Expected 42 Bounty Hunter trophies");
+const hunterGrants = hunter?.system.advancement?.filter(advancement => advancement.type === "ItemGrant") ?? [];
+if (JSON.stringify(hunterGrants.map(advancement => advancement.level)) !== "[1,2,3,4,5]"
+  || hunterGrants.reduce((n, advancement) => n + advancement.configuration.items.length, 0) !== 10) errors.push("Bounty Hunter feature grants must cover ten core features at levels 1–5");
+if (hunter?.system.advancement?.some(advancement => advancement.type === "ItemChoice")) errors.push("Physical Hunter trophies must not be granted freely by ItemChoice");
+for (const document of hunterFeatures) {
+  if (!document.system.description.value.includes("Автоматизация Foundry:")) errors.push(`Hunter automation description is missing: ${document.name}`);
+  if (document.effects.length) errors.push(`Hunter cards must not supply unselected or empty passive effects: ${document.name}`);
+}
+if (hunterFeatures.find(document => document.system.identifier === "hunter-trophies")?.system.uses.max !== "4") errors.push("Hunter initial shared pool must have four uses");
 
 if (errors.length) {
   console.error("Validation failed:");

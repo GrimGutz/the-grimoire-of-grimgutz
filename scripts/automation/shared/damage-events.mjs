@@ -100,7 +100,7 @@ registerGmRequest("prepare-damage-event", (actor, data, context) => {
         || (data.authorityBloodDrain && game.users?.get?.(context.requesterId)?.isGM && activity.item.system.identifier === "blood-drain")),
       automatic: data.automatic === true,
       damageType: data.damageType,
-      damageTypes: data.damageTypes ?? [data.damageType],
+      damageTypes: data.damageTypes ?? [data.damageType], ...(data.critical && activity.type === "attack" ? {critical: true} : {}),
       benefits: bonuses.map(bonus => bonus.effectUuid).filter(Boolean), ...extra } };
     prepared.set(data.key, result); if (prepared.size > 500) prepared.delete(prepared.keys().next().value);
     if (cardUuid) {
@@ -180,7 +180,7 @@ export async function prepareConfirmedDamage(token, { workflow, damageItem }) {
     opportunity: workflow.workflowOptions?.isOpportunityAttack === true, bloodSpell: workflow.grimgutzBloodSpell === true,
     bloodDrain: workflow.activity.flags?.[MODULE_ID]?.bloodDrain === true,
     authorityBloodDrain: workflow.workflowOptions?.grimgutzValidatedDrain === true,
-    automatic: workflow.workflowOptions?.grimgutzAuraPulse === true,
+    automatic: workflow.workflowOptions?.grimgutzAuraPulse === true, critical: Boolean(workflow.attackRoll && workflow.isCritical),
     damageTypes: [...new Set(parts.filter(part => part.value > 0 && !["healing", "temphp", "maximum", "midi-none"].includes(part.type)).map(part => part.type))],
     damageType: parts.find(part => part.value > 0 && !["healing", "temphp", "maximum", "midi-none"].includes(part.type))?.type }, { requestId: key, timeoutMs: 120000 });
   if (result.status !== "success") return;

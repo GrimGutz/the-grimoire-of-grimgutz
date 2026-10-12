@@ -32,6 +32,7 @@ import { oracleDocuments, oracleFolders } from "./oracle-features.mjs";
 import { demonologistDocuments, demonologistFolders } from "./demonologist-features.mjs";
 import { sanguinistDocuments, sanguinistFolders } from "./sanguinist-features.mjs";
 import {masterDocuments, masterFolders} from "./master-features.mjs";
+import {bountyHunterDocuments,bountyHunterFolders} from "./bounty-hunter-features.mjs";
 
 const MAIN_FOLDER = idFor("folder:class-features");
 const STYLE_FOLDER = idFor("folder:weapon-styles");
@@ -70,6 +71,7 @@ export const folders = [
   ...demonologistFolders,
   ...sanguinistFolders,
   ...masterFolders,
+  ...bountyHunterFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -424,6 +426,7 @@ export const documents = configureAreaActivities([
   ...demonologistDocuments,
   ...sanguinistDocuments,
   ...masterDocuments,
+  ...bountyHunterDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ]);

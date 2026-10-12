@@ -19,6 +19,12 @@ import { automationActors } from "./effects/temporary-effects.mjs";
 import { createActorSynchronizer } from "./shared/actor-sync.mjs";
 import {syncMaster, extendMasterCasting, validateMasterItem, validateMasterAdvancement} from "./classes/master.mjs";
 import {controlMaster, installMasterHooks} from "./classes/master-combat.mjs";
+import {syncHunter,validateHunterItem} from "./classes/bounty-hunter.mjs";
+import {controlHunter,installHunterActionHooks} from "./classes/bounty-hunter-actions.mjs";
+import {installHunterCombatHooks} from "./classes/bounty-hunter-combat.mjs";
+import {installHunterZoneHooks} from "./classes/bounty-hunter-zones.mjs";
+import {installHunterEventHooks} from "./classes/bounty-hunter-events.mjs";
+import {validateHunterDisposable} from "./classes/bounty-hunter-capture.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { registerAutomationPanel, openAutomationPanel } from "./shared/control-panel.mjs";
@@ -670,6 +676,7 @@ const COMMON_ACTIVITY_ACTIONS = new Map([
 export function getAutomationActionHandlers() {
   const registry = new Map(COMMON_ACTIVITY_ACTIONS);
   registry.set("master-control", controlMaster);
+  registry.set("bounty-hunter-control",controlHunter);
   for (const [actions, handler] of [
     [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
     [SPIRIT_VESSEL_ACTIONS, handleSpiritVesselAction], [ORACLE_ACTIONS, handleOracleAction],
@@ -973,7 +980,7 @@ const actorSynchronizer = createActorSynchronizer([
   syncFeyWarriorPassiveEffects, syncGhostWalkerResources, syncGhostWalkerPassiveEffects,
   syncBlinkerResources, syncSpiritVesselResources, syncSpiritVesselPassiveEffects,
   syncOracleResources, syncOraclePassiveEffects, syncSanguinistResources,
-  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons, syncMaster
+  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons, syncMaster, syncHunter
 ]);
 const schedulePassiveSync = actorSynchronizer.schedule;
 
@@ -1021,6 +1028,12 @@ function installHooks() {
   installAreaActivityHooks({ validate: validateActivityUse });
   installWitchBladeHooks();
   installMasterHooks();
+  installHunterActionHooks();
+  installHunterCombatHooks();
+  installHunterZoneHooks();
+  installHunterEventHooks();
+  Hooks.on("preCreateItem",validateHunterItem);
+  Hooks.on("dnd5e.preUseActivity",validateHunterDisposable);
   Hooks.on("preCreateItem", validateMasterItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateMasterAdvancement);
   installRitualistZoneHooks();

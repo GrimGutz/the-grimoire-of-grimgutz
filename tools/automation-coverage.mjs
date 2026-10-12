@@ -10,7 +10,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const labels = {automatic: "автоматизировано", partial: "частично", manual: "обоснованно вручную", review: "требует исправления"};
 const known = {"regenerating-soul": ["classes/juggernaut-regeneration", "juggernaut-regeneration"], "mind-body-and-soul": ["classes/ritualist", "ritualist-zones"],
   "binding-ritual": ["classes/ritualist-spirits", "ritualist-spirits"], "fortified-soul": ["midi/spell-resistance", "spell-resistance"],
-  "master-path-blade": ["classes/master-blade", "master-blade"]};
+  "master-path-blade": ["classes/master-blade", "master-blade"],
+  "hunter-breakdown":["classes/bounty-hunter-combat","bounty-hunter"],"hunter-duel":["classes/bounty-hunter-combat","bounty-hunter"],
+  "hunter-rekindle":["classes/bounty-hunter-events","bounty-hunter"]};
 export async function buildCoverageInventory() {
 const handlers = getAutomationActionHandlers(), tests = await readdir(path.join(root, "tests")), records = [];
 for (const pack of ["classes", "subclasses", "transformations", "features", "equipment", "spells", "bestiary"]) {
