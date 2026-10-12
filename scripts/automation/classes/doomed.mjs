@@ -52,6 +52,9 @@ export function doomedPassiveDefinitions(actor){if(!actor.system?.attributes?.hp
 }
 const syncing=new Set();
 export async function syncDoomed(actor){if(!enabled()||!isAutomationAuthority(actor)||!actor.system?.attributes?.hp)return;
+  const ownEffects=[...(actor.effects??[])].filter(effect=>effect.getFlag?.(MODULE_ID,"doomedPassive"));
+  if(!doomedLevel(actor)&&!actor.getFlag?.(MODULE_ID,"doomedIncrease")&&!ownEffects.length)return;
+  const changedMaximum=ownEffects.some(effect=>["hp","increase"].includes(effect.getFlag(MODULE_ID,"doomedPassive")));
   // Suppression is reversible state, not deletion of a possibly user-edited gift.
   for(const effect of actor.effects??[]){const key=effect.getFlag?.(MODULE_ID,"doomedPassive");if(!key?.endsWith(":gift"))continue;
     const id=key.slice(0,-5),suppressed=(doomedState(actor).suppressed??[]).includes(id),wasSuppressed=effect.getFlag(MODULE_ID,"doomedSuppressed");
@@ -62,7 +65,7 @@ export async function syncDoomed(actor){if(!enabled()||!isAutomationAuthority(ac
   await syncFlaggedPassiveEffects(actor,syncing,MODULE_ID,"doomedPassive",doomedPassiveDefinitions);
   // Persist a real clamp. Leaving a larger raw HP value would silently heal when the maximum rises later.
   const raw=Number(actor._source?.system?.attributes?.hp?.value),prepared=Number(actor.system.attributes.hp.value);
-  if(Number.isFinite(raw)&&Number.isFinite(prepared)&&prepared<raw)await actor.update({"system.attributes.hp.value":prepared});
+  if((changedMaximum||[...(actor.effects??[])].some(effect=>["hp","increase"].includes(effect.getFlag?.(MODULE_ID,"doomedPassive"))))&&Number.isFinite(raw)&&Number.isFinite(prepared)&&prepared<raw)await actor.update({"system.attributes.hp.value":prepared});
   for(const id of ["endurance","shared-fate","defiance","empower"]){const item=findFeature(actor,`doomed-${id}`);if(!item)continue;
     const period=doomedLevel(actor)>=5?"sr":"lr",recovery=[{period,type:"recoverAll"}];if(JSON.stringify(item.system.uses.recovery)!==JSON.stringify(recovery))await item.update({"system.uses.recovery":recovery});}
   for(const entry of doomedAccepted(actor)){const item=findFeature(actor,entry.key);if(!item)continue;
@@ -72,14 +75,22 @@ export async function syncDoomed(actor){if(!enabled()||!isAutomationAuthority(ac
 }
 export function prepareDoomedRest(actor,result,config){if(!enabled()||!doomedLevel(actor))return;
   const long=(config?.type??result.type)==="long"||result.longRest;
-  result.doomedRest={long,full:Number(result.updateData?.["system.attributes.hp.value"])===doomedMaximum(actor)};
-  if(doomedCurseActive(actor,"hunger")&&doomedEmpowered(actor,"hunger")&&Object.hasOwn(result.updateData??{},"system.attributes.hp.value")){
+  const amplification=doomedState(actor).amplification,elapsed=Math.max(0,Number(config?.duration)||0)*60;
+  // Native duration is minutes. A completed rest really took that time even
+  // when its initiator is a player or advanceTime is disabled.
+  const endAmplification=amplification&&Number(amplification.until)<=Number(game.time.worldTime)+elapsed?amplification.id:null;
+  result.doomedRest={long,endAmplification,full:Number(result.updateData?.["system.attributes.hp.value"])===doomedMaximum(actor)};
+  if(!endAmplification&&doomedCurseActive(actor,"hunger")&&doomedEmpowered(actor,"hunger")&&Object.hasOwn(result.updateData??{},"system.attributes.hp.value")){
     result.updateData["system.attributes.hp.value"]=Number(actor.system.attributes.hp.value);result.doomedRest.full=false;}
 }
 registerGmRequest("doomed-rest",(actor,data,{requestId})=>serialMutation(`doomed:${actor.uuid}`,async()=>{
   if(!enabled()||!isGmAuthority()||!doomedLevel(actor))return false;
   return applyNativeOnce(actor,{requestId,action:"doomed-rest",activityUuid:null},async()=>true,async()=>{
-    const long=data.long===true;if(long){const state=structuredClone(doomedState(actor));state.suppressed=[];await actor.setFlag(MODULE_ID,"doomedState",state);}
+    const long=data.long===true,state=structuredClone(doomedState(actor)),ending=Boolean(data.endAmplification&&data.endAmplification===state.amplification?.id);
+    if(long)state.suppressed=[];
+    if(ending)delete state.amplification;
+    if(long||ending)await actor.setFlag(MODULE_ID,"doomedState",state);
+    if(ending)for(const effect of [...actor.effects])if(effect.getFlag?.(MODULE_ID,"doomedAmplification")===data.endAmplification)await effect.delete();
     await syncDoomed(actor);
     if(long&&data.full&&!doomedEmpowered(actor,"hunger"))await actor.update({"system.attributes.hp.value":doomedMaximum(actor)});
     for(const id of [...(long?["delayed-end"]:[]),...(long||doomedLevel(actor)>=5?["endurance","shared-fate","defiance","empower"]:[])]){
@@ -88,5 +99,5 @@ registerGmRequest("doomed-rest",(actor,data,{requestId})=>serialMutation(`doomed
   });
 }));
 export function doomedRestCompleted(actor,result){if(!enabled()||!doomedLevel(actor))return Promise.resolve(false);
-  const id=result.grimgutzDoomedRestId??=result.message?.uuid??foundry.utils.randomID();return requestGm("doomed-rest",actor,{long:result.doomedRest?.long??result.longRest??result.type==="long",full:result.doomedRest?.full===true},{requestId:`doomed-rest:${id}`});}
+  const id=result.grimgutzDoomedRestId??=result.message?.uuid??foundry.utils.randomID();return requestGm("doomed-rest",actor,{long:result.doomedRest?.long??result.longRest??result.type==="long",full:result.doomedRest?.full===true,endAmplification:result.doomedRest?.endAmplification??null},{requestId:`doomed-rest:${id}`});}
 export {doomedLevel,doomedState,doomedAccepted,doomedOccupied,doomedCurseActive,doomedGiftActive,doomedEmpowered};
