@@ -3,6 +3,7 @@ import { automationAction, automationConfig, automationData, findFeature, itemId
 import { isLikelyModuleItem, moduleItemSources } from "../effects/module-passives.mjs";
 import { migrationFingerprint, ownedItemMigrationPlan } from "./owned-item-migration.mjs";
 import { listAutomationEvents } from "./event-ledger.mjs";
+import {doomedLevel,doomedCapacity,doomedAccepted} from "./doomed-state.mjs";
 
 const timeUnits = { seconds: 1, minutes: 60, hours: 3600, days: 86400, weeks: 604800, months: 2592000, years: 31536000 };
 function values(collection) { return collection?.values ? [...collection.values()] : Object.values(collection ?? {}); }
@@ -102,6 +103,11 @@ export async function inspectAutomation(actorOrUuid, { actionHandlers = new Map(
     flagellant:{maximumDebts:structuredClone(actor.getFlag?.(MODULE_ID,"flagellantMaxDebts")??[]),
       sacrifice:structuredClone(actor.getFlag?.(MODULE_ID,"flagellantSacrifice")??null),applications:structuredClone(actor.getFlag?.(MODULE_ID,"flagellantApplications")??[]),
       prices:structuredClone(actor.getFlag?.(MODULE_ID,"flagellantPriceClaims")??{})},
+    doomed:{level:doomedLevel(actor),slots:doomedCapacity(actor),missingCards:doomedAccepted(actor).filter(entry=>!findFeature(actor,entry.key)).map(entry=>entry.key),
+      state:structuredClone(actor.getFlag?.(MODULE_ID,"doomedState")??null),
+      increase:structuredClone(actor.getFlag?.(MODULE_ID,"doomedIncrease")??null),
+      giftTurns:structuredClone(actor.getFlag?.(MODULE_ID,"doomedGiftTurns")??{}),
+      decayTurns:structuredClone(actor.getFlag?.(MODULE_ID,"doomedDecayTurns")??[])},
     links: { bloodDrain: structuredClone(actor.getFlag?.(MODULE_ID, "bloodDrainLink") ?? null),
       leaderPresences: structuredClone(actor.getFlag?.(MODULE_ID, "leaderPresenceRecipients") ?? []),
       bloodSpell: structuredClone(actor.getFlag?.(MODULE_ID, "bloodSpellArmed") ?? null) },

@@ -3,6 +3,7 @@ import { findFeature } from "./helpers.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { isAuraDefeated, isAuraIncapacitated } from "./aura-conditions.mjs";
 import { LEADER_PRESENCE_DEFINITIONS } from "./leader-presence-definitions.mjs";
+import {doomedGiftActive,doomedEmpowered} from "./doomed-state.mjs";
 export { isAuraDefeated, isAuraIncapacitated } from "./aura-conditions.mjs";
 
 export function auraFeature(actor, definition) {
@@ -16,6 +17,15 @@ const change = (key, value, type = "add") => ({ key, value: String(value), type,
 
 export const AURA_DEFINITIONS = [
   ...LEADER_PRESENCE_DEFINITIONS,
+  ...[false,true].flatMap(empowered=>[
+    {id:`doomed-cold-${empowered?"empowered":"normal"}`,name:"Мёртвый холод",radius:empowered?20:10,indicatorColor:"#7ebfd4",
+      sourceFeature:"doomed-curse-cold",affects:"enemies",
+      sourceCondition:token=>doomedGiftActive(token.actor,"cold")&&!isAuraIncapacitated(token.actor)&&!isAuraDefeated(token)&&doomedEmpowered(token.actor,"cold")===empowered,
+      events:[{trigger:"targetStart",damage:[{formula:empowered?"2d8":"1d8",type:"cold"}]}]},
+    {id:`doomed-outcast-${empowered?"empowered":"normal"}`,name:"Клеймо отверженного",radius:empowered?15:5,indicatorColor:"#8558b5",
+      sourceFeature:"doomed-curse-outcast",affects:"enemies",
+      sourceCondition:token=>doomedGiftActive(token.actor,"outcast")&&!isAuraIncapacitated(token.actor)&&!isAuraDefeated(token)&&doomedEmpowered(token.actor,"outcast")===empowered}
+  ]),
   {
     id: "hollow-masking-aura", name: "Аура маскировки", radius: 10, indicatorColor: "#b7d6e8",
     sourceFeature: "masking-aura", sourceEffectFlag: FLAGS.HOLLOW_PASSIVE, sourceEffectValue: "masking-aura",

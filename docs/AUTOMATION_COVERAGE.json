@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 265,
-    "partial": 357,
-    "manual": 90,
+    "automatic": 270,
+    "partial": 383,
+    "manual": 92,
     "review": 362
   },
   "records": [
@@ -469,6 +469,20 @@
         "tests/progression.test.mjs"
       ],
       "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "classes",
+      "id": "6cb779ded849b510",
+      "name": "Обречённый / Doomed",
+      "key": "doomed",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " Advancement выдаёт девять классовых особенностей; проклятия выбираются через «@UUID[Compendium.the-grimoire-of-grimgutz.features.Item.fe45dcf32b5a5b17]{Принятые проклятия}», а не выдаются все сразу. Выберите неизменяему"
     },
     {
       "pack": "subclasses",
@@ -7334,6 +7348,462 @@
         "tests/registrations.test.mjs"
       ],
       "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "fe45dcf32b5a5b17",
+      "name": "Принятые проклятия",
+      "key": "doomed-curses",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "851836ea6dc80b70",
+      "name": "Стойкость обречённого",
+      "key": "doomed-endurance",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "3f073ffbf843e086",
+      "name": "Разделённая участь",
+      "key": "doomed-shared-fate",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выбор своего проклятия и видимого врага в 60 футах; действие и использование, штатный спасбросок Мудрости через Midi. При провале минутный недостаток с числовыми параметрами источника и повторным спасброском в конец ход"
+    },
+    {
+      "pack": "features",
+      "id": "d267932ec1ed0877",
+      "name": "Чутьё порчи",
+      "key": "doomed-sense",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Справка без пассивного эффекта: наличие произвольного проклятия и его скрытые свойства определяет GM вручную. Модуль не раскрывает скрытые документы или сведения NPC."
+    },
+    {
+      "pack": "features",
+      "id": "c5e0697495eb692a",
+      "name": "Наперекор судьбе",
+      "key": "doomed-defiance",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "ec0b3531c36a4b2b",
+      "name": "Усиление проклятия",
+      "key": "doomed-empower",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "5ad24181131bdda3",
+      "name": "Проклятое увеличение",
+      "key": "doomed-increase",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Однократный выбор +3 и +3 к максимуму одной характеристики, −2 другой (итог ≥1) либо черта. Настоящий эффект не меняет исходные значения вручную. Черту добавьте штатно; оба варианта вместе не выдаются."
+    },
+    {
+      "pack": "features",
+      "id": "84b3dab7a11670dc",
+      "name": "Воплощение порчи",
+      "key": "doomed-incarnation",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/doomed.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "0982b9a8d604f723",
+      "name": "Отсроченный конец",
+      "key": "doomed-delayed-end",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка для исходного смертельного урона: GM подтверждает, что это урон, не потеря хитов проклятия и не мгновенная смерть. После штатного расхода персонаж остаётся с 1 хитом, получает временные хиты 2 × занятые слоты (ес"
+    },
+    {
+      "pack": "features",
+      "id": "6159e312da07080c",
+      "name": "Безмолвие",
+      "key": "doomed-curse-silence",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control",
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/doomed.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "cb1f18e504e2398f",
+      "name": "Выжженное сердце",
+      "key": "doomed-curse-heart",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/doomed.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "4fbfe09e41119c48",
+      "name": "Кровавый голод",
+      "key": "doomed-curse-hunger",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "d125fb0a87c23ab6",
+      "name": "Незаживающие раны",
+      "key": "doomed-curse-wounds",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/doomed.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "e1bc5bca97b741fd",
+      "name": "Неугасимое пламя",
+      "key": "doomed-curse-flame",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка дара подтверждает конкретное попадание ближней атакой из 5 футов и проводит 2к8/3к8 огня через Midi, только один раз за ход. Тусклый/яркий свет, запреты невидимости и Засады задаются вручную: ручные настройки осв"
+    },
+    {
+      "pack": "features",
+      "id": "d77987df74e7e7fe",
+      "name": "Обнажённая душа",
+      "key": "doomed-curse-soul",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control",
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/doomed.test.mjs"
+      ],
+      "note": " Настоящий штраф −2/−4 к спасброскам Мудрости и Харизмы. Кнопка выбирает другое видимое существо в 60 футах и штатно расходует реакцию/использование. Перенос половины/всего урона каждого типа после сопротивлений цели вып"
+    },
+    {
+      "pack": "features",
+      "id": "5c52fd6e5308bf86",
+      "name": "Правдивый язык",
+      "key": "doomed-curse-truth",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control",
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/doomed.test.mjs"
+      ],
+      "note": " Преимущество Проницательности. При усилении — кнопка цели в 60 футах, подтверждение речи/слышимости/понимания и штатный спасбросок Харизмы, запрет лжи только до конца усиления. Правда и обнаружение лжи остаются подтверж"
+    },
+    {
+      "pack": "features",
+      "id": "c32c12ff6a379694",
+      "name": "Проклятая удача",
+      "key": "doomed-curse-luck",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control",
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/doomed.test.mjs"
+      ],
+      "note": " Помеха инициативе. Кнопка дара бросает новый к20 после подтверждённого промаха/провала; GM заменяет именно исходный к20 и пересчитывает результат. Запас 1, при усилении 2; восстановления при отдыхе нет, только при реаль"
+    },
+    {
+      "pack": "features",
+      "id": "55d1e1137862bb8c",
+      "name": "Расколотый разум",
+      "key": "doomed-curse-mind",
+      "status": "partial",
+      "entries": [
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/doomed.test.mjs"
+      ],
+      "note": " Помеха спасброскам Интеллекта. Телепатический канал, общий язык, план и автоматический провал при усилении подтверждаются вручную; нет широкого постоянного преимущества или глухоты вместо провала."
+    },
+    {
+      "pack": "features",
+      "id": "e5b8f81025c959ee",
+      "name": "Тяжесть могилы",
+      "key": "doomed-curse-grave",
+      "status": "partial",
+      "entries": [
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/doomed.test.mjs"
+      ],
+      "note": " Скорость ходьбы −5/−10 футов, минимум 5, с переводом единиц. Преимущество против принудительного движения/сбивания с ног и запрет движения при усилении подтверждает GM; обычные проверки и спасброски не усиливаются."
+    },
+    {
+      "pack": "features",
+      "id": "917758d9fb0fcade",
+      "name": "Истлевшая плоть",
+      "key": "doomed-curse-flesh",
+      "status": "partial",
+      "entries": [
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/doomed.test.mjs"
+      ],
+      "note": " Максимум хитов −2/−3 × общий уровень (усиление заменяет обычное снижение). Дар — сопротивления дробящему/колющему/рубящему/некротическому. Суммарный максимум с прочими проклятиями не ниже 1; усиленное вычитание БМ из ка"
+    },
+    {
+      "pack": "features",
+      "id": "8688eac735c0d186",
+      "name": "Клеймо отверженного",
+      "key": "doomed-curse-outcast",
+      "status": "partial",
+      "entries": [
+        "aura:doomed-outcast-normal",
+        "aura:doomed-outcast-empowered"
+      ],
+      "checks": [
+        "tests/auras.test.mjs",
+        "tests/aura-events.test.mjs"
+      ],
+      "note": " Круг дара привязан к токену, 5/15 футов. В Midi-атаке по другой цели GM подтверждает враждебность и возможность видеть Обречённого; тогда только эта атака получает помеху. Недееспособность/подавление выключают дар. Помо"
+    },
+    {
+      "pack": "features",
+      "id": "36cee9d693e923c3",
+      "name": "Мёртвый холод",
+      "key": "doomed-curse-cold",
+      "status": "partial",
+      "entries": [
+        "aura:doomed-cold-normal",
+        "aura:doomed-cold-empowered",
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/auras.test.mjs",
+        "tests/aura-events.test.mjs",
+        "tests/doomed.test.mjs"
+      ],
+      "note": " Уязвимость огню. Активный дар создаёт круг 10/20 футов и в начало хода врага наносит 1к8/2к8 холода через общий движок аур; движение не наносит урон. Недееспособность/подавление выключают дар. Труднопроходимая местность"
+    },
+    {
+      "pack": "features",
+      "id": "6b71fca74b66c65b",
+      "name": "Неконтролируемая ярость",
+      "key": "doomed-curse-rage",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/doomed-events"
+      ],
+      "checks": [
+        "tests/doomed.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "3cb12731128dcef9",
+      "name": "Отторжение реликвий",
+      "key": "doomed-curse-relics",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Запреты настройки/магических свойств и игнорирование сопротивлений, замена иммунитета сопротивлением при усилении — вручную с GM по каждому типу исходного урона. Не добавляется широкий иммунитет цели или повторное умень"
+    },
+    {
+      "pack": "features",
+      "id": "03e7092aa2a1fc19",
+      "name": "Срыв чар",
+      "key": "doomed-curse-disruption",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control",
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/doomed.test.mjs"
+      ],
+      "note": " При принятии прекращается текущая концентрация; новые нативные действия с концентрацией блокируются. Кнопка дара — выбор видимого заклинателя в 60/120 футах, реакция и одно использование до короткого/продолжительного от"
+    },
+    {
+      "pack": "features",
+      "id": "ee64517e48cae4bd",
+      "name": "Тень за спиной",
+      "key": "doomed-curse-shadow",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Бонусное действие и БМ использований: подтвердите видимое свободное место, переместите токен вручную на 30/60 футов; накладывается невидимость до начала следующего хода. Обычная невидимость заканчивается при атаке/закли"
+    },
+    {
+      "pack": "features",
+      "id": "68db660ea97c5a0d",
+      "name": "Украденный миг",
+      "key": "doomed-curse-moment",
+      "status": "partial",
+      "entries": [
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/doomed.test.mjs"
+      ],
+      "note": " Недостаток блокирует нативные реакции; при усилении также бонусные действия. Дар даёт +1/+2 к четырём типам бросков атаки и СЛ заклинаний, плюс СЛ проклятий. СЛ иных особенностей с собственной фиксированной формулой про"
+    },
+    {
+      "pack": "features",
+      "id": "986ec6270fe8684c",
+      "name": "Хрупкие кости",
+      "key": "doomed-curse-bones",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/doomed.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "2a2b09b166c5f8c0",
+      "name": "Могильные цепи",
+      "key": "doomed-curse-chains",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка дара выбирает до БМ видимых целей в 60 футах; действие, использование до короткого/продолжительного отдыха, штатный спасбросок Силы и 4к8/8к8 силового урона только при провале. Опутывание на минуту и повторный сп"
+    },
+    {
+      "pack": "features",
+      "id": "8571db56ecd2ee4d",
+      "name": "Погребённая душа",
+      "key": "doomed-curse-buried",
+      "status": "partial",
+      "entries": [
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/doomed.test.mjs"
+      ],
+      "note": " При усилении дар даёт иммунитет схватыванию и опутыванию, недостаток блокирует нативные атаки. Доспехи/щит, дыхание, проход сквозь преграды и условное преимущество подтверждаются вручную; глобальное игнорирование стен н"
+    },
+    {
+      "pack": "features",
+      "id": "06f4ee1836af36d3",
+      "name": "Распад",
+      "key": "doomed-curse-decay",
+      "status": "partial",
+      "entries": [
+        "module:doomed-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "78a2b9100d9ba112",
+      "name": "Слепое откровение",
+      "key": "doomed-curse-revelation",
+      "status": "partial",
+      "entries": [
+        "runtime:classes/doomed"
+      ],
+      "checks": [
+        "tests/doomed.test.mjs"
+      ],
+      "note": " Дар — истинное зрение 60 футов с переводом единиц. Обычное зрение выключите вручную: широкий статус «ослеплён» ошибочно дал бы помеху и внутри истинного зрения. При усилении накладывается глухота; зрение сквозь немагиче"
     },
     {
       "pack": "features",

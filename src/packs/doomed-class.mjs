@@ -1,0 +1,12 @@
+import {MODULE_ID,baseDocument,hitPointsAdvancement,itemGrant,scaleValueAdvancement,sourceData,uuidFor} from "../common.mjs";
+import {DOOMED_FEATURES,DOOMED_CURSES,DOOMED_ICON,doomedSlots} from "../../scripts/automation/shared/doomed-definitions.mjs";
+import {DOOMED_SOURCE,doomedIntroduction,doomedSection,doomedHtml,doomedLinks} from "../doomed-data.mjs";
+export const doomedClassDocuments=[baseDocument({key:"doomed-class",name:"Обречённый / Doomed",type:"class",img:DOOMED_ICON,flags:{[MODULE_ID]:{prestigeClass:"doomed"}},
+  system:{identifier:"doomed",levels:1,hitDice:"d8",hitDiceUsed:0,wealth:"",spellcasting:{progression:"none",ability:"",preparation:{}},source:sourceData("Doomed.md",DOOMED_SOURCE),
+    description:{chat:"",value:doomedLinks(`<h1>Престиж-класс: Обречённый</h1>${doomedHtml(doomedIntroduction)}<h2>Требования</h2>${doomedHtml(doomedSection("Требования",2).split("<div")[0])}
+      <p>Кость хитов к8; хиты за уровень: 1к8 (или 5) + модификатор Телосложения. Новых владений, снаряжения и развития заклинаний нет.</p>
+      <table><tr><th>Уровень</th><th>Слоты проклятий</th><th>Особенности</th></tr>${[1,2,3,4,5].map(level=>`<tr><td>${level}</td><td>${doomedSlots(level)}</td><td>${DOOMED_FEATURES.filter(entry=>entry.level===level).map(entry=>`@UUID[${uuidFor("features",entry.key)}]{${entry.name}}`).join(", ")}</td></tr>`).join("")}</table>
+      <h2>Термины</h2>${doomedHtml(doomedSection("Термины класса"))}<h2>Проклятия</h2><ul>${DOOMED_CURSES.map(entry=>`<li>@UUID[${uuidFor("features",entry.key)}]{${entry.name}} — ${entry.cost} слот(а)</li>`).join("")}</ul>
+      <p><strong>Автоматизация Foundry:</strong> Advancement выдаёт девять классовых особенностей; проклятия выбираются через «Принятые проклятия», а не выдаются все сразу. Выберите неизменяемую Мудрость или Харизму; управление учитывает слоты, подавленные дары и минутное усиление. Числовые пассивы создаются на персонаже только для принятых проклятий. Сюжетный ритуал и спорные условия подтверждает GM; подробные границы указаны в каждой карточке. Строгая проверка входа по умолчанию выключена.</p>`)},
+    advancement:[hitPointsAdvancement("doomed-hp"),scaleValueAdvancement({key:"doomed-slots",identifier:"curse-slots",title:"Слоты проклятий",type:"number",scale:Object.fromEntries([1,2,3,4,5].map(level=>[level,{value:doomedSlots(level)}]))}),
+      ...[1,2,3,4,5].map(level=>itemGrant({key:`doomed-features-${level}`,level,items:DOOMED_FEATURES.filter(entry=>entry.level===level).map(entry=>entry.key)}))]}})];

@@ -40,6 +40,7 @@ import {masterClassDocuments} from "./master-class.mjs";
 import {bountyHunterClassDocuments} from "./bounty-hunter-class.mjs";
 import {jesterClassDocuments} from "./jester-class.mjs";
 import {flagellantClassDocuments} from "./flagellant-class.mjs";
+import {doomedClassDocuments} from "./doomed-class.mjs";
 
 const TECHNIQUES = [
   "adaptability",
@@ -215,5 +216,6 @@ export const documents = [
   ...masterClassDocuments,
   ...bountyHunterClassDocuments,
   ...jesterClassDocuments,
-  ...flagellantClassDocuments
+  ...flagellantClassDocuments,
+  ...doomedClassDocuments
 ];

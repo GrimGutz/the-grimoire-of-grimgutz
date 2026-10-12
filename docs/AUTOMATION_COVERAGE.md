@@ -4,9 +4,9 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 265
-- частично: 357
-- обоснованно вручную: 90
+- автоматизировано: 270
+- частично: 383
+- обоснованно вручную: 92
 - требует исправления: 362
 
 Полные основания и замечания: [AUTOMATION_COVERAGE.json](AUTOMATION_COVERAGE.json).
@@ -46,6 +46,7 @@
 | classes / Охотник за головами / Bounty Hunter | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Арлекин / Jester | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Самобичеватель / Flagellant | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Обречённый / Doomed | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Создатель големов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Искатель мифов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Духовный медиум | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
@@ -578,6 +579,38 @@
 | features / Жертвенное увеличение | частично | module:flagellant-control | tests/registrations.test.mjs |
 | features / Через силу | частично | module:flagellant-control | tests/registrations.test.mjs |
 | features / Пир страданий | частично | module:flagellant-control | tests/registrations.test.mjs |
+| features / Принятые проклятия | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Стойкость обречённого | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Разделённая участь | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Чутьё порчи | обоснованно вручную | — | нужна отдельная проверка |
+| features / Наперекор судьбе | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Усиление проклятия | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Проклятое увеличение | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Воплощение порчи | автоматизировано | runtime:classes/doomed | tests/doomed.test.mjs |
+| features / Отсроченный конец | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Безмолвие | частично | module:doomed-control, runtime:classes/doomed | tests/registrations.test.mjs, tests/doomed.test.mjs |
+| features / Выжженное сердце | автоматизировано | runtime:classes/doomed | tests/doomed.test.mjs |
+| features / Кровавый голод | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Незаживающие раны | автоматизировано | runtime:classes/doomed | tests/doomed.test.mjs |
+| features / Неугасимое пламя | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Обнажённая душа | частично | module:doomed-control, runtime:classes/doomed | tests/registrations.test.mjs, tests/doomed.test.mjs |
+| features / Правдивый язык | частично | module:doomed-control, runtime:classes/doomed | tests/registrations.test.mjs, tests/doomed.test.mjs |
+| features / Проклятая удача | частично | module:doomed-control, runtime:classes/doomed | tests/registrations.test.mjs, tests/doomed.test.mjs |
+| features / Расколотый разум | частично | runtime:classes/doomed | tests/doomed.test.mjs |
+| features / Тяжесть могилы | частично | runtime:classes/doomed | tests/doomed.test.mjs |
+| features / Истлевшая плоть | частично | runtime:classes/doomed | tests/doomed.test.mjs |
+| features / Клеймо отверженного | частично | aura:doomed-outcast-normal, aura:doomed-outcast-empowered | tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Мёртвый холод | частично | aura:doomed-cold-normal, aura:doomed-cold-empowered, runtime:classes/doomed | tests/auras.test.mjs, tests/aura-events.test.mjs, tests/doomed.test.mjs |
+| features / Неконтролируемая ярость | автоматизировано | runtime:classes/doomed-events | tests/doomed.test.mjs |
+| features / Отторжение реликвий | обоснованно вручную | — | нужна отдельная проверка |
+| features / Срыв чар | частично | module:doomed-control, runtime:classes/doomed | tests/registrations.test.mjs, tests/doomed.test.mjs |
+| features / Тень за спиной | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Украденный миг | частично | runtime:classes/doomed | tests/doomed.test.mjs |
+| features / Хрупкие кости | автоматизировано | runtime:classes/doomed | tests/doomed.test.mjs |
+| features / Могильные цепи | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Погребённая душа | частично | runtime:classes/doomed | tests/doomed.test.mjs |
+| features / Распад | частично | module:doomed-control | tests/registrations.test.mjs |
+| features / Слепое откровение | частично | runtime:classes/doomed | tests/doomed.test.mjs |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

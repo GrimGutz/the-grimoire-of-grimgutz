@@ -352,7 +352,7 @@ function buildTargets(packs) {
         // Short technique names such as "Натиск"/"Стойкость" also occur as
         // ordinary words or unrelated rules. Outside this class require an
         // explicit authored UUID instead of inventing a cross-class reference.
-        scope: document.flags?.[MODULE_ID]?.flagellantFeature ? "flagellant" : null,
+        scope: document.flags?.[MODULE_ID]?.flagellantFeature ? "flagellant" : document.flags?.[MODULE_ID]?.doomedFeature ? "doomed" : null,
         aliases: [document.name, ...(INTERNAL_ALIASES[identifier] ?? [])]
       });
     }
@@ -418,7 +418,8 @@ export function linkDocumentDescriptions(packs) {
       const current = document.system?.description?.value;
       if (!current) continue;
       const ownFlagellant = document.flags?.[MODULE_ID]?.flagellantFeature || document.flags?.[MODULE_ID]?.prestigeClass === "flagellant";
-      const scopedTargets = ownFlagellant ? targets : targets.filter(target => target.scope !== "flagellant");
+      const ownDoomed = document.flags?.[MODULE_ID]?.doomedFeature || document.flags?.[MODULE_ID]?.prestigeClass === "doomed";
+      const scopedTargets = targets.filter(target => !target.scope || target.scope === "flagellant" && ownFlagellant || target.scope === "doomed" && ownDoomed);
       const linked = linkHtml(current, scopedTargets, document._id);
       linksAdded += (linked.match(/@UUID\[/g)?.length ?? 0) - (current.match(/@UUID\[/g)?.length ?? 0);
       document.system.description.value = linked;

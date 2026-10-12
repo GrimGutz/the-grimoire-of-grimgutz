@@ -88,9 +88,9 @@ try {
   });
 }
 
-if (documentCounts.classes !== 33) errors.push(`Expected 33 prestige classes, got ${documentCounts.classes ?? 0}`);
+if (documentCounts.classes !== 34) errors.push(`Expected 34 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 549) errors.push(`Expected 549 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.features !== 581) errors.push(`Expected 581 features, got ${documentCounts.features ?? 0}`);
 if (documentCounts.transformations !== 2) errors.push(`Expected 2 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 20) errors.push(`Expected 20 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
@@ -3331,6 +3331,17 @@ for (const document of flagellantFeatures) {
   if (document.effects.length) errors.push(`Flagellant must not grant unconditional or empty passive templates: ${document.name}`);
   if (!document.system.description.value.includes("Автоматизация Foundry:")) errors.push(`Flagellant automation description is missing: ${document.name}`);
 }
+
+const doomed=classDocuments.find(document=>document.system.identifier==="doomed");
+const doomedFeatures=[...allDocuments.values()].filter(entry=>entry.pack==="features"&&entry.document.flags?.[manifest.id]?.doomedFeature).map(entry=>entry.document);
+if(!doomed||doomed.system.hitDice!=="d8"||doomed.system.spellcasting.progression!=="none")errors.push("Doomed class with d8 and no spell progression is missing");
+if(doomedFeatures.length!==32||doomedFeatures.filter(document=>document.flags[manifest.id].doomedCurse).length!==23)errors.push("Doomed needs nine features and 23 curses");
+const doomedGrants=doomed?.system.advancement?.filter(advancement=>advancement.type==="ItemGrant")??[];
+if(JSON.stringify(doomedGrants.map(advancement=>advancement.level))!=="[1,2,3,4,5]"||doomedGrants.reduce((n,advancement)=>n+advancement.configuration.items.length,0)!==9)errors.push("Doomed must grant only nine core features, not every curse");
+const doomedScale=doomed?.system.advancement?.find(advancement=>advancement.type==="ScaleValue"&&advancement.configuration.identifier==="curse-slots");
+if(JSON.stringify(Object.values(doomedScale?.configuration.scale??{}).map(value=>value.value))!=="[2,4,6,8,10]")errors.push("Doomed slots must scale 2/4/6/8/10");
+for(const document of doomedFeatures){if(document.effects.length)errors.push(`Unselected Doomed curses must not supply passive templates: ${document.name}`);
+  if(!document.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Doomed automation description is missing: ${document.name}`);}
 
 if (errors.length) {
   console.error("Validation failed:");

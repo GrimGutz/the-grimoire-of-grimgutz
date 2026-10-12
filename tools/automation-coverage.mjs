@@ -15,7 +15,9 @@ const known = {"regenerating-soul": ["classes/juggernaut-regeneration", "juggern
   "hunter-rekindle":["classes/bounty-hunter-events","bounty-hunter"],
   "jester-mise":["classes/jester-actions","jester"],"jester-improvisation":["classes/jester-actions","jester"],
   "flagellant-price":["classes/flagellant","flagellant"],"flagellant-frenzy":["classes/flagellant","flagellant"],
-  "flagellant-flesh":["classes/flagellant","flagellant"]};
+  "flagellant-flesh":["classes/flagellant","flagellant"],
+  ...Object.fromEntries(["incarnation",... ["silence","heart","wounds","soul","truth","luck","mind","grave","flesh","cold","disruption","moment","bones","buried","revelation"].map(id=>`curse-${id}`)].map(id=>[`doomed-${id}`,["classes/doomed","doomed"]])),
+  "doomed-curse-rage":["classes/doomed-events","doomed"]};
 export async function buildCoverageInventory() {
 const handlers = getAutomationActionHandlers(), tests = await readdir(path.join(root, "tests")), records = [];
 for (const pack of ["classes", "subclasses", "transformations", "features", "equipment", "spells", "bestiary"]) {
