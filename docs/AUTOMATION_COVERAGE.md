@@ -5,9 +5,9 @@
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
 - автоматизировано: 258
-- частично: 249
-- обоснованно вручную: 79
-- требует исправления: 353
+- частично: 288
+- обоснованно вручную: 90
+- требует исправления: 360
 
 Полные основания и замечания: [AUTOMATION_COVERAGE.json](AUTOMATION_COVERAGE.json).
 
@@ -42,6 +42,7 @@
 | classes / Оракул / Oracle | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Демонолог / Demonologist | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Сангвинист / Sanguinist | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Мастер / Master | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Создатель големов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Искатель мифов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Духовный медиум | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
@@ -56,6 +57,9 @@
 | subclasses / Фея | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Исчадие | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Нежить | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Путь Клинка | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Путь Стрелка | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| subclasses / Путь Арканы | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | transformations / Трансформация: Порождение убийств / Murderspawn | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | transformations / Трансформация: Полый / Hollow | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
@@ -443,6 +447,59 @@
 | features / Багровая буря | частично | module:use-sanguine-storm | tests/registrations.test.mjs |
 | features / Переливание | частично | module:use-transfusion | tests/registrations.test.mjs |
 | features / Вампиризм | частично | module:use-vampirism | tests/registrations.test.mjs |
+| features / Путь совершенства | частично | module:master-control | tests/registrations.test.mjs |
+| features / Избранное владение | частично | module:master-control | tests/registrations.test.mjs |
+| features / Техники | обоснованно вручную | — | нужна отдельная проверка |
+| features / Воля к совершенству | обоснованно вручную | — | нужна отдельная проверка |
+| features / Совершенное ремесло | требует исправления | — | нужна отдельная проверка |
+| features / Серия приемов | частично | module:master-control | tests/registrations.test.mjs |
+| features / Увеличение характеристик | частично | module:master-control | tests/registrations.test.mjs |
+| features / Вершина пути | требует исправления | — | нужна отдельная проверка |
+| features / Улучшенная серия приемов | обоснованно вручную | — | нужна отдельная проверка |
+| features / Путь Клинка | частично | module:master-control | tests/registrations.test.mjs |
+| features / Путь Стрелка | частично | module:master-control | tests/registrations.test.mjs |
+| features / Путь Арканы | частично | module:master-control | tests/registrations.test.mjs |
+| features / Бой в упор | требует исправления | — | нужна отдельная проверка |
+| features / Быстрая перезарядка | частично | module:master-control | tests/registrations.test.mjs |
+| features / Опытный взгляд | обоснованно вручную | — | нужна отдельная проверка |
+| features / Дальний выстрел | требует исправления | — | нужна отдельная проверка |
+| features / Дальняя формула | частично | module:master-control | tests/registrations.test.mjs |
+| features / Защитная формула | частично | module:master-control | tests/registrations.test.mjs |
+| features / Сквозь укрытие | обоснованно вручную | — | нужна отдельная проверка |
+| features / Длинный выпад | частично | module:master-control | tests/registrations.test.mjs |
+| features / Надежная формула | частично | module:master-control | tests/registrations.test.mjs |
+| features / Натиск клинка | частично | module:master-control | tests/registrations.test.mjs |
+| features / Отступающий выстрел | обоснованно вручную | — | нужна отдельная проверка |
+| features / Предусмотрительность | частично | module:master-control | tests/registrations.test.mjs |
+| features / Разоружающий удар | частично | module:master-control | tests/registrations.test.mjs |
+| features / Рискованный прием | частично | module:master-control | tests/registrations.test.mjs |
+| features / Совершенная рука | частично | module:master-control | tests/registrations.test.mjs |
+| features / Стальной заслон | частично | module:master-control | tests/registrations.test.mjs |
+| features / Срывающий выстрел | частично | module:master-control | tests/registrations.test.mjs |
+| features / Учёная формула | обоснованно вручную | — | нужна отдельная проверка |
+| features / Безупречная контратака | частично | module:master-control | tests/registrations.test.mjs |
+| features / Власть над стихией | частично | module:master-control | tests/registrations.test.mjs |
+| features / Выстрел навскидку | частично | module:master-control | tests/registrations.test.mjs |
+| features / Избирательная формула | обоснованно вручную | — | нужна отдельная проверка |
+| features / Специалист школы | требует исправления | — | нужна отдельная проверка |
+| features / Непоколебимая концентрация | требует исправления | — | нужна отдельная проверка |
+| features / Оборонительная стойка | требует исправления | — | нужна отдельная проверка |
+| features / Подавляющий выстрел | частично | module:master-control | tests/registrations.test.mjs |
+| features / Пригвождающий прием | частично | module:master-control | tests/registrations.test.mjs |
+| features / Пробивающий выстрел | частично | module:master-control | tests/registrations.test.mjs |
+| features / Расширенная формула | частично | module:master-control | tests/registrations.test.mjs |
+| features / Рассечение | частично | module:master-control | tests/registrations.test.mjs |
+| features / Рикошет | частично | module:master-control | tests/registrations.test.mjs |
+| features / Страж клинка | частично | module:master-control | tests/registrations.test.mjs |
+| features / Великое заклинание | частично | module:master-control | tests/registrations.test.mjs |
+| features / Вихрь клинка | частично | module:master-control | tests/registrations.test.mjs |
+| features / Выверенная позиция | обоснованно вручную | — | нужна отдельная проверка |
+| features / Прицельный залп | частично | module:master-control | tests/registrations.test.mjs |
+| features / Неотвратимое попадание | обоснованно вручную | — | нужна отдельная проверка |
+| features / Непререкаемая магия | обоснованно вручную | — | нужна отдельная проверка |
+| features / Ответ на магию | частично | module:master-control | tests/registrations.test.mjs |
+| features / Смертельная дистанция | частично | module:master-control | tests/registrations.test.mjs |
+| features / Стремительная серия | частично | module:master-control | tests/registrations.test.mjs |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

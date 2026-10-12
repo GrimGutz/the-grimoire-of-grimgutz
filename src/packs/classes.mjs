@@ -36,6 +36,7 @@ import { spiritVesselClassDocuments } from "./spirit-vessel-class.mjs";
 import { oracleClassDocuments } from "./oracle-class.mjs";
 import { demonologistClassDocuments } from "./demonologist-class.mjs";
 import { sanguinistClassDocuments } from "./sanguinist-class.mjs";
+import {masterClassDocuments} from "./master-class.mjs";
 
 const TECHNIQUES = [
   "adaptability",
@@ -207,5 +208,6 @@ export const documents = [
   ...spiritVesselClassDocuments,
   ...oracleClassDocuments,
   ...demonologistClassDocuments,
-  ...sanguinistClassDocuments
+  ...sanguinistClassDocuments,
+  ...masterClassDocuments
 ];

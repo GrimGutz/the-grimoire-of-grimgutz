@@ -72,6 +72,7 @@ export function matchesAttackBenefit(effect, { attacker, target, weapon = false,
   if (data.weaponOnly && !weapon) return false;
   if (data.opportunityOnly && !opportunity) return false;
   if (data.against && !data.against.includes(tokenRef(data.kind === "caution" ? attacker : target)?.uuid)) return false;
+  if (data.notAgainst?.includes(tokenRef(target)?.uuid)) return false;
   if (data.attackers && !data.attackers.includes(tokenRef(attacker)?.uuid)) return false;
   if (data.protectedBy) {
     const protector = sceneToken(scene, data.protectedBy);

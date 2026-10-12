@@ -116,9 +116,9 @@ export async function syncFallenPriestSpellcasting(actor, { notifyResult = false
   }
 }
 
-export function applyFallenPriestSpellProgression(progression, actor, cls) {
+export function applyFallenPriestSpellProgression(progression, actor, cls, extraLevels = 0) {
   if (!fallenPriestClass(actor) || itemIdentifier(cls) !== "cleric") return true;
-  const effectiveLevel = clericLevel(actor) + fallenPriestLevel(actor);
+  const effectiveLevel = clericLevel(actor) + fallenPriestLevel(actor) + extraLevels;
   progression.spell += effectiveLevel;
   return false;
 }

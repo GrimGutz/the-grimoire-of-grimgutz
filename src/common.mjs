@@ -43,7 +43,7 @@ function inferAutomationKind(data = {}, context = {}) {
   if (automationActionId(data)) return "activity";
   if (data.passiveEffect === true) return "effect";
   if (data.prestigeClass) return "prestige-class";
-  if (data.wizardSubclass || data.keeperSubclass || data.spiritVesselSubclass) return "subclass";
+  if (data.wizardSubclass || data.keeperSubclass || data.spiritVesselSubclass || data.masterSubclass) return "subclass";
   if (data.transformation && data.transformationFeature !== true) return "transformation";
   if (data.transformationFeature === true || data.hollowFeature === true || data.murderspawnFeature === true) return "transformation-feature";
   if (data.massiveWeapon === true || data.murderspawnWeapon === true || data.weaponKey) return "equipment";
@@ -59,6 +59,7 @@ function inferAutomationId(data = {}, context = {}) {
     || data.wizardSubclass
     || data.keeperSubclass
     || data.spiritVesselSubclass
+    || data.masterSubclass
     || data.transformation
     || data.weaponKey
     || context.key
@@ -104,7 +105,7 @@ export function automationConfig(data = {}, context = {}) {
       key: context.key ?? id,
       feature: legacy.feature ?? null,
       prestigeClass: legacy.prestigeClass ?? null,
-      subclass: legacy.wizardSubclass ?? legacy.keeperSubclass ?? legacy.spiritVesselSubclass ?? null,
+      subclass: legacy.wizardSubclass ?? legacy.keeperSubclass ?? legacy.spiritVesselSubclass ?? legacy.masterSubclass ?? null,
       transformation: legacy.transformation ?? null,
       equipment: legacy.weaponKey ?? null
     },

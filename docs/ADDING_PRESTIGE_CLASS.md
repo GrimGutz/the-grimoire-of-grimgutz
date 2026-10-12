@@ -36,6 +36,7 @@ Use this order to avoid touching unrelated module systems.
    - Mention what is automated and what remains GM-confirmed.
 
 7. Verify.
+   - In this workspace the owner keeps Foundry closed while work is in progress: do not ask again. Check pack availability and logical local changes before rebuilding; never stop the server automatically.
    - `node -e "import('./scripts/automation.mjs')"`
    - `npm run check`
 

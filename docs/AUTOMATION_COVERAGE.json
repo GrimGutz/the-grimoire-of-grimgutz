@@ -3,9 +3,9 @@
   "scope": "static-source-inventory",
   "summary": {
     "automatic": 258,
-    "partial": 249,
-    "manual": 79,
-    "review": 353
+    "partial": 288,
+    "manual": 90,
+    "review": 360
   },
   "records": [
     {
@@ -415,6 +415,20 @@
       "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
     },
     {
+      "pack": "classes",
+      "id": "0bf2bbba48f802e1",
+      "name": "Мастер / Master",
+      "key": "master",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " Advancement выдаёт особенности и выбор 2/3/4/6/7 известных техник, плюс один необязательный обмен при повышении уровня. Путь — стандартный подкласс. Настройте его через карточку Пути совершенства. Полное описание каждой"
+    },
+    {
       "pack": "subclasses",
       "id": "d1d92f54cb54e466",
       "name": "Создатель големов",
@@ -609,6 +623,48 @@
         "tests/progression.test.mjs"
       ],
       "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "subclasses",
+      "id": "34663c61ee72c481",
+      "name": "Путь Клинка",
+      "key": "master-blade",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " стандартный подкласс Мастера; выдаёт карточку пути на 1-м уровне. Смена пути после выбора запрещена без решения GM; другие классовые особенности выбранного заклинателя не выдаются."
+    },
+    {
+      "pack": "subclasses",
+      "id": "016c2b3a36c01c0b",
+      "name": "Путь Стрелка",
+      "key": "master-archer",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " стандартный подкласс Мастера; выдаёт карточку пути на 1-м уровне. Смена пути после выбора запрещена без решения GM; другие классовые особенности выбранного заклинателя не выдаются."
+    },
+    {
+      "pack": "subclasses",
+      "id": "3acc7a63e3fd931d",
+      "name": "Путь Арканы",
+      "key": "master-arcana",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " стандартный подкласс Мастера; выдаёт карточку пути на 1-м уровне. Смена пути после выбора запрещена без решения GM; другие классовые особенности выбранного заклинателя не выдаются."
     },
     {
       "pack": "transformations",
@@ -5522,6 +5578,676 @@
         "tests/registrations.test.mjs"
       ],
       "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "c3e077d82c5bef7b",
+      "name": "Путь совершенства",
+      "key": "master-perfection-path",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "8e6ccd671ae84c60",
+      "name": "Избранное владение",
+      "key": "master-chosen-proficiency",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "9e7249ecf3b56988",
+      "name": "Техники",
+      "key": "master-techniques",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Повествовательное решение, нестандартные условия, движение или внешний выбор остаются за игроком/Мастером. Постоянный эффект только ради текста не создаётся. Число известных/подготовленных заклинаний и заговоров выбранн"
+    },
+    {
+      "pack": "features",
+      "id": "a3f1f1139b34d4a1",
+      "name": "Воля к совершенству",
+      "key": "master-will-perfection",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Штатная активность учитывает ресурс и восстановление после отдыха. Предшествующий провал/промах, изменение результата и перебросок конкретного чужого спасброска подтверждаются игроком/GM; глобального бонуса ко всем брос"
+    },
+    {
+      "pack": "features",
+      "id": "3a423d4a6109511c",
+      "name": "Совершенное ремесло",
+      "key": "master-perfect-craft",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "eb7f398b82562102",
+      "name": "Серия приемов",
+      "key": "master-combination",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Встроенные @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.9e7249ecf3b56988]{техники} одного применения учитываются автоматически: предел серий 2/3 и общий предел эффектов 4/6 в раунд. Кнопкой записывайте только"
+    },
+    {
+      "pack": "features",
+      "id": "88523c12ceb0087a",
+      "name": "Увеличение характеристик",
+      "key": "master-ability-improvement",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "3d8b122361049e20",
+      "name": "Вершина пути",
+      "key": "master-path-apex",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "72e577ec593540d8",
+      "name": "Улучшенная серия приемов",
+      "key": "master-improved-combination",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Повествовательное решение, нестандартные условия, движение или внешний выбор остаются за игроком/Мастером. Постоянный эффект только ради текста не создаётся. Число известных/подготовленных заклинаний и заговоров выбранн"
+    },
+    {
+      "pack": "features",
+      "id": "eaf8ca79b61d5183",
+      "name": "Путь Клинка",
+      "key": "master-path-blade",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a681941826e4a2e6",
+      "name": "Путь Стрелка",
+      "key": "master-path-archer",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "e1da3aafac4960fb",
+      "name": "Путь Арканы",
+      "key": "master-path-arcana",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выберите подкласс-путь через Advancement, затем настройте избранный тип оружия либо класс/школу магии и характеристику. Все выборы сохраняются. Смена пути не допускается автоматически; без настройки условные бонусы не в"
+    },
+    {
+      "pack": "features",
+      "id": "b0cd29ff5828675f",
+      "name": "Бой в упор",
+      "key": "master-point-blank",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "0c0181c38b9ca884",
+      "name": "Быстрая перезарядка",
+      "key": "master-rapid-reload",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "4a3a253c21d955ce",
+      "name": "Опытный взгляд",
+      "key": "master-appraisal",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Повествовательное решение, нестандартные условия, движение или внешний выбор остаются за игроком/Мастером. Постоянный эффект только ради текста не создаётся. Число известных/подготовленных заклинаний и заговоров выбранн"
+    },
+    {
+      "pack": "features",
+      "id": "39dca254f01738e1",
+      "name": "Дальний выстрел",
+      "key": "master-long-shot",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "45853891ca04ba5f",
+      "name": "Дальняя формула",
+      "key": "master-distant-formula",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "d66bca7e644694ef",
+      "name": "Защитная формула",
+      "key": "master-protective-formula",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "8be2c428121a6cfd",
+      "name": "Сквозь укрытие",
+      "key": "master-through-cover",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Повествовательное решение, нестандартные условия, движение или внешний выбор остаются за игроком/Мастером. Постоянный эффект только ради текста не создаётся. Число известных/подготовленных заклинаний и заговоров выбранн"
+    },
+    {
+      "pack": "features",
+      "id": "a6f4e526fa64f17a",
+      "name": "Длинный выпад",
+      "key": "master-long-lunge",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "35076e6efca4398b",
+      "name": "Надежная формула",
+      "key": "master-reliable-formula",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "ae83e1425f095ab2",
+      "name": "Натиск клинка",
+      "key": "master-blade-onslaught",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "f84cc4629434c2cb",
+      "name": "Отступающий выстрел",
+      "key": "master-retreating-shot",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Повествовательное решение, нестандартные условия, движение или внешний выбор остаются за игроком/Мастером. Постоянный эффект только ради текста не создаётся. Число известных/подготовленных заклинаний и заговоров выбранн"
+    },
+    {
+      "pack": "features",
+      "id": "8ac5f324caf24e61",
+      "name": "Предусмотрительность",
+      "key": "master-foresight",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "0cec37db6c9aaf55",
+      "name": "Разоружающий удар",
+      "key": "master-disarming-strike",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "5f8447826a659369",
+      "name": "Рискованный прием",
+      "key": "master-risky-maneuver",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a2115ed66b736998",
+      "name": "Совершенная рука",
+      "key": "master-perfect-hand",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "0e53f8a368f48b00",
+      "name": "Стальной заслон",
+      "key": "master-steel-barrier",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка выбирает цель подтверждённого попадания этого хода и создаёт связанный временный бонус/состояние до начала следующего хода источника. Пригвождение уменьшает скорость; наличие твёрдой опоры подтверждается, затем п"
+    },
+    {
+      "pack": "features",
+      "id": "e8717440f74137ae",
+      "name": "Срывающий выстрел",
+      "key": "master-disrupting-shot",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка выбирает цель подтверждённого попадания этого хода и создаёт связанный временный бонус/состояние до начала следующего хода источника. Пригвождение уменьшает скорость; наличие твёрдой опоры подтверждается, затем п"
+    },
+    {
+      "pack": "features",
+      "id": "4d9e8e26ac109d01",
+      "name": "Учёная формула",
+      "key": "master-learned-formula",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Повествовательное решение, нестандартные условия, движение или внешний выбор остаются за игроком/Мастером. Постоянный эффект только ради текста не создаётся. Число известных/подготовленных заклинаний и заговоров выбранн"
+    },
+    {
+      "pack": "features",
+      "id": "ba889b3f40bd5195",
+      "name": "Безупречная контратака",
+      "key": "master-perfect-riposte",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка предлагает подтверждение исходных условий и подходящую атаку избранным оружием через Midi-QOL со штатным расходом реакции. Зрение, момент срабатывания, итог КД контратаки и ручное перемещение подтверждаются игрок"
+    },
+    {
+      "pack": "features",
+      "id": "72d245fb43283f61",
+      "name": "Власть над стихией",
+      "key": "master-elemental-mastery",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "ccb1fb0a75873862",
+      "name": "Выстрел навскидку",
+      "key": "master-snap-shot",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка предлагает подтверждение исходных условий и подходящую атаку избранным оружием через Midi-QOL со штатным расходом реакции. Зрение, момент срабатывания, итог КД контратаки и ручное перемещение подтверждаются игрок"
+    },
+    {
+      "pack": "features",
+      "id": "bf331475102db427",
+      "name": "Избирательная формула",
+      "key": "master-selective-formula",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Повествовательное решение, нестандартные условия, движение или внешний выбор остаются за игроком/Мастером. Постоянный эффект только ради текста не создаётся. Число известных/подготовленных заклинаний и заговоров выбранн"
+    },
+    {
+      "pack": "features",
+      "id": "d99ba20d325b54b0",
+      "name": "Специалист школы",
+      "key": "master-school-specialist",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "c8f3914a6d4351b8",
+      "name": "Непоколебимая концентрация",
+      "key": "master-unwavering-concentration",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "307ecceaa87e167c",
+      "name": "Оборонительная стойка",
+      "key": "master-defensive-stance",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "5af10f14d1ee8217",
+      "name": "Подавляющий выстрел",
+      "key": "master-suppressing-shot",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "5120240222996f6b",
+      "name": "Пригвождающий прием",
+      "key": "master-pinning-maneuver",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка выбирает цель подтверждённого попадания этого хода и создаёт связанный временный бонус/состояние до начала следующего хода источника. Пригвождение уменьшает скорость; наличие твёрдой опоры подтверждается, затем п"
+    },
+    {
+      "pack": "features",
+      "id": "b76551b87f8077e7",
+      "name": "Пробивающий выстрел",
+      "key": "master-piercing-shot",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка совершает подходящую дополнительную атаку избранным оружием через Midi-QOL после подтверждения исходного события. Линия, смерть первоначальной цели и предел трёх атак подтверждаются. @UUID[Compendium.the-grimoire"
+    },
+    {
+      "pack": "features",
+      "id": "418dc37159e2c30c",
+      "name": "Расширенная формула",
+      "key": "master-expanded-formula",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "eda8201ff3632bdf",
+      "name": "Рассечение",
+      "key": "master-cleave",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка совершает подходящую дополнительную атаку избранным оружием через Midi-QOL после подтверждения исходного события. Линия, смерть первоначальной цели и предел трёх атак подтверждаются. @UUID[Compendium.the-grimoire"
+    },
+    {
+      "pack": "features",
+      "id": "bc1e19c561ed1068",
+      "name": "Рикошет",
+      "key": "master-ricochet",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка совершает подходящую дополнительную атаку избранным оружием через Midi-QOL после подтверждения исходного события. Линия, смерть первоначальной цели и предел трёх атак подтверждаются. Рикошет и @UUID[Compendium.th"
+    },
+    {
+      "pack": "features",
+      "id": "bad35830141185e3",
+      "name": "Страж клинка",
+      "key": "master-blade-warden",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка предлагает подтверждение исходных условий и подходящую атаку избранным оружием через Midi-QOL со штатным расходом реакции. Зрение, момент срабатывания, итог КД контратаки и ручное перемещение подтверждаются игрок"
+    },
+    {
+      "pack": "features",
+      "id": "91e7a68d7b85c367",
+      "name": "Великое заклинание",
+      "key": "master-great-spell",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выберите известное/подготовленное заклинание выбранной школы до 5-го уровня. Кнопка применяет его на минимальном уровне без ячейки с расходом одного использования @UUID[Compendium.the-grimoire-of-grimgutz.features.Item."
+    },
+    {
+      "pack": "features",
+      "id": "438a1aeb5324c45c",
+      "name": "Вихрь клинка",
+      "key": "master-blade-whirlwind",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "78dfe6949609609a",
+      "name": "Выверенная позиция",
+      "key": "master-measured-position",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Повествовательное решение, нестандартные условия, движение или внешний выбор остаются за игроком/Мастером. Постоянный эффект только ради текста не создаётся. Число известных/подготовленных заклинаний и заговоров выбранн"
+    },
+    {
+      "pack": "features",
+      "id": "637d0b016b431b5b",
+      "name": "Прицельный залп",
+      "key": "master-aimed-volley",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка совершает подходящую дополнительную атаку избранным оружием через Midi-QOL после подтверждения исходного события. Линия, смерть первоначальной цели и предел трёх атак подтверждаются. @UUID[Compendium.the-grimoire"
+    },
+    {
+      "pack": "features",
+      "id": "c0d322b4a0928d15",
+      "name": "Неотвратимое попадание",
+      "key": "master-inevitable-hit",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Штатная активность учитывает ресурс и восстановление после отдыха. Предшествующий провал/промах, изменение результата и перебросок конкретного чужого спасброска подтверждаются игроком/GM; глобального бонуса ко всем брос"
+    },
+    {
+      "pack": "features",
+      "id": "e5f1cddbe8168e17",
+      "name": "Непререкаемая магия",
+      "key": "master-undeniable-magic",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Штатная активность учитывает ресурс и восстановление после отдыха. Предшествующий провал/промах, изменение результата и перебросок конкретного чужого спасброска подтверждаются игроком/GM; глобального бонуса ко всем брос"
+    },
+    {
+      "pack": "features",
+      "id": "fce4812a72e18397",
+      "name": "Ответ на магию",
+      "key": "master-answer-magic",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка предлагает подтверждение исходных условий и подходящую атаку избранным оружием через Midi-QOL со штатным расходом реакции. Зрение, момент срабатывания, итог КД контратаки и ручное перемещение подтверждаются игрок"
+    },
+    {
+      "pack": "features",
+      "id": "3db4e3a98c07cf65",
+      "name": "Смертельная дистанция",
+      "key": "master-deadly-range",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a12fe0e0a36e310b",
+      "name": "Стремительная серия",
+      "key": "master-swift-series",
+      "status": "partial",
+      "entries": [
+        "module:master-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка совершает подходящую дополнительную атаку избранным оружием через Midi-QOL после подтверждения исходного события. Линия, смерть первоначальной цели и предел трёх атак подтверждаются. @UUID[Compendium.the-grimoire"
     },
     {
       "pack": "features",

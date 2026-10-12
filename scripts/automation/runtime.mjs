@@ -17,6 +17,8 @@ import { clamp } from "./shared/dnd5e.mjs";
 import { installTemporaryEffectHooks } from "./effects/temporary-effects.mjs";
 import { automationActors } from "./effects/temporary-effects.mjs";
 import { createActorSynchronizer } from "./shared/actor-sync.mjs";
+import {syncMaster, extendMasterCasting, validateMasterItem, validateMasterAdvancement} from "./classes/master.mjs";
+import {controlMaster, installMasterHooks} from "./classes/master-combat.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { registerAutomationPanel, openAutomationPanel } from "./shared/control-panel.mjs";
@@ -667,6 +669,7 @@ const COMMON_ACTIVITY_ACTIONS = new Map([
 
 export function getAutomationActionHandlers() {
   const registry = new Map(COMMON_ACTIVITY_ACTIONS);
+  registry.set("master-control", controlMaster);
   for (const [actions, handler] of [
     [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
     [SPIRIT_VESSEL_ACTIONS, handleSpiritVesselAction], [ORACLE_ACTIONS, handleOracleAction],
@@ -851,19 +854,20 @@ async function applyHellfireFuryHook(token, context) {
 
 function applyMysticalPowerProgression(progression, actor, cls, _spellcasting, count) {
   if (!enabled()) return;
+  const masterBonus = extendMasterCasting(actor, cls, _spellcasting);
   const identifier = itemIdentifier(cls);
   const rounding = count === 1 ? Math.ceil : Math.floor;
 
   if (identifier === "paladin" && deathKnightClass(actor)) {
-    const effectivePaladinLevel = paladinLevel(actor) + deathKnightLevel(actor);
+    const effectivePaladinLevel = paladinLevel(actor) + deathKnightLevel(actor) + masterBonus;
     progression.spell += rounding(effectivePaladinLevel / 2);
     return false;
   }
 
-  const fallenPriestProgression = applyFallenPriestSpellProgression(progression, actor, cls, count);
+  const fallenPriestProgression = applyFallenPriestSpellProgression(progression, actor, cls, masterBonus);
   if (fallenPriestProgression === false) return false;
 
-  return applyForestLordSpellProgression(progression, actor, cls, count);
+  return applyForestLordSpellProgression(progression, actor, cls, count, masterBonus);
 }
 
 const {
@@ -969,7 +973,7 @@ const actorSynchronizer = createActorSynchronizer([
   syncFeyWarriorPassiveEffects, syncGhostWalkerResources, syncGhostWalkerPassiveEffects,
   syncBlinkerResources, syncSpiritVesselResources, syncSpiritVesselPassiveEffects,
   syncOracleResources, syncOraclePassiveEffects, syncSanguinistResources,
-  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons
+  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons, syncMaster
 ]);
 const schedulePassiveSync = actorSynchronizer.schedule;
 
@@ -1016,6 +1020,9 @@ function installHooks() {
   installZoneHooks();
   installAreaActivityHooks({ validate: validateActivityUse });
   installWitchBladeHooks();
+  installMasterHooks();
+  Hooks.on("preCreateItem", validateMasterItem);
+  Hooks.on("dnd5e.preAdvancementManagerComplete", validateMasterAdvancement);
   installRitualistZoneHooks();
   installJuggernautRegenerationHooks();
   installRitualistSpiritHooks();

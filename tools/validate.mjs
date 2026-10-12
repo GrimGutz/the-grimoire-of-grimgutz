@@ -88,9 +88,9 @@ try {
   });
 }
 
-if (documentCounts.classes !== 29) errors.push(`Expected 29 prestige classes, got ${documentCounts.classes ?? 0}`);
-if (documentCounts.subclasses !== 14) errors.push(`Expected 14 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 421) errors.push(`Expected 421 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.classes !== 30) errors.push(`Expected 30 prestige classes, got ${documentCounts.classes ?? 0}`);
+if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
+if (documentCounts.features !== 474) errors.push(`Expected 474 features, got ${documentCounts.features ?? 0}`);
 if (documentCounts.transformations !== 2) errors.push(`Expected 2 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 20) errors.push(`Expected 20 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
@@ -3272,6 +3272,19 @@ for (const document of murderspawnWeapons) {
   if (!document.system.description?.value?.includes("Формы убийцы")) {
     errors.push(`Murderspawn weapon description is missing transformation context: ${document.name}`);
   }
+}
+
+const master = classDocuments.find(document => document.system.identifier === "master");
+const masterFeatures = [...allDocuments.values()].filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.masterFeature).map(entry => entry.document);
+if (!master || master.system.hitDice !== "d8") errors.push("Master class with d8 hit die is missing");
+if (masterFeatures.length !== 53) errors.push(`Expected 53 Master features/techniques, got ${masterFeatures.length}`);
+if (masterFeatures.filter(document => document.flags[manifest.id].masterTechnique).length !== 41) errors.push("Expected 41 Master techniques");
+for (const document of masterFeatures) {
+  if (!document.system.description.value.includes("Автоматизация Foundry:")) errors.push(`Master automation description is missing: ${document.name}`);
+}
+for (const path of ["blade", "archer", "arcana"]) {
+  const subclass = subclassDocuments.find(document => document.system.identifier === `master-${path}`);
+  if (!subclass || subclass.system.classIdentifier !== "master" || subclass.flags?.[manifest.id]?.masterSubclass !== path) errors.push(`Invalid Master path: ${path}`);
 }
 
 if (errors.length) {

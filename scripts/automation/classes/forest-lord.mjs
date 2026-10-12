@@ -337,12 +337,12 @@ export async function syncNatureMagic(actor, { notifyResult = false } = {}) {
   }
 }
 
-export function applyForestLordSpellProgression(progression, actor, cls, count) {
+export function applyForestLordSpellProgression(progression, actor, cls, count, extraLevels = 0) {
   const identifier = itemIdentifier(cls);
   const baseClass = forestBaseClassIdentifier(actor);
   if (!forestLordClass(actor) || identifier !== baseClass) return true;
   const rounding = count === 1 ? Math.ceil : Math.floor;
-  const effectiveLevel = Number(cls.system?.levels ?? 0) + forestLordLevel(actor);
+  const effectiveLevel = Number(cls.system?.levels ?? 0) + forestLordLevel(actor) + extraLevels;
   progression.spell += identifier === "druid" ? effectiveLevel : rounding(effectiveLevel / 2);
   return false;
 }

@@ -34,7 +34,7 @@ for (const root of transformations) test(`${root.name}: levels 1/6/11/16 grant f
 });
 
 test("subclasses remain bound to their base classes with resolvable feature grants", () => {
-  assert.deepEqual(new Set(subclasses.map(subclass => subclass.system.classIdentifier)), new Set(["wizard", "keeper", "spirit-vessel"]));
+  assert.deepEqual(new Set(subclasses.map(subclass => subclass.system.classIdentifier)), new Set(["wizard", "keeper", "spirit-vessel", "master"]));
   for (const subclass of subclasses) for (const advancement of subclass.system.advancement) {
     if (advancement.type !== "ItemGrant") continue;
     for (const entry of advancement.configuration.items) if (entry.uuid.startsWith(`Compendium.${MODULE_ID}.`)) assert.ok(byUuid.has(entry.uuid), `${subclass.name}: ${entry.uuid}`);

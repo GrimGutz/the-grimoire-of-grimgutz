@@ -29,7 +29,7 @@ function inferAutomationKind(flags = {}) {
   if (automationActionId(flags)) return "activity";
   if (flags.passiveEffect === true) return "effect";
   if (flags.prestigeClass) return "prestige-class";
-  if (flags.wizardSubclass || flags.keeperSubclass || flags.spiritVesselSubclass) return "subclass";
+  if (flags.wizardSubclass || flags.keeperSubclass || flags.spiritVesselSubclass || flags.masterSubclass) return "subclass";
   if (flags.transformation && flags.transformationFeature !== true) return "transformation";
   if (flags.transformationFeature === true || flags.hollowFeature === true || flags.murderspawnFeature === true) return "transformation-feature";
   if (flags.massiveWeapon === true || flags.murderspawnWeapon === true || flags.weaponKey) return "equipment";
@@ -45,6 +45,7 @@ function inferAutomationId(flags = {}) {
     || flags.wizardSubclass
     || flags.keeperSubclass
     || flags.spiritVesselSubclass
+    || flags.masterSubclass
     || flags.transformation
     || flags.weaponKey
     || "";
@@ -100,7 +101,7 @@ export function automationConfig(documentOrFlags) {
       key: existing.document?.key ?? existing.id ?? inferAutomationId({ ...legacy, automation: existing }),
       feature: existing.document?.feature ?? legacy.feature ?? null,
       prestigeClass: existing.document?.prestigeClass ?? legacy.prestigeClass ?? null,
-      subclass: existing.document?.subclass ?? legacy.wizardSubclass ?? legacy.keeperSubclass ?? legacy.spiritVesselSubclass ?? null,
+      subclass: existing.document?.subclass ?? legacy.wizardSubclass ?? legacy.keeperSubclass ?? legacy.spiritVesselSubclass ?? legacy.masterSubclass ?? null,
       transformation: existing.document?.transformation ?? legacy.transformation ?? null,
       equipment: existing.document?.equipment ?? legacy.weaponKey ?? null
     },
