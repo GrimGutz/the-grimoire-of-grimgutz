@@ -19,9 +19,9 @@ export function flagellantAvailable(actor,item){const flags=automationData(item)
 export const flagellantMaxDebts=actor=>actor.getFlag?.(MODULE_ID,"flagellantMaxDebts")??[];
 const gm=actor=>({uuid:actor.uuid,testUserPermission:user=>user.isGM});
 function maxDefinition(actor,debts=flagellantMaxDebts(actor)){
-  const sacrifice=actor.getFlag?.(MODULE_ID,"flagellantSacrifice"),permanent=flagellantLevel(actor)>=4&&sacrifice?.choice==="ability"?flagellantTotalLevel(actor):0;
+  const sacrifice=actor.getFlag?.(MODULE_ID,"flagellantSacrifice"),permanent=sacrifice?.choice==="ability"?flagellantTotalLevel(actor):0;
   const amount=debts.reduce((n,row)=>n+Number(row.amount),0)+permanent;if(!amount)return null;
-  const source=permanent?findFeature(actor,"flagellant-sacrifice"):{uuid:debts[0]?.sourceItemUuid,name:"Цена силы",img:FLAGELLANT_ICON};
+  const source=permanent?(findFeature(actor,"flagellant-sacrifice")??{uuid:sacrifice.sourceItemUuid,name:"Жертвенное увеличение",img:FLAGELLANT_ICON}):{uuid:debts[0]?.sourceItemUuid,name:"Цена силы",img:FLAGELLANT_ICON};
   const baseMaximum=Number(actor.system.attributes.hp.max),rawTemporary=Number(actor._source?.system?.attributes?.hp?.tempmax??0);
   const reduction=Math.min(amount,Math.max(0,baseMaximum+rawTemporary-1));
   // tempmax is applied BEFORE D&D5e computes effectiveMax/value/damage. A final
@@ -83,7 +83,7 @@ registerGmRequest("flagellant-sacrifice",(actor,data)=>serialMutation(`flagellan
   const item=await fromUuid(data.itemUuid);if(!enabled()||!isGmAuthority()||item?.actor?.uuid!==actor.uuid||item.system.identifier!=="flagellant-sacrifice"||!flagellantAvailable(actor,item)||actor.getFlag(MODULE_ID,"flagellantSacrifice"))return false;
   const choices=[["feat","Выбрать черту штатно"],...["str","dex","con","int","wis","cha"].map(key=>[key,`${key.toUpperCase()}: +3 и уменьшение максимума HP на общий уровень`])],choice=await askOwner(actor,{title:item.name,choices});
   if(!choices.some(([key])=>key===choice))return false;
-  const patch={[`flags.${MODULE_ID}.flagellantSacrifice`]:{choice:choice==="feat"?"feat":"ability",ability:choice==="feat"?null:choice}};
+  const patch={[`flags.${MODULE_ID}.flagellantSacrifice`]:{choice:choice==="feat"?"feat":"ability",ability:choice==="feat"?null:choice,sourceItemUuid:item.uuid}};
   if(choice!=="feat"){const raw=actor._source.system.abilities[choice];patch[`system.abilities.${choice}.value`]=Number(raw.value)+3;patch[`system.abilities.${choice}.max`]=Number(raw.max??CONFIG.DND5E.maxAbilityScore??20)+3;}
   await actor.update(patch);await syncFlagellant(actor);if(choice==="feat")notify("Добавьте выбранную черту штатно; изменения характеристик и HP не выдаются.");return true;
 }));

@@ -155,6 +155,10 @@ test("sacrificial ability/cap increase is once, maximum penalty grows with total
 test("feat alternative cannot also grant ability or maximum HP penalty",async()=>{
   answers.push("feat");await requestGm("flagellant-sacrifice",actor,{itemUuid:item("sacrifice").uuid});await syncFlagellant(actor);assert.equal(actor._source.system.abilities.dex.value,18);assert.equal(flagellantMaximum(actor),100);assert.ok(!actor.effects.some(e=>e.getFlag(MODULE_ID,"flagellantPassive")==="max-loss"));
 });
+test("changing class levels cannot keep the permanent +3 while silently removing its paid HP penalty",async()=>{
+  answers.push("dex");await requestGm("flagellant-sacrifice",actor,{itemUuid:item("sacrifice").uuid});actor.items[0].system.levels=3;await syncFlagellant(actor);
+  assert.equal(actor._source.system.abilities.dex.value,21);assert.equal(flagellantMaximum(actor),90);
+});
 test("Through force has proficiency uses, a single actual price, and no future-save passive; zero-price failure does not refund use",async()=>{
   await syncFlagellant(actor);assert.equal(item("force").system.uses.max,"4");answers.push("yes","yes");dice.push([4]);await use("force","force-a");assert.equal(item("force").system.uses.spent,1);assert.equal(actor.system.attributes.hp.value,36);await use("force","force-a");assert.equal(item("force").system.uses.spent,1);
   await actor.update({"system.attributes.hp.value":2});answers.push("yes");dice.push([3]);await use("force");assert.equal(item("force").system.uses.spent,2);assert.equal(actor.system.attributes.hp.value,0);assert.equal(nativeCalls[0].activity.activation.type,"special");
