@@ -4,8 +4,8 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 259
-- частично: 338
+- автоматизировано: 261
+- частично: 347
 - обоснованно вручную: 90
 - требует исправления: 362
 
@@ -44,6 +44,7 @@
 | classes / Сангвинист / Sanguinist | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Мастер / Master | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Охотник за головами / Bounty Hunter | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Арлекин / Jester | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Создатель големов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Искатель мифов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Духовный медиум | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
@@ -553,6 +554,16 @@
 | features / Малый трофей нежити | частично | module:bounty-hunter-control | tests/registrations.test.mjs |
 | features / Средний трофей нежити | частично | module:bounty-hunter-control | tests/registrations.test.mjs |
 | features / Великий трофей нежити | частично | module:bounty-hunter-control | tests/registrations.test.mjs |
+| features / Очки хаоса | частично | module:jester-control | tests/registrations.test.mjs |
+| features / Экспромт | частично | module:jester-control | tests/registrations.test.mjs |
+| features / Смена декораций | частично | module:jester-control | tests/registrations.test.mjs |
+| features / Острая реплика | частично | module:jester-control | tests/registrations.test.mjs |
+| features / Смех зала | частично | module:jester-control | tests/registrations.test.mjs |
+| features / Мизансцена | автоматизировано | runtime:classes/jester-actions | tests/jester.test.mjs |
+| features / Правка суфлера | частично | module:jester-control | tests/registrations.test.mjs |
+| features / Жребий роли | частично | module:jester-control | tests/registrations.test.mjs |
+| features / Финальный номер | частично | module:jester-control | tests/registrations.test.mjs |
+| features / Импровизация | автоматизировано | runtime:classes/jester-actions | tests/jester.test.mjs |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

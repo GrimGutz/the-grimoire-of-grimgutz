@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 259,
-    "partial": 338,
+    "automatic": 261,
+    "partial": 347,
     "manual": 90,
     "review": 362
   },
@@ -441,6 +441,20 @@
         "tests/progression.test.mjs"
       ],
       "note": " Advancement выдаёт особенности на уровнях 1–5. Настройте неизменяемую Характеристику охоты на карточке Добычи трофеев. Перетащите добытые трофеи из библиотеки, подтвердите их источник и наличие, затем выберите по одному"
+    },
+    {
+      "pack": "classes",
+      "id": "50dc88bd92357cf9",
+      "name": "Арлекин / Jester",
+      "key": "jester",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " Advancement выдаёт все десять особенностей. На Очках хаоса выберите неизменяемую Ловкость или Харизму ≥16. Начальный запас — 0, предел 3/4/5/6/7; отдых не восполняет хаос. Отношения и полезность конкретного эффекта подт"
     },
     {
       "pack": "subclasses",
@@ -6984,6 +6998,146 @@
         "tests/registrations.test.mjs"
       ],
       "note": " Предлагается при попадании оружием: 6к8 некротического урона, минутный запрет лечения и повторные спасброски Телосложения. Ограничение связывается с конкретным источником; спорные обходы лечения проверяет GM. Трофей дей"
+    },
+    {
+      "pack": "features",
+      "id": "85beb3be8c5944d8",
+      "name": "Очки хаоса",
+      "key": "jester-chaos",
+      "status": "partial",
+      "entries": [
+        "module:jester-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Запас начинается с 0, предел синхронизируется по уровню без бесплатного пополнения. Нативное сообщение инициативы даёт пустому запасу 1; для броска без сообщения используйте кнопку с подтверждением GM. Ручное редактиров"
+    },
+    {
+      "pack": "features",
+      "id": "a974f9e394e81b4e",
+      "name": "Экспромт",
+      "key": "jester-impromptu",
+      "status": "partial",
+      "entries": [
+        "module:jester-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "58441a25cf825934",
+      "name": "Смена декораций",
+      "key": "jester-scenery",
+      "status": "partial",
+      "entries": [
+        "module:jester-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Состав видимых существ в 20 футах, включая вас, подтверждается до расхода. GM и владелец по очереди выбирают пары, GM начинает и выбирает последнюю нечётную пару. После согласования свободных мест и размеров GM выполняе"
+    },
+    {
+      "pack": "features",
+      "id": "6b30e3d38ba5dbf4",
+      "name": "Острая реплика",
+      "key": "jester-retort",
+      "status": "partial",
+      "entries": [
+        "module:jester-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выберите слышащую цель в 60 футах, Подбодрить/Уязвить и число к6 от 1 до предела. Нативный Midi-QOL даёт временные хиты либо спасбросок Мудрости и психический урон с половиной при успехе. Отношение определяет расход/пол"
+    },
+    {
+      "pack": "features",
+      "id": "144c96e1c5dcb73c",
+      "name": "Смех зала",
+      "key": "jester-laughter",
+      "status": "partial",
+      "entries": [
+        "module:jester-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " При нативном сообщении с действующим результатом к20=1/20 предлагается получение 1 очка после подтверждения видимости и дистанции. Ограничение общее — раз за раунд, не раз на цель. Кнопка подтверждает особый/внешний бро"
+    },
+    {
+      "pack": "features",
+      "id": "08d9cc82ad365a19",
+      "name": "Мизансцена",
+      "key": "jester-mise",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/jester-actions"
+      ],
+      "checks": [
+        "tests/jester.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "8abf4214e2555ab3",
+      "name": "Правка суфлера",
+      "key": "jester-correction",
+      "status": "partial",
+      "entries": [
+        "module:jester-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "1c312a528ab42511",
+      "name": "Жребий роли",
+      "key": "jester-role",
+      "status": "partial",
+      "entries": [
+        "module:jester-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "ba38fa96a33f6f76",
+      "name": "Финальный номер",
+      "key": "jester-finale",
+      "status": "partial",
+      "entries": [
+        "module:jester-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " С 5-го уровня @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a974f9e394e81b4e]{Экспромт} использует к6. Кнопка подтверждает конкретный к20 до объявления результата и замену на 1/20: хаос изменяется на 3 вместо "
+    },
+    {
+      "pack": "features",
+      "id": "323e8c4d830805e1",
+      "name": "Импровизация",
+      "key": "jester-improvisation",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/jester-actions"
+      ],
+      "checks": [
+        "tests/jester.test.mjs"
+      ],
+      "note": "Событийный обработчик"
     },
     {
       "pack": "features",

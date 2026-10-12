@@ -97,6 +97,8 @@ export async function inspectAutomation(actorOrUuid, { actionHandlers = new Map(
       ready:structuredClone(actor.getFlag?.(MODULE_ID,"hunterReady")??null),uses:structuredClone(actor.getFlag?.(MODULE_ID,"hunterHitUses")??null),
       recoveryClaims:structuredClone(actor.getFlag?.(MODULE_ID,"hunterRecoveryClaims")??[]),
       fireDamage:structuredClone(actor.getFlag?.(MODULE_ID,"hunterFireDamage")??null),undeadTemporaryHp:structuredClone(actor.getFlag?.(MODULE_ID,"hunterUndeadTemp")??null)},
+    jester:{ability:actor.getFlag?.(MODULE_ID,"jesterAbility")??null,roleChoice:actor.getFlag?.(MODULE_ID,"jesterRoleChoice")??null,
+      role:structuredClone(actor.getFlag?.(MODULE_ID,"jesterRole")??null),laughterClaims:structuredClone(actor.getFlag?.(MODULE_ID,"jesterLaughterClaims")??[])},
     links: { bloodDrain: structuredClone(actor.getFlag?.(MODULE_ID, "bloodDrainLink") ?? null),
       leaderPresences: structuredClone(actor.getFlag?.(MODULE_ID, "leaderPresenceRecipients") ?? []),
       bloodSpell: structuredClone(actor.getFlag?.(MODULE_ID, "bloodSpellArmed") ?? null) },

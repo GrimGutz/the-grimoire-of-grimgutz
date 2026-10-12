@@ -88,9 +88,9 @@ try {
   });
 }
 
-if (documentCounts.classes !== 31) errors.push(`Expected 31 prestige classes, got ${documentCounts.classes ?? 0}`);
+if (documentCounts.classes !== 32) errors.push(`Expected 32 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 526) errors.push(`Expected 526 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.features !== 536) errors.push(`Expected 536 features, got ${documentCounts.features ?? 0}`);
 if (documentCounts.transformations !== 2) errors.push(`Expected 2 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 20) errors.push(`Expected 20 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
@@ -3301,6 +3301,22 @@ for (const document of hunterFeatures) {
   if (document.effects.length) errors.push(`Hunter cards must not supply unselected or empty passive effects: ${document.name}`);
 }
 if (hunterFeatures.find(document => document.system.identifier === "hunter-trophies")?.system.uses.max !== "4") errors.push("Hunter initial shared pool must have four uses");
+
+const jester = classDocuments.find(document => document.system.identifier === "jester");
+const jesterFeatures = [...allDocuments.values()].filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.jesterFeature).map(entry => entry.document);
+if (!jester || jester.system.hitDice !== "d8") errors.push("Jester class with d8 hit die is missing");
+if (jesterFeatures.length !== 10) errors.push(`Expected 10 Jester features, got ${jesterFeatures.length}`);
+const jesterGrants = jester?.system.advancement?.filter(advancement => advancement.type === "ItemGrant") ?? [];
+if (JSON.stringify(jesterGrants.map(advancement => advancement.level)) !== "[1,2,3,4,5]"
+  || jesterGrants.reduce((n, advancement) => n + advancement.configuration.items.length, 0) !== 10) errors.push("Jester must grant ten features across levels 1–5");
+const chaos = jesterFeatures.find(document => document.system.identifier === "jester-chaos");
+if (chaos?.system.uses.max !== "3" || chaos.system.uses.spent !== 3 || chaos.system.uses.recovery.length) errors.push("Jester chaos must start empty without rest recovery");
+const finale = jesterFeatures.find(document => document.system.identifier === "jester-finale");
+if (finale?.system.uses.max !== "1" || !finale.system.uses.recovery.some(recovery => recovery.period === "sr")) errors.push("Jester Finale must have one short-rest use");
+for (const document of jesterFeatures) {
+  if (document.effects.length) errors.push(`Jester must not grant empty/unconditional roll passives: ${document.name}`);
+  if (!document.system.description.value.includes("Автоматизация Foundry:")) errors.push(`Jester automation description is missing: ${document.name}`);
+}
 
 if (errors.length) {
   console.error("Validation failed:");

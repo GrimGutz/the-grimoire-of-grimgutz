@@ -33,6 +33,7 @@ import { demonologistDocuments, demonologistFolders } from "./demonologist-featu
 import { sanguinistDocuments, sanguinistFolders } from "./sanguinist-features.mjs";
 import {masterDocuments, masterFolders} from "./master-features.mjs";
 import {bountyHunterDocuments,bountyHunterFolders} from "./bounty-hunter-features.mjs";
+import {jesterDocuments,jesterFolders} from "./jester-features.mjs";
 
 const MAIN_FOLDER = idFor("folder:class-features");
 const STYLE_FOLDER = idFor("folder:weapon-styles");
@@ -72,6 +73,7 @@ export const folders = [
   ...sanguinistFolders,
   ...masterFolders,
   ...bountyHunterFolders,
+  ...jesterFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -427,6 +429,7 @@ export const documents = configureAreaActivities([
   ...sanguinistDocuments,
   ...masterDocuments,
   ...bountyHunterDocuments,
+  ...jesterDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ]);
