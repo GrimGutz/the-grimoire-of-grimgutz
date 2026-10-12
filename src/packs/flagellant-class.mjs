@@ -1,0 +1,12 @@
+import {MODULE_ID,baseDocument,hitPointsAdvancement,itemGrant,scaleValueAdvancement,sourceData,uuidFor} from "../common.mjs";
+import {FLAGELLANT_FEATURES,FLAGELLANT_ICON,flagellantDie} from "../../scripts/automation/shared/flagellant-definitions.mjs";
+import {FLAGELLANT_SOURCE,flagellantIntroduction,flagellantSection,flagellantHtml,flagellantLinks} from "../flagellant-data.mjs";
+export const flagellantClassDocuments=[baseDocument({key:"flagellant-class",name:"Самобичеватель / Flagellant",type:"class",img:FLAGELLANT_ICON,flags:{[MODULE_ID]:{prestigeClass:"flagellant"}},
+  system:{identifier:"flagellant",levels:1,hitDice:"d10",hitDiceUsed:0,wealth:"",spellcasting:{progression:"none",ability:"",preparation:{}},source:sourceData("Flagellant.md",FLAGELLANT_SOURCE),
+    description:{chat:"",value:flagellantLinks(`<h1>Престиж-класс: Самобичеватель</h1>${flagellantHtml(flagellantIntroduction)}<h2>Требования</h2>${flagellantHtml(flagellantSection("Требования",2).split("<div")[0])}
+      <p>Кость хитов к10; хиты за уровень: 1к10 (или 6) + модификатор Телосложения. Новых владений, снаряжения, подкласса и развития заклинаний нет.</p>
+      <table><tr><th>Уровень</th><th>Кость боли</th><th>Особенности</th></tr>${[1,2,3,4,5].map(level=>`<tr><td>${level}</td><td>к${flagellantDie(level)}</td><td>${FLAGELLANT_FEATURES.filter(e=>e.level===level).map(e=>`@UUID[${uuidFor("features",e.key)}]{${e.name}}`).join(", ")}</td></tr>`).join("")}</table>
+      <h2>Термины</h2>${flagellantHtml(flagellantSection("Термины класса"))}<h2>Цена силы</h2>${flagellantHtml(flagellantSection("Цена силы"))}
+      <p><strong>Автоматизация Foundry:</strong> Advancement выдаёт все особенности и три приёма. Цена силы — потеря реальных хитов, не урон: временные хиты и сопротивления её не уменьшают. При 1 хите уменьшается максимум до продолжительного отдыха получателя. Пороговые эффекты пересчитываются по текущим хитам получателя. Действия и использования уже объявленной способности не возвращаются при неудачной оплате. Строгая проверка входа по умолчанию выключена.</p>`)},
+    advancement:[hitPointsAdvancement("flagellant-hp"),scaleValueAdvancement({key:"flagellant-pain-die",identifier:"pain-die",title:"Кость боли",type:"dice",scale:Object.fromEntries([1,2,3,4,5].map(level=>[level,{number:1,faces:flagellantDie(level)}]))}),
+      ...[1,2,3,4,5].map(level=>itemGrant({key:`flagellant-features-${level}`,level,items:FLAGELLANT_FEATURES.filter(e=>e.level===level).map(e=>e.key)}))]}})];

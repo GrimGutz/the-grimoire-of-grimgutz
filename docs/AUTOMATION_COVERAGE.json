@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 261,
-    "partial": 347,
+    "automatic": 265,
+    "partial": 357,
     "manual": 90,
     "review": 362
   },
@@ -455,6 +455,20 @@
         "tests/progression.test.mjs"
       ],
       "note": " Advancement выдаёт все десять особенностей. На Очках хаоса выберите неизменяемую Ловкость или Харизму ≥16. Начальный запас — 0, предел 3/4/5/6/7; отдых не восполняет хаос. Отношения и полезность конкретного эффекта подт"
+    },
+    {
+      "pack": "classes",
+      "id": "a625945b641de718",
+      "name": "Самобичеватель / Flagellant",
+      "key": "flagellant",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
     },
     {
       "pack": "subclasses",
@@ -7138,6 +7152,188 @@
         "tests/jester.test.mjs"
       ],
       "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "e99983473ca3c09f",
+      "name": "Цена силы",
+      "key": "flagellant-price",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/flagellant"
+      ],
+      "checks": [
+        "tests/flagellant.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "c8ee2489618f1278",
+      "name": "Исступление",
+      "key": "flagellant-frenzy",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/flagellant"
+      ],
+      "checks": [
+        "tests/flagellant.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "b53c5ba09f9a5e3e",
+      "name": "Самобичевание",
+      "key": "flagellant-mortification",
+      "status": "partial",
+      "entries": [
+        "module:flagellant-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Три отдельные карточки приёмов. Успешно оплаченный новый приём заменяет прежний от любого источника; неудачная оплата не создаёт бонус. Концентрации нет. В бою срок заканчивается в указанное начало хода; вне боя окончан"
+    },
+    {
+      "pack": "features",
+      "id": "8260dba7a832894f",
+      "name": "Натиск",
+      "key": "flagellant-onslaught",
+      "status": "partial",
+      "entries": [
+        "module:flagellant-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "cb529358f19ed1af",
+      "name": "Стойкость",
+      "key": "flagellant-endurance",
+      "status": "partial",
+      "entries": [
+        "module:flagellant-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " В подходящем Midi-потоке до броска атаки предлагается реакция; карточкой можно подтвердить момент вручную до объявления результата. Две кости боли и реальная цена дают эффект КД до начала своего хода. При Жажде текущий "
+    },
+    {
+      "pack": "features",
+      "id": "bcd41e1ff79a7d7c",
+      "name": "Порыв",
+      "key": "flagellant-surge",
+      "status": "partial",
+      "entries": [
+        "module:flagellant-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "471bf8d6016a2652",
+      "name": "Жестокий урок",
+      "key": "flagellant-lesson",
+      "status": "partial",
+      "entries": [
+        "module:flagellant-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "0a10973ba44089d0",
+      "name": "Воздаяние",
+      "key": "flagellant-retribution",
+      "status": "partial",
+      "entries": [
+        "module:flagellant-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "ed1fa99a162684bc",
+      "name": "Закалённая плоть",
+      "key": "flagellant-flesh",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/flagellant"
+      ],
+      "checks": [
+        "tests/flagellant.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "600f3b2afa5886fe",
+      "name": "Дар крови",
+      "key": "flagellant-blood-gift",
+      "status": "partial",
+      "entries": [
+        "module:flagellant-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "14a300c0e50a9c43",
+      "name": "Жертвенное увеличение",
+      "key": "flagellant-sacrifice",
+      "status": "partial",
+      "entries": [
+        "module:flagellant-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "6aff89ad1319ba8e",
+      "name": "Через силу",
+      "key": "flagellant-force",
+      "status": "partial",
+      "entries": [
+        "module:flagellant-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "5a090777e3992f45",
+      "name": "Пир страданий",
+      "key": "flagellant-feast",
+      "status": "partial",
+      "entries": [
+        "module:flagellant-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
     },
     {
       "pack": "features",

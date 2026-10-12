@@ -4,8 +4,8 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 261
-- частично: 347
+- автоматизировано: 265
+- частично: 357
 - обоснованно вручную: 90
 - требует исправления: 362
 
@@ -45,6 +45,7 @@
 | classes / Мастер / Master | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Охотник за головами / Bounty Hunter | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Арлекин / Jester | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Самобичеватель / Flagellant | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Создатель големов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Искатель мифов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Духовный медиум | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
@@ -564,6 +565,19 @@
 | features / Жребий роли | частично | module:jester-control | tests/registrations.test.mjs |
 | features / Финальный номер | частично | module:jester-control | tests/registrations.test.mjs |
 | features / Импровизация | автоматизировано | runtime:classes/jester-actions | tests/jester.test.mjs |
+| features / Цена силы | автоматизировано | runtime:classes/flagellant | tests/flagellant.test.mjs |
+| features / Исступление | автоматизировано | runtime:classes/flagellant | tests/flagellant.test.mjs |
+| features / Самобичевание | частично | module:flagellant-control | tests/registrations.test.mjs |
+| features / Натиск | частично | module:flagellant-control | tests/registrations.test.mjs |
+| features / Стойкость | частично | module:flagellant-control | tests/registrations.test.mjs |
+| features / Порыв | частично | module:flagellant-control | tests/registrations.test.mjs |
+| features / Жестокий урок | частично | module:flagellant-control | tests/registrations.test.mjs |
+| features / Воздаяние | частично | module:flagellant-control | tests/registrations.test.mjs |
+| features / Закалённая плоть | автоматизировано | runtime:classes/flagellant | tests/flagellant.test.mjs |
+| features / Дар крови | частично | module:flagellant-control | tests/registrations.test.mjs |
+| features / Жертвенное увеличение | частично | module:flagellant-control | tests/registrations.test.mjs |
+| features / Через силу | частично | module:flagellant-control | tests/registrations.test.mjs |
+| features / Пир страданий | частично | module:flagellant-control | tests/registrations.test.mjs |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

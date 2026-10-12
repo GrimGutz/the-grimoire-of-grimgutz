@@ -34,6 +34,7 @@ import { sanguinistDocuments, sanguinistFolders } from "./sanguinist-features.mj
 import {masterDocuments, masterFolders} from "./master-features.mjs";
 import {bountyHunterDocuments,bountyHunterFolders} from "./bounty-hunter-features.mjs";
 import {jesterDocuments,jesterFolders} from "./jester-features.mjs";
+import {flagellantDocuments,flagellantFolders} from "./flagellant-features.mjs";
 
 const MAIN_FOLDER = idFor("folder:class-features");
 const STYLE_FOLDER = idFor("folder:weapon-styles");
@@ -74,6 +75,7 @@ export const folders = [
   ...masterFolders,
   ...bountyHunterFolders,
   ...jesterFolders,
+  ...flagellantFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -430,6 +432,7 @@ export const documents = configureAreaActivities([
   ...masterDocuments,
   ...bountyHunterDocuments,
   ...jesterDocuments,
+  ...flagellantDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ]);

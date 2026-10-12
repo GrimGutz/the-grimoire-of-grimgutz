@@ -28,6 +28,9 @@ import {validateHunterDisposable} from "./classes/bounty-hunter-capture.mjs";
 import {syncJester,validateJesterItem} from "./classes/jester.mjs";
 import {controlJester} from "./classes/jester-actions.mjs";
 import {installJesterHooks} from "./classes/jester-events.mjs";
+import {syncFlagellant,validateFlagellantItem} from "./classes/flagellant.mjs";
+import {controlFlagellant} from "./classes/flagellant-actions.mjs";
+import {installFlagellantHooks} from "./classes/flagellant-events.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { registerAutomationPanel, openAutomationPanel } from "./shared/control-panel.mjs";
@@ -681,6 +684,7 @@ export function getAutomationActionHandlers() {
   registry.set("master-control", controlMaster);
   registry.set("bounty-hunter-control",controlHunter);
   registry.set("jester-control",controlJester);
+  registry.set("flagellant-control",controlFlagellant);
   for (const [actions, handler] of [
     [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
     [SPIRIT_VESSEL_ACTIONS, handleSpiritVesselAction], [ORACLE_ACTIONS, handleOracleAction],
@@ -984,7 +988,7 @@ const actorSynchronizer = createActorSynchronizer([
   syncFeyWarriorPassiveEffects, syncGhostWalkerResources, syncGhostWalkerPassiveEffects,
   syncBlinkerResources, syncSpiritVesselResources, syncSpiritVesselPassiveEffects,
   syncOracleResources, syncOraclePassiveEffects, syncSanguinistResources,
-  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons, syncMaster, syncHunter, syncJester
+  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons, syncMaster, syncHunter, syncJester, syncFlagellant
 ]);
 const schedulePassiveSync = actorSynchronizer.schedule;
 
@@ -1040,6 +1044,8 @@ function installHooks() {
   Hooks.on("dnd5e.preUseActivity",validateHunterDisposable);
   installJesterHooks();
   Hooks.on("preCreateItem",validateJesterItem);
+  installFlagellantHooks();
+  Hooks.on("preCreateItem",validateFlagellantItem);
   Hooks.on("preCreateItem", validateMasterItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateMasterAdvancement);
   installRitualistZoneHooks();

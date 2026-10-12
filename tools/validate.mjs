@@ -88,9 +88,9 @@ try {
   });
 }
 
-if (documentCounts.classes !== 32) errors.push(`Expected 32 prestige classes, got ${documentCounts.classes ?? 0}`);
+if (documentCounts.classes !== 33) errors.push(`Expected 33 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 536) errors.push(`Expected 536 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.features !== 549) errors.push(`Expected 549 features, got ${documentCounts.features ?? 0}`);
 if (documentCounts.transformations !== 2) errors.push(`Expected 2 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 20) errors.push(`Expected 20 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
@@ -3316,6 +3316,20 @@ if (finale?.system.uses.max !== "1" || !finale.system.uses.recovery.some(recover
 for (const document of jesterFeatures) {
   if (document.effects.length) errors.push(`Jester must not grant empty/unconditional roll passives: ${document.name}`);
   if (!document.system.description.value.includes("Автоматизация Foundry:")) errors.push(`Jester automation description is missing: ${document.name}`);
+}
+
+const flagellant = classDocuments.find(document => document.system.identifier === "flagellant");
+const flagellantFeatures = [...allDocuments.values()].filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.flagellantFeature).map(entry => entry.document);
+if (!flagellant || flagellant.system.hitDice !== "d10" || flagellant.system.spellcasting.progression !== "none") errors.push("Flagellant class with d10 and no spell progression is missing");
+if (flagellantFeatures.length !== 13) errors.push(`Expected 13 Flagellant feature/rule cards, got ${flagellantFeatures.length}`);
+const flagellantGrants = flagellant?.system.advancement?.filter(advancement => advancement.type === "ItemGrant") ?? [];
+if (JSON.stringify(flagellantGrants.map(advancement => advancement.level)) !== "[1,2,3,4,5]"
+  || flagellantGrants.reduce((n, advancement) => n + advancement.configuration.items.length, 0) !== 13) errors.push("Flagellant must grant all features and three techniques at their source levels");
+const painScale = flagellant?.system.advancement?.find(advancement => advancement.type === "ScaleValue" && advancement.configuration.identifier === "pain-die");
+if (JSON.stringify(Object.values(painScale?.configuration.scale ?? {}).map(value => value.faces)) !== "[4,6,8,10,12]") errors.push("Flagellant pain die must scale d4/d6/d8/d10/d12");
+for (const document of flagellantFeatures) {
+  if (document.effects.length) errors.push(`Flagellant must not grant unconditional or empty passive templates: ${document.name}`);
+  if (!document.system.description.value.includes("Автоматизация Foundry:")) errors.push(`Flagellant automation description is missing: ${document.name}`);
 }
 
 if (errors.length) {
