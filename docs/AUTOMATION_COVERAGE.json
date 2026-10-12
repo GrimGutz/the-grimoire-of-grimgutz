@@ -5692,12 +5692,14 @@
       "key": "master-path-blade",
       "status": "partial",
       "entries": [
-        "module:master-control"
+        "module:master-control",
+        "runtime:classes/master-blade"
       ],
       "checks": [
-        "tests/registrations.test.mjs"
+        "tests/registrations.test.mjs",
+        "tests/master-blade.test.mjs"
       ],
-      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+      "note": " Выберите подкласс-путь через Advancement, затем настройте избранный тип оружия либо класс/школу магии и характеристику. Все выборы сохраняются. Смена пути не допускается автоматически; без настройки условные бонусы не в"
     },
     {
       "pack": "features",

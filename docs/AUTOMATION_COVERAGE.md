@@ -456,7 +456,7 @@
 | features / Увеличение характеристик | частично | module:master-control | tests/registrations.test.mjs |
 | features / Вершина пути | требует исправления | — | нужна отдельная проверка |
 | features / Улучшенная серия приемов | обоснованно вручную | — | нужна отдельная проверка |
-| features / Путь Клинка | частично | module:master-control | tests/registrations.test.mjs |
+| features / Путь Клинка | частично | module:master-control, runtime:classes/master-blade | tests/registrations.test.mjs, tests/master-blade.test.mjs |
 | features / Путь Стрелка | частично | module:master-control | tests/registrations.test.mjs |
 | features / Путь Арканы | частично | module:master-control | tests/registrations.test.mjs |
 | features / Бой в упор | требует исправления | — | нужна отдельная проверка |

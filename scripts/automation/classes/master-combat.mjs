@@ -13,6 +13,7 @@ import {encounterForScene} from "../shared/combat-flow.mjs";
 import {feetToSceneUnits} from "../shared/spatial.mjs";
 import {areaDamagePart} from "../shared/area-definitions.mjs";
 import {inspiringTemporaryHp} from "../shared/leader-presence-definitions.mjs";
+import {installMasterBladeHooks} from "./master-blade.mjs";
 
 const isChild = activity => automationData(activity).masterChild || automationData(activity).leaderResolved || automationData(activity).auraPulse;
 const eligible = workflow => workflow?.actor && enabled() && masterLevel(workflow.actor) && !automationData(workflow.activity).auraPulse
@@ -364,6 +365,7 @@ registerGmRequest("master-foresight",async(actor,data,{requestId})=>{
     async()=>{const rolls=await method.call(actor,{[kind==="skills"?"skill":"tool"]:key},{configure:false});return rolls?.length?true:{status:"needs-review"};});
 });
 export function installMasterHooks() {
+  installMasterBladeHooks();
   const intercept=activity=>{
     if(!enabled()||isChild(activity))return;
     if(automationData(activity?.item).masterFeature&&!masterFeatureAvailable(activity.actor,activity.item))return false;
