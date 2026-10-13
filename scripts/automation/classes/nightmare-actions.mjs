@@ -99,7 +99,8 @@ async function blindSpot(actor,activity,source,requestId){const targets=await ch
   return applyNativeOnce(actor,{requestId,action:"nightmare-blind-spot",activityUuid:activity.uuid},()=>useNativeUtility(activity,{dataPatch:expense}),async()=>{
     const live=[...(actor.concentration?.effects??[])];if(live.length>=Number(actor.system.attributes.concentration?.limit??1)&&live.some(effect=>!current.some(old=>old.uuid===effect.uuid)))return {status:"needs-review"};
     if(replacing)for(const effect of current)await actor.endConcentration(effect);
-    const duration=temporaryEffectTiming({rounds:count,actor}),effect=await actor.beginConcentrating(summonConcentrationActivity(activity,count*6),{...duration,statuses:["concentrating","invisible"],flags:{[MODULE_ID]:{nightmareBlindSpot:{count,sourceTokenUuid:source.uuid}},dae:{expiryMode:"delete"}}});
+    const combat=encounterForScene(source.parent,source),duration=combat?{start:CONFIG.ActiveEffect.documentClass.getEffectStart(combat),duration:{value:count,units:"rounds",expiry:"turnStart",expired:false}}:temporaryEffectTiming({seconds:count*6,actor});
+    const effect=await actor.beginConcentrating(summonConcentrationActivity(activity,count*6),{...duration,statuses:["concentrating","invisible"],flags:{[MODULE_ID]:{nightmareBlindSpot:{count,sourceTokenUuid:source.uuid}},dae:{expiryMode:"delete"}}});
     return effect?true:{status:"needs-review"};
   });
 }
