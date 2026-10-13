@@ -1,6 +1,6 @@
 {
   "name": "the-grimoire-of-grimgutz",
-  "version": "0.15.8",
+  "version": "0.15.9",
   "private": true,
   "type": "module",
   "description": "Development sources for The Grimoire of GrimGutz Foundry VTT module.",
