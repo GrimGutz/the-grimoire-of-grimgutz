@@ -1,0 +1,86 @@
+import {MODULE_ID} from "../shared/constants.mjs";
+import {enabled,automationData,notify} from "../shared/helpers.mjs";
+import {ARKANE_RARITY_POINTS,arkaneSpellPools,arkaneDailyCost} from "../shared/arkane-definitions.mjs";
+import {arkaneState,arkaneTransformationLevel,arkaneAvailable,arkaneHas,arkaneSnapshot,syncArkane,changeArkaneFusion,inspectArkane,arkaneChange} from "./arkane.mjs";
+import {askOwner,confirmOwner,promptOwner} from "../shared/owner-prompts.mjs";
+import {registerGmRequest,requestGm,isGmAuthority} from "../shared/gm-requests.mjs";
+import {nativeApplicationReply,applyNativeOnce} from "../shared/native-applications.mjs";
+import {useNativeUtility} from "../shared/native-actions.mjs";
+import {sourceTokenForActor} from "../shared/zones.mjs";
+import {recordModuleReaction} from "../shared/combat-benefits.mjs";
+import {serialMutation} from "../shared/transactions.mjs";
+import {temporaryEffectTiming} from "../effects/temporary-effects.mjs";
+import {useArkaneStorm,moveArkaneStorm,endArkaneStorms} from "./arkane-storm.mjs";
+import {chooseArkaneImmunities,activateArkaneBarrier} from "./arkane-spells.mjs";
+import {arkaneGm,arkaneTargets,arkanePulse,arkaneExpense,chooseArkaneSlots,arkaneSlotCosts,previewArkaneCircle} from "./arkane-use.mjs";
+import {areaPlacementAllowed} from "../shared/area-activities.mjs";
+async function roll(formula,actor){const result=await new Roll(formula,actor.getRollData()).evaluate();await result.toMessage?.({speaker:ChatMessage.getSpeaker({actor})});return result;}
+async function status(actor){const state=inspectArkane(actor);await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor}),whisper:[...new Set([promptOwner(actor).id,game.user.id])],content:`<p>Присутствие: уровень ${state.level}; СЛ ${state.dc}; ОС ${Number(state.state.fusion??0)}; всего получено ${Number(state.state.totalFusion??0)}; расход/день ${state.dailyCost}.</p>`});return true;}
+async function consumeItem(actor,activity,requestId){const candidates=[...(actor.items??[])].filter(item=>Number(item.system?.quantity)>0&&Object.hasOwn(ARKANE_RARITY_POINTS,item.system?.rarity)),chosen=await askOwner(actor,{title:"Уничтожаемый магический предмет",choices:candidates.map(item=>[item.uuid,`${item.name}: ${ARKANE_RARITY_POINTS[item.system.rarity]} ОС`])}),item=candidates.find(item=>item.uuid===chosen);if(!item)return false;
+  if(!await confirmOwner(arkaneGm(actor),"Уничтожение предмета (GM)","Подтверждена магическая природа предмета и необратимое уничтожение ОДНОЙ единицы? Сам по себе common у обычного снаряжения не доказывает магию."))return false;
+  const amount=ARKANE_RARITY_POINTS[item.system.rarity],expense=arkaneExpense(activity,{extra:[{type:"material",target:item.id,value:"1"}]});return applyNativeOnce(actor,{requestId,action:"arkane-consume-item",activityUuid:activity.uuid},()=>useNativeUtility(activity,{dataPatch:expense}),async()=>{await changeArkaneFusion(actor,amount);return true;});}
+async function dailyFusion(actor,activity,requestId){const day=Math.floor(Number(game.time.worldTime)/86400),state=arkaneState(actor);if((state.fusionDays??[]).includes(day))return false;
+  const cost=arkaneDailyCost(arkaneTransformationLevel(actor));if(!await confirmOwner(arkaneGm(actor),"Суточное питание",`Подтверждён очередной день №${day} и расход ${cost} ОС? При нехватке необратимое последствие определит GM, не автоматическая смерть.`))return false;
+  return applyNativeOnce(actor,{requestId,action:"arkane-daily-fusion",activityUuid:activity.uuid},async()=>true,async()=>{const current=structuredClone(arkaneState(actor));current.fusionDays=[...(current.fusionDays??[]),day].slice(-366);const lack=Math.max(0,cost-Number(current.fusion??0));current.fusion=Math.max(0,Number(current.fusion??0)-cost);if(lack)current.starvationReview={day,lack};await actor.setFlag(MODULE_ID,"arkaneState",current);if(lack)notify("Не хватает ОС: GM должен определить постоянную потерю ячейки/дальнейшие последствия.","warn");return true;});}
+async function parasite(actor,activity,requestId){if(!await confirmOwner(arkaneGm(actor),"Паразит", "Подтверждён успешный Сифон, а не успешный спасбросок цели/отмена? Применить +2 на минуту?"))return false;
+  return applyNativeOnce(actor,{requestId,action:"arkane-parasite",activityUuid:activity.uuid},async()=>true,async()=>{const changes=["msak","rsak"].map(kind=>arkaneChange(`system.bonuses.${kind}.attack`,2));changes.push(arkaneChange("system.bonuses.spell.dc",2),...["str","dex","con","int","wis","cha"].map(ability=>arkaneChange(`system.abilities.${ability}.bonuses.save`,2)));
+    const old=[...(actor.effects??[])].filter(e=>e.getFlag?.(MODULE_ID,"arkaneParasite")),[made]=await actor.createEmbeddedDocuments("ActiveEffect",[{name:"Паразит: после Сифона",img:activity.item.img,type:"base",transfer:false,disabled:false,origin:activity.item.uuid,statuses:[],...temporaryEffectTiming({seconds:60,actor}),flags:{[MODULE_ID]:{arkaneParasite:requestId}},system:{changes}}]);
+    if(!made)throw Error("Эффект Паразита не создан.");for(const effect of old)await effect.delete();return true;});}
+async function siphon(actor,activity,source,requestId){let selected,visual;try{if(arkaneHas(actor,"devouring")){const kind=await askOwner(actor,{title:"Сифон",choices:[["single","Одно существо в 120 футах"],["all","Пожирание: все прочие существа в 60 футах"]]});if(!["single","all"].includes(kind))return false;
+    if(kind==="all"){visual=await previewArkaneCircle(activity,source,60);if(!visual||!areaPlacementAllowed(visual,{actor,document:source},{origin:"self"},source.parent))return false;
+      selected=MidiQOL.computeTargetsFromTemplates([visual.uuid],source.uuid,true,"any","always").map(token=>token.document??token).filter(token=>token.actor&&token.uuid!==source.uuid);
+      if(!await confirmOwner(arkaneGm(actor),"Пожирание: все существа", "Все прочие существа в круге 60 футов, включая союзников и скрытые цели, входят в область? Это одно применение Сифона."))return false;}}
+  selected??=await arkaneTargets(actor,activity.item,source,{self:true,visible:false});if(!selected?.length)return false;const snapshot=arkaneSnapshot(actor),classification=[];
+  for(const target of selected){const eligible=await askOwner(arkaneGm(actor),{title:`Сифон: ${target.name} (GM)`,choices:[["capable","Способна получать ячейки: штатный спасбросок"],["incapable","Неспособна получать ячейки: автоматический провал"]]});if(!["capable","incapable"].includes(eligible))return false;classification.push({target,eligible});}
+  return applyNativeOnce(actor,{requestId,action:"arkane-siphon",activityUuid:activity.uuid},()=>useNativeUtility(activity,{dataPatch:arkaneExpense(activity,{cost:1})}),async()=>{
+    for(const [index,{target,eligible}]of classification.entries()){if(eligible==="capable"){const result=await arkanePulse(source,activity.item,[target],snapshot,{save:"con",requestId:`${requestId}:save:${index}`});if(result.status!=="success")return {status:"needs-review"};if(!result.failedSaves.includes(target.uuid))continue;}
+      const dice=await roll("2d4 + 1",actor),amount=Number(dice.total),enough=arkaneSpellPools(target.actor).reduce((n,p)=>n+p.level*p.count,0)>=amount,
+        choice=await askOwner(arkaneGm(actor),{title:"Сифон: окончательный вариант урона (GM)",label:`Бросок ${amount}. По данным актёра сумма уровней ${enough?"достаточна":"недостаточна"}; подтвердите фактические скрытые/нестандартные ресурсы. Извлечение/восстановление ячеек — вручную.`,choices:[["normal",`Обычный силовой урон ${amount}`],["tenfold",`Ячеек недостаточно: силовой урон ${amount*10}`]]});
+      if(!["normal","tenfold"].includes(choice))return {status:"needs-review"};const result=await arkanePulse(source,activity.item,[target],snapshot,{damage:[{formula:String(amount*(choice==="tenfold"?10:1)),type:"force"}],requestId:`${requestId}:damage:${index}`});if(result.status==="needs-review")return result;
+    }notify("Сифон: сверяйте отнятые/восстановленные ячейки, убийство, +год жизни и ОС с GM; урон к хитам зависит от подтверждения Midi.");return true;
+  });}finally{if(visual)await visual.delete();}}
+async function limitless(actor,activity,source,requestId){const allocation=await chooseArkaneSlots(actor,{title:"Дополнительные дротики: расход ячеек"});if(!allocation)return false;const count=11+allocation.reduce((n,p)=>n+p.level*p.count,0),selected=await arkaneTargets(actor,activity.item,source,{max:Math.min(count,100),self:true});if(!selected)return false;
+  let remaining=count;const assignments=[];for(let i=0;i<selected.length;i++){const count=i===selected.length-1?remaining:await askOwner(actor,{kind:"number",title:`Дротики для ${selected[i].name}`,min:1,max:remaining-(selected.length-i-1),defaultValue:1});if(!Number.isInteger(count)||count<=0)return false;assignments.push({target:selected[i],count});remaining-=count;}
+  const snapshot=arkaneSnapshot(actor);return applyNativeOnce(actor,{requestId,action:"arkane-limitless",activityUuid:activity.uuid},()=>useNativeUtility(activity,{dataPatch:arkaneExpense(activity,{cost:1,extra:arkaneSlotCosts(allocation)})}),async()=>{
+    // Roll the allocated d12s before applying any target's damage; each dart
+    // retains its own die rather than inventing a shared one-die multiplier.
+    const rolls=await Promise.all(assignments.map(row=>roll(`${row.count}d12 + ${row.count}`,actor)));
+    for(const [index,row]of assignments.entries()){const result=await arkanePulse(source,activity.item,[row.target],snapshot,{damage:[{formula:String(Number(rolls[index].total)),type:"force"}],requestId:`${requestId}:${index}`});if(result.status==="needs-review")return result;}return true;});}
+async function persistence(actor,activity,source,operation,requestId){if(operation==="possess"){
+    if(!arkaneState(actor).persistence||!await confirmOwner(arkaneGm(actor),"Настойчивость", "Разум уже отделён от тела, цели живы, а вселение допустимо? Владение актёрами будет изменяться GM вручную."))return false;
+    const selected=await arkaneTargets(actor,activity.item,source,{range:30,max:arkaneHas(actor,"obsession")?arkaneTransformationLevel(actor):1,visible:false});if(!selected)return false;
+    return applyNativeOnce(actor,{requestId,action:"arkane-possess",activityUuid:activity.uuid},()=>useNativeUtility(activity,{dataPatch:arkaneExpense(activity),workflowOptions:{allowIncapacitated:true}}),()=>arkanePulse(source,activity.item,selected,arkaneSnapshot(actor),{save:"wis",requestId}));
+  }
+  if(Number(actor.system.attributes.hp.value)>0||!await confirmOwner(arkaneGm(actor),"Настойчивость при 0 хитах", "Подтверждено падение до 0 хитов, не смерть от голодания? После оплаты GM оформляет отдельный разум/тело и управление. Повторная оплата текущего отделения не нужна."))return false;
+  if(arkaneState(actor).persistence)return false;const allocation=await chooseArkaneSlots(actor,{total:arkaneSnapshot(actor).characterLevel,title:"Цена Настойчивости: точная сумма уровней"});if(!allocation)return false;
+  return applyNativeOnce(actor,{requestId,action:"arkane-persistence",activityUuid:activity.uuid},()=>useNativeUtility(activity,{dataPatch:arkaneExpense(activity,{activation:"special",extra:arkaneSlotCosts(allocation)}),workflowOptions:{allowIncapacitated:true}}),async()=>{await actor.setFlag(MODULE_ID,"arkaneState",{...structuredClone(arkaneState(actor)),persistence:{requestId,startedAt:game.time.worldTime,bodyActorUuid:actor.uuid,review:"GM оформляет отделённый разум и новое тело"}});return true;});}
+async function identify(actor,activity,source,requestId){const selected=await arkaneTargets(actor,activity.item,source,{range:60,self:true,visible:false});if(!selected)return false;
+  return applyNativeOnce(actor,{requestId,action:"arkane-identify",activityUuid:activity.uuid},async()=>true,async()=>{const target=selected[0].actor,hp=target.system.attributes.hp,slots=arkaneSpellPools(target).map(p=>`${p.key==="pact"?"Договорные, ":""}${p.level}: ${p.current}`).join("; ");
+    await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor}),whisper:[...new Set([promptOwner(actor).id,game.user.id])],content:`<p>Определение: текущие хиты ${Number(hp.value)}. Текущие ячейки: ${slots||"нет доступных ячеек в данных актёра"}. Нестандартные источники уточняет GM; максимумы не раскрываются.</p>`});return true;});}
+async function manualRule(actor,activity,source,operation,requestId){if(!await confirmOwner(arkaneGm(actor),activity.item.name,"Подтверждено новое допустимое применение именно по тексту карточки? Не повтор старого события. Необратимые изменения GM проводит вручную."))return false;
+  const now=Number(game.time.worldTime);if(operation==="fractal"&&now<Number(arkaneState(actor).fractalNext??0))return false;
+  if(operation==="appearance"){const value=await askOwner(actor,{title:"Облик",choices:[["humanoid","Подавленная гуманоидная форма"],["true","Истинная форма"]]});if(!value)return false;if(value==="humanoid"&&(actor.statuses?.has("unconscious")||actor.concentration?.effects?.size))return false;await actor.setFlag(MODULE_ID,"arkaneState",{...structuredClone(arkaneState(actor)),appearance:value});return true;}
+  const selected=operation==="nullification"?await arkaneTargets(actor,activity.item,source,{range:30,self:true}):null;if(operation==="nullification"&&!selected)return false;
+  return applyNativeOnce(actor,{requestId,action:`arkane-${operation}`,activityUuid:activity.uuid},()=>useNativeUtility(activity,{dataPatch:arkaneExpense(activity,{activation:operation==="bestowal"?"reaction":["distortion","fractal"].includes(operation)?"special":"action",cost:operation==="nullification"?1:0})}),async()=>{
+    if(operation==="fractal"){await actor.setFlag(MODULE_ID,"arkaneState",{...structuredClone(arkaneState(actor)),fractalNext:now+604800});notify("Симулякр: GM создаёт копию по заклинанию; предел — половина уровня трансформации.");return true;}
+    if(operation==="bestowal"){await recordModuleReaction(actor,source.parent);notify("Наделение: перенос ячеек/заклинаний и заклинательной характеристики оформляет GM.");return true;}
+    if(operation==="distortion"){await roll(`${Math.floor(arkaneTransformationLevel(actor)/2)}d4`,actor);notify("GM применяет именно неотвратимый урон и потерю ячеек с точной суммой, без повторного срабатывания.");return true;}
+    if(operation==="nullification")return arkanePulse(source,activity.item,selected,arkaneSnapshot(actor),{save:"con",damage:[{formula:`${2+arkaneTransformationLevel(actor)}d8`,type:"force"}],onSave:"half",requestId});return false;
+  });}
+registerGmRequest("arkane-action",(actor,data,{requestId})=>serialMutation(`arkane:${actor.uuid}`,async()=>{
+  if(!enabled()||!isGmAuthority())return false;const previous=nativeApplicationReply(actor,requestId);if(previous)return previous;
+  const activity=await fromUuid(data.activityUuid),source=await fromUuid(data.sourceUuid);if(activity?.actor?.uuid!==actor.uuid||!arkaneAvailable(actor,activity.item))return false;await syncArkane(actor);const operation=automationData(activity).arkaneOperation;
+  if(["status","fusion-status"].includes(operation))return status(actor);
+  if(operation==="daily-fusion")return dailyFusion(actor,activity,requestId);if(operation==="consume-item")return consumeItem(actor,activity,requestId);
+  if(operation==="fusion-adjust"){if(!await confirmOwner(arkaneGm(actor),"Коррекция ОС (GM)","Подтверждены уничтожение души Сифоном/год жизни или другая корректировка? Положительные ОС увеличивают и суммарные вехи."))return false;const amount=await askOwner(arkaneGm(actor),{kind:"number",title:"Изменение ОС со знаком",min:-100000,max:100000,defaultValue:0});if(!Number.isInteger(amount))return false;
+    return applyNativeOnce(actor,{requestId,action:"arkane-fusion-adjust",activityUuid:activity.uuid},async()=>true,async()=>{await changeArkaneFusion(actor,amount);return true;});}
+  if(operation==="parasite")return parasite(actor,activity,requestId);if(operation==="immunities")return chooseArkaneImmunities(actor,activity,requestId);
+  if(operation==="barrier")return activateArkaneBarrier(actor,activity,requestId);
+  if(source?.actor?.uuid!==actor.uuid||canvas.scene?.id!==source.parent.id||!canvas.ready)throw Error("Выберите токен Присутствия; GM должен открыть его сцену до расхода.");
+  if(operation==="siphon")return siphon(actor,activity,source,requestId);if(operation==="limitless")return limitless(actor,activity,source,requestId);
+  if(["persistence","possess"].includes(operation))return persistence(actor,activity,source,operation,requestId);if(operation==="identify")return identify(actor,activity,source,requestId);
+  if(operation==="storm")return useArkaneStorm(actor,activity,source,requestId);if(operation==="move-storm")return moveArkaneStorm(actor,activity,source,requestId);if(operation==="end-storm")return endArkaneStorms(actor,source.parent);
+  return manualRule(actor,activity,source,operation,requestId);
+}));
+const pending=new Map();
+export function controlArkane(actor,activity){const key=`${actor.uuid}:${activity.id}`;if(pending.has(key))return pending.get(key);const task=requestGm("arkane-action",actor,{activityUuid:activity.uuid,sourceUuid:sourceTokenForActor(actor)?.document.uuid},{timeoutMs:120000});pending.set(key,task);void task.finally(()=>pending.delete(key)).catch(()=>{});return task;}

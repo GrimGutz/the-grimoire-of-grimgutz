@@ -9,6 +9,7 @@ import {
   syncMurderspawnPassiveEffects,
   syncMurderspawnTransformation
 } from "./murderspawn.mjs";
+import {syncArkane} from "./arkane.mjs";
 
 export const TRANSFORMATION_ACTIONS = new Set([
   "gain-hollow-charge",
@@ -52,4 +53,5 @@ export async function syncTransformationPassiveEffects(actor) {
 export async function syncTransformations(actor) {
   await syncMurderspawnTransformation(actor);
   await syncHollowTransformation(actor);
+  await syncArkane(actor);
 }

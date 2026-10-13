@@ -4,8 +4,8 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 273
-- частично: 411
+- автоматизировано: 275
+- частично: 428
 - обоснованно вручную: 95
 - требует исправления: 362
 
@@ -68,6 +68,7 @@
 | subclasses / Путь Арканы | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | transformations / Трансформация: Порождение убийств / Murderspawn | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | transformations / Трансформация: Полый / Hollow | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| transformations / Трансформация: Присутствие / Arkane | частично | module:arkane-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
 | features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
 | features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
@@ -644,6 +645,24 @@
 | features / Изменчивая природа | частично | module:empath-control | tests/registrations.test.mjs |
 | features / Грани души | частично | runtime:classes/empath | tests/empath.test.mjs |
 | features / Катарсис | частично | module:empath-control | tests/registrations.test.mjs |
+| features / Сифон | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Магическая Форма | автоматизировано | runtime:transformations/arkane | tests/arkane.test.mjs |
+| features / Дуговое Слияние | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Настойчивость | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Шторм Сил | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Сверхъестественные Чувства | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Аннулирование: лишение магии | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Отвратительная Внешность | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Безграничная Сила | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Одержимость | автоматизировано | runtime:transformations/arkane | tests/arkane.test.mjs |
+| features / Паразит | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Фрактал | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Нестабильный | частично | runtime:transformations/arkane | tests/arkane.test.mjs |
+| features / Пожирание | частично | runtime:transformations/arkane | tests/arkane.test.mjs |
+| features / Сверхъестественное Тело | частично | module:arkane-control, runtime:transformations/arkane-spells | tests/registrations.test.mjs, tests/arkane.test.mjs |
+| features / Аннулирование: барьер | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Наделение | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Сверхъестественное Искажение | частично | module:arkane-control | tests/registrations.test.mjs |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 273,
-    "partial": 411,
+    "automatic": 275,
+    "partial": 428,
     "manual": 95,
     "review": 362
   },
@@ -777,6 +777,22 @@
         "tests/progression.test.mjs"
       ],
       "note": " перетащите на персонажа только эту основную карточку. D&D5e Advancement выдаёт стартовые особенности на 1-м уровне персонажа и открывает выбор бонуса на 6, 11 и 16 уровнях. На II, III и IV уровнях персонаж выбирает один"
+    },
+    {
+      "pack": "transformations",
+      "id": "60204590e1133c75",
+      "name": "Трансформация: Присутствие / Arkane",
+      "key": "arkane-transformation",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control",
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/progression.test.mjs"
+      ],
+      "note": " перетащите только основную карточку; остальные находятся в особенностях. Advancement выдаёт бонусы/недостатки и открывает выбор на уровнях 1/6/11/16. Числовые пассивы, отдельные ресурсы, круг Шторма и нативные броски ре"
     },
     {
       "pack": "features",
@@ -8254,6 +8270,260 @@
         "tests/registrations.test.mjs"
       ],
       "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "6d8947be04883da7",
+      "name": "Сифон",
+      "key": "arkane-siphon",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Действие, цель в 120 футах; GM подтверждает возможность иметь ячейки. Спасбросок Телосложения/силовой урон проходят через Midi; для неспособной получать ячейки цели спасброска нет. Недостаток доступных ячеек и урон ×10 "
+    },
+    {
+      "pack": "features",
+      "id": "3cf888bab85fc185",
+      "name": "Магическая Форма",
+      "key": "arkane-form",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/arkane"
+      ],
+      "checks": [
+        "tests/arkane.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "c4074cb979eb2637",
+      "name": "Дуговое Слияние",
+      "key": "arkane-fusion",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Счётчики текущих и суммарно полученных ОС, таблица редкости и подтверждённое поглощение одного предмета. Нативный расход количества предмета и действия; отмена ничего не расходует. Суточный расход 20/50 ОС — отдельная п"
+    },
+    {
+      "pack": "features",
+      "id": "cec17ef931baafb6",
+      "name": "Настойчивость",
+      "key": "arkane-persistence",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка при 0 хитах выбирает реальный набор доступных ячеек с точной суммой уровней, равной уровню персонажа; платёж проводится штатно и не дублируется. Отделение разума хранит необходимую связь/состояние. Невидимый неуя"
+    },
+    {
+      "pack": "features",
+      "id": "5d76d2ba3310e2fe",
+      "name": "Шторм Сил",
+      "key": "arkane-storm",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "211b8d1c2836b0bb",
+      "name": "Сверхъестественные Чувства",
+      "key": "arkane-senses",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Постоянное Обнаружение магии не заменяется всевидением/зрением через стены. Кнопка Определения выбирает существо в 60 футах, GM подтверждает допустимость и передаёт владельцу приватный отчёт о текущих хитах/ячейках. Пре"
+    },
+    {
+      "pack": "features",
+      "id": "00b69a7a3c72e219",
+      "name": "Аннулирование: лишение магии",
+      "key": "arkane-nullification",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "e97b1791e4e5ea3d",
+      "name": "Отвратительная Внешность",
+      "key": "arkane-appearance",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Хранит выбранный облик без изменения картинки/прав владельца. Концентрация и бессознательность раскрывают истинный облик; враждебность NPC и стрессовый спасбросок с выбранной GM СЛ — вручную. Настройки токена и картинки"
+    },
+    {
+      "pack": "features",
+      "id": "c813414913e69391",
+      "name": "Безграничная Сила",
+      "key": "arkane-limitless",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Действие, 11 дротиков и дополнительные дротики за выбранные реальные ячейки; распределение всех дротиков по видимым целям в 120 футах до расхода. Нет броска атаки/спасброска. Силовой урон через Midi по распределению; по"
+    },
+    {
+      "pack": "features",
+      "id": "09af77304700ff34",
+      "name": "Одержимость",
+      "key": "arkane-obsession",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/arkane"
+      ],
+      "checks": [
+        "tests/arkane.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "60a5f263eefc55c8",
+      "name": "Паразит",
+      "key": "arkane-parasite",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "961ce721bb8e9943",
+      "name": "Фрактал",
+      "key": "arkane-fractal",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "85a85651b2d8dd17",
+      "name": "Нестабильный",
+      "key": "arkane-unstable",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/arkane"
+      ],
+      "checks": [
+        "tests/arkane.test.mjs"
+      ],
+      "note": " Повышает подтверждаемый суточный расход ОС до 50. Пустой текущий запас использованных ячеек сам по себе не запускает апокалипсис: источник говорит о потере ячеек при голодании. Необратимое уничтожение существ, местности"
+    },
+    {
+      "pack": "features",
+      "id": "c9960a486d6820b5",
+      "name": "Пожирание",
+      "key": "arkane-devouring",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/arkane"
+      ],
+      "checks": [
+        "tests/arkane.test.mjs"
+      ],
+      "note": " Открывает групповой вариант кнопки @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.6d8947be04883da7]{Сифон}а: круг радиусом 60 футов на токене, все прочие существа, один общий расход @UUID[Compendium.the-grimoir"
+    },
+    {
+      "pack": "features",
+      "id": "25ef91f7d3d4a73e",
+      "name": "Сверхъестественное Тело",
+      "key": "arkane-body",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control",
+        "runtime:transformations/arkane-spells"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/arkane.test.mjs"
+      ],
+      "note": " По согласованной трактовке даёт преимущество спасбросков от заклинаний в Midi и сопротивление урону от заклинаний, не повторяя уже применённое сопротивление. Иммунитеты выбираются отдельно, в количестве половины уровня "
+    },
+    {
+      "pack": "features",
+      "id": "ee1b1d862eb6ce18",
+      "name": "Аннулирование: барьер",
+      "key": "arkane-barrier",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Действие, одно применение до LR: временные хиты = уровень трансформации ×10, без придуманного минутного срока. Барьер действует только пока остались именно его временные хиты; чужие временные хиты не поддерживают его. З"
+    },
+    {
+      "pack": "features",
+      "id": "168f803aae38f7e5",
+      "name": "Наделение",
+      "key": "arkane-bestowal",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Требование относится к Аннулированию-лишению магии II уровня: только оно имеет последний спасбросок/жертву. После подтверждённого последнего провала или смерти цели кнопка штатно расходует согласованную реакцию. Подходя"
+    },
+    {
+      "pack": "features",
+      "id": "de1179040a14106b",
+      "name": "Сверхъестественное Искажение",
+      "key": "arkane-distortion",
+      "status": "partial",
+      "entries": [
+        "module:arkane-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка после естественной 1 или провала спасброска на 5+ подтверждает именно новый исходный бросок. На IV уровне бросает 2к4 неотвратимого урона; GM применяет его без сопротивлений/иммунитетов и выбирает потерянные ячей"
     },
     {
       "pack": "features",

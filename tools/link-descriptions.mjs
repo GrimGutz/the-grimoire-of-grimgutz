@@ -352,7 +352,7 @@ function buildTargets(packs) {
         // Short technique names such as "Натиск"/"Стойкость" also occur as
         // ordinary words or unrelated rules. Outside this class require an
         // explicit authored UUID instead of inventing a cross-class reference.
-        scope: document.flags?.[MODULE_ID]?.flagellantFeature ? "flagellant" : document.flags?.[MODULE_ID]?.doomedFeature ? "doomed" : document.flags?.[MODULE_ID]?.nightmareFeature ? "nightmare" : document.flags?.[MODULE_ID]?.empathFeature || document.flags?.[MODULE_ID]?.empathSpell ? "empath" : null,
+        scope: document.flags?.[MODULE_ID]?.flagellantFeature ? "flagellant" : document.flags?.[MODULE_ID]?.doomedFeature ? "doomed" : document.flags?.[MODULE_ID]?.nightmareFeature ? "nightmare" : document.flags?.[MODULE_ID]?.empathFeature || document.flags?.[MODULE_ID]?.empathSpell ? "empath" : document.flags?.[MODULE_ID]?.transformation === "arkane" ? "arkane" : null,
         aliases: [document.name, ...(INTERNAL_ALIASES[identifier] ?? [])]
       });
     }
@@ -421,7 +421,8 @@ export function linkDocumentDescriptions(packs) {
       const ownDoomed = document.flags?.[MODULE_ID]?.doomedFeature || document.flags?.[MODULE_ID]?.prestigeClass === "doomed";
       const ownNightmare = document.flags?.[MODULE_ID]?.nightmareFeature || document.flags?.[MODULE_ID]?.prestigeClass === "nightmare";
       const ownEmpath = document.flags?.[MODULE_ID]?.empathFeature || document.flags?.[MODULE_ID]?.empathSpell || document.flags?.[MODULE_ID]?.prestigeClass === "empath";
-      const scopedTargets = targets.filter(target => !target.scope || target.scope === "flagellant" && ownFlagellant || target.scope === "doomed" && ownDoomed || target.scope === "nightmare" && ownNightmare || target.scope === "empath" && ownEmpath);
+      const ownArkane = document.flags?.[MODULE_ID]?.transformation === "arkane";
+      const scopedTargets = targets.filter(target => !target.scope || target.scope === "flagellant" && ownFlagellant || target.scope === "doomed" && ownDoomed || target.scope === "nightmare" && ownNightmare || target.scope === "empath" && ownEmpath || target.scope === "arkane" && ownArkane);
       const linked = linkHtml(current, scopedTargets, document._id);
       linksAdded += (linked.match(/@UUID\[/g)?.length ?? 0) - (current.match(/@UUID\[/g)?.length ?? 0);
       document.system.description.value = linked;

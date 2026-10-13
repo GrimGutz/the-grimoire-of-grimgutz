@@ -4,7 +4,7 @@ import { canReact, tokenRef, recordModuleReaction, inFeet } from "./combat-benef
 import { isGmAuthority } from "./gm-requests.mjs";
 import { areaDamagePart } from "./area-definitions.mjs";
 
-export async function useNativeUtility(activity, {dataPatch = {}} = {}) {
+export async function useNativeUtility(activity, {dataPatch = {}, workflowOptions = {}} = {}) {
   if (!isGmAuthority()) throw Error("Активный GM сменился; действие требует проверки.");
   if (!globalThis.MidiQOL?.completeActivityUse) throw Error("Действие требует Midi-QOL.");
   const original = activity.toObject(), data = { ...original, ...dataPatch, flags: { ...original.flags,
@@ -21,7 +21,7 @@ export async function useNativeUtility(activity, {dataPatch = {}} = {}) {
   const item = activity.item.clone({ system: { activities: { [activity.id]: data } }, "flags.midi-qol.syntheticItem": true }, { keepId: true });
   return MidiQOL.completeActivityUse(item.system.activities.get(activity.id), { create: { measuredTemplate: false },
     midiOptions: { ignoreUserTargets: true,
-      workflowOptions: { noOnUseMacro: true, ignoreUserTargets: true, targetConfirmation: "none" } } }, { configure: false });
+      workflowOptions: { ...workflowOptions, noOnUseMacro: true, ignoreUserTargets: true, targetConfirmation: "none" } } }, { configure: false });
 }
 export async function prepareReactionAttack(token, target, {name = "Атака реакцией", meleeOnly = false} = {}) {
   const doc = tokenRef(token), targetDoc = tokenRef(target), actor = doc.actor;

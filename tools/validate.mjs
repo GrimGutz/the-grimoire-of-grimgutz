@@ -90,8 +90,8 @@ try {
 
 if (documentCounts.classes !== 36) errors.push(`Expected 36 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 612) errors.push(`Expected 612 features, got ${documentCounts.features ?? 0}`);
-if (documentCounts.transformations !== 2) errors.push(`Expected 2 transformations, got ${documentCounts.transformations ?? 0}`);
+if (documentCounts.features !== 630) errors.push(`Expected 630 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.transformations !== 3) errors.push(`Expected 3 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 21) errors.push(`Expected 21 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
 if (documentCounts.bestiary !== 30) errors.push(`Expected 30 bestiary actors, got ${documentCounts.bestiary ?? 0}`);
@@ -3362,6 +3362,15 @@ if(JSON.stringify(empathGrants.slice(0,5).map(a=>a.level))!=="[1,2,3,4,5]"||empa
 for(const document of empathFeatures)if(document.effects.length||!document.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Empath needs explicit automation boundaries, not unconditional effects: ${document.name}`);
 const empathSpell=[...allDocuments.values()].find(entry=>entry.pack==="spells"&&entry.document.flags?.[manifest.id]?.empathSpell)?.document;
 if(!empathSpell||empathSpell.system.level!==4||empathSpell.system.preparation.mode!=="always")errors.push("Empath needs its always-prepared fourth-level spell");
+
+const arkaneRoot=[...allDocuments.values()].filter(entry=>entry.pack==="transformations"&&entry.document.flags?.[manifest.id]?.transformation==="arkane").map(entry=>entry.document);
+const arkaneFeatures=[...allDocuments.values()].filter(entry=>entry.pack==="features"&&entry.document.flags?.[manifest.id]?.arkaneFeature).map(entry=>entry.document);
+if(arkaneRoot.length!==1||arkaneFeatures.length!==18||arkaneFeatures.filter(d=>d.flags[manifest.id].arkaneFlaw).length!==4)errors.push("Presence needs one transformation root, fourteen boons and four flaws");
+if(arkaneRoot[0]?.folder)errors.push("Presence root belongs directly in the transformations pack, not its feature folders");
+const arkaneGrants=arkaneRoot[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],arkaneChoices=arkaneRoot[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
+if(JSON.stringify(arkaneGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(arkaneGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(arkaneChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Presence must use shared transformation progression and cumulative single-boon choices");
+for(const d of arkaneFeatures){if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Presence feature must declare bounded runtime automation: ${d.name}`);
+  if(["arkane-siphon","arkane-storm","arkane-limitless"].includes(d.system.identifier)&&d.system.uses.recovery?.[0]?.period!=="lr")errors.push(`Presence agreed LR recovery missing: ${d.name}`);}
 
 if (errors.length) {
   console.error("Validation failed:");

@@ -41,6 +41,9 @@ import {installNightmareHooks} from "./classes/nightmare-events.mjs";
 import {syncEmpath,validateEmpathItem} from "./classes/empath.mjs";
 import {controlEmpath} from "./classes/empath-actions.mjs";
 import {installEmpathHooks} from "./classes/empath-events.mjs";
+import {validateArkaneItem,validateArkaneAdvancement} from "./transformations/arkane.mjs";
+import {controlArkane} from "./transformations/arkane-actions.mjs";
+import {installArkaneHooks} from "./transformations/arkane-events.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { registerAutomationPanel, openAutomationPanel } from "./shared/control-panel.mjs";
@@ -698,6 +701,7 @@ export function getAutomationActionHandlers() {
   registry.set("doomed-control",controlDoomed);
   registry.set("nightmare-control",controlNightmare);
   registry.set("empath-control",controlEmpath);
+  registry.set("arkane-control",controlArkane);
   registry.set("nightmare-summon-control",controlNightmareSummon);
   for (const [actions, handler] of [
     [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
@@ -1064,6 +1068,9 @@ function installHooks() {
   installNightmareHooks();
   Hooks.on("preCreateItem",validateNightmareItem);
   installEmpathHooks();
+  installArkaneHooks();
+  Hooks.on("preCreateItem",validateArkaneItem);
+  Hooks.on("dnd5e.preAdvancementManagerComplete",validateArkaneAdvancement);
   Hooks.on("preCreateItem",validateEmpathItem);
   Hooks.on("preCreateItem",validateDoomedItem);
   Hooks.on("preCreateItem", validateMasterItem);
