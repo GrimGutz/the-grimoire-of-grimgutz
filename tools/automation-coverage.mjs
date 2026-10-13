@@ -8,7 +8,7 @@ import {STRATAGEM_RULES} from "../scripts/automation/classes/leader-stratagems.m
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const labels = {automatic: "автоматизировано", partial: "частично", manual: "обоснованно вручную", review: "требует исправления"};
-const known = {"regenerating-soul": ["classes/juggernaut-regeneration", "juggernaut-regeneration"], "mind-body-and-soul": ["classes/ritualist", "ritualist-zones"],
+const known = {"empath-facets":["classes/empath","empath"],"empath-response":["classes/empath-actions","empath"],"regenerating-soul": ["classes/juggernaut-regeneration", "juggernaut-regeneration"], "mind-body-and-soul": ["classes/ritualist", "ritualist-zones"],
   "binding-ritual": ["classes/ritualist-spirits", "ritualist-spirits"], "fortified-soul": ["midi/spell-resistance", "spell-resistance"],
   "master-path-blade": ["classes/master-blade", "master-blade"],
   "hunter-breakdown":["classes/bounty-hunter-combat","bounty-hunter"],"hunter-duel":["classes/bounty-hunter-combat","bounty-hunter"],

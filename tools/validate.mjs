@@ -88,11 +88,11 @@ try {
   });
 }
 
-if (documentCounts.classes !== 35) errors.push(`Expected 35 prestige classes, got ${documentCounts.classes ?? 0}`);
+if (documentCounts.classes !== 36) errors.push(`Expected 36 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 603) errors.push(`Expected 603 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.features !== 612) errors.push(`Expected 612 features, got ${documentCounts.features ?? 0}`);
 if (documentCounts.transformations !== 2) errors.push(`Expected 2 transformations, got ${documentCounts.transformations ?? 0}`);
-if (documentCounts.spells !== 20) errors.push(`Expected 20 spells, got ${documentCounts.spells ?? 0}`);
+if (documentCounts.spells !== 21) errors.push(`Expected 21 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
 if (documentCounts.bestiary !== 30) errors.push(`Expected 30 bestiary actors, got ${documentCounts.bestiary ?? 0}`);
 
@@ -3353,6 +3353,15 @@ const fearPool=nightmareFeatures.find(document=>document.system.identifier==="ni
 if(fearPool?.system.uses.max!=="3"||fearPool.system.uses.spent!==1||fearPool.system.uses.recovery.length)errors.push("Nightmare must start with two points, no full native rest recovery");
 for(const document of nightmareFeatures){if(document.effects.length)errors.push(`Nightmare must not grant unconditional manifestations or empty passive templates: ${document.name}`);
   if(!document.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Nightmare automation description is missing: ${document.name}`);}
+
+const empath=classDocuments.find(document=>document.system.identifier==="empath");
+const empathFeatures=[...allDocuments.values()].filter(entry=>entry.pack==="features"&&entry.document.flags?.[manifest.id]?.empathFeature).map(entry=>entry.document);
+if(!empath||empath.system.hitDice!=="d8"||empath.system.spellcasting.progression!=="none"||empathFeatures.length!==9)errors.push("Empath needs d8, no spell progression and nine features");
+const empathGrants=empath?.system.advancement?.filter(a=>a.type==="ItemGrant")??[];
+if(JSON.stringify(empathGrants.slice(0,5).map(a=>a.level))!=="[1,2,3,4,5]"||empathGrants.slice(0,5).reduce((n,a)=>n+a.configuration.items.length,0)!==9||empathGrants[5]?.level!==3)errors.push("Empath must grant nine features and a separate level-three spell");
+for(const document of empathFeatures)if(document.effects.length||!document.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Empath needs explicit automation boundaries, not unconditional effects: ${document.name}`);
+const empathSpell=[...allDocuments.values()].find(entry=>entry.pack==="spells"&&entry.document.flags?.[manifest.id]?.empathSpell)?.document;
+if(!empathSpell||empathSpell.system.level!==4||empathSpell.system.preparation.mode!=="always")errors.push("Empath needs its always-prepared fourth-level spell");
 
 if (errors.length) {
   console.error("Validation failed:");

@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 272,
-    "partial": 401,
+    "automatic": 273,
+    "partial": 411,
     "manual": 95,
     "review": 362
   },
@@ -497,6 +497,20 @@
         "tests/progression.test.mjs"
       ],
       "note": " Advancement выдаёт девять классовых особенностей. Выберите неизменяемую Мудрость или Харизму ≥16, затем известные страхи. Начальный запас — 2; максимум 3/4/5/6/7; продолжительный отдых прибавляет 2, короткий не восстана"
+    },
+    {
+      "pack": "classes",
+      "id": "4b56230b007ccc2d",
+      "name": "Эмпат / Empath",
+      "key": "empath",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " девять особенностей и заклинание выдаются по уровням. Маски используют общий запас смен вне боя; каждая другая способность имеет свой запас. Вариант, СЛ и бонусы фиксируются при применении. Начальная маска — Спокойствие"
     },
     {
       "pack": "subclasses",
@@ -8117,6 +8131,132 @@
     },
     {
       "pack": "features",
+      "id": "fb94f84bd165a64f",
+      "name": "Маски чувств",
+      "key": "empath-masks",
+      "status": "partial",
+      "entries": [
+        "module:empath-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопки разделяют смену вне боя, добровольную реакцию, непроизвольную смену со спасброском Мудрости и бесплатное Спокойствие на границе боя. GM подтверждает событие, очередность одновременных событий и видимость. Спасбро"
+    },
+    {
+      "pack": "features",
+      "id": "9eb113cbcbb19b20",
+      "name": "Импульс",
+      "key": "empath-impulse",
+      "status": "partial",
+      "entries": [
+        "module:empath-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка выбирает цель в 60 футах; вариант и СЛ фиксируются до расхода. Midi проводит спасбросок/урон Гнева, временные хиты Радости и эффекты провала. Скорость Печали уменьшается вдвое; её −1к4 примените вручную только к "
+    },
+    {
+      "pack": "features",
+      "id": "f7db5fff59d96736",
+      "name": "Сопричастность",
+      "key": "empath-empathy",
+      "status": "partial",
+      "entries": [
+        "module:empath-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопку используйте до исходного броска: реакция и одно использование до короткого/продолжительного отдыха. Покров действует до конца следующего хода Эмпата; постоянного сопротивления всему урону нет. КД/концентрация, сп"
+    },
+    {
+      "pack": "features",
+      "id": "79f24eb0b7ae6bd7",
+      "name": "Голос сердца",
+      "key": "empath-voice",
+      "status": "partial",
+      "entries": [
+        "module:empath-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выбор цели в 30 футах и подтверждение видимости/слышимости. Действие, общий запас 1 до короткого/продолжительного отдыха; срок 10 минут. Помеха двум навыкам и к6 к указанным проверкам — целевые эффекты. Запрет сознатель"
+    },
+    {
+      "pack": "features",
+      "id": "7095ee8c02d66e33",
+      "name": "Отклик",
+      "key": "empath-response",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/empath-actions"
+      ],
+      "checks": [
+        "tests/empath.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "35e3d1adb2ccd767",
+      "name": "Волна чувств",
+      "key": "empath-wave",
+      "status": "partial",
+      "entries": [
+        "module:empath-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "4becf8dcb03f6db6",
+      "name": "Изменчивая природа",
+      "key": "empath-nature",
+      "status": "partial",
+      "entries": [
+        "module:empath-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выберите эффект маски или черту вместо него. В первом случае активная маска повышает только связанную характеристику и её максимум на 2, заменяя прошлый эффект; во втором автоматического повышения нет, выбранную черту д"
+    },
+    {
+      "pack": "features",
+      "id": "9cc3915abfd3b29d",
+      "name": "Грани души",
+      "key": "empath-facets",
+      "status": "partial",
+      "entries": [
+        "runtime:classes/empath"
+      ],
+      "checks": [
+        "tests/empath.test.mjs"
+      ],
+      "note": " Инициатива Спокойствия получает модификатор Мудрости. Отталкивание Гнева, проход через занятое пространство Радости и преимущество Печали только против принудительного движения/сбивания с ног подтверждаются вручную; обы"
+    },
+    {
+      "pack": "features",
+      "id": "ce187ac9881bd2ff",
+      "name": "Катарсис",
+      "key": "empath-catharsis",
+      "status": "partial",
+      "entries": [
+        "module:empath-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
       "id": "3c291a800bfd768c",
       "name": "Убийственное намерение",
       "key": "murderous-intent",
@@ -8956,6 +9096,22 @@
         "tools/validate.mjs"
       ],
       "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "spells",
+      "id": "f46c1d7e3fb9671e",
+      "name": "Волна чувств (Эмпат)",
+      "key": "empath-wave-spell",
+      "status": "partial",
+      "entries": [
+        "module:empath-control",
+        "dnd5e:Item-spell"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tools/validate.mjs"
+      ],
+      "note": " Бесплатное применение — 1 раз до короткого/продолжительного отдыха; отдельное заклинание позволяет использовать ячейки 4+. Разместите круг радиусом 30 футов с центром на себе: все остальные существа получают спасбросок "
     },
     {
       "pack": "bestiary",

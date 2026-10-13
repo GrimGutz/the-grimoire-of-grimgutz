@@ -3,11 +3,13 @@ import { configureAreaActivities } from "../areas.mjs";
 import { witchBladeSpellDocuments } from "./witch-blade-spells.mjs";
 import { bloodMageSpellDocuments } from "./blood-mage-spells.mjs";
 import { nethereseArcanistSpellDocuments } from "./netherese-arcanist-spells.mjs";
+import {empathSpellDocuments} from "./empath-spells.mjs";
 
 export const folders = [];
 export const documents = configureAreaActivities([
   ...forestLordSpellDocuments,
   ...witchBladeSpellDocuments,
   ...bloodMageSpellDocuments,
-  ...nethereseArcanistSpellDocuments
+  ...nethereseArcanistSpellDocuments,
+  ...empathSpellDocuments
 ]);

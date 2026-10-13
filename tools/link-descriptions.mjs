@@ -352,7 +352,7 @@ function buildTargets(packs) {
         // Short technique names such as "Натиск"/"Стойкость" also occur as
         // ordinary words or unrelated rules. Outside this class require an
         // explicit authored UUID instead of inventing a cross-class reference.
-        scope: document.flags?.[MODULE_ID]?.flagellantFeature ? "flagellant" : document.flags?.[MODULE_ID]?.doomedFeature ? "doomed" : document.flags?.[MODULE_ID]?.nightmareFeature ? "nightmare" : null,
+        scope: document.flags?.[MODULE_ID]?.flagellantFeature ? "flagellant" : document.flags?.[MODULE_ID]?.doomedFeature ? "doomed" : document.flags?.[MODULE_ID]?.nightmareFeature ? "nightmare" : document.flags?.[MODULE_ID]?.empathFeature || document.flags?.[MODULE_ID]?.empathSpell ? "empath" : null,
         aliases: [document.name, ...(INTERNAL_ALIASES[identifier] ?? [])]
       });
     }
@@ -420,7 +420,8 @@ export function linkDocumentDescriptions(packs) {
       const ownFlagellant = document.flags?.[MODULE_ID]?.flagellantFeature || document.flags?.[MODULE_ID]?.prestigeClass === "flagellant";
       const ownDoomed = document.flags?.[MODULE_ID]?.doomedFeature || document.flags?.[MODULE_ID]?.prestigeClass === "doomed";
       const ownNightmare = document.flags?.[MODULE_ID]?.nightmareFeature || document.flags?.[MODULE_ID]?.prestigeClass === "nightmare";
-      const scopedTargets = targets.filter(target => !target.scope || target.scope === "flagellant" && ownFlagellant || target.scope === "doomed" && ownDoomed || target.scope === "nightmare" && ownNightmare);
+      const ownEmpath = document.flags?.[MODULE_ID]?.empathFeature || document.flags?.[MODULE_ID]?.empathSpell || document.flags?.[MODULE_ID]?.prestigeClass === "empath";
+      const scopedTargets = targets.filter(target => !target.scope || target.scope === "flagellant" && ownFlagellant || target.scope === "doomed" && ownDoomed || target.scope === "nightmare" && ownNightmare || target.scope === "empath" && ownEmpath);
       const linked = linkHtml(current, scopedTargets, document._id);
       linksAdded += (linked.match(/@UUID\[/g)?.length ?? 0) - (current.match(/@UUID\[/g)?.length ?? 0);
       document.system.description.value = linked;

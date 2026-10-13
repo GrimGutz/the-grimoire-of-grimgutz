@@ -4,8 +4,8 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 272
-- частично: 401
+- автоматизировано: 273
+- частично: 411
 - обоснованно вручную: 95
 - требует исправления: 362
 
@@ -48,6 +48,7 @@
 | classes / Самобичеватель / Flagellant | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Обречённый / Doomed | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Кошмар / Nightmare | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Эмпат / Empath | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Создатель големов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Искатель мифов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Духовный медиум | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
@@ -634,6 +635,15 @@
 | features / Призыв кошмара: Соглядатай | обоснованно вручную | — | нужна отдельная проверка |
 | features / Призыв кошмара: Преследователь | обоснованно вручную | — | нужна отдельная проверка |
 | features / Призыв кошмара: Надзиратель | обоснованно вручную | — | нужна отдельная проверка |
+| features / Маски чувств | частично | module:empath-control | tests/registrations.test.mjs |
+| features / Импульс | частично | module:empath-control | tests/registrations.test.mjs |
+| features / Сопричастность | частично | module:empath-control | tests/registrations.test.mjs |
+| features / Голос сердца | частично | module:empath-control | tests/registrations.test.mjs |
+| features / Отклик | автоматизировано | runtime:classes/empath-actions | tests/empath.test.mjs |
+| features / Волна чувств | частично | module:empath-control | tests/registrations.test.mjs |
+| features / Изменчивая природа | частично | module:empath-control | tests/registrations.test.mjs |
+| features / Грани души | частично | runtime:classes/empath | tests/empath.test.mjs |
+| features / Катарсис | частично | module:empath-control | tests/registrations.test.mjs |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |
@@ -698,6 +708,7 @@
 | spells / Ужасная засуха / Horrible Drought | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
 | spells / Смертоносный ветер Толодина / Tolodine's Killing Wind | автоматизировано | dnd5e:Item-spell | tools/validate.mjs |
 | spells / Тварь о тысяче ног / Beast of a Thousand Legs | автоматизировано | dnd5e:utility, dnd5e:Item-spell | tools/validate.mjs |
+| spells / Волна чувств (Эмпат) | частично | module:empath-control, dnd5e:Item-spell | tests/registrations.test.mjs, tools/validate.mjs |
 | bestiary / Фантом: Воин Тьмы | автоматизировано | dnd5e:Actor-statblock | tools/validate.mjs |
 | bestiary / Тёмное сопротивление | требует исправления | — | нужна отдельная проверка |
 | bestiary / Демонический глаз | требует исправления | — | нужна отдельная проверка |

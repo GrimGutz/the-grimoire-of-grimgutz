@@ -42,6 +42,7 @@ import {jesterClassDocuments} from "./jester-class.mjs";
 import {flagellantClassDocuments} from "./flagellant-class.mjs";
 import {doomedClassDocuments} from "./doomed-class.mjs";
 import {nightmareClassDocuments} from "./nightmare-class.mjs";
+import {empathClassDocuments} from "./empath-class.mjs";
 
 const TECHNIQUES = [
   "adaptability",
@@ -219,5 +220,6 @@ export const documents = [
   ...jesterClassDocuments,
   ...flagellantClassDocuments,
   ...doomedClassDocuments,
-  ...nightmareClassDocuments
+  ...nightmareClassDocuments,
+  ...empathClassDocuments
 ];

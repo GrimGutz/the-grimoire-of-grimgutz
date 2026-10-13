@@ -38,6 +38,9 @@ import {syncNightmare,validateNightmareItem} from "./classes/nightmare.mjs";
 import {controlNightmare} from "./classes/nightmare-actions.mjs";
 import {controlNightmareSummon} from "./classes/nightmare-summons.mjs";
 import {installNightmareHooks} from "./classes/nightmare-events.mjs";
+import {syncEmpath,validateEmpathItem} from "./classes/empath.mjs";
+import {controlEmpath} from "./classes/empath-actions.mjs";
+import {installEmpathHooks} from "./classes/empath-events.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { registerAutomationPanel, openAutomationPanel } from "./shared/control-panel.mjs";
@@ -694,6 +697,7 @@ export function getAutomationActionHandlers() {
   registry.set("flagellant-control",controlFlagellant);
   registry.set("doomed-control",controlDoomed);
   registry.set("nightmare-control",controlNightmare);
+  registry.set("empath-control",controlEmpath);
   registry.set("nightmare-summon-control",controlNightmareSummon);
   for (const [actions, handler] of [
     [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
@@ -998,7 +1002,7 @@ const actorSynchronizer = createActorSynchronizer([
   syncFeyWarriorPassiveEffects, syncGhostWalkerResources, syncGhostWalkerPassiveEffects,
   syncBlinkerResources, syncSpiritVesselResources, syncSpiritVesselPassiveEffects,
   syncOracleResources, syncOraclePassiveEffects, syncSanguinistResources,
-  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons, syncMaster, syncHunter, syncJester, syncFlagellant, syncDoomed, syncNightmare
+  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons, syncMaster, syncHunter, syncJester, syncFlagellant, syncDoomed, syncNightmare, syncEmpath
 ]);
 const schedulePassiveSync = actorSynchronizer.schedule;
 
@@ -1059,6 +1063,8 @@ function installHooks() {
   installDoomedHooks();
   installNightmareHooks();
   Hooks.on("preCreateItem",validateNightmareItem);
+  installEmpathHooks();
+  Hooks.on("preCreateItem",validateEmpathItem);
   Hooks.on("preCreateItem",validateDoomedItem);
   Hooks.on("preCreateItem", validateMasterItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateMasterAdvancement);
