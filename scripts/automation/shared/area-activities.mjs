@@ -109,7 +109,7 @@ async function deletePlaced(documents) {
   }
 }
 
-export async function useAreaActivity(activity, { validate = () => true, usage = {}, dialog = {}, message = {} } = {}) {
+export async function useAreaActivity(activity, { validate = () => true, usage = {}, dialog = {}, message = {}, reportOutcome = false } = {}) {
   const spec = areaDefinitionFor(activity), actor = activityActor(activity), scene = canvas?.scene;
   if (!spec || !actor || !scene || !canvas.ready) return false;
   if (activeUse) { notify("Дождитесь завершения предыдущей площадной способности.", "warn"); return false; }
@@ -166,7 +166,9 @@ export async function useAreaActivity(activity, { validate = () => true, usage =
     // MeasuredTemplate placeables and tries to read their nonexistent document.t.
     // Keep documents for ownership/cleanup; pass native UUIDs only for targeting.
     const templateUuids = placed.map(document => document.uuid);
-    const targets = api.computeTargetsFromTemplates(templateUuids, source.document?.uuid ?? source, spec.excludeSelf ?? false, spec.targets ?? "any", "always");
+    const targets = api.computeTargetsFromTemplates(templateUuids, source.document?.uuid ?? source, spec.excludeSelf ?? false, spec.targets ?? "any", "always")
+      .filter(token => !spec.immuneCondition || !(token.actor?.system?.traits?.ci?.value?.has?.(spec.immuneCondition)
+        || token.actor?.system?.traits?.ci?.value?.includes?.(spec.immuneCondition)));
     const allies = spec.allyTempHp ? api.computeTargetsFromTemplates(templateUuids, source.document?.uuid ?? source, false, "ally", "always") : [];
     const resolved = cloneAreaActivity(activity, spec, { resolved: true, castId });
     for (const doc of placed) await doc.update({ [`flags.${MODULE_ID}.zoneTemplate`]: true,
@@ -187,7 +189,7 @@ export async function useAreaActivity(activity, { validate = () => true, usage =
     if (workflow === false || workflow?.aborted || options.workflow?.aborted) return false;
     // Undefined with a running workflow is an unknown outcome, not a refund signal.
     committed = true;
-    if (!workflow) { notify("Midi-QOL ещё завершает применение. Не повторяйте расход; проверьте карточку в чате.", "warn"); return false; }
+    if (!workflow) { notify("Midi-QOL ещё завершает применение. Не повторяйте расход; проверьте карточку в чате.", "warn"); return reportOutcome ? {status:"needs-review"} : false; }
     if (spec.allyTempHp && allies.length) {
       const roll = await new Roll(spec.allyTempHp, actor.getRollData()).evaluate();
       await applyTemporaryHp(allies, Math.max(0, Number(roll.total)), { sourceActor: actor });
@@ -215,10 +217,12 @@ export async function useAreaActivity(activity, { validate = () => true, usage =
       ...(spec.periodic ? { [`flags.${MODULE_ID}.periodicZone`]: { trigger: spec.periodic, sourceTokenUuid: source.document.uuid,
         sourceItemUuid: activity.item.uuid, event: { save: spec.save, dc: spec.dc, damage: spec.damage, onSave: spec.onSave } } } : {}),
       ...(concentration ? { [`flags.${MODULE_ID}.zoneConcentrationEffect`]: concentration.uuid } : {}) });
+    workflow.grimgutzAreaResult = {castId, concentrationUuid:concentration?.uuid ?? null,
+      templateUuids:placed.map(doc=>doc.uuid), targetTokenUuids:targets.map(token=>token.document.uuid)};
     return workflow;
   } catch (error) {
     console.error(`${MODULE_ID} | Area activity failed`, error);
-    notify(error.message ?? "Не удалось применить площадную способность.", "warn"); return false;
+    notify(error.message ?? "Не удалось применить площадную способность.", "warn"); return committed && reportOutcome ? {status:"needs-review"} : false;
   } finally {
     if (!committed) await deletePlaced(placed);
     activeUse = null;

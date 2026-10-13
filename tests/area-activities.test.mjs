@@ -120,6 +120,12 @@ test("an unknown completion retains the area and never assumes a refund", async 
   assert.equal(placed.updateData[`flags.${MODULE_ID}.zoneExpiresAt`], null);
 });
 
+test("opt-in receipt outcome distinguishes unknown completion without changing legacy false", async () => {
+  MidiQOL.completeActivityUse = async () => undefined;
+  assert.deepEqual(await useAreaActivity(activity, {reportOutcome:true}), {status:"needs-review"});
+  assert.equal(placed.deleted, false);
+});
+
 test("an explicit native cancellation removes its own template without starting another cast", async () => {
   MidiQOL.completeActivityUse = async () => false;
   assert.equal(await useAreaActivity(activity), false);
