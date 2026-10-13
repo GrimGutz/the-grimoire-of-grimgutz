@@ -41,6 +41,7 @@ import {bountyHunterClassDocuments} from "./bounty-hunter-class.mjs";
 import {jesterClassDocuments} from "./jester-class.mjs";
 import {flagellantClassDocuments} from "./flagellant-class.mjs";
 import {doomedClassDocuments} from "./doomed-class.mjs";
+import {nightmareClassDocuments} from "./nightmare-class.mjs";
 
 const TECHNIQUES = [
   "adaptability",
@@ -217,5 +218,6 @@ export const documents = [
   ...bountyHunterClassDocuments,
   ...jesterClassDocuments,
   ...flagellantClassDocuments,
-  ...doomedClassDocuments
+  ...doomedClassDocuments,
+  ...nightmareClassDocuments
 ];

@@ -88,9 +88,9 @@ try {
   });
 }
 
-if (documentCounts.classes !== 34) errors.push(`Expected 34 prestige classes, got ${documentCounts.classes ?? 0}`);
+if (documentCounts.classes !== 35) errors.push(`Expected 35 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 581) errors.push(`Expected 581 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.features !== 603) errors.push(`Expected 603 features, got ${documentCounts.features ?? 0}`);
 if (documentCounts.transformations !== 2) errors.push(`Expected 2 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 20) errors.push(`Expected 20 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
@@ -3342,6 +3342,17 @@ const doomedScale=doomed?.system.advancement?.find(advancement=>advancement.type
 if(JSON.stringify(Object.values(doomedScale?.configuration.scale??{}).map(value=>value.value))!=="[2,4,6,8,10]")errors.push("Doomed slots must scale 2/4/6/8/10");
 for(const document of doomedFeatures){if(document.effects.length)errors.push(`Unselected Doomed curses must not supply passive templates: ${document.name}`);
   if(!document.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Doomed automation description is missing: ${document.name}`);}
+
+const nightmare=classDocuments.find(document=>document.system.identifier==="nightmare");
+const nightmareFeatures=[...allDocuments.values()].filter(entry=>entry.pack==="features"&&entry.document.flags?.[manifest.id]?.nightmareFeature).map(entry=>entry.document);
+if(!nightmare||nightmare.system.hitDice!=="d8"||nightmare.system.spellcasting.progression!=="none")errors.push("Nightmare class with d8 and no spell progression is missing");
+if(nightmareFeatures.length!==22||nightmareFeatures.filter(document=>document.flags[manifest.id].nightmareFear).length!==10||nightmareFeatures.filter(document=>document.flags[manifest.id].nightmareProfile).length!==3)errors.push("Nightmare needs nine features, ten fears and three summon profiles");
+const nightmareGrants=nightmare?.system.advancement?.filter(advancement=>advancement.type==="ItemGrant")??[];
+if(JSON.stringify(nightmareGrants.map(advancement=>advancement.level))!=="[1,2,3,4,5]"||nightmareGrants.reduce((n,advancement)=>n+advancement.configuration.items.length,0)!==9)errors.push("Nightmare must grant only nine core features, not unlearned fears");
+const fearPool=nightmareFeatures.find(document=>document.system.identifier==="nightmare-feeding");
+if(fearPool?.system.uses.max!=="3"||fearPool.system.uses.spent!==1||fearPool.system.uses.recovery.length)errors.push("Nightmare must start with two points, no full native rest recovery");
+for(const document of nightmareFeatures){if(document.effects.length)errors.push(`Nightmare must not grant unconditional manifestations or empty passive templates: ${document.name}`);
+  if(!document.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Nightmare automation description is missing: ${document.name}`);}
 
 if (errors.length) {
   console.error("Validation failed:");

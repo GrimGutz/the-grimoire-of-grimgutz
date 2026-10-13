@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 270,
-    "partial": 383,
-    "manual": 92,
+    "automatic": 272,
+    "partial": 401,
+    "manual": 95,
     "review": 362
   },
   "records": [
@@ -483,6 +483,20 @@
         "tests/progression.test.mjs"
       ],
       "note": " Advancement выдаёт девять классовых особенностей; проклятия выбираются через «@UUID[Compendium.the-grimoire-of-grimgutz.features.Item.fe45dcf32b5a5b17]{Принятые проклятия}», а не выдаются все сразу. Выберите неизменяему"
+    },
+    {
+      "pack": "classes",
+      "id": "96b02ab0f0608389",
+      "name": "Кошмар / Nightmare",
+      "key": "nightmare",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " Advancement выдаёт девять классовых особенностей. Выберите неизменяемую Мудрость или Харизму ≥16, затем известные страхи. Начальный запас — 2; максимум 3/4/5/6/7; продолжительный отдых прибавляет 2, короткий не восстана"
     },
     {
       "pack": "subclasses",
@@ -7804,6 +7818,302 @@
         "tests/doomed.test.mjs"
       ],
       "note": " Дар — истинное зрение 60 футов с переводом единиц. Обычное зрение выключите вручную: широкий статус «ослеплён» ошибочно дал бы помеху и внутри истинного зрения. При усилении накладывается глухота; зрение сквозь немагиче"
+    },
+    {
+      "pack": "features",
+      "id": "c0647fd8110cdc49",
+      "name": "Питание страхом",
+      "key": "nightmare-feeding",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Начально 2 очка, максимум 3/4/5/6/7; продолжительный отдых прибавляет 2 без превышения максимума, короткий — ничего. Выберите Мудрость или Харизму ≥16. После подтверждённого урона в свой ход кнопка Пробуждения выбирает "
+    },
+    {
+      "pack": "features",
+      "id": "74abad07886df3fd",
+      "name": "Навязанные страхи",
+      "key": "nightmare-fears",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "3ea3b6e8f25284bf",
+      "name": "Зов кошмара",
+      "key": "nightmare-call",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Действие и 2 очка, выбор Соглядатая/Преследователя/Надзирателя; GM подтверждает видимое свободное место рядом с токеном в 30 футах до расхода. Общий движок создаёт Actor и токен с характеристиками источника и нативными "
+    },
+    {
+      "pack": "features",
+      "id": "8c1bbf90495290ab",
+      "name": "Отголосок",
+      "key": "nightmare-echo",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка выбирает только цель из сохранённых подтверждённых наложений испуга/страха за последние 24 часа. Действие и 1 очко создают десятиминутную связь. Направление, 1 милю и тот же план подтверждает GM вручную; скрытые "
+    },
+    {
+      "pack": "features",
+      "id": "ae4f144ad1b314eb",
+      "name": "Неотвратимый ужас",
+      "key": "nightmare-inevitable",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " БМ использований до продолжительного отдыха. В штатном Пробуждении до спасброска предлагается заменить иммунитет цели сопротивлением; преимущество относится только к этому испугу и его последующим спасброскам. Кнопка дл"
+    },
+    {
+      "pack": "features",
+      "id": "c014d2d1e1436f82",
+      "name": "Слепое пятно",
+      "key": "nightmare-blind-spot",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Бонусное действие и 2 очка. Выберите всех видимых подходящих существ в 60 футах; каждая сущность считается один раз. Концентрация и невидимость на число раундов выбранных существ; завершение предыдущей концентрации треб"
+    },
+    {
+      "pack": "features",
+      "id": "d0e29287a726496d",
+      "name": "Увеличение характеристик",
+      "key": "nightmare-increase",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "ae667058ffdd9ab7",
+      "name": "Безысходность",
+      "key": "nightmare-despair",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/nightmare-fears"
+      ],
+      "checks": [
+        "tests/nightmare.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "e6fedf20aed34fb2",
+      "name": "Владыка кошмаров",
+      "key": "nightmare-lord",
+      "status": "automatic",
+      "entries": [
+        "runtime:classes/nightmare-actions"
+      ],
+      "checks": [
+        "tests/nightmare.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "6c8adbfc2db3ea5f",
+      "name": "Агорафобия (Страх открытых пространств)",
+      "key": "nightmare-fear-agora",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "0ccafd84bad75023",
+      "name": "Алгофобия (Страх боли)",
+      "key": "nightmare-fear-algo",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "1931eddbe95f2c74",
+      "name": "Атихифобия (Страх неудачи)",
+      "key": "nightmare-fear-atych",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " В конец хода учитываются только завершённые Midi-атаки после последнего наложения: хотя бы одна атака и ни одного попадания. Внешние броски подтверждаются кнопкой вручную. Проявление даёт помеху шести спасброскам, не пр"
+    },
+    {
+      "pack": "features",
+      "id": "fa2a58500ceaaaca",
+      "name": "Аутофобия (Страх одиночества)",
+      "key": "nightmare-fear-auto",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " В начало хода GM подтверждает отсутствие дееспособных союзников в 50 футах. Проявление блокирует реакции; предел одной атаки действия Атака/Мультиатака соблюдайте вручную, не запрещает все атаки вообще. Навязанный страх"
+    },
+    {
+      "pack": "features",
+      "id": "df1c030b13e9286c",
+      "name": "Гоплофобия (Страх оружия)",
+      "key": "nightmare-fear-hoplo",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Полное множество видимых врагов и оружейные попадания за раунд подтверждаются вручную отдельной кнопкой. При проявлении преимущество даётся только конкретной дальнобойной атаке по этой цели; отмену бонусов половинного/т"
+    },
+    {
+      "pack": "features",
+      "id": "689197ce978ee9ea",
+      "name": "Клаустрофобия (Страх замкнутых пространств)",
+      "key": "nightmare-fear-claustro",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " В начало хода GM подтверждает невозможность горизонтального движения и видимого врага в 5 футах. Проявление задаёт все пять скоростей 0 с приоритетом после бонусов. Телепортация не определяется по одному названию активн"
+    },
+    {
+      "pack": "features",
+      "id": "fadff80338c4168f",
+      "name": "Никтофобия (Страх темноты)",
+      "key": "nightmare-fear-nycto",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "ea0eb4ff49276a66",
+      "name": "Охлофобия (Страх толпы)",
+      "key": "nightmare-fear-ochlo",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " В начало хода GM подтверждает пять других существ в 5 футах, минимум трое врагов цели. Проявление блокирует нативные бонусные действия; разрешённые Рывок/Отход/Уклонение соблюдайте вручную, не запрещает все действия. На"
+    },
+    {
+      "pack": "features",
+      "id": "ebfda0ae9486ff13",
+      "name": "Рабдофобия (Страх колдовства)",
+      "key": "nightmare-fear-rhabdo",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Сумма уровней конкретных повредивших заклинаний и ПО цели подтверждаются GM вручную, без замены ПО уровнем персонажа. Проявление блокирует нативные активности заклинаний; обычные способности разрешены. Навязанный страх "
+    },
+    {
+      "pack": "features",
+      "id": "4d3d0550aa78a3f5",
+      "name": "Танатофобия (Страх смерти)",
+      "key": "nightmare-fear-thanato",
+      "status": "partial",
+      "entries": [
+        "module:nightmare-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " После подтверждённого падения другого участника боя до 0 предлагает GM проверить зрение, 30 футов и половину хитов носителя. Проявление вызывает испуг источником независимо от иммунитета и помеху только спасброскам для "
+    },
+    {
+      "pack": "features",
+      "id": "e0bd727f09ec7d84",
+      "name": "Призыв кошмара: Соглядатай",
+      "key": "nightmare-profile-scout",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Справочная карточка профиля без пустого эффекта. Настоящего NPC и токен создаёт кнопка «Зова кошмара»; параметры фиксируются по владельцу при призыве. Произвольный облик, движение и восприятие через Соглядатая подтвержд"
+    },
+    {
+      "pack": "features",
+      "id": "69e44b9d13f0fe65",
+      "name": "Призыв кошмара: Преследователь",
+      "key": "nightmare-profile-pursuer",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Справочная карточка профиля без пустого эффекта. Настоящего NPC и токен создаёт кнопка «Зова кошмара»; параметры фиксируются по владельцу при призыве. Произвольный облик, движение и восприятие через Соглядатая подтвержд"
+    },
+    {
+      "pack": "features",
+      "id": "98878cf998354d42",
+      "name": "Призыв кошмара: Надзиратель",
+      "key": "nightmare-profile-warden",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Справочная карточка профиля без пустого эффекта. Настоящего NPC и токен создаёт кнопка «Зова кошмара»; параметры фиксируются по владельцу при призыве. Произвольный облик, движение и восприятие через Соглядатая подтвержд"
     },
     {
       "pack": "features",

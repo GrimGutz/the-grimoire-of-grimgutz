@@ -36,6 +36,7 @@ import {bountyHunterDocuments,bountyHunterFolders} from "./bounty-hunter-feature
 import {jesterDocuments,jesterFolders} from "./jester-features.mjs";
 import {flagellantDocuments,flagellantFolders} from "./flagellant-features.mjs";
 import {doomedDocuments,doomedFolders} from "./doomed-features.mjs";
+import {nightmareDocuments,nightmareFolders} from "./nightmare-features.mjs";
 
 const MAIN_FOLDER = idFor("folder:class-features");
 const STYLE_FOLDER = idFor("folder:weapon-styles");
@@ -78,6 +79,7 @@ export const folders = [
   ...jesterFolders,
   ...flagellantFolders,
   ...doomedFolders,
+  ...nightmareFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -436,6 +438,7 @@ export const documents = configureAreaActivities([
   ...jesterDocuments,
   ...flagellantDocuments,
   ...doomedDocuments,
+  ...nightmareDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ]);

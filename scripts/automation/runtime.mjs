@@ -34,6 +34,10 @@ import {installFlagellantHooks} from "./classes/flagellant-events.mjs";
 import {syncDoomed,validateDoomedItem} from "./classes/doomed.mjs";
 import {controlDoomed} from "./classes/doomed-actions.mjs";
 import {installDoomedHooks} from "./classes/doomed-events.mjs";
+import {syncNightmare,validateNightmareItem} from "./classes/nightmare.mjs";
+import {controlNightmare} from "./classes/nightmare-actions.mjs";
+import {controlNightmareSummon} from "./classes/nightmare-summons.mjs";
+import {installNightmareHooks} from "./classes/nightmare-events.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { registerAutomationPanel, openAutomationPanel } from "./shared/control-panel.mjs";
@@ -689,6 +693,8 @@ export function getAutomationActionHandlers() {
   registry.set("jester-control",controlJester);
   registry.set("flagellant-control",controlFlagellant);
   registry.set("doomed-control",controlDoomed);
+  registry.set("nightmare-control",controlNightmare);
+  registry.set("nightmare-summon-control",controlNightmareSummon);
   for (const [actions, handler] of [
     [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
     [SPIRIT_VESSEL_ACTIONS, handleSpiritVesselAction], [ORACLE_ACTIONS, handleOracleAction],
@@ -992,7 +998,7 @@ const actorSynchronizer = createActorSynchronizer([
   syncFeyWarriorPassiveEffects, syncGhostWalkerResources, syncGhostWalkerPassiveEffects,
   syncBlinkerResources, syncSpiritVesselResources, syncSpiritVesselPassiveEffects,
   syncOracleResources, syncOraclePassiveEffects, syncSanguinistResources,
-  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons, syncMaster, syncHunter, syncJester, syncFlagellant, syncDoomed
+  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons, syncMaster, syncHunter, syncJester, syncFlagellant, syncDoomed, syncNightmare
 ]);
 const schedulePassiveSync = actorSynchronizer.schedule;
 
@@ -1051,6 +1057,8 @@ function installHooks() {
   installFlagellantHooks();
   Hooks.on("preCreateItem",validateFlagellantItem);
   installDoomedHooks();
+  installNightmareHooks();
+  Hooks.on("preCreateItem",validateNightmareItem);
   Hooks.on("preCreateItem",validateDoomedItem);
   Hooks.on("preCreateItem", validateMasterItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateMasterAdvancement);

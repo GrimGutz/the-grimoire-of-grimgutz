@@ -4,9 +4,9 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 270
-- частично: 383
-- обоснованно вручную: 92
+- автоматизировано: 272
+- частично: 401
+- обоснованно вручную: 95
 - требует исправления: 362
 
 Полные основания и замечания: [AUTOMATION_COVERAGE.json](AUTOMATION_COVERAGE.json).
@@ -47,6 +47,7 @@
 | classes / Арлекин / Jester | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Самобичеватель / Flagellant | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | classes / Обречённый / Doomed | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| classes / Кошмар / Nightmare | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Создатель големов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Искатель мифов | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
 | subclasses / Духовный медиум | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
@@ -611,6 +612,28 @@
 | features / Погребённая душа | частично | runtime:classes/doomed | tests/doomed.test.mjs |
 | features / Распад | частично | module:doomed-control | tests/registrations.test.mjs |
 | features / Слепое откровение | частично | runtime:classes/doomed | tests/doomed.test.mjs |
+| features / Питание страхом | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Навязанные страхи | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Зов кошмара | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Отголосок | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Неотвратимый ужас | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Слепое пятно | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Увеличение характеристик | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Безысходность | автоматизировано | runtime:classes/nightmare-fears | tests/nightmare.test.mjs |
+| features / Владыка кошмаров | автоматизировано | runtime:classes/nightmare-actions | tests/nightmare.test.mjs |
+| features / Агорафобия (Страх открытых пространств) | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Алгофобия (Страх боли) | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Атихифобия (Страх неудачи) | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Аутофобия (Страх одиночества) | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Гоплофобия (Страх оружия) | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Клаустрофобия (Страх замкнутых пространств) | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Никтофобия (Страх темноты) | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Охлофобия (Страх толпы) | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Рабдофобия (Страх колдовства) | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Танатофобия (Страх смерти) | частично | module:nightmare-control | tests/registrations.test.mjs |
+| features / Призыв кошмара: Соглядатай | обоснованно вручную | — | нужна отдельная проверка |
+| features / Призыв кошмара: Преследователь | обоснованно вручную | — | нужна отдельная проверка |
+| features / Призыв кошмара: Надзиратель | обоснованно вручную | — | нужна отдельная проверка |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

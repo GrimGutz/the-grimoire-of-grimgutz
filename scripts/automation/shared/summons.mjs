@@ -301,7 +301,8 @@ function actorSystem(summon) {
       sp: 0,
       cp: 0
     },
-    skills: defaultSkills(),
+    skills: Object.fromEntries(Object.entries(defaultSkills()).map(([key,value]) => [key, {...value, ...(summon.skills?.[key] ?? {}),
+      bonuses: {...value.bonuses, ...summon.skills?.[key]?.bonuses}, roll: {...value.roll, ...summon.skills?.[key]?.roll} }])),
     spells: spellsData(),
     bonuses: {
       mwak: {

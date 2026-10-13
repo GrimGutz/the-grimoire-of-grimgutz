@@ -1,0 +1,16 @@
+import {MODULE_ID} from "./constants.mjs";
+import {classLevel} from "./selectors.mjs";
+import {findFeature,itemUses} from "./helpers.mjs";
+import {isEffectActive} from "../effects/temporary-effects.mjs";
+import {nightmareMaximum,NIGHTMARE_FEARS} from "./nightmare-definitions.mjs";
+export const nightmareLevel=actor=>classLevel(actor,"nightmare");
+export const nightmareState=actor=>actor?.getFlag?.(MODULE_ID,"nightmareState")??{known:[],replacementLevels:[]};
+export const nightmarePool=actor=>findFeature(actor,"nightmare-feeding");
+export const nightmarePoints=actor=>itemUses(nightmarePool(actor)).remaining;
+export const nightmareDC=actor=>["wis","cha"].includes(nightmareState(actor).ability)?8+Number(actor.system.attributes.prof)+Number(actor.system.abilities[nightmareState(actor).ability].mod):null;
+export const nightmareResourceState=actor=>{const maximum=nightmareMaximum(nightmareLevel(actor)),remaining=Math.min(maximum,Math.max(0,nightmarePoints(actor)));return {maximum,remaining,spent:maximum-remaining};};
+export const nightmareKnown=actor=>NIGHTMARE_FEARS.filter(entry=>(nightmareState(actor).known??[]).includes(entry.id));
+export const nightmareFearData=effect=>effect?.getFlag?.(MODULE_ID,"nightmareFear");
+export const nightmareFears=actor=>[...(actor?.effects??[])].filter(effect=>nightmareFearData(effect)&&isEffectActive(effect));
+export const nightmareManifested=(actor,sourceUuid=null)=>nightmareFears(actor).some(effect=>nightmareFearData(effect).manifested&&(!sourceUuid||nightmareFearData(effect).sourceActorUuid===sourceUuid));
+export const nightmareFrightened=actor=>actor?.statuses?.has?.("frightened")||[...(actor?.effects??[])].some(effect=>isEffectActive(effect)&&[...(effect.statuses??[])].includes("frightened"));
