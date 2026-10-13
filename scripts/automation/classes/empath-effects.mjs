@@ -25,13 +25,16 @@ export function empathEffectDefinition(feature,snapshot,actor){const {mask}=snap
   if(feature==="wave"&&mask==="joy")statuses.push("prone","incapacitated");
   return {changes,statuses};}
 export async function createEmpathEffect(source,target,item,feature,snapshot,{requestId,seconds=null,expiry="sourceEnd",concentrationUuid=null,repeat=false}={}){
-  for(const effect of empathEffects(target.actor))if(empathEffectData(effect).feature===feature&&empathEffectData(effect).sourceActorUuid===source.actor.uuid)await effect.delete();
+  const previous=empathEffects(target.actor).filter(effect=>empathEffectData(effect).feature===feature&&empathEffectData(effect).sourceActorUuid===source.actor.uuid);
   const {changes,statuses}=empathEffectDefinition(feature,snapshot,target.actor),data={...snapshot,feature,sourceActorUuid:source.actor.uuid,sourceTokenUuid:source.uuid,sourceItemUuid:item.uuid,targetTokenUuid:target.uuid,nonce:requestId,concentrationUuid};
   const effect=await addCombatBenefit(source,target,item,{kind:`empath-${feature}`,expiry:seconds?null:expiry,changes});
-  await effect.update({statuses,[`flags.${MODULE_ID}.empathEffect`]:data,...(seconds?temporaryEffectTiming({seconds,actor:target.actor}):
+  try {await effect.update({statuses,[`flags.${MODULE_ID}.empathEffect`]:data,...(seconds?temporaryEffectTiming({seconds,actor:target.actor}):
     !encounterForScene(source.parent,source)?{start:null,duration:{value:null,units:"seconds",expiry:null,expired:false}}:{}),
     ...(repeat?{[`flags.${MODULE_ID}.repeatSave`]:{ability:"wis",dc:snapshot.dc,event:"turnEnd",damage:[],sourceTokenUuid:source.uuid,sourceItemUuid:item.uuid,targetTokenUuid:target.uuid,metadata:{empathResolved:true}}}:{})});
   if(concentrationUuid&&globalThis.MidiQOL?.addDependent){const conc=await fromUuid(concentrationUuid);if(conc)await MidiQOL.addDependent(conc,effect);}
+  } catch(error) {await effect.delete();throw error;}
+  // A validation failure must not erase a previously valid application.
+  for(const old of previous)await old.delete();
   return effect;}
 export async function empathPulse(source,item,targets,snapshot,{save=null,damage=[],onSave="none",eventKey,advantage=false,removeEffectOnSaveUuid=null}={}){
   const result=await useAuraPulse({scene:source.parent,sourceToken:empathPlaceable(source),sourceItem:item,targets:targets.map(empathPlaceable),eventKey,
