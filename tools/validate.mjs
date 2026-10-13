@@ -1025,11 +1025,11 @@ const allItemsByIdentifier = new Map(
   allItemDocuments.map(document => [document.system.identifier, document])
 );
 const transformationIdentifiers = new Set(transformationDocuments.map(document => document.system.identifier));
-for (const identifier of ["murderspawn-transformation", "hollow-transformation"]) {
+for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation"]) {
   if (!transformationIdentifiers.has(identifier)) errors.push(`Main transformation card is missing from transformations pack: ${identifier}`);
 }
 for (const document of transformationDocuments) {
-  if (!["murderspawn-transformation", "hollow-transformation"].includes(document.system.identifier)) {
+  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation"].includes(document.system.identifier)) {
     errors.push(`Transformations pack must contain only main transformation cards, got: ${document.system.identifier}`);
   }
 }
