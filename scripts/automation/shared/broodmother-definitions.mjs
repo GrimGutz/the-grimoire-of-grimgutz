@@ -1,4 +1,4 @@
-export const BROODMOTHER_ICON="icons/creatures/invertebrates/spider-green.webp";
+export const BROODMOTHER_ICON="icons/creatures/invertebrates/spider-large-white-green.webp";
 const web="icons/creatures/webs/web-spider-glowing-purple.webp",acid="icons/magic/acid/projectile-stream-bubbles.webp";
 export const BROODMOTHER_FEATURES=[
   ["brood","Выводок потомства",1,80,BROODMOTHER_ICON,["brood","dismiss"]],
