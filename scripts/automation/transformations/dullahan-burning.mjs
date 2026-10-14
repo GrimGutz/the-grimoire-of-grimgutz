@@ -4,10 +4,14 @@ import {isGmAuthority} from "../shared/gm-requests.mjs";
 import {feetToSceneUnits} from "../shared/spatial.mjs";
 import {dullahanDC} from "./dullahan.mjs";
 import {dullahanImmune} from "./dullahan-use.mjs";
+import {serialMutation} from "../shared/transactions.mjs";
 export async function syncDullahanBurnLight(target){if(!isGmAuthority()||!target?.actor)return;
+  return serialMutation(`dullahan-light:${target.uuid}`,async()=>{
+  if(!isGmAuthority())return;
   const burning=[...(target.actor.effects??[])].some(e=>isEffectActive(e)&&e.getFlag?.(MODULE_ID,"dullahanBurn")?.targetTokenUuid===target.uuid),saved=target.getFlag?.(MODULE_ID,"dullahanBurnLight");
   if(burning&&!saved){const before={bright:Number(target.light?.bright??0),dim:Number(target.light?.dim??0)},applied={bright:Math.max(before.bright,feetToSceneUnits(30,target.parent)),dim:Math.max(before.dim,feetToSceneUnits(60,target.parent))};await target.update({"light.bright":applied.bright,"light.dim":applied.dim,[`flags.${MODULE_ID}.dullahanBurnLight`]:{before,applied}});}
   else if(!burning&&saved){const patch={};for(const key of ["bright","dim"])if(Number(target.light?.[key]??0)===saved.applied[key])patch[`light.${key}`]=saved.before[key];patch[`flags.${MODULE_ID}.-=dullahanBurnLight`]=null;await target.update(patch);}
+  });
 }
 export async function addDullahanBurn(source,target,item,{kind,concentrationUuid=null,seconds=kind==="skulls"?60:null}={}){
   if(kind==="gaze"&&dullahanImmune(target.actor,"frightened"))return false;

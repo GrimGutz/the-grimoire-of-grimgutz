@@ -143,3 +143,8 @@ test("a synthetic actor outside the world collection gets actual passive effects
 test("concurrent native interception shares one application and one expense",async()=>{
   const activity=act("prophecy","prophecy"),first=controlDullahan(actor,activity),second=controlDullahan(actor,activity);assert.equal(first,second);await first;assert.equal(ctx.calls.length,1);assert.equal(item("prophecy").system.uses.spent,1);
 });
+test("ending old burning concurrently with new burning cannot extinguish its light",async()=>{
+  const old=await addDullahanBurn(source,target,item("skulls"),{kind:"skulls"});await old.delete();let entered,release;const enteredPromise=new Promise(resolve=>{entered=resolve;}),gate=new Promise(resolve=>{release=resolve;}),update=target.update.bind(target);
+  target.update=async patch=>{if(patch["light.bright"]===0){entered();await gate;}return update(patch);};
+  const ending=endDullahanBurn(old);await enteredPromise;const starting=addDullahanBurn(source,target,item("gaze"),{kind:"gaze"});await new Promise(resolve=>setImmediate(resolve));release();await Promise.all([ending,starting]);assert.equal(target.light.bright,30);assert.equal(target.light.dim,60);
+});
