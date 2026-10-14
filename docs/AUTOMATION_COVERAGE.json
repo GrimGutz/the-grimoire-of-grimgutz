@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 290,
-    "partial": 507,
-    "manual": 115,
+    "automatic": 298,
+    "partial": 517,
+    "manual": 175,
     "review": 362
   },
   "records": [
@@ -873,6 +873,22 @@
         "tests/progression.test.mjs"
       ],
       "note": " клятва одной цели, тип нежити, зрение, скакуны, размещаемые черепа, повторные спасброски и призыв Голов Смерти через Midi-QOL. Смерть, отсечение головы, сюжетные команды и спорные фразы подтверждает GM; 0 HP само по себ"
+    },
+    {
+      "pack": "transformations",
+      "id": "150f6690b17054ba",
+      "name": "Трансформация: Фабрика",
+      "key": "factory-transformation",
+      "status": "partial",
+      "entries": [
+        "module:factory-control",
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/progression.test.mjs"
+      ],
+      "note": " установите форму, завершите короткий отдых и используйте Фабрику инноваций. Справочные улучшения нельзя выдавать бесплатно простым перетаскиванием. Тексты, сюжетные условия и неопределённые правила отмечены явно; пассив"
     },
     {
       "pack": "features",
@@ -10104,6 +10120,862 @@
         "tests/dullahan.test.mjs"
       ],
       "note": " GM указывает владельца головы и подтверждает действующий приказ. Если это заклятая цель, предыдущие недостатки подавляются на время пакта; ручные данные не стираются. Выполнение приказа, запрет вредить и смерти подтверж"
+    },
+    {
+      "pack": "features",
+      "id": "d0a0658f58c12ec7",
+      "name": "Изготовленная форма",
+      "key": "factory-form",
+      "status": "partial",
+      "entries": [
+        "module:factory-control",
+        "runtime:transformations/factory-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/factory.test.mjs"
+      ],
+      "note": " Выберите STR/DEX и тип тела. Настоящие числовые эффекты с пределом 16 не снижают высокие показатели. Узкие иммунитеты конкретного УС — вручную GM, не общая неуязвимость к магии."
+    },
+    {
+      "pack": "features",
+      "id": "a86cedd5b21dbd30",
+      "name": "Фабрика инноваций",
+      "key": "factory-innovation",
+      "status": "partial",
+      "entries": [
+        "module:factory-control",
+        "runtime:transformations/factory-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/factory.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "84c1f5bd01ab908f",
+      "name": "Зависимость",
+      "key": "factory-addiction",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/factory-events"
+      ],
+      "checks": [
+        "tests/factory.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "134284bc8ae3f94e",
+      "name": "Адаптированная стойкость",
+      "key": "factory-fortitude",
+      "status": "partial",
+      "entries": [
+        "module:factory-control",
+        "runtime:transformations/factory-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/factory.test.mjs"
+      ],
+      "note": " После подтверждённого падения до 0 от некритического/не лучистого урона предлагается владельцу нативный CON. Повторный callback не повторяет спасбросок; отмена не лечит. Для неподдерживаемого урона есть подтверждаемая G"
+    },
+    {
+      "pack": "features",
+      "id": "04957ac3a2d512f8",
+      "name": "Оно живое",
+      "key": "factory-homunculus",
+      "status": "partial",
+      "entries": [
+        "module:factory-control",
+        "runtime:transformations/factory-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/factory.test.mjs"
+      ],
+      "note": " Восемь материалов открываются по полученным бонусам. На LR создаётся настоящий NPC с нативными атаками, характеристиками и снимком уровня/Сл создателя. Материал и свободное место подтверждает GM. Не выдумываются срок, к"
+    },
+    {
+      "pack": "features",
+      "id": "883b4a9dcc6bf9d8",
+      "name": "Бронебойный",
+      "key": "factory-armor",
+      "status": "partial",
+      "entries": [
+        "module:factory-control",
+        "runtime:transformations/factory-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/factory.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "3e58e535fc8dbc84",
+      "name": "Электрическая дуга",
+      "key": "factory-arc",
+      "status": "partial",
+      "entries": [
+        "module:factory-control",
+        "runtime:transformations/factory-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/factory.test.mjs"
+      ],
+      "note": " После подтверждённого попадания — добровольный выбор владельца и проверка непрерывной цепочки разных целей по 10 футов. Разряд и DEX идут через Midi без повторного расхода исходной атаки. Перезарядка к6 проверяется один"
+    },
+    {
+      "pack": "features",
+      "id": "39d487dc432ae72b",
+      "name": "Отвратительная внешность",
+      "key": "factory-appearance",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Только описание и сюжетная реакция GM. Пустой пассив, автоматический страх всех свидетелей или не указанный в PDF облик не создаются."
+    },
+    {
+      "pack": "features",
+      "id": "429dc72ed4d6e11a",
+      "name": "Скульптор плоти",
+      "key": "factory-sculptor",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/factory-events"
+      ],
+      "checks": [
+        "tests/factory.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "0f92861d064ef8c8",
+      "name": "Изменение с модификацией",
+      "key": "factory-modified",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/factory-events"
+      ],
+      "checks": [
+        "tests/factory.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "9cd452ebc4d3592f",
+      "name": "Живой материал",
+      "key": "factory-living",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/factory-events"
+      ],
+      "checks": [
+        "tests/factory.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "a2f013fb001b155f",
+      "name": "Заземление",
+      "key": "factory-grounding",
+      "status": "partial",
+      "entries": [
+        "module:factory-control",
+        "runtime:transformations/factory-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/factory.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "5b43d501b6b0795f",
+      "name": "Несовершенства",
+      "key": "factory-imperfections",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/factory-events"
+      ],
+      "checks": [
+        "tests/factory.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "6b9744feec53fff3",
+      "name": "Deus Ex Machanicus",
+      "key": "factory-deus",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/factory-events"
+      ],
+      "checks": [
+        "tests/factory.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "7de3811e14462ce4",
+      "name": "Машина бессмертна!",
+      "key": "factory-immortal",
+      "status": "partial",
+      "entries": [
+        "module:factory-control",
+        "runtime:transformations/factory-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/factory.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a17302555946b725",
+      "name": "Воплощение совершенства",
+      "key": "factory-perfection",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/factory-events"
+      ],
+      "checks": [
+        "tests/factory.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "65b7c1280a52b286",
+      "name": "Вознесение Омниссии",
+      "key": "factory-ascension",
+      "status": "partial",
+      "entries": [
+        "module:factory-control",
+        "runtime:transformations/factory-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/factory.test.mjs"
+      ],
+      "note": " Нативное действие, часовой эффект защиты/полёта, собственные заклинания и отдельный счётчик 1к6 LR. Эффект заканчивается при 0 HP; смену плоскости подтверждает GM. Исходная точка тела сохраняется, но его анабиоз/вред те"
+    },
+    {
+      "pack": "features",
+      "id": "a4c294e007a0e80a",
+      "name": "Абстиненция",
+      "key": "factory-withdrawal",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/factory-events"
+      ],
+      "checks": [
+        "tests/factory.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "5aae7a8180d3b9e4",
+      "name": "Улучшенные чувства",
+      "key": "factory-upgrade-senses",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "f468a6707d7d3c7e",
+      "name": "Улучшенные рефлексы",
+      "key": "factory-upgrade-reflexes",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "1f99bff4a45b81e7",
+      "name": "Имплантированные клыки",
+      "key": "factory-upgrade-fangs",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "929478319912ed6d",
+      "name": "Неврологические импланты",
+      "key": "factory-upgrade-neural",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "11a019cb5b11894c",
+      "name": "Биомонитор",
+      "key": "factory-upgrade-biomonitor",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "02663d6e773a1aa4",
+      "name": "Отравленная кровь",
+      "key": "factory-upgrade-blood",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "3354276bbdd4ad7b",
+      "name": "Укреплённые лёгкие",
+      "key": "factory-upgrade-lungs",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "847b8a056f7206ee",
+      "name": "Сильная спина",
+      "key": "factory-upgrade-back",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "1b1d568dd99b2006",
+      "name": "Подкожная броня",
+      "key": "factory-upgrade-skin",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "a0f96b39c8d249ed",
+      "name": "Хорошо отдохнувший",
+      "key": "factory-upgrade-rested",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "359fd774cfd76778",
+      "name": "Кулаки гориллы",
+      "key": "factory-upgrade-gorilla",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "447647abb32fa54a",
+      "name": "Клинки богомола",
+      "key": "factory-upgrade-mantis",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "0c62b763137defe7",
+      "name": "Укреплённые руки",
+      "key": "factory-upgrade-reinforced-arms",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "72d1d06ef8ebaf7e",
+      "name": "Скелет-ключи",
+      "key": "factory-upgrade-keys",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "fa6eead2eec7375d",
+      "name": "Шипастые пальцы",
+      "key": "factory-upgrade-spikes",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "bd21134aed5cf0f2",
+      "name": "Амортизирующие подошвы",
+      "key": "factory-upgrade-soles",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "84a9d777dcacc029",
+      "name": "Укреплённые лодыжки",
+      "key": "factory-upgrade-ankles",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "227fd133a0c2c831",
+      "name": "Перепончатые лапы",
+      "key": "factory-upgrade-webbed",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "fd0253efe4cc2c4a",
+      "name": "Усиленные сухожилия",
+      "key": "factory-upgrade-tendons",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "565e15016c25ef4c",
+      "name": "Укреплённые ноги",
+      "key": "factory-upgrade-reinforced-legs",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "82e77c1bc4cb14e5",
+      "name": "Ярость берсерка",
+      "key": "factory-upgrade-berserk",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "59b45eec162655cc",
+      "name": "Брандмауэр",
+      "key": "factory-upgrade-firewall",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "dc1b5b3d686656dc",
+      "name": "Фокусирующий чип",
+      "key": "factory-upgrade-focus",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "93623b9d8729f124",
+      "name": "Обнаружение угроз",
+      "key": "factory-upgrade-threats",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "7cb159832ae767ab",
+      "name": "Адамантиновая кожа",
+      "key": "factory-upgrade-adamant-skin",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "004bad6aab4b54ef",
+      "name": "Прочный",
+      "key": "factory-upgrade-sturdy",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "74453495ef43344b",
+      "name": "Иммунизирующая система",
+      "key": "factory-upgrade-immunizer",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "6d96faca0ae027db",
+      "name": "Механические руки",
+      "key": "factory-upgrade-mechanical-arms",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "52f3a9b4e37bdb38",
+      "name": "Резистентная трансплантация",
+      "key": "factory-upgrade-transplant",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "37d58225aced289d",
+      "name": "Второе Сердце",
+      "key": "factory-upgrade-heart",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "f7787c1d69b3a5ef",
+      "name": "Авто-перезарядка",
+      "key": "factory-upgrade-reload",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "e90afb11f5ea0aca",
+      "name": "Выдвижные руки",
+      "key": "factory-upgrade-extend",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "6ddbe5adefd6ac15",
+      "name": "Запястная пусковая установка",
+      "key": "factory-upgrade-catapult",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "060a99c1fe5e78a9",
+      "name": "Гипер мобильность",
+      "key": "factory-upgrade-hypermobility",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "d9ffc4dfccbb4fb6",
+      "name": "Неподвижность",
+      "key": "factory-upgrade-immovable",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "f09a99caeb51f6f0",
+      "name": "Улучшенная ловкость",
+      "key": "factory-upgrade-agility",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "c02f9c5e17c1ba12",
+      "name": "Интеллект-привод",
+      "key": "factory-upgrade-drive",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "3a5a77bff8d69db0",
+      "name": "Повелитель разума",
+      "key": "factory-upgrade-mindlord",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "5bb7254f2faeef97",
+      "name": "Второй разум",
+      "key": "factory-upgrade-second-mind",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "62694ada441b5db0",
+      "name": "Плащ хамелеона",
+      "key": "factory-upgrade-chameleon",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "056cfe30ec5688c6",
+      "name": "Улучшенное Телосложение",
+      "key": "factory-upgrade-con",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "e36a394d4f8dc8cd",
+      "name": "Ослабление магии",
+      "key": "factory-upgrade-attenuation",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "1d45cc29c02d32c1",
+      "name": "Сандевестан",
+      "key": "factory-upgrade-sandevistan",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "18c22c8045dfa325",
+      "name": "Амортизаторы силы",
+      "key": "factory-upgrade-dampers",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "7cccc2c64adaca4b",
+      "name": "Улучшенная Сила",
+      "key": "factory-upgrade-str",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "67dc73ef04d2ced3",
+      "name": "Воздушные ударники",
+      "key": "factory-upgrade-air-strikes",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "5d5f25f9995f8699",
+      "name": "Заряженный",
+      "key": "factory-upgrade-charged",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "f81deac99deff7d5",
+      "name": "Воздушные шагатели",
+      "key": "factory-upgrade-air-walkers",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "88a5d8cc83abefb4",
+      "name": "Силовые топтуны",
+      "key": "factory-upgrade-stomp",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "5cb6f8fe4d4d3278",
+      "name": "Улучшенная Ловкость",
+      "key": "factory-upgrade-dex",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "2950b04827860845",
+      "name": "Инерционные зарядчики",
+      "key": "factory-upgrade-inertia",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справочная карточка. Установка через @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.a86cedd5b21dbd30]{Фабрику инноваций}: отдых, согласие, оплата и свободный слот. Сама справка не выдаёт эффект; игровые активно"
+    },
+    {
+      "pack": "features",
+      "id": "73250db36b40488b",
+      "name": "Гомункул: Глина",
+      "key": "factory-material-clay",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.04957ac3a2d512f8]{Оно живое}. Настоящий NPC создаётся из явного рецепта этого материала, не переносом этой справки на персонажа. Управляемые характеристи"
+    },
+    {
+      "pack": "features",
+      "id": "f6f2b3102d848b6d",
+      "name": "Гомункул: Дерево",
+      "key": "factory-material-wood",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.04957ac3a2d512f8]{Оно живое}. Настоящий NPC создаётся из явного рецепта этого материала, не переносом этой справки на персонажа. Управляемые характеристи"
+    },
+    {
+      "pack": "features",
+      "id": "f3ab6d67c25d359e",
+      "name": "Гомункул: Плоть",
+      "key": "factory-material-flesh",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.04957ac3a2d512f8]{Оно живое}. Настоящий NPC создаётся из явного рецепта этого материала, не переносом этой справки на персонажа. Управляемые характеристи"
+    },
+    {
+      "pack": "features",
+      "id": "fff9f4eee9b7e492",
+      "name": "Гомункул: Камень",
+      "key": "factory-material-stone",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.04957ac3a2d512f8]{Оно живое}. Настоящий NPC создаётся из явного рецепта этого материала, не переносом этой справки на персонажа. Управляемые характеристи"
+    },
+    {
+      "pack": "features",
+      "id": "2880dc198724357d",
+      "name": "Гомункул: Железо",
+      "key": "factory-material-iron",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.04957ac3a2d512f8]{Оно живое}. Настоящий NPC создаётся из явного рецепта этого материала, не переносом этой справки на персонажа. Управляемые характеристи"
+    },
+    {
+      "pack": "features",
+      "id": "dfcfd884ec3d766c",
+      "name": "Гомункул: Кристалл",
+      "key": "factory-material-crystal",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.04957ac3a2d512f8]{Оно живое}. Настоящий NPC создаётся из явного рецепта этого материала, не переносом этой справки на персонажа. Управляемые характеристи"
+    },
+    {
+      "pack": "features",
+      "id": "e6521285da412f9a",
+      "name": "Гомункул: Адамантин",
+      "key": "factory-material-adamantine",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.04957ac3a2d512f8]{Оно живое}. Настоящий NPC создаётся из явного рецепта этого материала, не переносом этой справки на персонажа. Управляемые характеристи"
+    },
+    {
+      "pack": "features",
+      "id": "c148a490b0ad3043",
+      "name": "Гомункул: Мифрил",
+      "key": "factory-material-mithral",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.04957ac3a2d512f8]{Оно живое}. Настоящий NPC создаётся из явного рецепта этого материала, не переносом этой справки на персонажа. Управляемые характеристи"
     },
     {
       "pack": "features",

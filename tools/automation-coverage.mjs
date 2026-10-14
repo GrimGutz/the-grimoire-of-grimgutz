@@ -6,6 +6,7 @@ import {automationAction} from "../scripts/automation/shared/helpers.mjs";
 import {AURA_DEFINITIONS} from "../scripts/automation/shared/aura-definitions.mjs";
 import {STRATAGEM_RULES} from "../scripts/automation/classes/leader-stratagems.mjs";
 import {DULLAHAN_FEATURES} from "../scripts/automation/shared/dullahan-definitions.mjs";
+import {FACTORY_FEATURES} from "../scripts/automation/shared/factory-definitions.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const labels = {automatic: "автоматизировано", partial: "частично", manual: "обоснованно вручную", review: "требует исправления"};
@@ -13,6 +14,7 @@ const known = {...Object.fromEntries(["form","souls"].map(id=>[`deathknight-${id
   "binding-ritual": ["classes/ritualist-spirits", "ritualist-spirits"], "fortified-soul": ["midi/spell-resistance", "spell-resistance"],
   ...Object.fromEntries(DULLAHAN_FEATURES.map(r=>[r.key,[`transformations/${r.operations.length?"dullahan-actions":"dullahan"}`,"dullahan"]])),
   "dullahan-unnerving":["transformations/dullahan-combat","dullahan"],
+  ...Object.fromEntries(FACTORY_FEATURES.filter(r=>r.id!=="appearance").map(r=>[r.key,[`transformations/${r.operations.length?"factory-actions":"factory-events"}`,"factory"]])),
   "master-path-blade": ["classes/master-blade", "master-blade"],
   "hunter-breakdown":["classes/bounty-hunter-combat","bounty-hunter"],"hunter-duel":["classes/bounty-hunter-combat","bounty-hunter"],
   "hunter-rekindle":["classes/bounty-hunter-events","bounty-hunter"],

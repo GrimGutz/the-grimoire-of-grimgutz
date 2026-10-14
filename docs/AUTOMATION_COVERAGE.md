@@ -4,9 +4,9 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 290
-- частично: 507
-- обоснованно вручную: 115
+- автоматизировано: 298
+- частично: 517
+- обоснованно вручную: 175
 - требует исправления: 362
 
 Полные основания и замечания: [AUTOMATION_COVERAGE.json](AUTOMATION_COVERAGE.json).
@@ -74,6 +74,7 @@
 | transformations / Трансформация: Химера | частично | module:chimera-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Рыцарь Смерти | частично | module:deathknight-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Дуллахан | частично | module:dullahan-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
+| transformations / Трансформация: Фабрика | частично | module:factory-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
 | features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
 | features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
@@ -777,6 +778,83 @@
 | features / Нервирующее пламя | частично | module:dullahan-control, runtime:transformations/dullahan-combat | tests/registrations.test.mjs, tests/dullahan.test.mjs |
 | features / Туманы Отчуждения | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
 | features / Безголовый Пешка | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Изготовленная форма | частично | module:factory-control, runtime:transformations/factory-actions | tests/registrations.test.mjs, tests/factory.test.mjs |
+| features / Фабрика инноваций | частично | module:factory-control, runtime:transformations/factory-actions | tests/registrations.test.mjs, tests/factory.test.mjs |
+| features / Зависимость | автоматизировано | runtime:transformations/factory-events | tests/factory.test.mjs |
+| features / Адаптированная стойкость | частично | module:factory-control, runtime:transformations/factory-actions | tests/registrations.test.mjs, tests/factory.test.mjs |
+| features / Оно живое | частично | module:factory-control, runtime:transformations/factory-actions | tests/registrations.test.mjs, tests/factory.test.mjs |
+| features / Бронебойный | частично | module:factory-control, runtime:transformations/factory-actions | tests/registrations.test.mjs, tests/factory.test.mjs |
+| features / Электрическая дуга | частично | module:factory-control, runtime:transformations/factory-actions | tests/registrations.test.mjs, tests/factory.test.mjs |
+| features / Отвратительная внешность | обоснованно вручную | — | нужна отдельная проверка |
+| features / Скульптор плоти | автоматизировано | runtime:transformations/factory-events | tests/factory.test.mjs |
+| features / Изменение с модификацией | автоматизировано | runtime:transformations/factory-events | tests/factory.test.mjs |
+| features / Живой материал | автоматизировано | runtime:transformations/factory-events | tests/factory.test.mjs |
+| features / Заземление | частично | module:factory-control, runtime:transformations/factory-actions | tests/registrations.test.mjs, tests/factory.test.mjs |
+| features / Несовершенства | автоматизировано | runtime:transformations/factory-events | tests/factory.test.mjs |
+| features / Deus Ex Machanicus | автоматизировано | runtime:transformations/factory-events | tests/factory.test.mjs |
+| features / Машина бессмертна! | частично | module:factory-control, runtime:transformations/factory-actions | tests/registrations.test.mjs, tests/factory.test.mjs |
+| features / Воплощение совершенства | автоматизировано | runtime:transformations/factory-events | tests/factory.test.mjs |
+| features / Вознесение Омниссии | частично | module:factory-control, runtime:transformations/factory-actions | tests/registrations.test.mjs, tests/factory.test.mjs |
+| features / Абстиненция | автоматизировано | runtime:transformations/factory-events | tests/factory.test.mjs |
+| features / Улучшенные чувства | обоснованно вручную | — | нужна отдельная проверка |
+| features / Улучшенные рефлексы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Имплантированные клыки | обоснованно вручную | — | нужна отдельная проверка |
+| features / Неврологические импланты | обоснованно вручную | — | нужна отдельная проверка |
+| features / Биомонитор | обоснованно вручную | — | нужна отдельная проверка |
+| features / Отравленная кровь | обоснованно вручную | — | нужна отдельная проверка |
+| features / Укреплённые лёгкие | обоснованно вручную | — | нужна отдельная проверка |
+| features / Сильная спина | обоснованно вручную | — | нужна отдельная проверка |
+| features / Подкожная броня | обоснованно вручную | — | нужна отдельная проверка |
+| features / Хорошо отдохнувший | обоснованно вручную | — | нужна отдельная проверка |
+| features / Кулаки гориллы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Клинки богомола | обоснованно вручную | — | нужна отдельная проверка |
+| features / Укреплённые руки | обоснованно вручную | — | нужна отдельная проверка |
+| features / Скелет-ключи | обоснованно вручную | — | нужна отдельная проверка |
+| features / Шипастые пальцы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Амортизирующие подошвы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Укреплённые лодыжки | обоснованно вручную | — | нужна отдельная проверка |
+| features / Перепончатые лапы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Усиленные сухожилия | обоснованно вручную | — | нужна отдельная проверка |
+| features / Укреплённые ноги | обоснованно вручную | — | нужна отдельная проверка |
+| features / Ярость берсерка | обоснованно вручную | — | нужна отдельная проверка |
+| features / Брандмауэр | обоснованно вручную | — | нужна отдельная проверка |
+| features / Фокусирующий чип | обоснованно вручную | — | нужна отдельная проверка |
+| features / Обнаружение угроз | обоснованно вручную | — | нужна отдельная проверка |
+| features / Адамантиновая кожа | обоснованно вручную | — | нужна отдельная проверка |
+| features / Прочный | обоснованно вручную | — | нужна отдельная проверка |
+| features / Иммунизирующая система | обоснованно вручную | — | нужна отдельная проверка |
+| features / Механические руки | обоснованно вручную | — | нужна отдельная проверка |
+| features / Резистентная трансплантация | обоснованно вручную | — | нужна отдельная проверка |
+| features / Второе Сердце | обоснованно вручную | — | нужна отдельная проверка |
+| features / Авто-перезарядка | обоснованно вручную | — | нужна отдельная проверка |
+| features / Выдвижные руки | обоснованно вручную | — | нужна отдельная проверка |
+| features / Запястная пусковая установка | обоснованно вручную | — | нужна отдельная проверка |
+| features / Гипер мобильность | обоснованно вручную | — | нужна отдельная проверка |
+| features / Неподвижность | обоснованно вручную | — | нужна отдельная проверка |
+| features / Улучшенная ловкость | обоснованно вручную | — | нужна отдельная проверка |
+| features / Интеллект-привод | обоснованно вручную | — | нужна отдельная проверка |
+| features / Повелитель разума | обоснованно вручную | — | нужна отдельная проверка |
+| features / Второй разум | обоснованно вручную | — | нужна отдельная проверка |
+| features / Плащ хамелеона | обоснованно вручную | — | нужна отдельная проверка |
+| features / Улучшенное Телосложение | обоснованно вручную | — | нужна отдельная проверка |
+| features / Ослабление магии | обоснованно вручную | — | нужна отдельная проверка |
+| features / Сандевестан | обоснованно вручную | — | нужна отдельная проверка |
+| features / Амортизаторы силы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Улучшенная Сила | обоснованно вручную | — | нужна отдельная проверка |
+| features / Воздушные ударники | обоснованно вручную | — | нужна отдельная проверка |
+| features / Заряженный | обоснованно вручную | — | нужна отдельная проверка |
+| features / Воздушные шагатели | обоснованно вручную | — | нужна отдельная проверка |
+| features / Силовые топтуны | обоснованно вручную | — | нужна отдельная проверка |
+| features / Улучшенная Ловкость | обоснованно вручную | — | нужна отдельная проверка |
+| features / Инерционные зарядчики | обоснованно вручную | — | нужна отдельная проверка |
+| features / Гомункул: Глина | обоснованно вручную | — | нужна отдельная проверка |
+| features / Гомункул: Дерево | обоснованно вручную | — | нужна отдельная проверка |
+| features / Гомункул: Плоть | обоснованно вручную | — | нужна отдельная проверка |
+| features / Гомункул: Камень | обоснованно вручную | — | нужна отдельная проверка |
+| features / Гомункул: Железо | обоснованно вручную | — | нужна отдельная проверка |
+| features / Гомункул: Кристалл | обоснованно вручную | — | нужна отдельная проверка |
+| features / Гомункул: Адамантин | обоснованно вручную | — | нужна отдельная проверка |
+| features / Гомункул: Мифрил | обоснованно вручную | — | нужна отдельная проверка |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

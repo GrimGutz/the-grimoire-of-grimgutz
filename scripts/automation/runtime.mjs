@@ -64,6 +64,12 @@ import {validateDullahanItem,validateDullahanAdvancement} from "./transformation
 import {controlDullahan} from "./transformations/dullahan-actions.mjs";
 import {installDullahanHooks} from "./transformations/dullahan-events.mjs";
 import {applyDullahanPacket} from "./transformations/dullahan-combat.mjs";
+import {controlFactory} from "./transformations/factory-actions.mjs";
+import {controlFactoryHomunculus} from "./transformations/factory-homunculi.mjs";
+import {installFactoryHooks} from "./transformations/factory-events.mjs";
+import {validateFactoryItem,validateFactoryAdvancement} from "./transformations/factory.mjs";
+import {applyFactoryDamage} from "./transformations/factory-damage.mjs";
+import {applyFactoryDefense} from "./transformations/factory-defense.mjs";
 import {prepareAutomatonDamage,finishAutomatonCoils} from "./transformations/automaton-combat.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
@@ -728,6 +734,8 @@ export function getAutomationActionHandlers() {
   registry.set("chimera-control",controlChimera);
   registry.set("deathknight-control",controlDeathknight);
   registry.set("dullahan-control",controlDullahan);
+  registry.set("factory-control",controlFactory);
+  registry.set("factory-homunculus",controlFactoryHomunculus);
   registry.set("deathknight-minion",controlDeathknightMinion);
   registry.set("nightmare-summon-control",controlNightmareSummon);
   for (const [actions, handler] of [
@@ -1107,6 +1115,9 @@ function installHooks() {
   Hooks.on("preCreateItem",validateDeathknightItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateDeathknightAdvancement);
   installDullahanHooks();
+  installFactoryHooks();
+  Hooks.on("preCreateItem",validateFactoryItem);
+  Hooks.on("dnd5e.preAdvancementManagerComplete",validateFactoryAdvancement);
   Hooks.on("preCreateItem",validateDullahanItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateDullahanAdvancement);
   Hooks.on("preCreateItem",validateAutomatonItem);
@@ -1293,7 +1304,7 @@ function installHooks() {
 export function getMidiHookHandlers() {
   return { prepareComfortHealing, finishComfortHealing, handleHollowWeaponHit, prepareHollowCast, handleGuardianWeaponHit, prepareArmorSave, finishDefenseReactions, handleInsectBiteHit, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
     prepareLeaderHealing, handleLeaderCritical, handleDistractingPresence, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
-    prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations,
+    prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations, applyFactoryDamage, applyFactoryDefense,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
     applySpellSourceResistance, applyBroodmotherToxicDamage, applyChimeraDamagePacket, applyDeathknightPacket, applyDullahanPacket, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
