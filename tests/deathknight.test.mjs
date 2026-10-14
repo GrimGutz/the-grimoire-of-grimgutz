@@ -14,6 +14,7 @@ import {DEATHKNIGHT_AURAS,dkCylinderContains} from "../scripts/automation/transf
 import {deathknightSkeletonRecipe,deathknightSpecialistItems} from "../scripts/automation/transformations/deathknight-summons.mjs";
 import {controlDeathknightMinion} from "../scripts/automation/transformations/deathknight-minions.mjs";
 import {requestGm} from "../scripts/automation/shared/gm-requests.mjs";
+import {cleanupZoneTemplates} from "../scripts/automation/shared/zones.mjs";
 import {emitConfirmedDamage} from "../scripts/automation/shared/damage-events.mjs";
 import {auraIndicatorData} from "../scripts/automation/shared/aura-templates.mjs";
 import {linkDocumentDescriptions} from "../tools/link-descriptions.mjs";
@@ -149,8 +150,24 @@ test("foreign healing becomes temp HP; own abilities still heal normally",async(
 test("zero-HP healing leaves one HP and unconsciousness after confirmed HP update",async()=>{
  await syncDeathknight(actor);await actor.update({"system.attributes.hp.value":0});const cast=attack(target.actor,{spell:true}),p={damageDetail:[{type:"healing",value:-12}]};applyDeathknightHealing({actor},{workflow:{actor:target.actor,item:cast.item},damageItem:p});assert.equal(p.newHP,1);assert.equal(p.newTempHP,0);const changes={"system.attributes.hp.value":1},options={};captureDeathknightHealing(actor,changes,options);await actor.update(changes);await observeDeathknightHealing(actor,changes,options);assert.ok(actor.effects.some(e=>e.getFlag(MODULE_ID,"deathknightRecovery")&&e.statuses.has("unconscious")));
 });
-test("cancelled smog placement spends no resource, permanent smog has explicit cleanup",async()=>{
- cancelPlacement=true;assert.equal((await use("smog","smog")).status,"cancelled");assert.equal(item("smog").system.uses.spent,0);cancelPlacement=false;answers.push("yes");assert.equal((await use("smog","smog")).status,"success");assert.equal(item("smog").system.uses.spent,1);assert.equal(canvas.scene.regions.length,1);assert.equal(canvas.scene.regions[0].getFlag(MODULE_ID,"zoneExpiresAt"),null);await use("smog","end-smog");assert.equal(canvas.scene.regions.length,0);
+test("cancelled smog placement spends no resource, minute-long smog can end early",async()=>{
+ cancelPlacement=true;assert.equal((await use("smog","smog")).status,"cancelled");assert.equal(item("smog").system.uses.spent,0);cancelPlacement=false;answers.push("yes");assert.equal((await use("smog","smog")).status,"success");assert.equal(item("smog").system.uses.spent,1);assert.equal(canvas.scene.regions.length,1);assert.equal(canvas.scene.regions[0].getFlag(MODULE_ID,"zoneExpiresAt"),60);await use("smog","end-smog");assert.equal(canvas.scene.regions.length,0);
+});
+
+test("smog minute starts after native confirmation, not during template placement",async()=>{
+ game.time.worldTime=125;MidiQOL.completeActivityUse=async(...args)=>{const result=await native(...args);game.time.worldTime=145;return result;};
+ answers.push("yes");assert.equal((await use("smog","smog")).status,"success");assert.equal(canvas.scene.regions[0].getFlag(MODULE_ID,"zoneExpiresAt"),205);
+});
+
+test("common zone cleanup expires smog at sixty seconds without deleting other regions",async()=>{
+ answers.push("yes");await use("smog","smog");const smog=canvas.scene.regions[0],manual=region(),later=region({flags:{[MODULE_ID]:{zoneTemplate:true,sourceActor:actor.uuid,zoneExpiresAt:120}}});
+ game.time.worldTime=59;await cleanupZoneTemplates();assert.ok(!smog.deleted);
+ game.time.worldTime=60;await cleanupZoneTemplates();assert.ok(smog.deleted);assert.deepEqual(canvas.scene.regions.map(z=>z.uuid),[manual.uuid,later.uuid]);
+});
+
+test("expired smog cannot request another start-of-turn save before zone cleanup",async()=>{
+ answers.push("yes");await use("smog","smog");canvas.scene.regions[0].polygonTree={testPoint:()=>true};game.time.worldTime=60;const count=calls.length,combat=encounter(1);combat.previous={round:1,turn:0};
+ await handleDeathknightTurn(combat,{turn:1});assert.equal(calls.length,count);assert.equal(dkLevelEffects(target.actor).length,0);
 });
 test("hellfire ball is 20-ft sphere, 120-ft placement, DEX and two damage types",async()=>{
  answers.push("yes");const result=await use("fireball","fireball");assert.equal(result.status,"success",JSON.stringify(result));assert.equal(item("fireball").system.uses.spent,1);const a=calls[0].activity;assert.equal(a.save.ability[0],"dex");assert.deepEqual(a.damage.parts.map(p=>[p.number,p.denomination,p.types[0]]),[[10,6,"fire"],[10,6,"necrotic"]]);assert.equal(a.damage.onSave,"half");assert.ok(dkState(actor).lastFireball.targets.includes(target.uuid));assert.equal(canvas.scene.regions.length,0);
@@ -221,6 +238,33 @@ test("new tier-IV separation never charges hourly exhaustion retroactively",asyn
 test("known Divine Smite retypes only its own packet and recalculates necrotic defense",async()=>{
  const spell=attack(actor,{spell:true});await spell.item.update({"system.identifier":"divine-smite"});const p={damageDetail:[{type:"radiant",value:8,active:{}}],rawDamageDetail:[{type:"radiant",value:8}]};target.actor.calculateDamage=rows=>rows.map(r=>({...r,value:r.type==="necrotic"?Math.floor(r.value/2):r.value,active:{resistance:r.type==="necrotic"}}));applyDeathknightPacket({actor:target.actor},{workflow:{actor,item:spell.item,activity:spell},damageItem:p});assert.equal(p.damageDetail[0].type,"necrotic");assert.equal(p.damageDetail[0].value,4);
  const mundane=attack(actor),other={damageDetail:[{type:"slashing",value:8}],rawDamageDetail:[{type:"slashing",value:8}]};applyDeathknightPacket({actor:target.actor},{workflow:{actor,item:mundane.item,activity:mundane},damageItem:other});assert.equal(other.damageDetail[0].type,"slashing");
+});
+
+test("Soul Bond offers one owner choice per spell, without a GM interpretation prompt",async()=>{
+ await syncDeathknight(actor);const activity=attack(actor,{spell:true}),original=activity.item.toObject(),workflow={id:"soul-choice",actor,item:activity.item,activity};
+ answers.push("yes");await prepareDeathknightSpell(workflow);assert.equal(workflow.grimgutzDeathknightNecrotic,true);assert.equal(prompts.length,1);assert.equal(calls.length,0);assert.deepEqual(activity.item.toObject(),original);
+ await prepareDeathknightSpell(workflow);const replay={id:workflow.id,actor,item:activity.item,activity};await prepareDeathknightSpell(replay);assert.equal(replay.grimgutzDeathknightNecrotic,true);assert.equal(prompts.length,1);
+});
+
+test("Soul Bond retypes every damage component, recalculates defenses once and preserves healing",async()=>{
+ await syncDeathknight(actor);const activity=attack(actor,{spell:true}),workflow={id:"soul-packet",actor,item:activity.item,activity};answers.push("yes");await prepareDeathknightSpell(workflow);
+ const raw=[{type:"fire",value:8},{type:"cold",value:6},{type:"healing",value:-4},{type:"temphp",value:3},{type:"maximum",value:2},{type:"midi-none",value:1}],packet={rawDamageDetail:structuredClone(raw),damageDetail:structuredClone(raw)};let calculations=0;
+ target.actor.calculateDamage=rows=>{calculations++;return rows.map(p=>p.type==="necrotic"?{...p,value:p.value/2,active:{resistance:true}}:p);};
+ applyDeathknightPacket({actor:target.actor},{workflow,damageItem:packet});assert.deepEqual(packet.damageDetail.map(p=>[p.type,p.value]),[["necrotic",4],["necrotic",3],["healing",-4],["temphp",3],["maximum",2],["midi-none",1]]);assert.deepEqual(packet.rawDamageDetail,raw);
+ applyDeathknightPacket({actor:target.actor},{workflow,damageItem:packet});assert.equal(calculations,1);
+});
+
+test("declining Soul Bond is remembered for that spell and does not affect later spells",async()=>{
+ await syncDeathknight(actor);const activity=attack(actor,{spell:true}),workflow={id:"soul-declined",actor,item:activity.item,activity};answers.push("no");await prepareDeathknightSpell(workflow);assert.equal(workflow.grimgutzDeathknightNecrotic,false);
+ await prepareDeathknightSpell({...workflow,grimgutzDeathknightSpellPrepared:false});assert.equal(prompts.length,1);
+ const packet={rawDamageDetail:[{type:"fire",value:8}],damageDetail:[{type:"fire",value:8}]};applyDeathknightPacket({actor:target.actor},{workflow,damageItem:packet});assert.equal(packet.damageDetail[0].type,"fire");
+ answers.push("yes");const next={id:"soul-next",actor,item:activity.item,activity};await prepareDeathknightSpell(next);assert.equal(next.grimgutzDeathknightNecrotic,true);assert.equal(prompts.length,2);assert.equal(calls.length,0);
+});
+
+test("Soul Bond does not prompt for healing, mundane attacks or suppressed boons",async()=>{
+ await syncDeathknight(actor);const healing=attack(actor,{spell:true});await healing.item.update({"system.damage.base.types":["healing"]});const activity=[...healing.item.system.activities.values()][0];
+ await prepareDeathknightSpell({id:"healing-only",actor,item:activity.item,activity});const mundane=attack(actor);await prepareDeathknightSpell({id:"mundane",actor,item:mundane.item,activity:mundane});
+ actor.effects.find(e=>e.getFlag(MODULE_ID,"deathknightPassive")==="souls").isSuppressed=true;const spell=attack(actor,{spell:true});await prepareDeathknightSpell({id:"suppressed",actor,item:spell.item,activity:spell});assert.equal(prompts.length,0);
 });
 
 test("separate damage packets of one hit do not give extra death levels",async()=>{

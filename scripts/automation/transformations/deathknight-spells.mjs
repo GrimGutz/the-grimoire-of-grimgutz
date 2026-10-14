@@ -1,7 +1,6 @@
 import {MODULE_ID} from "../shared/constants.mjs";
 import {enabled} from "../shared/helpers.mjs";
 import {dkHas,dkPassiveActive} from "./deathknight.mjs";
-import {dkGm} from "./deathknight-use.mjs";
 import {confirmOwner} from "../shared/owner-prompts.mjs";
 import {applyNativeOnce,nativeApplicationReply} from "../shared/native-applications.mjs";
 import {registerGmRequest,requestGm,isGmAuthority} from "../shared/gm-requests.mjs";
@@ -12,7 +11,6 @@ registerGmRequest("deathknight-spell-type",async(actor,data,{requestId})=>{
   const activity=await fromUuid(data.activityUuid);if(!enabled()||!isGmAuthority()||activity?.actor?.uuid!==actor.uuid||activity.item?.type!=="spell"||!dkHas(actor,"souls")||!dkPassiveActive(actor,"souls")||!data.workflowId)return false;
   const old=nativeApplicationReply(actor,requestId);if(old)return old;
   return applyNativeOnce(actor,{requestId,action:"deathknight-spell-type",activityUuid:activity.uuid},async()=>{
-    if(!await confirmOwner(dkGm(actor),"Связь душ: спорный текст","В этом применении GM разрешает замену нормального типа урона заклинания на некротический? В PDF фраза неоднозначна; исходная карточка не меняется."))return false;
     return confirmOwner(actor,"Связь душ","Заменить урон этого конкретного заклинания некротическим? Это добровольно и не меняет последующие заклинания.");
   },async()=>true);
 });

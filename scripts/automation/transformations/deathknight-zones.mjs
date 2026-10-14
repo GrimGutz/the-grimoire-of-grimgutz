@@ -20,7 +20,7 @@ export async function useDeathknightSmog(actor,activity,source,requestId){const 
   try{const placed=await previews[0].drawPreview();zone=(Array.isArray(placed)?placed.flat(Infinity):[placed]).find(Boolean);if(!zone)return false;zone=source.parent.regions?.get?.(zone.id)??zone;
     if(!await confirmOwner(dkGm(actor),"Смертельный смог: размещение","Квадрат действительно 15×15 футов и соприкасается с источником? Обход углов и сильное заслонение проверяет GM, без автоматического ослепления."))return false;
     return await applyNativeOnce(actor,{requestId,action:"deathknight-smog",activityUuid:activity.uuid},()=>useNativeUtility(activity,{dataPatch:dkExpense(activity,{cost:1})}),async()=>{
-      await zone.update({name:"Смертельный смог",[`flags.${MODULE_ID}.zoneTemplate`]:true,[`flags.${MODULE_ID}.sourceActor`]:actor.uuid,[`flags.${MODULE_ID}.zoneExpiresAt`]:null,[`flags.${MODULE_ID}.deathknightSmog`]:{sourceActorUuid:actor.uuid,sourceTokenUuid:source.uuid,sourceItemUuid:activity.item.uuid,dc:dkDC(actor),requestId}});kept=true;return true;
+      await zone.update({name:"Смертельный смог",[`flags.${MODULE_ID}.zoneTemplate`]:true,[`flags.${MODULE_ID}.sourceActor`]:actor.uuid,[`flags.${MODULE_ID}.zoneExpiresAt`]:Number(game.time.worldTime)+60,[`flags.${MODULE_ID}.deathknightSmog`]:{sourceActorUuid:actor.uuid,sourceTokenUuid:source.uuid,sourceItemUuid:activity.item.uuid,dc:dkDC(actor),requestId}});kept=true;return true;
     });
   }finally{if(zone&&!kept)await zone.delete();}
 }
