@@ -217,7 +217,7 @@ test("pyrophobia waits for actual fire damage, ends at sourceEnd without invente
  assert.equal(broodmotherState(actor).appearance,"true");const e=actor.effects.find(e=>e.getFlag(MODULE_ID,"combatBenefit"));assert.equal(e.getFlag(MODULE_ID,"combatBenefit").expiry,"sourceEnd");assert.equal(e.duration.value,null);
 });
 test("contempt asks GM about witnessed death and does not reset counter or spend action",async()=>{
- answers.push("yes",[target.uuid]);assert.equal((await use("contempt")).status,"success");assert.equal(broodmotherState(actor).witnessedDeaths,1);const e=actor.effects.find(e=>e.getFlag(MODULE_ID,"broodmotherCondition")?.kind==="rage");assert.equal(e.getFlag(MODULE_ID,"repeatSave").dc,19);assert.equal(calls[0].activity.activation.type,"special");
+ answers.push("yes",[target.uuid]);assert.equal((await use("contempt")).status,"success");assert.equal(broodmotherState(actor).witnessedDeaths,1);const e=actor.effects.find(e=>e.getFlag(MODULE_ID,"broodmotherCondition")?.kind==="rage");assert.equal(e.getFlag(MODULE_ID,"repeatSave").dc,19);assert.equal(e.getFlag(MODULE_ID,"repeatSave").event,"turnEnd");assert.equal(calls[0].activity.activation.type,"special");
 });
 test("mimic is explicitly linked to a GM prepared body, never silently copies player inventory",async()=>{
  answers.push("yes",[target.uuid]);await use("mimic","mimic");assert.equal(broodmotherState(actor).mimicControl,true);assert.equal(broodmotherState(actor).mimicActorUuid,target.actor.uuid);assert.equal(game.actors.length,3);
