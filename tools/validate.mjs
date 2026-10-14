@@ -90,8 +90,8 @@ try {
 
 if (documentCounts.classes !== 36) errors.push(`Expected 36 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 648) errors.push(`Expected 648 features, got ${documentCounts.features ?? 0}`);
-if (documentCounts.transformations !== 4) errors.push(`Expected 4 transformations, got ${documentCounts.transformations ?? 0}`);
+if (documentCounts.features !== 666) errors.push(`Expected 666 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.transformations !== 5) errors.push(`Expected 5 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 21) errors.push(`Expected 21 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
 if (documentCounts.bestiary !== 30) errors.push(`Expected 30 bestiary actors, got ${documentCounts.bestiary ?? 0}`);
@@ -1025,11 +1025,11 @@ const allItemsByIdentifier = new Map(
   allItemDocuments.map(document => [document.system.identifier, document])
 );
 const transformationIdentifiers = new Set(transformationDocuments.map(document => document.system.identifier));
-for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation"]) {
+for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation"]) {
   if (!transformationIdentifiers.has(identifier)) errors.push(`Main transformation card is missing from transformations pack: ${identifier}`);
 }
 for (const document of transformationDocuments) {
-  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation"].includes(document.system.identifier)) {
+  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation"].includes(document.system.identifier)) {
     errors.push(`Transformations pack must contain only main transformation cards, got: ${document.system.identifier}`);
   }
 }
@@ -3380,6 +3380,14 @@ const automatonGrants=automatonRoots[0]?.system.advancement.filter(a=>a.type==="
 if(JSON.stringify(automatonGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(automatonGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(automatonChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Automaton must use shared transformation progression and cumulative single-boon choices");
 for(const d of automatonFeatures){if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Automaton feature must describe its bounded runtime automation: ${d.name}`);
   if(d.system.identifier==="automaton-steel"&&d.system.uses.recovery?.[0]?.period!=="lr")errors.push("Automaton steel reaction needs the agreed LR recovery");}
+
+const broodmotherRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="broodmother").map(e=>e.document);
+const broodmotherFeatures=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.broodmotherFeature).map(e=>e.document);
+if(broodmotherRoots.length!==1||broodmotherFeatures.length!==18||broodmotherFeatures.filter(d=>d.flags[manifest.id].broodmotherFlaw).length!==4)errors.push("Broodmother needs one root, fourteen boons and four flaws");
+if(broodmotherRoots[0]?.folder)errors.push("Broodmother main card must remain directly in transformations");
+const broodmotherGrants=broodmotherRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],broodmotherChoices=broodmotherRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
+if(JSON.stringify(broodmotherGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(broodmotherGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(broodmotherChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Broodmother must use shared transformation progression and cumulative single-boon choices");
+for(const d of broodmotherFeatures){if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Broodmother feature must describe bounded runtime automation: ${d.name}`);}
 
 if (errors.length) {
   console.error("Validation failed:");

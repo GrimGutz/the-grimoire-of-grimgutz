@@ -47,6 +47,10 @@ import {installArkaneHooks} from "./transformations/arkane-events.mjs";
 import {validateAutomatonItem,validateAutomatonAdvancement} from "./transformations/automaton.mjs";
 import {controlAutomaton} from "./transformations/automaton-actions.mjs";
 import {installAutomatonHooks} from "./transformations/automaton-events.mjs";
+import {validateBroodmotherItem,validateBroodmotherAdvancement} from "./transformations/broodmother.mjs";
+import {controlBroodmother} from "./transformations/broodmother-actions.mjs";
+import {installBroodmotherHooks} from "./transformations/broodmother-events.mjs";
+import {applyBroodmotherToxicDamage} from "./transformations/broodmother-combat.mjs";
 import {prepareAutomatonDamage,finishAutomatonCoils} from "./transformations/automaton-combat.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
@@ -707,6 +711,7 @@ export function getAutomationActionHandlers() {
   registry.set("empath-control",controlEmpath);
   registry.set("arkane-control",controlArkane);
   registry.set("automaton-control",controlAutomaton);
+  registry.set("broodmother-control",controlBroodmother);
   registry.set("nightmare-summon-control",controlNightmareSummon);
   for (const [actions, handler] of [
     [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
@@ -1075,6 +1080,9 @@ function installHooks() {
   installEmpathHooks();
   installArkaneHooks();
   installAutomatonHooks();
+  installBroodmotherHooks();
+  Hooks.on("preCreateItem",validateBroodmotherItem);
+  Hooks.on("dnd5e.preAdvancementManagerComplete",validateBroodmotherAdvancement);
   Hooks.on("preCreateItem",validateAutomatonItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateAutomatonAdvancement);
   Hooks.on("preCreateItem",validateArkaneItem);
@@ -1262,7 +1270,7 @@ export function getMidiHookHandlers() {
     prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
-    applySpellSourceResistance, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
+    applySpellSourceResistance, applyBroodmotherToxicDamage, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
     applyMidiWeaponBuffAttackAutomation, prepareMidiSteelWill, finishMidiSteelWill };
 }
 

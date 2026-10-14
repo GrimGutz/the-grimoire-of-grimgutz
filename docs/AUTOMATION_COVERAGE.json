@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 279,
-    "partial": 443,
-    "manual": 95,
+    "automatic": 283,
+    "partial": 457,
+    "manual": 96,
     "review": 362
   },
   "records": [
@@ -809,6 +809,22 @@
         "tests/progression.test.mjs"
       ],
       "note": " перетащите основную карточку на персонажа, затем выберите модель в выданной особенности. Прокачка открывается штатным Advancement на уровнях 1/6/11/16. Пассивы, подтверждённые реакции и Midi-урон автоматизированы; антим"
+    },
+    {
+      "pack": "transformations",
+      "id": "935b0996d068f2d5",
+      "name": "Трансформация: Королева Улья",
+      "key": "broodmother-transformation",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control",
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/progression.test.mjs"
+      ],
+      "note": " перетащите только основную карточку. Advancement выдаёт особенности, пауки создаются через кнопку Выводка с реальным расходом костей хитов. Автоматизация условная и подтверждаемая; сюжетные ограничения, видимость, мимик"
     },
     {
       "pack": "features",
@@ -8793,6 +8809,256 @@
       "status": "partial",
       "entries": [
         "module:automaton-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "32766c17ba4eb80b",
+      "name": "Выводок потомства",
+      "key": "broodmother-brood",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка тратит две настоящие кости хитов через D&D5e и создаёт Маленького паука со снимком Сл и улучшений. Место рядом подтверждает GM. Полчища без статблока — описание, не бесконечные боевые существа. Подтверждённый про"
+    },
+    {
+      "pack": "features",
+      "id": "d836f7b36fcba563",
+      "name": "Форма паука",
+      "key": "broodmother-form",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/broodmother"
+      ],
+      "checks": [
+        "tests/broodmother.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "b3dbc5fcf8919acd",
+      "name": "Боязнь огня",
+      "key": "broodmother-fear",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Сюжетное ограничение движения к большому огню — вручную с GM; нет ложной постоянной помехи и блокировки любого перемещения."
+    },
+    {
+      "pack": "features",
+      "id": "ae1bf1e3116a263d",
+      "name": "Арахномантия",
+      "key": "broodmother-arachnomancy",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Перед конкретным заклинанием предлагается пожертвовать одним живым собственным пауком: выбранная цель получает помеху на спасбросок либо атакующий преимущество против неё. Один выбор на workflow; отмена не убивает паука"
+    },
+    {
+      "pack": "features",
+      "id": "717c4fb6b1990f2f",
+      "name": "Паучья мимикрия",
+      "key": "broodmother-spider",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control",
+        "runtime:transformations/broodmother"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/broodmother.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "b31f03b1ff81dfb1",
+      "name": "Выброс паутины",
+      "key": "broodmother-web",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Размещаемая линия 60 × 4 фута, высота 20 футов. Попавшие при создании совершают спасбросок Силы; по уточнению владельца модуля накладывается «Опутан», а не буквальное «Схвачен». Действие освобождения снимает только выбр"
+    },
+    {
+      "pack": "features",
+      "id": "d2c27446aad29744",
+      "name": "Ядовитое перо",
+      "key": "broodmother-quill",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Нативная дальнобойная атака Ловкостью, отдельные колющий/ядовитый пакеты; после попадания — Телосложение, минутное отравление и повторные спасброски в конце хода. Это замена одной атаки, не дополнительная бесплатная ата"
+    },
+    {
+      "pack": "features",
+      "id": "5e0838e6d843e191",
+      "name": "Отвратительная внешность",
+      "key": "broodmother-appearance",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "f63341a771e54be0",
+      "name": "Больший выводок",
+      "key": "broodmother-greater",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/broodmother-summons"
+      ],
+      "checks": [
+        "tests/broodmother.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "458aaf6ab2be418e",
+      "name": "Ядовитая кровь",
+      "key": "broodmother-blood",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/broodmother-events"
+      ],
+      "checks": [
+        "tests/broodmother.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "33e2897e8de9ec30",
+      "name": "Прядильщик нитей",
+      "key": "broodmother-spinner",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Требует Выброса паутины. Бонусное действие, цель/точка в 90 футах и спасбросок Ловкости для существа; по уточнению владельца модуля накладывается «Опутан». Подтягивание/подъём на 15 футов подтверждаются кнопкой с расход"
+    },
+    {
+      "pack": "features",
+      "id": "fe59a9df90786301",
+      "name": "Кислотная желчь",
+      "key": "broodmother-bile",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "e0a2fbb2c5ed6fe2",
+      "name": "Пирофобия",
+      "key": "broodmother-pyrophobia",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/broodmother-events"
+      ],
+      "checks": [
+        "tests/broodmother.test.mjs"
+      ],
+      "note": " Подтверждённый огненный урон раскрывает форму и даёт помеху атакам/спасброскам до конца следующего собственного хода. Вне боя окончание подтверждает GM, минутный срок не добавляется."
+    },
+    {
+      "pack": "features",
+      "id": "911d25b16a17c846",
+      "name": "Благословение матриарха",
+      "key": "broodmother-matriarch",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/broodmother-summons"
+      ],
+      "checks": [
+        "tests/broodmother.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "b912060bce843520",
+      "name": "Потомство ужаса",
+      "key": "broodmother-horror",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Предлагается после подтверждённого перехода к 0 хитов, если прошло восстановление. БМ роёв создаются гарантированно; к4 определяет число игровых дней до следующего применения, не шанс призыва. Срок сохраняется и не сбра"
+    },
+    {
+      "pack": "features",
+      "id": "f066b2258f0d08ef",
+      "name": "Мимикрия",
+      "key": "broodmother-mimic",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка даёт GM подготовленный снимок для отдельного мимика (хиты 10 × Телосложение, уязвимость к огню) и переключение состояния контроля. Копирование остальных способностей и общие/отдельные ресурсы неоднозначны — вручн"
+    },
+    {
+      "pack": "features",
+      "id": "eb584d41496d50ea",
+      "name": "Токсиколог",
+      "key": "broodmother-toxicologist",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/broodmother-combat"
+      ],
+      "checks": [
+        "tests/broodmother.test.mjs"
+      ],
+      "note": " Применяется только ядовитый источник владельца. Не уменьшает весь смешанный урон и не меняет постоянные иммунитеты цели. Обычное отравление дополняется параличом на ту же длительность; иммунитеты/спорные сторонние поток"
+    },
+    {
+      "pack": "features",
+      "id": "8e3c7476bfdd8fda",
+      "name": "Материнское презрение",
+      "key": "broodmother-contempt",
+      "status": "partial",
+      "entries": [
+        "module:broodmother-control"
       ],
       "checks": [
         "tests/registrations.test.mjs"
