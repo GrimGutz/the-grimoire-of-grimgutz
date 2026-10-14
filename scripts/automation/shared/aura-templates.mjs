@@ -23,7 +23,7 @@ export function auraIndicatorData(definition, token, scene) {
   const radiusPixels = radius / Number(scene.grid.distance ?? 5) * size;
   const shapes = [{ type: "circle", ...center, radius: radiusPixels, gridBased: false }];
   const elevation = Number(source.elevation ?? 0);
-  return { name: definition.name, color, shapes, elevation: { bottom: elevation - radius, top: elevation + radius, topInclusive: true },
+  return { name: definition.name, color, shapes, elevation: definition.height ? {bottom:elevation,top:elevation+feetToSceneUnits(definition.height,scene),topInclusive:true} : { bottom: elevation - radius, top: elevation + radius, topInclusive: true },
     attachment: { token: doc.id }, hidden: Boolean(source.hidden), locked: true,
     visibility: globalThis.CONST?.REGION_VISIBILITY?.ALWAYS ?? 2, highlightMode: "shapes", displayMeasurements: false,
     restriction: { enabled: false }, behaviors: [], ownership: { [game.user.id]: 3 }, flags };

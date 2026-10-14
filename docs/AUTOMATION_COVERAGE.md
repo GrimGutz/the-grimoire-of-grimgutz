@@ -4,9 +4,9 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 286
-- частично: 473
-- обоснованно вручную: 110
+- автоматизировано: 289
+- частично: 489
+- обоснованно вручную: 115
 - требует исправления: 362
 
 Полные основания и замечания: [AUTOMATION_COVERAGE.json](AUTOMATION_COVERAGE.json).
@@ -72,6 +72,7 @@
 | transformations / Трансформация: Автоматон | частично | module:automaton-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Королева Улья | частично | module:broodmother-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Химера | частично | module:chimera-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
+| transformations / Трансформация: Рыцарь Смерти | частично | module:deathknight-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
 | features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
 | features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
@@ -734,6 +735,29 @@
 | features / Глаза ястреба | обоснованно вручную | — | нужна отдельная проверка |
 | features / Ноги паука | обоснованно вручную | — | нужна отдельная проверка |
 | features / Жабры рыбы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Поражённый могилой | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Форма нежити | частично | runtime:transformations/deathknight | tests/deathknight.test.mjs |
+| features / Якорь | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Смертельный смог | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Обречённые удары | автоматизировано | runtime:transformations/deathknight-events | tests/deathknight.test.mjs |
+| features / Нет отдыха для злых | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Сувенир | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Отвратительная внешность | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Связь душ | частично | module:deathknight-control, runtime:transformations/deathknight | tests/registrations.test.mjs, tests/deathknight.test.mjs |
+| features / Быстрое исцеление | автоматизировано | runtime:transformations/deathknight-events | tests/deathknight.test.mjs |
+| features / Тигель смерти | частично | module:deathknight-control, aura:deathknight-crucible-20, aura:deathknight-crucible-30, aura:deathknight-crucible-40, aura:deathknight-crucible-50, aura:deathknight-crucible-60, aura:deathknight-crucible-70, aura:deathknight-crucible-80, aura:deathknight-crucible-90, aura:deathknight-crucible-100 | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs |
+| features / Специалист по нежити | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Существование смерти | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Шар адского огня | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Аура генерала смерти | автоматизировано | aura:deathknight-general, runtime:transformations/deathknight-events | tests/auras.test.mjs, tests/aura-events.test.mjs, tests/deathknight.test.mjs |
+| features / Искореняющий удар | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Жнец | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Отверженный | частично | module:deathknight-control | tests/registrations.test.mjs |
+| features / Скелет: Артиллерист | обоснованно вручную | — | нужна отдельная проверка |
+| features / Скелет: Сапёр | обоснованно вручную | — | нужна отдельная проверка |
+| features / Скелет: Воин | обоснованно вручную | — | нужна отдельная проверка |
+| features / Скелет: Защитник | обоснованно вручную | — | нужна отдельная проверка |
+| features / Скелет: Убийца | обоснованно вручную | — | нужна отдельная проверка |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

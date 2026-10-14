@@ -352,7 +352,7 @@ function buildTargets(packs) {
         // Short technique names such as "Натиск"/"Стойкость" also occur as
         // ordinary words or unrelated rules. Outside this class require an
         // explicit authored UUID instead of inventing a cross-class reference.
-        scope: document.flags?.[MODULE_ID]?.flagellantFeature ? "flagellant" : document.flags?.[MODULE_ID]?.doomedFeature ? "doomed" : document.flags?.[MODULE_ID]?.nightmareFeature ? "nightmare" : document.flags?.[MODULE_ID]?.empathFeature || document.flags?.[MODULE_ID]?.empathSpell ? "empath" : document.flags?.[MODULE_ID]?.transformation === "arkane" ? "arkane" : document.flags?.[MODULE_ID]?.transformation === "automaton" ? "automaton" : document.flags?.[MODULE_ID]?.transformation === "broodmother" ? "broodmother" : document.flags?.[MODULE_ID]?.transformation === "chimera" ? "chimera" : null,
+        scope: document.flags?.[MODULE_ID]?.flagellantFeature ? "flagellant" : document.flags?.[MODULE_ID]?.doomedFeature ? "doomed" : document.flags?.[MODULE_ID]?.nightmareFeature ? "nightmare" : document.flags?.[MODULE_ID]?.empathFeature || document.flags?.[MODULE_ID]?.empathSpell ? "empath" : document.flags?.[MODULE_ID]?.transformation === "arkane" ? "arkane" : document.flags?.[MODULE_ID]?.transformation === "automaton" ? "automaton" : document.flags?.[MODULE_ID]?.transformation === "broodmother" ? "broodmother" : document.flags?.[MODULE_ID]?.transformation === "chimera" ? "chimera" : document.flags?.[MODULE_ID]?.transformation === "deathknight" ? "deathknight" : null,
         aliases: [document.name, ...(INTERNAL_ALIASES[identifier] ?? [])]
       });
     }
@@ -423,9 +423,10 @@ export function linkDocumentDescriptions(packs) {
       const ownEmpath = document.flags?.[MODULE_ID]?.empathFeature || document.flags?.[MODULE_ID]?.empathSpell || document.flags?.[MODULE_ID]?.prestigeClass === "empath";
       const ownArkane = document.flags?.[MODULE_ID]?.transformation === "arkane";
       const ownAutomaton = document.flags?.[MODULE_ID]?.transformation === "automaton";
+      const ownDeathknight = document.flags?.[MODULE_ID]?.transformation === "deathknight";
       const ownChimera = document.flags?.[MODULE_ID]?.transformation === "chimera";
       const ownBroodmother = document.flags?.[MODULE_ID]?.transformation === "broodmother";
-      const scopedTargets = targets.filter(target => !target.scope || target.scope === "flagellant" && ownFlagellant || target.scope === "doomed" && ownDoomed || target.scope === "nightmare" && ownNightmare || target.scope === "empath" && ownEmpath || target.scope === "arkane" && ownArkane || target.scope === "automaton" && ownAutomaton || target.scope === "broodmother" && ownBroodmother || target.scope === "chimera" && ownChimera);
+      const scopedTargets = targets.filter(target => !target.scope || target.scope === "flagellant" && ownFlagellant || target.scope === "doomed" && ownDoomed || target.scope === "nightmare" && ownNightmare || target.scope === "empath" && ownEmpath || target.scope === "arkane" && ownArkane || target.scope === "automaton" && ownAutomaton || target.scope === "broodmother" && ownBroodmother || target.scope === "chimera" && ownChimera || target.scope === "deathknight" && ownDeathknight);
       const linked = linkHtml(current, scopedTargets, document._id);
       linksAdded += (linked.match(/@UUID\[/g)?.length ?? 0) - (current.match(/@UUID\[/g)?.length ?? 0);
       document.system.description.value = linked;

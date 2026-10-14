@@ -55,6 +55,11 @@ import {validateChimeraItem,validateChimeraAdvancement} from "./transformations/
 import {controlChimera} from "./transformations/chimera-actions.mjs";
 import {installChimeraHooks} from "./transformations/chimera-events.mjs";
 import {applyChimeraDamagePacket} from "./transformations/chimera-spells.mjs";
+import {validateDeathknightItem,validateDeathknightAdvancement} from "./transformations/deathknight.mjs";
+import {controlDeathknight} from "./transformations/deathknight-actions.mjs";
+import {controlDeathknightMinion} from "./transformations/deathknight-minions.mjs";
+import {installDeathknightHooks} from "./transformations/deathknight-events.mjs";
+import {applyDeathknightPacket} from "./transformations/deathknight-spells.mjs";
 import {prepareAutomatonDamage,finishAutomatonCoils} from "./transformations/automaton-combat.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
@@ -717,6 +722,8 @@ export function getAutomationActionHandlers() {
   registry.set("automaton-control",controlAutomaton);
   registry.set("broodmother-control",controlBroodmother);
   registry.set("chimera-control",controlChimera);
+  registry.set("deathknight-control",controlDeathknight);
+  registry.set("deathknight-minion",controlDeathknightMinion);
   registry.set("nightmare-summon-control",controlNightmareSummon);
   for (const [actions, handler] of [
     [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
@@ -1091,6 +1098,9 @@ function installHooks() {
   installChimeraHooks();
   Hooks.on("preCreateItem",validateChimeraItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateChimeraAdvancement);
+  installDeathknightHooks();
+  Hooks.on("preCreateItem",validateDeathknightItem);
+  Hooks.on("dnd5e.preAdvancementManagerComplete",validateDeathknightAdvancement);
   Hooks.on("preCreateItem",validateAutomatonItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateAutomatonAdvancement);
   Hooks.on("preCreateItem",validateArkaneItem);
@@ -1278,7 +1288,7 @@ export function getMidiHookHandlers() {
     prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
-    applySpellSourceResistance, applyBroodmotherToxicDamage, applyChimeraDamagePacket, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
+    applySpellSourceResistance, applyBroodmotherToxicDamage, applyChimeraDamagePacket, applyDeathknightPacket, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
     applyMidiWeaponBuffAttackAutomation, prepareMidiSteelWill, finishMidiSteelWill };
 }
 

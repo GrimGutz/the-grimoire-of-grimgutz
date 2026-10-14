@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 286,
-    "partial": 473,
-    "manual": 110,
+    "automatic": 289,
+    "partial": 489,
+    "manual": 115,
     "review": 362
   },
   "records": [
@@ -841,6 +841,22 @@
         "tests/progression.test.mjs"
       ],
       "note": " перетащите только основную карточку. Выберите адаптации через Менажери. Числовые пассивы, мутации, атаки и спасброски поддерживаются модулем; контакт, взгляд, кровь, отражение и сюжетные изменения подтверждает GM."
+    },
+    {
+      "pack": "transformations",
+      "id": "8e56829b55074d8a",
+      "name": "Трансформация: Рыцарь Смерти",
+      "key": "deathknight-transformation",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control",
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/progression.test.mjs"
+      ],
+      "note": " после добавления свяжите конкретное оружие через Якорь. Без него сохраняется Форма нежити, но остальные бонусы недоступны. Размещение, гибель, трупы и особые условия подтверждает GM; модуль не удаляет чужие тела и не об"
     },
     {
       "pack": "features",
@@ -9472,6 +9488,324 @@
       "entries": [],
       "checks": [],
       "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.1131b6e1fd1e5a87]{Сложного знания}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "15e986acd2d9784d",
+      "name": "Поражённый могилой",
+      "key": "deathknight-grave",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " УС привязаны к источнику и цели: оружие-якорь добавляет один УС только после подтверждённого урона. Максимум шесть; нежить/конструкты исключены. В конце хода — CON и урон БМ при провале. Лечение настоящих HP снимает оди"
+    },
+    {
+      "pack": "features",
+      "id": "e003a9de146c0c4d",
+      "name": "Форма нежити",
+      "key": "deathknight-form",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/deathknight"
+      ],
+      "checks": [
+        "tests/deathknight.test.mjs"
+      ],
+      "note": " Реальные STR/CHA +2 с пределом 20 и тип undead, без снижения высоких характеристик. Чужое нативное лечение через Midi преобразуется во временные HP, свои способности сохраняют лечение. При 0 HP положительное лечение ост"
+    },
+    {
+      "pack": "features",
+      "id": "373d746ba9b84f72",
+      "name": "Якорь",
+      "key": "deathknight-anchor",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " GM выбирает принадлежащее персонажу оружие; +3 применяется с сохранением лучшего бонуса и без перезаписи нестандартной формулы. Карточки престиж-класса не изменяются. Разлука отключает бонусы, кроме Формы нежити; флаги/"
+    },
+    {
+      "pack": "features",
+      "id": "bd53d1e7548e30cc",
+      "name": "Смертельный смог",
+      "key": "deathknight-smog",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "4cf876364bf11299",
+      "name": "Обречённые удары",
+      "key": "deathknight-strikes",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/deathknight-events"
+      ],
+      "checks": [
+        "tests/deathknight.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "e9804f9059ddf398",
+      "name": "Нет отдыха для злых",
+      "key": "deathknight-restless",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " GM подтверждает труп гуманоида не старше часа и выбирает установленный статблок скелета. Расход 10 настоящих использований Наложения рук — нативный; отмена до расхода ничего не тратит. Призыв идёт через общий GM-движок."
+    },
+    {
+      "pack": "features",
+      "id": "10b3f07968eedabf",
+      "name": "Сувенир",
+      "key": "deathknight-souvenir",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Сохраняет привязку к отдельному предмету-сувениру и один срок 2к4 игровых дня после подтверждённой смерти. КД 14, HP 40 и иммунитеты — описание предмета, не выдуманный полноценный NPC. Та же плоскость, сохранность, окон"
+    },
+    {
+      "pack": "features",
+      "id": "247727a549b3c0b3",
+      "name": "Отвратительная внешность",
+      "key": "deathknight-appearance",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Облик сохраняется флагом; концентрация на заклинании/потеря сознания раскрывают истинный. Не меняет токен, расу, инвентарь и отношение NPC без решения GM. Стрессовый CON и отношение свидетелей — вручную."
+    },
+    {
+      "pack": "features",
+      "id": "edef1d06c6260739",
+      "name": "Связь душ",
+      "key": "deathknight-souls",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control",
+        "runtime:transformations/deathknight"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/deathknight.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "d58d4c89d42d9726",
+      "name": "Быстрое исцеление",
+      "key": "deathknight-quick",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/deathknight-events"
+      ],
+      "checks": [
+        "tests/deathknight.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "57c6ba071fd6c52a",
+      "name": "Тигель смерти",
+      "key": "deathknight-crucible",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control",
+        "aura:deathknight-crucible-20",
+        "aura:deathknight-crucible-30",
+        "aura:deathknight-crucible-40",
+        "aura:deathknight-crucible-50",
+        "aura:deathknight-crucible-60",
+        "aura:deathknight-crucible-70",
+        "aura:deathknight-crucible-80",
+        "aura:deathknight-crucible-90",
+        "aura:deathknight-crucible-100"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/auras.test.mjs",
+        "tests/aura-events.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "ffba4d244432a571",
+      "name": "Специалист по нежити",
+      "key": "deathknight-specialist",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "cd84d9bab927616b",
+      "name": "Существование смерти",
+      "key": "deathknight-existence",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Дополнительный урон вызывается только после подходящего подтверждённого урона. Небожитель/лучистый источник распознаётся; благословение, святой агент и спорный тип дополнительного урона подтверждаются GM. Не превращаетс"
+    },
+    {
+      "pack": "features",
+      "id": "dc8ad527d4651862",
+      "name": "Шар адского огня",
+      "key": "deathknight-fireball",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "65ad56b6791e8c6d",
+      "name": "Аура генерала смерти",
+      "key": "deathknight-general",
+      "status": "automatic",
+      "entries": [
+        "aura:deathknight-general",
+        "runtime:transformations/deathknight-events"
+      ],
+      "checks": [
+        "tests/auras.test.mjs",
+        "tests/aura-events.test.mjs",
+        "tests/deathknight.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "935313fdafa219fa",
+      "name": "Искореняющий удар",
+      "key": "deathknight-annihilate",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Предлагается после подходящего попадания Оружием Рыцаря Смерти. Владелец подтверждает действие Атака; нативно расходуется одно использование до LR и урон становится критическим в этом потоке. Факт снижения до порога 40,"
+    },
+    {
+      "pack": "features",
+      "id": "4e4526d4592579ef",
+      "name": "Жнец",
+      "key": "deathknight-reaper",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "f16e2a1b17b879e9",
+      "name": "Отверженный",
+      "key": "deathknight-outcast",
+      "status": "partial",
+      "entries": [
+        "module:deathknight-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Учёт разлуки и запрещённого к снятию истощения подтверждается GM с сохранёнными часами/днями, без автоматической смерти и потери ручного истощения. Возвращение Якоря разрешает обычное восстановление, но не снимает уровн"
+    },
+    {
+      "pack": "features",
+      "id": "cf4159557f7dffed",
+      "name": "Скелет: Артиллерист",
+      "key": "deathknight-skeleton-artillery",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.ffba4d244432a571]{Специалисту по нежити}. Применяется к конкретному подконтрольному скелету; не даёт бонус всем существам или самому персонажу."
+    },
+    {
+      "pack": "features",
+      "id": "8b58be902dfa3c13",
+      "name": "Скелет: Сапёр",
+      "key": "deathknight-skeleton-sapper",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.ffba4d244432a571]{Специалисту по нежити}. Применяется к конкретному подконтрольному скелету; не даёт бонус всем существам или самому персонажу."
+    },
+    {
+      "pack": "features",
+      "id": "5a8d0c67fc905213",
+      "name": "Скелет: Воин",
+      "key": "deathknight-skeleton-warrior",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.ffba4d244432a571]{Специалисту по нежити}. Применяется к конкретному подконтрольному скелету; не даёт бонус всем существам или самому персонажу."
+    },
+    {
+      "pack": "features",
+      "id": "417bea74612bf2fa",
+      "name": "Скелет: Защитник",
+      "key": "deathknight-skeleton-defender",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.ffba4d244432a571]{Специалисту по нежити}. Применяется к конкретному подконтрольному скелету; не даёт бонус всем существам или самому персонажу."
+    },
+    {
+      "pack": "features",
+      "id": "39bf6628969b0c5a",
+      "name": "Скелет: Убийца",
+      "key": "deathknight-skeleton-assassin",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.ffba4d244432a571]{Специалисту по нежити}. Применяется к конкретному подконтрольному скелету; не даёт бонус всем существам или самому персонажу."
     },
     {
       "pack": "features",

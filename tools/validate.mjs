@@ -90,8 +90,8 @@ try {
 
 if (documentCounts.classes !== 36) errors.push(`Expected 36 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 698) errors.push(`Expected 698 features, got ${documentCounts.features ?? 0}`);
-if (documentCounts.transformations !== 6) errors.push(`Expected 6 transformations, got ${documentCounts.transformations ?? 0}`);
+if (documentCounts.features !== 721) errors.push(`Expected 721 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.transformations !== 7) errors.push(`Expected 7 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 21) errors.push(`Expected 21 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
 if (documentCounts.bestiary !== 30) errors.push(`Expected 30 bestiary actors, got ${documentCounts.bestiary ?? 0}`);
@@ -1025,11 +1025,11 @@ const allItemsByIdentifier = new Map(
   allItemDocuments.map(document => [document.system.identifier, document])
 );
 const transformationIdentifiers = new Set(transformationDocuments.map(document => document.system.identifier));
-for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation"]) {
+for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation"]) {
   if (!transformationIdentifiers.has(identifier)) errors.push(`Main transformation card is missing from transformations pack: ${identifier}`);
 }
 for (const document of transformationDocuments) {
-  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation"].includes(document.system.identifier)) {
+  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation"].includes(document.system.identifier)) {
     errors.push(`Transformations pack must contain only main transformation cards, got: ${document.system.identifier}`);
   }
 }
@@ -3397,6 +3397,14 @@ const chimeraGrants=chimeraRoots[0]?.system.advancement.filter(a=>a.type==="Item
 if(JSON.stringify(chimeraGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(chimeraGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(chimeraChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Chimera progression must use cumulative single-boon choices");
 for(const d of chimeraCards){if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Chimera must describe bounded runtime automation: ${d.name}`);}
 for(const [id,period] of [["medusa","sr"],["siren","sr"],["mimic","lr"],["kraken","lr"],["share","lr"]])if(chimeraMain.find(d=>d.system.identifier===`chimera-${id}`)?.system.uses.recovery?.[0]?.period!==period)errors.push(`Chimera ${id}: incorrect recovery`);
+
+const dkRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="deathknight").map(e=>e.document);
+const dkCards=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.transformation==="deathknight").map(e=>e.document),dkMain=dkCards.filter(d=>d.flags[manifest.id].deathknightFeature),dkOptions=dkCards.filter(d=>d.flags[manifest.id].deathknightOption);
+if(dkRoots.length!==1||dkRoots[0]?.folder||dkMain.length!==18||dkMain.filter(d=>d.flags[manifest.id].deathknightFlaw).length!==4||dkOptions.length!==5)errors.push("Death knight transformation needs a separate root, fourteen boons, four flaws and five skeleton references");
+const dkGrants=dkRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],dkChoices=dkRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
+if(JSON.stringify(dkGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(dkGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(dkChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Death knight transformation must use cumulative single-boon choices");
+for(const d of dkCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Death knight card must describe bounded runtime automation: ${d.name}`);
+for(const [id,period] of [["smog","sr"],["crucible","lr"],["fireball","lr"],["annihilate","lr"]])if(dkMain.find(d=>d.system.identifier===`deathknight-${id}`)?.system.uses.recovery?.[0]?.period!==period)errors.push(`Death knight ${id}: incorrect recovery`);
 
 if (errors.length) {
   console.error("Validation failed:");

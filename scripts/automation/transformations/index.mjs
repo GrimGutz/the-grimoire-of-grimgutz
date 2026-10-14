@@ -13,6 +13,7 @@ import {syncArkane} from "./arkane.mjs";
 import {syncAutomaton} from "./automaton.mjs";
 import {syncBroodmother} from "./broodmother.mjs";
 import {syncChimera} from "./chimera.mjs";
+import {syncDeathknight} from "./deathknight.mjs";
 
 export const TRANSFORMATION_ACTIONS = new Set([
   "gain-hollow-charge",
@@ -60,4 +61,5 @@ export async function syncTransformations(actor) {
   await syncAutomaton(actor);
   await syncBroodmother(actor);
   await syncChimera(actor);
+  await syncDeathknight(actor);
 }
