@@ -250,3 +250,7 @@ test("horror one-day recovery creates exactly PB hour-long swarms beyond ten fee
 test("non-authoritative GM cannot repeat web recharge or acid event",async()=>{
  await item("web").update({"system.uses.spent":1});game.user={id:"second-gm",isGM:true,active:true};const c=encounter();await handleBroodmotherTurn(c,{turn:0});assert.equal(messages.length,0);
 });
+test("confirmed horror group failure rolls back created documents and its unchanged cooldown",async()=>{
+ await actor.update({"system.attributes.hp.value":0});answers.push("yes",base.uuid,"yes");rollTotal=2;createFails=true;
+ assert.equal((await use("horror")).status,"needs-review");assert.equal(broodmotherChildren(actor).length,0);assert.equal(Number(broodmotherState(actor).horrorReadyAt??0),0);
+});

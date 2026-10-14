@@ -69,18 +69,25 @@ export async function summonBroodmotherHorror(actor,activity,source,requestId){
   if(!await confirmOwner(broodmotherGm(actor),"Потомство ужаса","Подтверждён новый переход к 0 хитов, для которого ещё не применяли способность? Следующее восстановление — через 1к4 игровых дня; это не шанс срабатывания."))return false;
   const base=await selectBroodmotherBase(actor,true);if(!base)return false;
   if(!await confirmOwner(broodmotherGm(actor),"Места роёв","Подтверждены открытые места для БМ роёв не ближе 10 футов? Дополнительные платные улучшения без решения GM не добавляются."))return false;
+  let previousReadyAt,reservedReadyAt;
   return applyNativeOnce(actor,{requestId,action:"broodmother-horror",activityUuid:activity.uuid},()=>serialMutation(`broodmother-horror:${actor.uuid}`,async()=>{
     const now=Number(game.time.worldTime);if(Number(actor.system.attributes.hp.value)>0||Number(broodmotherState(actor).horrorReadyAt??0)>now)return false;
     const roll=await new Roll("1d4").evaluate(),days=Number(roll.total);if(!Number.isInteger(days)||days<1||days>4)throw Error("Некорректный срок восстановления Потомства ужаса.");
     await roll.toMessage({speaker:ChatMessage.getSpeaker({actor}),flavor:"Потомство ужаса: дней до восстановления"});
-    await actor.setFlag(MODULE_ID,"broodmotherState",{...structuredClone(broodmotherState(actor)),horrorReadyAt:now+days*86400,horrorRequestId:requestId});return true;
+    previousReadyAt=Number(broodmotherState(actor).horrorReadyAt??0);reservedReadyAt=now+days*86400;
+    await actor.setFlag(MODULE_ID,"broodmotherState",{...structuredClone(broodmotherState(actor)),horrorReadyAt:reservedReadyAt,horrorRequestId:requestId});return true;
   }),async()=>{
     const count=Number(actor.system.attributes.prof),recipes=Array.from({length:count},()=>broodmotherRecipe(actor,base,{swarm:true})),created=[],actors=[];
     for(let i=0;i<count;i+=3){const result=await createSummonedGroup(actor,recipes.slice(i,i+3),{scene:source.parent,sourceTokenId:source.id,requireScene:true,requestId:`${requestId}:swarm:${i}`});
       if(result.status!=="success"){
-        if(result.status==="failed")for(const uuid of actors){const child=await fromUuid(uuid);
-          if(!child||child.getFlag(MODULE_ID,"summonedBy")!==actor.uuid||!String(child.getFlag(MODULE_ID,"summonRequestId")).startsWith(`${requestId}:swarm:`))continue;
-          for(const scene of game.scenes??[])for(const token of [...(scene.tokens??[])])if(token.actorId===child.id)await scene.deleteEmbeddedDocuments("Token",[token.id]);await child.delete();
+        if(result.status==="failed"){
+          for(const uuid of actors){const child=await fromUuid(uuid);
+            if(!child||child.getFlag(MODULE_ID,"summonedBy")!==actor.uuid||!String(child.getFlag(MODULE_ID,"summonRequestId")).startsWith(`${requestId}:swarm:`))continue;
+            for(const scene of game.scenes??[])for(const token of [...(scene.tokens??[])])if(token.actorId===child.id)await scene.deleteEmbeddedDocuments("Token",[token.id]);await child.delete();
+          }
+          await serialMutation(`broodmother-horror:${actor.uuid}`,async()=>{
+            const state=broodmotherState(actor);if(state.horrorRequestId===requestId&&state.horrorReadyAt===reservedReadyAt)await actor.setFlag(MODULE_ID,"broodmotherState",{...structuredClone(state),horrorReadyAt:previousReadyAt,horrorRequestId:null});
+          });
         }return {status:"needs-review"};
       }created.push(...result.tokenUuids);actors.push(...result.actorUuids);
     }
