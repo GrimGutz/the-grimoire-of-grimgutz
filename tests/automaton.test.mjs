@@ -283,4 +283,3 @@ test("canceling second staff target before the volley does not use the first act
  const staff=attack();answers.push(staff.item.uuid,"staff","yes");await use("equipment","equipment");answers.push([target.uuid],null);
  assert.equal((await use("equipment","shard")).status,"cancelled");assert.equal(calls.length,0);
 });
-
