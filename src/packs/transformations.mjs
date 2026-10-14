@@ -3,6 +3,7 @@ import { murderspawnTransformationDocuments } from "./murderspawn-transformation
 import {arkaneTransformationDocuments} from "./arkane-transformation.mjs";
 import {automatonTransformationDocuments} from "./automaton-transformation.mjs";
 import {broodmotherTransformationDocuments} from "./broodmother-transformation.mjs";
+import {chimeraTransformationDocuments} from "./chimera-transformation.mjs";
 
 export const folders = [];
 
@@ -11,5 +12,6 @@ export const documents = [
   ...hollowTransformationDocuments,
   ...arkaneTransformationDocuments,
   ...automatonTransformationDocuments,
-  ...broodmotherTransformationDocuments
+  ...broodmotherTransformationDocuments,
+  ...chimeraTransformationDocuments
 ];

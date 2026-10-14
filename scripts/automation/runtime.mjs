@@ -51,6 +51,10 @@ import {validateBroodmotherItem,validateBroodmotherAdvancement} from "./transfor
 import {controlBroodmother} from "./transformations/broodmother-actions.mjs";
 import {installBroodmotherHooks} from "./transformations/broodmother-events.mjs";
 import {applyBroodmotherToxicDamage} from "./transformations/broodmother-combat.mjs";
+import {validateChimeraItem,validateChimeraAdvancement} from "./transformations/chimera.mjs";
+import {controlChimera} from "./transformations/chimera-actions.mjs";
+import {installChimeraHooks} from "./transformations/chimera-events.mjs";
+import {applyChimeraDamagePacket} from "./transformations/chimera-spells.mjs";
 import {prepareAutomatonDamage,finishAutomatonCoils} from "./transformations/automaton-combat.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
@@ -712,6 +716,7 @@ export function getAutomationActionHandlers() {
   registry.set("arkane-control",controlArkane);
   registry.set("automaton-control",controlAutomaton);
   registry.set("broodmother-control",controlBroodmother);
+  registry.set("chimera-control",controlChimera);
   registry.set("nightmare-summon-control",controlNightmareSummon);
   for (const [actions, handler] of [
     [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
@@ -1083,6 +1088,9 @@ function installHooks() {
   installBroodmotherHooks();
   Hooks.on("preCreateItem",validateBroodmotherItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateBroodmotherAdvancement);
+  installChimeraHooks();
+  Hooks.on("preCreateItem",validateChimeraItem);
+  Hooks.on("dnd5e.preAdvancementManagerComplete",validateChimeraAdvancement);
   Hooks.on("preCreateItem",validateAutomatonItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateAutomatonAdvancement);
   Hooks.on("preCreateItem",validateArkaneItem);
@@ -1270,7 +1278,7 @@ export function getMidiHookHandlers() {
     prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
-    applySpellSourceResistance, applyBroodmotherToxicDamage, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
+    applySpellSourceResistance, applyBroodmotherToxicDamage, applyChimeraDamagePacket, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
     applyMidiWeaponBuffAttackAutomation, prepareMidiSteelWill, finishMidiSteelWill };
 }
 

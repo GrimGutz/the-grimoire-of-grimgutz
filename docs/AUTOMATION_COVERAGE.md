@@ -4,9 +4,9 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 283
-- частично: 457
-- обоснованно вручную: 96
+- автоматизировано: 286
+- частично: 473
+- обоснованно вручную: 110
 - требует исправления: 362
 
 Полные основания и замечания: [AUTOMATION_COVERAGE.json](AUTOMATION_COVERAGE.json).
@@ -71,6 +71,7 @@
 | transformations / Трансформация: Присутствие / Arkane | частично | module:arkane-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Автоматон | частично | module:automaton-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Королева Улья | частично | module:broodmother-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
+| transformations / Трансформация: Химера | частично | module:chimera-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
 | features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
 | features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
@@ -701,6 +702,38 @@
 | features / Мимикрия | частично | module:broodmother-control | tests/registrations.test.mjs |
 | features / Токсиколог | частично | runtime:transformations/broodmother-combat | tests/broodmother.test.mjs |
 | features / Материнское презрение | частично | module:broodmother-control | tests/registrations.test.mjs |
+| features / Менажери | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Гибридная форма | автоматизировано | runtime:transformations/chimera | tests/chimera.test.mjs |
+| features / Химерическая аберрация | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Сложное знание | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Жало виверны | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Волосы Медузы | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Формы мимика | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Аллергия на бронзу | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Сопротивление гибрида | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Дыхание дракона | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Голос сирены | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Крылья грифона | автоматизировано | runtime:transformations/chimera | tests/chimera.test.mjs |
+| features / Нестабильная личность | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Поделиться амальгамой | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Регенерация гидры | частично | runtime:transformations/chimera-events | tests/chimera.test.mjs |
+| features / Молнии кракена | частично | module:chimera-control | tests/registrations.test.mjs |
+| features / Панцирь Тараска | автоматизировано | runtime:transformations/chimera-spells | tests/chimera.test.mjs |
+| features / Раздражённая кровь | частично | runtime:transformations/chimera-events | tests/chimera.test.mjs |
+| features / Конечности хищников | обоснованно вручную | — | нужна отдельная проверка |
+| features / Яд лягушкоплава | обоснованно вручную | — | нужна отдельная проверка |
+| features / Гогот гуся | обоснованно вручную | — | нужна отдельная проверка |
+| features / Панцирь черепахи | обоснованно вручную | — | нужна отдельная проверка |
+| features / Выносливость медведя | обоснованно вручную | — | нужна отдельная проверка |
+| features / Чувства волка | обоснованно вручную | — | нужна отдельная проверка |
+| features / Мех выдры | обоснованно вручную | — | нужна отдельная проверка |
+| features / Кровь ящерицы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Скорость барана | обоснованно вручную | — | нужна отдельная проверка |
+| features / Прыжок зайца | обоснованно вручную | — | нужна отдельная проверка |
+| features / Реакция мухи | обоснованно вручную | — | нужна отдельная проверка |
+| features / Глаза ястреба | обоснованно вручную | — | нужна отдельная проверка |
+| features / Ноги паука | обоснованно вручную | — | нужна отдельная проверка |
+| features / Жабры рыбы | обоснованно вручную | — | нужна отдельная проверка |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

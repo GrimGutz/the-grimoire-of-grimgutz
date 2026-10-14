@@ -9,6 +9,7 @@ import { murderspawnTransformationLevel } from "../scripts/automation/transforma
 import {arkaneTransformationLevel} from "../scripts/automation/transformations/arkane.mjs";
 import {automatonTransformationLevel} from "../scripts/automation/transformations/automaton.mjs";
 import {broodmotherTransformationLevel} from "../scripts/automation/transformations/broodmother.mjs";
+import {chimeraTransformationLevel} from "../scripts/automation/transformations/chimera.mjs";
 
 const byUuid = new Map(features.map(feature => [`Compendium.${MODULE_ID}.features.Item.${feature._id}`, feature]));
 for (const root of transformations) test(`${root.name}: levels 1/6/11/16 grant flaws and exactly one accumulated boon`, () => {
@@ -27,7 +28,7 @@ for (const root of transformations) test(`${root.name}: levels 1/6/11/16 grant f
     assert.ok(pool.every(uuid => Number(byUuid.get(uuid)?.flags[MODULE_ID]?.transformationLevel) <= tier));
     previous = pool;
   }
-  const getLevel = {hollow:hollowTransformationLevel,murderspawn:murderspawnTransformationLevel,arkane:arkaneTransformationLevel,automaton:automatonTransformationLevel,broodmother:broodmotherTransformationLevel}[root.flags[MODULE_ID].transformation];
+  const getLevel = {hollow:hollowTransformationLevel,murderspawn:murderspawnTransformationLevel,arkane:arkaneTransformationLevel,automaton:automatonTransformationLevel,broodmother:broodmotherTransformationLevel,chimera:chimeraTransformationLevel}[root.flags[MODULE_ID].transformation];
   for (const characterLevel of [1, 5, 6, 10, 11, 15, 16, 20]) {
     const items = grants.filter(grant => grant.level <= characterLevel).flatMap(grant => grant.configuration.items.map(entry => byUuid.get(entry.uuid)));
     // Choosing an older boon must not lower the new transformation tier: its mandatory flaw defines it.

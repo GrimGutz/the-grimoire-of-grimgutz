@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 283,
-    "partial": 457,
-    "manual": 96,
+    "automatic": 286,
+    "partial": 473,
+    "manual": 110,
     "review": 362
   },
   "records": [
@@ -825,6 +825,22 @@
         "tests/progression.test.mjs"
       ],
       "note": " перетащите только основную карточку. Advancement выдаёт особенности, пауки создаются через кнопку Выводка с реальным расходом костей хитов. Автоматизация условная и подтверждаемая; сюжетные ограничения, видимость, мимик"
+    },
+    {
+      "pack": "transformations",
+      "id": "70b1a80a6edad5b2",
+      "name": "Трансформация: Химера",
+      "key": "chimera-transformation",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control",
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/progression.test.mjs"
+      ],
+      "note": " перетащите только основную карточку. Выберите адаптации через Менажери. Числовые пассивы, мутации, атаки и спасброски поддерживаются модулем; контакт, взгляд, кровь, отражение и сюжетные изменения подтверждает GM."
     },
     {
       "pack": "features",
@@ -9064,6 +9080,398 @@
         "tests/registrations.test.mjs"
       ],
       "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "39b4305f14ad18f2",
+      "name": "Менажери",
+      "key": "chimera-menagerie",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выберите ровно БМ адаптаций; менять можно после LR. При росте БМ разрешено добавить выбор, но не бесплатно заменить прежние. У каждой числовой адаптации свой настоящий пассив, выбранные бездействующие варианты не создаю"
+    },
+    {
+      "pack": "features",
+      "id": "71b2d8ff776882b1",
+      "name": "Гибридная форма",
+      "key": "chimera-form",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/chimera"
+      ],
+      "checks": [
+        "tests/chimera.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "9b634b40a42676a1",
+      "name": "Химерическая аберрация",
+      "key": "chimera-aberration",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " После подтверждённого LR — один к100 по колонке текущей ступени. Повтор той же строки перебрасывается. Сохраняется результат и создаётся лишь нужный числовой/служебный эффект. Отдых заменяет мутацию, не складывает все п"
+    },
+    {
+      "pack": "features",
+      "id": "1131b6e1fd1e5a87",
+      "name": "Сложное знание",
+      "key": "chimera-knowledge",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "590364c3ec8f4b06",
+      "name": "Жало виверны",
+      "key": "chimera-sting",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "d238c62ba9c048fe",
+      "name": "Волосы Медузы",
+      "key": "chimera-medusa",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Одно использование до SR. GM подтверждает начало хода цели, взгляд и видимость; затем действие, CON и начальное «Схвачен» по буквальному тексту. Только один повтор в конце следующего хода: успех освобождает, провал заме"
+    },
+    {
+      "pack": "features",
+      "id": "4f0d1c78799e545f",
+      "name": "Формы мимика",
+      "key": "chimera-mimic",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "54088ced69503a77",
+      "name": "Аллергия на бронзу",
+      "key": "chimera-bronze",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Применяется к явно указанному бронзовому оружию, не ко всем металлическим атакам. Преимущество только против подходящей цели; удваивается исходный урон атаки с последующим штатным расчётом защит. CON и минутное отравлен"
+    },
+    {
+      "pack": "features",
+      "id": "2b8707e69eb2b67b",
+      "name": "Сопротивление гибрида",
+      "key": "chimera-resistance",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "c479c0cba4327d1d",
+      "name": "Дыхание дракона",
+      "key": "chimera-breath",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "2e313b8e7705befe",
+      "name": "Голос сирены",
+      "key": "chimera-siren",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Одно применение до SR: круг 20 футов, WIS, иммунные к очарованию исключаются; слышимость/глухота подтверждаются GM. Очарование и повторные спасброски автоматизированы; движение на 10 футов и расход следующего действия в"
+    },
+    {
+      "pack": "features",
+      "id": "09fe85b7a4ab524e",
+      "name": "Крылья грифона",
+      "key": "chimera-wings",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/chimera"
+      ],
+      "checks": [
+        "tests/chimera.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "209bcde13a718117",
+      "name": "Нестабильная личность",
+      "key": "chimera-personality",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " GM подтверждает наличие крови у подходящего существа ниже половины максимума в 60 футах. WIS, связь с целью и повтор в конце хода автоматизированы; смерть/восстановление выше половины завершает только эту связь. Принуди"
+    },
+    {
+      "pack": "features",
+      "id": "05c40a9b37cdf23b",
+      "name": "Поделиться амальгамой",
+      "key": "chimera-share",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Согласная цель в 30 футах получает одну отдельную карточку бонуса на восемь часов со своими CON/ресурсами и сохранённой ступенью источника. Не получает остальные бонусы/недостатки Химеры. Истёкшая карточка удаляется тол"
+    },
+    {
+      "pack": "features",
+      "id": "b5d7771256a76b4c",
+      "name": "Регенерация гидры",
+      "key": "chimera-hydra",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/chimera-events"
+      ],
+      "checks": [
+        "tests/chimera.test.mjs"
+      ],
+      "note": " В начале хода — до 10 хитов, только при положительных хитах. По согласованию урон огнём пропускает ближайшее лечение; второй GM/повторный callback не лечит снова. Отрастание головы/конечностей и защита от обезглавливани"
+    },
+    {
+      "pack": "features",
+      "id": "f5456c59bcf1a9b5",
+      "name": "Молнии кракена",
+      "key": "chimera-kraken",
+      "status": "partial",
+      "entries": [
+        "module:chimera-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "8afe44b930d8718c",
+      "name": "Панцирь Тараска",
+      "key": "chimera-carapace",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/chimera-spells"
+      ],
+      "checks": [
+        "tests/chimera.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "63384fd1f0eec2e4",
+      "name": "Раздражённая кровь",
+      "key": "chimera-blood",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/chimera-events"
+      ],
+      "checks": [
+        "tests/chimera.test.mjs"
+      ],
+      "note": " После подтверждённого провала магического/заклинательного спасброска бросает к100 один раз для этого применения. Только меньший результат заменяет мутацию; эффекты не складываются. Неопознанную магическую способность по"
+    },
+    {
+      "pack": "features",
+      "id": "5e259ac18c55aae9",
+      "name": "Конечности хищников",
+      "key": "chimera-adaptation-limbs",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.39b4305f14ad18f2]{Менажери}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "4e64e338caada1e0",
+      "name": "Яд лягушкоплава",
+      "key": "chimera-adaptation-toad",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.39b4305f14ad18f2]{Менажери}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "7a632a26172471ad",
+      "name": "Гогот гуся",
+      "key": "chimera-adaptation-goose",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.39b4305f14ad18f2]{Менажери}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "d63e71e6ef9de50b",
+      "name": "Панцирь черепахи",
+      "key": "chimera-adaptation-turtle",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.39b4305f14ad18f2]{Менажери}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "151358f4b9d4a703",
+      "name": "Выносливость медведя",
+      "key": "chimera-adaptation-bear",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.39b4305f14ad18f2]{Менажери}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "7110ab4f663be5aa",
+      "name": "Чувства волка",
+      "key": "chimera-adaptation-wolf",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.39b4305f14ad18f2]{Менажери}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "7f762888ecff2a11",
+      "name": "Мех выдры",
+      "key": "chimera-adaptation-otter",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.39b4305f14ad18f2]{Менажери}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "50bc0fb805ea5cb9",
+      "name": "Кровь ящерицы",
+      "key": "chimera-adaptation-lizard",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.39b4305f14ad18f2]{Менажери}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "4d8303d4fd61ccab",
+      "name": "Скорость барана",
+      "key": "chimera-adaptation-ram",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.39b4305f14ad18f2]{Менажери}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "1bb98f668ac27542",
+      "name": "Прыжок зайца",
+      "key": "chimera-adaptation-hare",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.39b4305f14ad18f2]{Менажери}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "2b14f6ba157c3727",
+      "name": "Реакция мухи",
+      "key": "chimera-adaptation-fly",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.39b4305f14ad18f2]{Менажери}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "638be5ebbcb2ed8f",
+      "name": "Глаза ястреба",
+      "key": "chimera-knowledge-hawk",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.1131b6e1fd1e5a87]{Сложного знания}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "e2a64b45a202b11c",
+      "name": "Ноги паука",
+      "key": "chimera-knowledge-spider",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.1131b6e1fd1e5a87]{Сложного знания}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
+    },
+    {
+      "pack": "features",
+      "id": "53c4dcebc012dd2b",
+      "name": "Жабры рыбы",
+      "key": "chimera-knowledge-fish",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " справка: вариант @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.1131b6e1fd1e5a87]{Сложного знания}. Выбирается через родительскую карточку; отдельное перетаскивание не выдаёт дополнительный бонус."
     },
     {
       "pack": "features",

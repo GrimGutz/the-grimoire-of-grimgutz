@@ -41,6 +41,7 @@ import {empathDocuments,empathFolders} from "./empath-features.mjs";
 import {arkaneDocuments,arkaneFolders} from "./arkane-features.mjs";
 import {automatonDocuments,automatonFolders} from "./automaton-features.mjs";
 import {broodmotherDocuments,broodmotherFolders} from "./broodmother-features.mjs";
+import {chimeraDocuments,chimeraFolders} from "./chimera-features.mjs";
 
 const MAIN_FOLDER = idFor("folder:class-features");
 const STYLE_FOLDER = idFor("folder:weapon-styles");
@@ -88,6 +89,7 @@ export const folders = [
   ...arkaneFolders,
   ...automatonFolders,
   ...broodmotherFolders,
+  ...chimeraFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -451,6 +453,7 @@ export const documents = configureAreaActivities([
   ...arkaneDocuments,
   ...automatonDocuments,
   ...broodmotherDocuments,
+  ...chimeraDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ]);

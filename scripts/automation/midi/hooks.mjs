@@ -30,6 +30,7 @@ export const MIDI_QOL_HOOKS = [
   // Restore Toxicologist's formerly immune poison before correlating a damage
   // receipt. Recheck after generic bonuses may have rebuilt the raw packet.
   ["midi-qol.preTargetDamageApplication", "applyBroodmotherToxicDamage"],
+  ["midi-qol.preTargetDamageApplication", "applyChimeraDamagePacket"],
   ["midi-qol.preTargetDamageApplication", "prepareConfirmedDamage"],
   ["midi-qol.AttackRollComplete", "handleAuraMeleeAttack"],
   ["midi-qol.preAttackRollConfig", "applyMidiAttackDisadvantage"],
@@ -40,6 +41,7 @@ export const MIDI_QOL_HOOKS = [
   ["midi-qol.preTargetDamageApplication", "markForestRootFireDamageHook"],
   ["midi-qol.preTargetDamageApplication", "applyHellfireFuryHook"],
   ["midi-qol.preTargetDamageApplication", "applyBroodmotherToxicDamage"],
+  ["midi-qol.preTargetDamageApplication", "applyChimeraDamagePacket"],
   ["midi-qol.preTargetDamageApplication", "applySpellSourceResistance"],
   ["midi-qol.preTargetDamageApplication", "applySummonProtection"],
   ["midi-qol.preTargetDamageApplication", "prepareAutomatonDamage"],

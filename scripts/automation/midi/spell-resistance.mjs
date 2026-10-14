@@ -4,13 +4,15 @@ import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { calculatedDamage, commitCalculatedDamage } from "./damage-packet.mjs";
 import {arkaneBodyActive} from "../transformations/arkane.mjs";
 import {automatonResistanceActive,automatonState} from "../transformations/automaton.mjs";
+import {chimeraCarapaceActive} from "../transformations/chimera.mjs";
 
 export function applySpellSourceResistance(token, { workflow, damageItem }) {
   if (!enabled() || !token?.actor || workflow?.item?.type !== "spell") return;
   const active = [...(token.actor.effects ?? [])].some(effect => isEffectActive(effect)
     && effect.getFlag?.(MODULE_ID, FLAGS.HOLLOW_PASSIVE) === "fortified-soul");
   const automaton=automatonResistanceActive(token.actor)&&automatonState(token.actor).model==="juggernaut";
-  if (!active && !arkaneBodyActive(token.actor) && !automaton) return;
+  const chimera=chimeraCarapaceActive(token.actor);
+  if (!active && !arkaneBodyActive(token.actor) && !automaton && !chimera) return;
   const parts = calculatedDamage(damageItem);
   let changed = false;
   for (const part of parts) {
@@ -22,6 +24,6 @@ export function applySpellSourceResistance(token, { workflow, damageItem }) {
   }
   if (changed) {
     commitCalculatedDamage(token, damageItem, parts);
-    damageItem.details ??= []; damageItem.details.push(active ? "Укреплённая душа: сопротивление урону заклинания" : automaton ? "Модель джаггернаута: сопротивление урону заклинания" : "Сверхъестественное тело: сопротивление урону заклинания");
+    damageItem.details ??= []; damageItem.details.push(active ? "Укреплённая душа: сопротивление урону заклинания" : automaton ? "Модель джаггернаута: сопротивление урону заклинания" : chimera ? "Панцирь Тараска: сопротивление урону заклинания" : "Сверхъестественное тело: сопротивление урону заклинания");
   }
 }
