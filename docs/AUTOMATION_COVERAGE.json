@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 298,
-    "partial": 517,
-    "manual": 175,
+    "automatic": 299,
+    "partial": 534,
+    "manual": 176,
     "review": 362
   },
   "records": [
@@ -889,6 +889,22 @@
         "tests/progression.test.mjs"
       ],
       "note": " установите форму, завершите короткий отдых и используйте Фабрику инноваций. Справочные улучшения нельзя выдавать бесплатно простым перетаскиванием. Тексты, сюжетные условия и неопределённые правила отмечены явно; пассив"
+    },
+    {
+      "pack": "transformations",
+      "id": "03c3dd48b855bdbb",
+      "name": "Трансформация: Божество",
+      "key": "god-transformation",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/progression.test.mjs"
+      ],
+      "note": " выберите форму и Добрый/Злой вариант, используйте общий запас ОР и нативные активности. Рассвет/видимость/последователи/сюжет подтверждаются GM. Не заданные источником правила не выдумываются."
     },
     {
       "pack": "features",
@@ -10976,6 +10992,290 @@
       "entries": [],
       "checks": [],
       "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.04957ac3a2d512f8]{Оно живое}. Настоящий NPC создаётся из явного рецепта этого материала, не переносом этой справки на персонажа. Управляемые характеристи"
+    },
+    {
+      "pack": "features",
+      "id": "b81a491331047610",
+      "name": "Божественное Рвение",
+      "key": "god-zeal",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": " Общий нативный запас ОР, без восстановления на SR/LR. Рассвет подтверждается GM либо заранее задаётся ближайший рассвет. Гнев — нативный размещаемый конус с CON. Наставление/Разрушение автоматически тратят реакцию/ОР; ч"
+    },
+    {
+      "pack": "features",
+      "id": "5095175b69abcf54",
+      "name": "Божественная Форма",
+      "key": "god-form",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "d40f42e41237ce33",
+      "name": "Впадение в Апатию",
+      "key": "god-apathy",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": " GM включает апатию и подтверждает возвращение ритуалом; модуль отключает свои бонусы, операции и домен, не уничтожая инвентарь. Смена Добрый/Злой немедленно меняет доступные проявления, без автооценки поступков."
+    },
+    {
+      "pack": "features",
+      "id": "3d9d1017b25d552a",
+      "name": "Демиургия",
+      "key": "god-demiurgy",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "f302bf866cfddb95",
+      "name": "Прометеева Мантия",
+      "key": "god-mantle",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": " После провала в Midi предлагается расход 60 ОР; только подтверждённое применение переносит эту цель в успешные спасброски. Отмена и повторный callback не повторяют расход; броски вне Midi подтверждает GM."
+    },
+    {
+      "pack": "features",
+      "id": "d4fbd10cd7087a3c",
+      "name": "Транслокация",
+      "key": "god-translocation",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": " Выбор спутников в 20 футах, стоимость 35 + 5 за каждого, нативное действие. Телепорт по текущей сцене/плоскости и допустимость назначения подтверждает GM; другие сцены/плоскости не выбираются молча, чужие токены не клон"
+    },
+    {
+      "pack": "features",
+      "id": "737545e472822a33",
+      "name": "Благожеланность/Вредоносность",
+      "key": "god-gift",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "f6483dd22cbafd59",
+      "name": "Божественное Напряжение",
+      "key": "god-strain",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "aura:god-strain",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/auras.test.mjs",
+        "tests/aura-events.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "8c2641fce6916b0e",
+      "name": "Один за Всех/Все за Одного",
+      "key": "god-united",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": " Предложение после подтверждённого падения до 0; Добрый выбирает кратный 20 расход, Злой — GM подтверждает число действительных жертв. Не выдумываются последователи и не убиваются произвольные союзники автоматически."
+    },
+    {
+      "pack": "features",
+      "id": "32281162bc897887",
+      "name": "Выздоровление/Пожирание",
+      "key": "god-restoration",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": " У Добрых — явное распределение до 700 между подтверждёнными видимыми целями. У Злых — нативная сфера/CON; бюджет последующего лечения только из подтверждённых применений окончательного урона, без повторного получения бю"
+    },
+    {
+      "pack": "features",
+      "id": "eac4601bdd727cae",
+      "name": "Милость",
+      "key": "god-mercy",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "838412baae39eed0",
+      "name": "Всемогущий Исполнитель Желаний",
+      "key": "god-wish",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "15cccb3ab57b993e",
+      "name": "Бессмертное Проклятие",
+      "key": "god-curse",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/god-events"
+      ],
+      "checks": [
+        "tests/god.test.mjs"
+      ],
+      "note": " Чужое лечение уменьшается по источнику Midi один раз; собственное не режется. Воскрешение заблокировано для поддержанных известных нативных карточек, другие/сюжетные случаи подтверждает GM. Пассивной неуязвимости/пустог"
+    },
+    {
+      "pack": "features",
+      "id": "8381c4667680452e",
+      "name": "Расширение Домена",
+      "key": "god-domain",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "aura:god-domain",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/auras.test.mjs",
+        "tests/aura-events.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "c92e1b535c8e2327",
+      "name": "Суд/Аннигиляция",
+      "key": "god-judgment",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": " Суд: GM отмечает действительно злые цели; WIS, состояние/срок, повторные спасброски и периодический урон. Истинность УС и уничтожение подтверждает GM. Аннигиляция: круг до 300 футов и кольцевой урон по горизонтали, беск"
+    },
+    {
+      "pack": "features",
+      "id": "7b582c68fe38b2b7",
+      "name": "Апофеоз",
+      "key": "god-apotheosis",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/god-events"
+      ],
+      "checks": [
+        "tests/god.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "f2702cef3e1a53b3",
+      "name": "Демисциенция",
+      "key": "god-demiscience",
+      "status": "partial",
+      "entries": [
+        "module:god-control",
+        "runtime:transformations/god-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/god.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "4fd7345b97c493be",
+      "name": "Небесный Соперник",
+      "key": "god-rival",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Только сюжетный текст для GM. Не создаёт пустой пассив, случайные нападения и скрытое удаление последователей."
     },
     {
       "pack": "features",

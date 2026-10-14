@@ -17,6 +17,7 @@ export function applySpellSourceResistance(token, { workflow, damageItem }) {
   let changed = false;
   for (const part of parts) {
     if (Number(part.value) <= 0 || ["healing", "temphp", "maximum", "midi-none"].includes(part.type)) continue;
+    if (part.active?.[MODULE_ID]?.ignoreResistance === true) continue;
     if (part.active?.resistance === true || Object.values(part.active ?? {}).some(value => value?.resistance === true)) continue;
     part.value = Math.floor(Number(part.value) / 2);
     part.active ??= {}; part.active[MODULE_ID] = { ...(part.active[MODULE_ID] ?? {}), resistance: true };

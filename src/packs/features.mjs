@@ -45,6 +45,7 @@ import {chimeraDocuments,chimeraFolders} from "./chimera-features.mjs";
 import {deathknightDocuments,deathknightFolders} from "./deathknight-features.mjs";
 import {dullahanDocuments,dullahanFolders} from "./dullahan-features.mjs";
 import {factoryDocuments,factoryFolders} from "./factory-features.mjs";
+import {godDocuments,godFolders} from "./god-features.mjs";
 
 const MAIN_FOLDER = idFor("folder:class-features");
 const STYLE_FOLDER = idFor("folder:weapon-styles");
@@ -96,6 +97,7 @@ export const folders = [
   ...deathknightFolders,
   ...dullahanFolders,
   ...factoryFolders,
+  ...godFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -463,6 +465,7 @@ export const documents = configureAreaActivities([
   ...deathknightDocuments,
   ...dullahanDocuments,
   ...factoryDocuments,
+  ...godDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ]);

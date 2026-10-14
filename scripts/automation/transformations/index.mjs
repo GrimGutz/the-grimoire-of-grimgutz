@@ -16,6 +16,7 @@ import {syncChimera} from "./chimera.mjs";
 import {syncDeathknight} from "./deathknight.mjs";
 import {syncDullahan} from "./dullahan.mjs";
 import {syncFactory} from "./factory-passives.mjs";
+import {syncGod} from "./god.mjs";
 
 export const TRANSFORMATION_ACTIONS = new Set([
   "gain-hollow-charge",
@@ -66,4 +67,5 @@ export async function syncTransformations(actor) {
   await syncDeathknight(actor);
   await syncDullahan(actor);
   await syncFactory(actor);
+  await syncGod(actor);
 }

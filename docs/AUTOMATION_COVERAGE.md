@@ -4,9 +4,9 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 298
-- частично: 517
-- обоснованно вручную: 175
+- автоматизировано: 299
+- частично: 534
+- обоснованно вручную: 176
 - требует исправления: 362
 
 Полные основания и замечания: [AUTOMATION_COVERAGE.json](AUTOMATION_COVERAGE.json).
@@ -75,6 +75,7 @@
 | transformations / Трансформация: Рыцарь Смерти | частично | module:deathknight-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Дуллахан | частично | module:dullahan-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Фабрика | частично | module:factory-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
+| transformations / Трансформация: Божество | частично | module:god-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
 | features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
 | features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
@@ -855,6 +856,24 @@
 | features / Гомункул: Кристалл | обоснованно вручную | — | нужна отдельная проверка |
 | features / Гомункул: Адамантин | обоснованно вручную | — | нужна отдельная проверка |
 | features / Гомункул: Мифрил | обоснованно вручную | — | нужна отдельная проверка |
+| features / Божественное Рвение | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Божественная Форма | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Впадение в Апатию | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Демиургия | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Прометеева Мантия | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Транслокация | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Благожеланность/Вредоносность | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Божественное Напряжение | частично | module:god-control, aura:god-strain, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs, tests/god.test.mjs |
+| features / Один за Всех/Все за Одного | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Выздоровление/Пожирание | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Милость | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Всемогущий Исполнитель Желаний | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Бессмертное Проклятие | частично | runtime:transformations/god-events | tests/god.test.mjs |
+| features / Расширение Домена | частично | module:god-control, aura:god-domain, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs, tests/god.test.mjs |
+| features / Суд/Аннигиляция | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Апофеоз | автоматизировано | runtime:transformations/god-events | tests/god.test.mjs |
+| features / Демисциенция | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
+| features / Небесный Соперник | обоснованно вручную | — | нужна отдельная проверка |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

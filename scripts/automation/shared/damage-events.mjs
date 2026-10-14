@@ -182,6 +182,7 @@ export async function prepareConfirmedDamage(token, { workflow, damageItem }) {
     authorityBloodDrain: workflow.workflowOptions?.grimgutzValidatedDrain === true,
     automatic: workflow.workflowOptions?.grimgutzAuraPulse === true, critical: Boolean(workflow.attackRoll && workflow.isCritical),
     auraEventKey: workflow.activity.flags?.[MODULE_ID]?.auraEventKey,
+    godCastId: workflow.activity.flags?.[MODULE_ID]?.godCastId,
     damageTypes: [...new Set(parts.filter(part => part.value > 0 && !["healing", "temphp", "maximum", "midi-none"].includes(part.type)).map(part => part.type))],
     damageType: parts.find(part => part.value > 0 && !["healing", "temphp", "maximum", "midi-none"].includes(part.type))?.type }, { requestId: key, timeoutMs: 120000 });
   if (result.status !== "success") return;

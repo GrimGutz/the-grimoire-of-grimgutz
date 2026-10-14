@@ -7,6 +7,7 @@ import {chimeraTransformationDocuments} from "./chimera-transformation.mjs";
 import {deathknightTransformationDocuments} from "./deathknight-transformation.mjs";
 import {dullahanTransformationDocuments} from "./dullahan-transformation.mjs";
 import {factoryTransformationDocuments} from "./factory-transformation.mjs";
+import {godTransformationDocuments} from "./god-transformation.mjs";
 
 export const folders = [];
 
@@ -19,5 +20,6 @@ export const documents = [
   ...chimeraTransformationDocuments,
   ...deathknightTransformationDocuments,
   ...dullahanTransformationDocuments,
-  ...factoryTransformationDocuments
+  ...factoryTransformationDocuments,
+  ...godTransformationDocuments
 ];
