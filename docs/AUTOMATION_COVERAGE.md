@@ -4,8 +4,8 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 289
-- частично: 489
+- автоматизировано: 290
+- частично: 507
 - обоснованно вручную: 115
 - требует исправления: 362
 
@@ -73,6 +73,7 @@
 | transformations / Трансформация: Королева Улья | частично | module:broodmother-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Химера | частично | module:chimera-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Рыцарь Смерти | частично | module:deathknight-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
+| transformations / Трансформация: Дуллахан | частично | module:dullahan-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
 | features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
 | features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
@@ -758,6 +759,24 @@
 | features / Скелет: Воин | обоснованно вручную | — | нужна отдельная проверка |
 | features / Скелет: Защитник | обоснованно вручную | — | нужна отдельная проверка |
 | features / Скелет: Убийца | обоснованно вручную | — | нужна отдельная проверка |
+| features / Клятва охотника | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Форма нежити | частично | runtime:transformations/dullahan | tests/dullahan.test.mjs |
+| features / Нарушенная клятва | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Кошмарный скакун | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Великое зрение | автоматизировано | runtime:transformations/dullahan | tests/dullahan.test.mjs |
+| features / Пылающие черепа | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Стойкость нежити | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Отвратительная внешность | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Голова Смерти | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Вой Безголосого | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Испепеляющий взгляд | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Смертельное прорицание | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Увядающая клятва | частично | runtime:transformations/dullahan | tests/dullahan.test.mjs |
+| features / Охотник за головами | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Непреклонный | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Нервирующее пламя | частично | module:dullahan-control, runtime:transformations/dullahan-combat | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Туманы Отчуждения | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
+| features / Безголовый Пешка | частично | module:dullahan-control, runtime:transformations/dullahan-actions | tests/registrations.test.mjs, tests/dullahan.test.mjs |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

@@ -11,6 +11,7 @@ import {inspectAutomaton} from "../transformations/automaton.mjs";
 import {inspectBroodmother} from "../transformations/broodmother.mjs";
 import {inspectChimera} from "../transformations/chimera.mjs";
 import {inspectDeathknight} from "../transformations/deathknight.mjs";
+import {inspectDullahan} from "../transformations/dullahan.mjs";
 
 const timeUnits = { seconds: 1, minutes: 60, hours: 3600, days: 86400, weeks: 604800, months: 2592000, years: 31536000 };
 function values(collection) { return collection?.values ? [...collection.values()] : Object.values(collection ?? {}); }
@@ -120,6 +121,7 @@ export async function inspectAutomation(actorOrUuid, { actionHandlers = new Map(
     broodmother:inspectBroodmother(actor),
     chimera:inspectChimera(actor),
     deathknight:inspectDeathknight(actor),
+    dullahan:inspectDullahan(actor),
     empath:{level:empathLevel(actor),state:structuredClone(empathState(actor)),effects:empathEffects(actor).map(effect=>({uuid:effect.uuid,...structuredClone(empathEffectData(effect))})),lostActions:structuredClone(actor.getFlag?.(MODULE_ID,"empathLostActions")??null)},
     nightmare:{level:nightmareLevel(actor),resource:nightmareResourceState(actor),known:nightmareKnown(actor).map(entry=>entry.id),
       state:structuredClone(nightmareState(actor)),cooldowns:structuredClone(actor.getFlag?.(MODULE_ID,"nightmareFearCooldowns")??{}),

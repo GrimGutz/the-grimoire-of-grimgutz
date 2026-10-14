@@ -5,6 +5,7 @@ import {automatonTransformationDocuments} from "./automaton-transformation.mjs";
 import {broodmotherTransformationDocuments} from "./broodmother-transformation.mjs";
 import {chimeraTransformationDocuments} from "./chimera-transformation.mjs";
 import {deathknightTransformationDocuments} from "./deathknight-transformation.mjs";
+import {dullahanTransformationDocuments} from "./dullahan-transformation.mjs";
 
 export const folders = [];
 
@@ -15,5 +16,6 @@ export const documents = [
   ...automatonTransformationDocuments,
   ...broodmotherTransformationDocuments,
   ...chimeraTransformationDocuments,
-  ...deathknightTransformationDocuments
+  ...deathknightTransformationDocuments,
+  ...dullahanTransformationDocuments
 ];

@@ -90,8 +90,8 @@ try {
 
 if (documentCounts.classes !== 36) errors.push(`Expected 36 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 721) errors.push(`Expected 721 features, got ${documentCounts.features ?? 0}`);
-if (documentCounts.transformations !== 7) errors.push(`Expected 7 transformations, got ${documentCounts.transformations ?? 0}`);
+if (documentCounts.features !== 739) errors.push(`Expected 739 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.transformations !== 8) errors.push(`Expected 8 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 21) errors.push(`Expected 21 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
 if (documentCounts.bestiary !== 30) errors.push(`Expected 30 bestiary actors, got ${documentCounts.bestiary ?? 0}`);
@@ -1025,11 +1025,11 @@ const allItemsByIdentifier = new Map(
   allItemDocuments.map(document => [document.system.identifier, document])
 );
 const transformationIdentifiers = new Set(transformationDocuments.map(document => document.system.identifier));
-for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation"]) {
+for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation", "dullahan-transformation"]) {
   if (!transformationIdentifiers.has(identifier)) errors.push(`Main transformation card is missing from transformations pack: ${identifier}`);
 }
 for (const document of transformationDocuments) {
-  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation"].includes(document.system.identifier)) {
+  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation", "dullahan-transformation"].includes(document.system.identifier)) {
     errors.push(`Transformations pack must contain only main transformation cards, got: ${document.system.identifier}`);
   }
 }
@@ -3405,6 +3405,14 @@ const dkGrants=dkRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[
 if(JSON.stringify(dkGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(dkGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(dkChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Death knight transformation must use cumulative single-boon choices");
 for(const d of dkCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Death knight card must describe bounded runtime automation: ${d.name}`);
 for(const [id,period] of [["smog","sr"],["crucible","lr"],["fireball","lr"],["annihilate","lr"]])if(dkMain.find(d=>d.system.identifier===`deathknight-${id}`)?.system.uses.recovery?.[0]?.period!==period)errors.push(`Death knight ${id}: incorrect recovery`);
+
+const dullahanRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="dullahan").map(e=>e.document);
+const dullahanCards=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.transformation==="dullahan").map(e=>e.document);
+if(dullahanRoots.length!==1||dullahanRoots[0]?.folder||dullahanCards.length!==18||dullahanCards.filter(d=>d.flags[manifest.id].dullahanFlaw).length!==4)errors.push("Dullahan needs one separate root, fourteen boons and four flaws");
+const dullahanGrants=dullahanRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],dullahanChoices=dullahanRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
+if(JSON.stringify(dullahanGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(dullahanGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(dullahanChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Dullahan progression must use cumulative single-boon choices");
+for(const d of dullahanCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Dullahan must describe bounded runtime automation: ${d.name}`);
+for(const [id,period]of [["heads","lr"],["howl","sr"],["prophecy","lr"],["gaze","lr"],["mists","lr"]])if(dullahanCards.find(d=>d.system.identifier===`dullahan-${id}`)?.system.uses.recovery?.[0]?.period!==period)errors.push(`Dullahan ${id}: incorrect recovery`);
 
 if (errors.length) {
   console.error("Validation failed:");

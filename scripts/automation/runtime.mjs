@@ -60,6 +60,10 @@ import {controlDeathknight} from "./transformations/deathknight-actions.mjs";
 import {controlDeathknightMinion} from "./transformations/deathknight-minions.mjs";
 import {installDeathknightHooks} from "./transformations/deathknight-events.mjs";
 import {applyDeathknightPacket} from "./transformations/deathknight-spells.mjs";
+import {validateDullahanItem,validateDullahanAdvancement} from "./transformations/dullahan.mjs";
+import {controlDullahan} from "./transformations/dullahan-actions.mjs";
+import {installDullahanHooks} from "./transformations/dullahan-events.mjs";
+import {applyDullahanPacket} from "./transformations/dullahan-combat.mjs";
 import {prepareAutomatonDamage,finishAutomatonCoils} from "./transformations/automaton-combat.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
@@ -723,6 +727,7 @@ export function getAutomationActionHandlers() {
   registry.set("broodmother-control",controlBroodmother);
   registry.set("chimera-control",controlChimera);
   registry.set("deathknight-control",controlDeathknight);
+  registry.set("dullahan-control",controlDullahan);
   registry.set("deathknight-minion",controlDeathknightMinion);
   registry.set("nightmare-summon-control",controlNightmareSummon);
   for (const [actions, handler] of [
@@ -1101,6 +1106,9 @@ function installHooks() {
   installDeathknightHooks();
   Hooks.on("preCreateItem",validateDeathknightItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateDeathknightAdvancement);
+  installDullahanHooks();
+  Hooks.on("preCreateItem",validateDullahanItem);
+  Hooks.on("dnd5e.preAdvancementManagerComplete",validateDullahanAdvancement);
   Hooks.on("preCreateItem",validateAutomatonItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateAutomatonAdvancement);
   Hooks.on("preCreateItem",validateArkaneItem);
@@ -1288,7 +1296,7 @@ export function getMidiHookHandlers() {
     prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
-    applySpellSourceResistance, applyBroodmotherToxicDamage, applyChimeraDamagePacket, applyDeathknightPacket, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
+    applySpellSourceResistance, applyBroodmotherToxicDamage, applyChimeraDamagePacket, applyDeathknightPacket, applyDullahanPacket, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
     applyMidiWeaponBuffAttackAutomation, prepareMidiSteelWill, finishMidiSteelWill };
 }
 

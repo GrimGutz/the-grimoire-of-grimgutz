@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 289,
-    "partial": 489,
+    "automatic": 290,
+    "partial": 507,
     "manual": 115,
     "review": 362
   },
@@ -857,6 +857,22 @@
         "tests/progression.test.mjs"
       ],
       "note": " после добавления свяжите конкретное оружие через Якорь. Без него сохраняется Форма нежити, но остальные бонусы недоступны. Размещение, гибель, трупы и особые условия подтверждает GM; модуль не удаляет чужие тела и не об"
+    },
+    {
+      "pack": "transformations",
+      "id": "d39d67e9756b23f7",
+      "name": "Трансформация: Дуллахан",
+      "key": "dullahan-transformation",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/progression.test.mjs"
+      ],
+      "note": " клятва одной цели, тип нежити, зрение, скакуны, размещаемые черепа, повторные спасброски и призыв Голов Смерти через Midi-QOL. Смерть, отсечение головы, сюжетные команды и спорные фразы подтверждает GM; 0 HP само по себ"
     },
     {
       "pack": "features",
@@ -9806,6 +9822,288 @@
       "entries": [],
       "checks": [],
       "note": " справка к @UUID[Compendium.the-grimoire-of-grimgutz.features.Item.ffba4d244432a571]{Специалисту по нежити}. Применяется к конкретному подконтрольному скелету; не даёт бонус всем существам или самому персонажу."
+    },
+    {
+      "pack": "features",
+      "id": "9a1626228c124234",
+      "name": "Клятва охотника",
+      "key": "dullahan-oath",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " Выбор в 60 футах, нативное бонусное действие, отдельная связь с одной целью. Дополнительная кость только попаданию оружием по этой цели, крит учитывается; глобального усиления других атак нет. Ноль HP не подтверждает см"
+    },
+    {
+      "pack": "features",
+      "id": "103a387b4724517e",
+      "name": "Форма нежити",
+      "key": "dullahan-form",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/dullahan"
+      ],
+      "checks": [
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " Реальный тип undead. Чужое нативное лечение через Midi даёт временные HP; собственные способности сохраняют лечение. При 0 HP лечение оставляет 1 HP без сознания. Голова, старение и узкие иммунитеты конкретного УС — вру"
+    },
+    {
+      "pack": "features",
+      "id": "24549e56c47cf0c8",
+      "name": "Нарушенная клятва",
+      "key": "dullahan-broken",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " После 24 часов GM подтверждает живую цель; хранится отдельное состояние клятвы. Штраф максимума HP = УС цели + ступень трансформации, штраф всех спасбросков = ступень; обновляется по ступени, без лечения при снятии. Есл"
+    },
+    {
+      "pack": "features",
+      "id": "523accdfc60a327a",
+      "name": "Кошмарный скакун",
+      "key": "dullahan-mount",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " Подчиняется существующий подходящий токен, а не создаётся бесплатная копия. Проверяются размер, INT, УС, состояние, иммунитет и лимит; оригинальные характеристики/права владельца сохраняются. Верховую езду подтверждает "
+    },
+    {
+      "pack": "features",
+      "id": "c669a6831f790fd6",
+      "name": "Великое зрение",
+      "key": "dullahan-sight",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/dullahan"
+      ],
+      "checks": [
+        "tests/dullahan.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "ba91836bafd62161",
+      "name": "Пылающие черепа",
+      "key": "dullahan-skulls",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " Размещаемая сфера 20 футов в 90 футах: DEX, 8к6 огня/половина через Midi, затем минутное горение с повторным спасброском и 1к6 при провале в конце хода; успех снимает его раньше. Учёт раз за ход общий для способности, н"
+    },
+    {
+      "pack": "features",
+      "id": "fdf63ca94a7f062d",
+      "name": "Стойкость нежити",
+      "key": "dullahan-fortitude",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a18c2e939f7d1202",
+      "name": "Отвратительная внешность",
+      "key": "dullahan-appearance",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "202c4aebe52bae3d",
+      "name": "Голова Смерти",
+      "key": "dullahan-heads",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " GM выбирает реальный установленный статблок Головы Смерти и подтверждает три свободных места рядом. Нативно тратится одно применение до LR; общий движок создаёт группу из трёх с её настоящими атаками, минутным сроком и "
+    },
+    {
+      "pack": "features",
+      "id": "cbfe21e4339a1bdd",
+      "name": "Вой Безголосого",
+      "key": "dullahan-howl",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "ce45f0c678f8ff6c",
+      "name": "Испепеляющий взгляд",
+      "key": "dullahan-gaze",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " GM подтверждает видимость и не заданную в PDF стоимость действия. Один WIS, затем испуг и связанное с концентрацией горение: в конце хода WIS, 1к8 огня при провале, успех завершает эффект. Иммунитет к испугу не даёт нал"
+    },
+    {
+      "pack": "features",
+      "id": "6f225f00fb939650",
+      "name": "Смертельное прорицание",
+      "key": "dullahan-prophecy",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "cbce6e0c7afaf442",
+      "name": "Увядающая клятва",
+      "key": "dullahan-fading",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/dullahan"
+      ],
+      "checks": [
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " Усиливает только действующее увядание своей клятвы. Половина максимума после базового штрафа, без изменения чужих эффектов. Половину обычных атак контролирует владелец/GM вручную: модуль не блокирует все атаки по неточн"
+    },
+    {
+      "pack": "features",
+      "id": "ede659deb354c132",
+      "name": "Охотник за головами",
+      "key": "dullahan-headhunter",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " Натуральная 20, подходящее оружие, голова, исключения и выживание подтверждаются GM. Кнопка проводит CON либо 6к8 рубящего по исключению; не срабатывает от одного лишь расширенного порога крита. Удаления токенов и автом"
+    },
+    {
+      "pack": "features",
+      "id": "790c571a88693156",
+      "name": "Непреклонный",
+      "key": "dullahan-defiant",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " Пассивное слепое зрение не менее 20 футов. GM подтверждает целую голову и запускает один срок 48 игровых часов; после срока отдельно подтверждает сохранность головы и место возрождения. Восстанавливаются только HP, не я"
+    },
+    {
+      "pack": "features",
+      "id": "f81ba204ec7da5ef",
+      "name": "Нервирующее пламя",
+      "key": "dullahan-unnerving",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-combat"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a8eca990db889d89",
+      "name": "Туманы Отчуждения",
+      "key": "dullahan-mists",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " GM подтверждает ночь и число игровых минут до рассвета. Действие, LR-ресурс и срок автоматические. GM-only отчёт для доступных токенов текущей сцены в 2 милях; скрытые NPC и их HP не публикуются игрокам. Сюжетный туман,"
+    },
+    {
+      "pack": "features",
+      "id": "6e27affd4f4ae1b0",
+      "name": "Безголовый Пешка",
+      "key": "dullahan-pawn",
+      "status": "partial",
+      "entries": [
+        "module:dullahan-control",
+        "runtime:transformations/dullahan-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/dullahan.test.mjs"
+      ],
+      "note": " GM указывает владельца головы и подтверждает действующий приказ. Если это заклятая цель, предыдущие недостатки подавляются на время пакта; ручные данные не стираются. Выполнение приказа, запрет вредить и смерти подтверж"
     },
     {
       "pack": "features",

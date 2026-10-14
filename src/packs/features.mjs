@@ -43,6 +43,7 @@ import {automatonDocuments,automatonFolders} from "./automaton-features.mjs";
 import {broodmotherDocuments,broodmotherFolders} from "./broodmother-features.mjs";
 import {chimeraDocuments,chimeraFolders} from "./chimera-features.mjs";
 import {deathknightDocuments,deathknightFolders} from "./deathknight-features.mjs";
+import {dullahanDocuments,dullahanFolders} from "./dullahan-features.mjs";
 
 const MAIN_FOLDER = idFor("folder:class-features");
 const STYLE_FOLDER = idFor("folder:weapon-styles");
@@ -92,6 +93,7 @@ export const folders = [
   ...broodmotherFolders,
   ...chimeraFolders,
   ...deathknightFolders,
+  ...dullahanFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -457,6 +459,7 @@ export const documents = configureAreaActivities([
   ...broodmotherDocuments,
   ...chimeraDocuments,
   ...deathknightDocuments,
+  ...dullahanDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ]);
