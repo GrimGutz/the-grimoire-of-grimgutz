@@ -44,6 +44,10 @@ import {installEmpathHooks} from "./classes/empath-events.mjs";
 import {validateArkaneItem,validateArkaneAdvancement} from "./transformations/arkane.mjs";
 import {controlArkane} from "./transformations/arkane-actions.mjs";
 import {installArkaneHooks} from "./transformations/arkane-events.mjs";
+import {validateAutomatonItem,validateAutomatonAdvancement} from "./transformations/automaton.mjs";
+import {controlAutomaton} from "./transformations/automaton-actions.mjs";
+import {installAutomatonHooks} from "./transformations/automaton-events.mjs";
+import {prepareAutomatonDamage,finishAutomatonCoils} from "./transformations/automaton-combat.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { registerAutomationPanel, openAutomationPanel } from "./shared/control-panel.mjs";
@@ -702,6 +706,7 @@ export function getAutomationActionHandlers() {
   registry.set("nightmare-control",controlNightmare);
   registry.set("empath-control",controlEmpath);
   registry.set("arkane-control",controlArkane);
+  registry.set("automaton-control",controlAutomaton);
   registry.set("nightmare-summon-control",controlNightmareSummon);
   for (const [actions, handler] of [
     [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
@@ -1069,6 +1074,9 @@ function installHooks() {
   Hooks.on("preCreateItem",validateNightmareItem);
   installEmpathHooks();
   installArkaneHooks();
+  installAutomatonHooks();
+  Hooks.on("preCreateItem",validateAutomatonItem);
+  Hooks.on("dnd5e.preAdvancementManagerComplete",validateAutomatonAdvancement);
   Hooks.on("preCreateItem",validateArkaneItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateArkaneAdvancement);
   Hooks.on("preCreateItem",validateEmpathItem);
@@ -1254,7 +1262,7 @@ export function getMidiHookHandlers() {
     prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
-    applySpellSourceResistance, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
+    applySpellSourceResistance, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
     applyMidiWeaponBuffAttackAutomation, prepareMidiSteelWill, finishMidiSteelWill };
 }
 

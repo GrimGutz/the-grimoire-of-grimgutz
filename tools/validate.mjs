@@ -90,8 +90,8 @@ try {
 
 if (documentCounts.classes !== 36) errors.push(`Expected 36 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 630) errors.push(`Expected 630 features, got ${documentCounts.features ?? 0}`);
-if (documentCounts.transformations !== 3) errors.push(`Expected 3 transformations, got ${documentCounts.transformations ?? 0}`);
+if (documentCounts.features !== 648) errors.push(`Expected 648 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.transformations !== 4) errors.push(`Expected 4 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 21) errors.push(`Expected 21 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
 if (documentCounts.bestiary !== 30) errors.push(`Expected 30 bestiary actors, got ${documentCounts.bestiary ?? 0}`);
@@ -1025,11 +1025,11 @@ const allItemsByIdentifier = new Map(
   allItemDocuments.map(document => [document.system.identifier, document])
 );
 const transformationIdentifiers = new Set(transformationDocuments.map(document => document.system.identifier));
-for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation"]) {
+for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation"]) {
   if (!transformationIdentifiers.has(identifier)) errors.push(`Main transformation card is missing from transformations pack: ${identifier}`);
 }
 for (const document of transformationDocuments) {
-  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation"].includes(document.system.identifier)) {
+  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation"].includes(document.system.identifier)) {
     errors.push(`Transformations pack must contain only main transformation cards, got: ${document.system.identifier}`);
   }
 }
@@ -3371,6 +3371,15 @@ const arkaneGrants=arkaneRoot[0]?.system.advancement.filter(a=>a.type==="ItemGra
 if(JSON.stringify(arkaneGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(arkaneGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(arkaneChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Presence must use shared transformation progression and cumulative single-boon choices");
 for(const d of arkaneFeatures){if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Presence feature must declare bounded runtime automation: ${d.name}`);
   if(["arkane-siphon","arkane-storm","arkane-limitless"].includes(d.system.identifier)&&d.system.uses.recovery?.[0]?.period!=="lr")errors.push(`Presence agreed LR recovery missing: ${d.name}`);}
+
+const automatonRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="automaton").map(e=>e.document);
+const automatonFeatures=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.automatonFeature).map(e=>e.document);
+if(automatonRoots.length!==1||automatonFeatures.length!==18||automatonFeatures.filter(d=>d.flags[manifest.id].automatonFlaw).length!==4)errors.push("Automaton needs one root, fourteen boons and four flaws");
+if(automatonRoots[0]?.folder)errors.push("Automaton main card must remain directly in transformations");
+const automatonGrants=automatonRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],automatonChoices=automatonRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
+if(JSON.stringify(automatonGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(automatonGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(automatonChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Automaton must use shared transformation progression and cumulative single-boon choices");
+for(const d of automatonFeatures){if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Automaton feature must describe its bounded runtime automation: ${d.name}`);
+  if(d.system.identifier==="automaton-steel"&&d.system.uses.recovery?.[0]?.period!=="lr")errors.push("Automaton steel reaction needs the agreed LR recovery");}
 
 if (errors.length) {
   console.error("Validation failed:");

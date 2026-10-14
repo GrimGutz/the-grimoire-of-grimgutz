@@ -38,6 +38,8 @@ export const MIDI_QOL_HOOKS = [
   ["midi-qol.preTargetDamageApplication", "applyHellfireFuryHook"],
   ["midi-qol.preTargetDamageApplication", "applySpellSourceResistance"],
   ["midi-qol.preTargetDamageApplication", "applySummonProtection"],
+  ["midi-qol.preTargetDamageApplication", "prepareAutomatonDamage"],
+  ["midi-qol.preCleanup", "finishAutomatonCoils"],
   ["midi-qol.RollComplete", "handleSummonSelfCost"],
   ["midi-qol.preCheckSaves", "prepareMidiSteelWill"],
   ["midi-qol.postCheckSaves", "finishMidiSteelWill"]

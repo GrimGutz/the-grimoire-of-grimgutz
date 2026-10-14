@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 275,
-    "partial": 428,
+    "automatic": 279,
+    "partial": 443,
     "manual": 95,
     "review": 362
   },
@@ -793,6 +793,22 @@
         "tests/progression.test.mjs"
       ],
       "note": " перетащите только основную карточку; остальные находятся в особенностях. Advancement выдаёт бонусы/недостатки и открывает выбор на уровнях 1/6/11/16. Числовые пассивы, отдельные ресурсы, круг Шторма и нативные броски ре"
+    },
+    {
+      "pack": "transformations",
+      "id": "eb0cfae19500e30c",
+      "name": "Трансформация: Автоматон",
+      "key": "automaton-transformation",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control",
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/progression.test.mjs"
+      ],
+      "note": " перетащите основную карточку на персонажа, затем выберите модель в выданной особенности. Прокачка открывается штатным Advancement на уровнях 1/6/11/16. Пассивы, подтверждённые реакции и Midi-урон автоматизированы; антим"
     },
     {
       "pack": "features",
@@ -8524,6 +8540,264 @@
         "tests/registrations.test.mjs"
       ],
       "note": " Кнопка после естественной 1 или провала спасброска на 5+ подтверждает именно новый исходный бросок. На IV уровне бросает 2к4 неотвратимого урона; GM применяет его без сопротивлений/иммунитетов и выбирает потерянные ячей"
+    },
+    {
+      "pack": "features",
+      "id": "372b0ce8fc6c5e62",
+      "name": "Модель Автоматона",
+      "key": "automaton-model",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control",
+        "runtime:transformations/automaton"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/automaton.test.mjs"
+      ],
+      "note": " Кнопка выбирает одну модель. Скорость/спасброски/КД — реальные пассивы; модель воина проверяет союзника в 5 футах при атаке и добавляет урон только атакам, не спасброскам. Смену ранее выбранной модели подтверждает GM."
+    },
+    {
+      "pack": "features",
+      "id": "d39d9c31e04251f9",
+      "name": "Форма Конструкта",
+      "key": "automaton-form",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/automaton"
+      ],
+      "checks": [
+        "tests/automaton.test.mjs"
+      ],
+      "note": " Сила +2 и Телосложение +1 с пределом 16, тип существа — Конструкт. Более высокие характеристики не понижаются. Иммунитет к изменению формы и режим отдыха — вручную с GM: универсального безопасного признака таких эффекто"
+    },
+    {
+      "pack": "features",
+      "id": "6cf7267cdc66592a",
+      "name": "Восприимчивость к Анти-Магии",
+      "key": "automaton-antimagic",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Вход/выход из поля подтверждает GM. Вход создаёт только связанное с этим полем Замедление, выход удаляет только его. Ограничения одного действия/числа атак и проверка задержки заклинаний остаются вручную. Рассеивание бр"
+    },
+    {
+      "pack": "features",
+      "id": "73771a2fbcdc9d24",
+      "name": "Сила и уверенность стали",
+      "key": "automaton-steel",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "fcb41c78f68dce14",
+      "name": "Бронебойный",
+      "key": "automaton-armor",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/automaton"
+      ],
+      "checks": [
+        "tests/automaton.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "8a09af8989ebfdd4",
+      "name": "Только плоть терпит неудачу",
+      "key": "automaton-bastion",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "d244517ac888f1af",
+      "name": "Перегрузка",
+      "key": "automaton-overload",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "66387434fd7e4db7",
+      "name": "Перезарядка",
+      "key": "automaton-recharge",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Кнопка проверки режима отдыха для GM: начало отсчёта/начисление истощения подтверждаются, пропущенные часы не наказываются автоматически. Короткий отдых дольше на час — время учитывает GM; ресурсы не сбрасываются прежде"
+    },
+    {
+      "pack": "features",
+      "id": "89339f9863c9c230",
+      "name": "Плоть слаба!",
+      "key": "automaton-flesh",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/automaton-combat"
+      ],
+      "checks": [
+        "tests/automaton.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "80337b18aa7cb526",
+      "name": "Живой материал",
+      "key": "automaton-living",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/automaton-combat"
+      ],
+      "checks": [
+        "tests/automaton.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "585a489a7895d6be",
+      "name": "Механизированный полет",
+      "key": "automaton-flight",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/automaton"
+      ],
+      "checks": [
+        "tests/automaton.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "58b3e867c0348709",
+      "name": "Потустороннее вооружение",
+      "key": "automaton-equipment",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Выбор одного собственного предмета после подтверждённого LR; оружие усиливается только при его атаке, исходная карточка не переписывается. Посох: нативные атаки осколков с Силой (один/два на III/IV ступени), одна трата "
+    },
+    {
+      "pack": "features",
+      "id": "376d1a4160ff21e4",
+      "name": "Высасывание силы",
+      "key": "automaton-drain",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Заменяет интервал истощения на восемь часов в счётчике; не накладывает постоянный штраф. Начало отсчёта и пропущенные периоды подтверждает GM."
+    },
+    {
+      "pack": "features",
+      "id": "69728f6ee83198f0",
+      "name": "Сопротивление заклинаниям",
+      "key": "automaton-resistance",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control",
+        "runtime:transformations/automaton-combat"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/automaton.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "f056cb163db020f1",
+      "name": "Дуговая батарея",
+      "key": "automaton-battery",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Хранилище фиксирует выбранную карточку заклинания, исходного заклинателя и суммарную вместимость. Загрузку и исходное применение подтверждает GM; источник не описывает способ зарядки, поэтому чужие ячейки не списываются"
+    },
+    {
+      "pack": "features",
+      "id": "62be46ae2926b3ff",
+      "name": "Нестабильное ядро",
+      "key": "automaton-core",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "e4f12d31469f1bfe",
+      "name": "Реактивные катушки",
+      "key": "automaton-coils",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control",
+        "runtime:transformations/automaton-combat"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/automaton.test.mjs"
+      ],
+      "note": " Выбранный элемент хранится отдельно. После подтверждённого урона этого типа предложены временные хиты, без сложения с имеющимися; смешанный урон уточняет GM. Перед уроном рукопашного попадания предлагается дополнительны"
+    },
+    {
+      "pack": "features",
+      "id": "9b322738c11c9d0e",
+      "name": "Уязвимость к Анти-Магии",
+      "key": "automaton-vulnerability",
+      "status": "partial",
+      "entries": [
+        "module:automaton-control"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
     },
     {
       "pack": "features",

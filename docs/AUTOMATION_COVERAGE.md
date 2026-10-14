@@ -4,8 +4,8 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 275
-- частично: 428
+- автоматизировано: 279
+- частично: 443
 - обоснованно вручную: 95
 - требует исправления: 362
 
@@ -69,6 +69,7 @@
 | transformations / Трансформация: Порождение убийств / Murderspawn | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | transformations / Трансформация: Полый / Hollow | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | transformations / Трансформация: Присутствие / Arkane | частично | module:arkane-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
+| transformations / Трансформация: Автоматон | частично | module:automaton-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
 | features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
 | features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
@@ -663,6 +664,24 @@
 | features / Аннулирование: барьер | частично | module:arkane-control | tests/registrations.test.mjs |
 | features / Наделение | частично | module:arkane-control | tests/registrations.test.mjs |
 | features / Сверхъестественное Искажение | частично | module:arkane-control | tests/registrations.test.mjs |
+| features / Модель Автоматона | частично | module:automaton-control, runtime:transformations/automaton | tests/registrations.test.mjs, tests/automaton.test.mjs |
+| features / Форма Конструкта | частично | runtime:transformations/automaton | tests/automaton.test.mjs |
+| features / Восприимчивость к Анти-Магии | частично | module:automaton-control | tests/registrations.test.mjs |
+| features / Сила и уверенность стали | частично | module:automaton-control | tests/registrations.test.mjs |
+| features / Бронебойный | автоматизировано | runtime:transformations/automaton | tests/automaton.test.mjs |
+| features / Только плоть терпит неудачу | частично | module:automaton-control | tests/registrations.test.mjs |
+| features / Перегрузка | частично | module:automaton-control | tests/registrations.test.mjs |
+| features / Перезарядка | частично | module:automaton-control | tests/registrations.test.mjs |
+| features / Плоть слаба! | автоматизировано | runtime:transformations/automaton-combat | tests/automaton.test.mjs |
+| features / Живой материал | автоматизировано | runtime:transformations/automaton-combat | tests/automaton.test.mjs |
+| features / Механизированный полет | автоматизировано | runtime:transformations/automaton | tests/automaton.test.mjs |
+| features / Потустороннее вооружение | частично | module:automaton-control | tests/registrations.test.mjs |
+| features / Высасывание силы | частично | module:automaton-control | tests/registrations.test.mjs |
+| features / Сопротивление заклинаниям | частично | module:automaton-control, runtime:transformations/automaton-combat | tests/registrations.test.mjs, tests/automaton.test.mjs |
+| features / Дуговая батарея | частично | module:automaton-control | tests/registrations.test.mjs |
+| features / Нестабильное ядро | частично | module:automaton-control | tests/registrations.test.mjs |
+| features / Реактивные катушки | частично | module:automaton-control, runtime:transformations/automaton-combat | tests/registrations.test.mjs, tests/automaton.test.mjs |
+| features / Уязвимость к Анти-Магии | частично | module:automaton-control | tests/registrations.test.mjs |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

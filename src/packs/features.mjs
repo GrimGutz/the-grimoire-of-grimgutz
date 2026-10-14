@@ -39,6 +39,7 @@ import {doomedDocuments,doomedFolders} from "./doomed-features.mjs";
 import {nightmareDocuments,nightmareFolders} from "./nightmare-features.mjs";
 import {empathDocuments,empathFolders} from "./empath-features.mjs";
 import {arkaneDocuments,arkaneFolders} from "./arkane-features.mjs";
+import {automatonDocuments,automatonFolders} from "./automaton-features.mjs";
 
 const MAIN_FOLDER = idFor("folder:class-features");
 const STYLE_FOLDER = idFor("folder:weapon-styles");
@@ -84,6 +85,7 @@ export const folders = [
   ...nightmareFolders,
   ...empathFolders,
   ...arkaneFolders,
+  ...automatonFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -445,6 +447,7 @@ export const documents = configureAreaActivities([
   ...nightmareDocuments,
   ...empathDocuments,
   ...arkaneDocuments,
+  ...automatonDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ]);
