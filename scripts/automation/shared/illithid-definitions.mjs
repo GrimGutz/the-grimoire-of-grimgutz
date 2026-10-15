@@ -1,6 +1,6 @@
 export const ILLITHID_ICON="icons/commodities/biological/organ-brain-pink-purple.webp";
 export const ILLITHID_ABILITIES=["str","dex","con","int","wis","cha"];
-export const ILLITHID_RULE_DEFAULTS={superiorityRecovery:"manual",refugeSeconds:0,refugeConcentration:false,melodySeconds:0,melodyConcentration:false};
+export const ILLITHID_RULE_DEFAULTS={superiorityRecovery:"lr",refugeSeconds:0,refugeConcentration:false,melodySeconds:0,melodyConcentration:false};
 export const ILLITHID_FEATURES=[
   ["extract","Извлечение Мозга",1,5,["extract"]],
   ["form","Аберрантная Форма",1,5],

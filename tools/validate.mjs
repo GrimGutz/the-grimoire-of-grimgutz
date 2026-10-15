@@ -3453,7 +3453,7 @@ if(ilRoots.length!==1||ilRoots[0]?.folder||ilCards.length!==18||ilCards.filter(d
 const ilGrants=ilRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],ilChoices=ilRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
 if(JSON.stringify(ilGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(ilGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(ilChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Illithid progression must use cumulative single choices");
 for(const d of ilCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Illithid needs honest bounded runtime automation: ${d.name}`);
-for(const id of ["extract","horizon","melody"])if(ilCards.find(d=>d.system.identifier===`illithid-${id}`)?.system.uses.recovery[0]?.period!=="lr")errors.push(`Illithid ${id} must recover on long rest`);
+for(const id of ["extract","horizon","melody","superiority"])if(ilCards.find(d=>d.system.identifier===`illithid-${id}`)?.system.uses.recovery[0]?.period!=="lr")errors.push(`Illithid ${id} must recover on long rest`);
 if(ilCards.find(d=>d.system.identifier==="illithid-blast")?.system.uses?.recovery?.length)errors.push("Mental Blast must not invent recovery/uses");
 
 if (errors.length) {
