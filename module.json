@@ -7,7 +7,7 @@
       "name": "Lev"
     }
   ],
-  "version": "0.15.20",
+  "version": "0.15.21",
   "socket": true,
   "compatibility": {
     "minimum": "14",
