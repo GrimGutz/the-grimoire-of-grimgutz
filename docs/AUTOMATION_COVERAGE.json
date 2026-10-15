@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 300,
-    "partial": 551,
-    "manual": 177,
-    "review": 362
+    "automatic": 302,
+    "partial": 566,
+    "manual": 178,
+    "review": 363
   },
   "records": [
     {
@@ -921,6 +921,22 @@
         "tests/progression.test.mjs"
       ],
       "note": " перетащите основную карточку, выберите тип в Форме Ведьмы. Проклятия используют общий запас, дополнительные виды не дают дополнительных типов существа. Неоднозначные правила и сюжетные решения подтверждает GM."
+    },
+    {
+      "pack": "transformations",
+      "id": "9676cfd3f0e06462",
+      "name": "Трансформация: Дракон",
+      "key": "halfdragon-transformation",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/progression.test.mjs"
+      ],
+      "note": " выберите происхождение в Драконьей Форме. Дыхание использует общий пул, нативную область и Midi; Оживлённое Дыхание — статблок из PDF. Дыхание и Крик восстанавливаются после короткого или продолжительного отдыха; HP слу"
     },
     {
       "pack": "features",
@@ -11570,6 +11586,278 @@
         "tests/hag.test.mjs"
       ],
       "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "9010d74fe08fa25d",
+      "name": "Дыхание",
+      "key": "halfdragon-breath",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "43bc9ec70b1a6f4a",
+      "name": "Драконья Форма",
+      "key": "halfdragon-form",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a8fe807dd53cd432",
+      "name": "Жадность",
+      "key": "halfdragon-greed",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "bff6a3652bdb518f",
+      "name": "Чешуя",
+      "key": "halfdragon-scales",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "6f3b7cfbf861c29b",
+      "name": "Острые Чувства",
+      "key": "halfdragon-senses",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/halfdragon"
+      ],
+      "checks": [
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "23308464b88ad303",
+      "name": "Улучшенный Фундаментум",
+      "key": "halfdragon-fundamentum",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": " Семейство определяет кнопку: минутная защита с ответным уроном после подтверждённого рукопашного попадания в 5 футах; нативный конус газа со сном до урона/пробуждения; либо STR-хватка с повтором в конце хода. Видимость,"
+    },
+    {
+      "pack": "features",
+      "id": "d2698c2023399d75",
+      "name": "Драконий Крик",
+      "key": "halfdragon-roar",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "8d9abd16fa32e5d0",
+      "name": "Отвратительная Внешность",
+      "key": "halfdragon-appearance",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "cbaaecc4c2fb0d8e",
+      "name": "Крылья",
+      "key": "halfdragon-wings",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "9d87cf461bb6ded6",
+      "name": "Драконьи Конечности",
+      "key": "halfdragon-limbs",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "36149d31f735cef2",
+      "name": "Драконья Сангромантия",
+      "key": "halfdragon-sangromancy",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "1388a07d32c923d1",
+      "name": "Оживлённое Дыхание",
+      "key": "halfdragon-living",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "3f5fffe96dfc4428",
+      "name": "Лень Дракона",
+      "key": "halfdragon-sloth",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "97d62cd449eacf7a",
+      "name": "Полиморф",
+      "key": "halfdragon-polymorph",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "9076dadc308ee78d",
+      "name": "Усиленное Дыхание",
+      "key": "halfdragon-empowered",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/halfdragon"
+      ],
+      "checks": [
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "87a784ca9e8f9af2",
+      "name": "Стража Дракона",
+      "key": "halfdragon-guard",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": " Пассивный иммунитет, отдельная минутная защита от урона по источнику spell без двойного деления. Свет токена восстанавливается только если его не меняли вручную/другим эффектом. Не даёт общего сопротивления всем атакам "
+    },
+    {
+      "pack": "features",
+      "id": "6d5e6f6b7b641736",
+      "name": "Потомки Богов",
+      "key": "halfdragon-descendant",
+      "status": "partial",
+      "entries": [
+        "module:halfdragon-control",
+        "runtime:transformations/halfdragon-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/halfdragon.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "4684c88c2cd6a81b",
+      "name": "Ненасытная Жадность",
+      "key": "halfdragon-insatiable",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Сюжетное ограничение имущества, без пустого пассивного эффекта или скрытого списания валюты."
     },
     {
       "pack": "features",

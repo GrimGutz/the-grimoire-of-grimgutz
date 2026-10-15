@@ -1,3 +1,4 @@
+import {halfdragonDocuments,halfdragonFolders} from "./halfdragon-features.mjs";
 import { feature, folder, idFor, utilityActivity } from "../common.mjs";
 import { configureAreaActivities } from "../areas.mjs";
 import { deathKnightDocuments, deathKnightFolders } from "./death-knight-features.mjs";
@@ -100,6 +101,7 @@ export const folders = [
   ...factoryFolders,
   ...godFolders,
   ...hagFolders,
+  ...halfdragonFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -469,6 +471,7 @@ export const documents = configureAreaActivities([
   ...factoryDocuments,
   ...godDocuments,
   ...hagDocuments,
+  ...halfdragonDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ]);

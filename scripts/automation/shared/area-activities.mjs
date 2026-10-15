@@ -109,7 +109,7 @@ async function deletePlaced(documents) {
   }
 }
 
-export async function useAreaActivity(activity, { validate = () => true, usage = {}, dialog = {}, message = {}, reportOutcome = false } = {}) {
+export async function useAreaActivity(activity, { validate = () => true, usage = {}, dialog = {}, message = {}, reportOutcome = false, beforeUse = null } = {}) {
   const spec = areaDefinitionFor(activity), actor = activityActor(activity), scene = canvas?.scene;
   if (!spec || !actor || !scene || !canvas.ready) return false;
   if (activeUse) { notify("Дождитесь завершения предыдущей площадной способности.", "warn"); return false; }
@@ -170,7 +170,13 @@ export async function useAreaActivity(activity, { validate = () => true, usage =
       .filter(token => !spec.immuneCondition || !(token.actor?.system?.traits?.ci?.value?.has?.(spec.immuneCondition)
         || token.actor?.system?.traits?.ci?.value?.includes?.(spec.immuneCondition)));
     const allies = spec.allyTempHp ? api.computeTargetsFromTemplates(templateUuids, source.document?.uuid ?? source, false, "ally", "always") : [];
-    const resolved = cloneAreaActivity(activity, spec, { resolved: true, castId });
+    let resolved = cloneAreaActivity(activity, spec, { resolved: true, castId });
+    // Optional selections use the actual placed area, before native consumption.
+    if (beforeUse) {
+      resolved = await beforeUse({activity: resolved, targets, templateUuids, castId});
+      if (!resolved) return false;
+      if (canvas.scene?.id !== scene.id) return false;
+    }
     for (const doc of placed) await doc.update({ [`flags.${MODULE_ID}.zoneTemplate`]: true,
       [`flags.${MODULE_ID}.sourceActor`]: actor.uuid, [`flags.${MODULE_ID}.areaCastId`]: castId,
       // Do not expire while players are still answering saving-throw requests.
@@ -186,6 +192,8 @@ export async function useAreaActivity(activity, { validate = () => true, usage =
     options.workflow = new WorkflowClass(actor, resolved, ChatMessage.getSpeaker({ actor }), new Set(targets),
       { event: usage.event, workflowOptions: options.midiOptions.workflowOptions });
     const workflow = await api.completeActivityUse(resolved, options, { configure: dialog.configure ?? true }, { create: true, rollMode: message.rollMode });
+    if (workflow?.grimgutzNeedsReview || options.workflow?.grimgutzNeedsReview)
+      return reportOutcome ? {status:"needs-review"} : false;
     if (workflow === false || workflow?.aborted || options.workflow?.aborted) return false;
     // Undefined with a running workflow is an unknown outcome, not a refund signal.
     committed = true;

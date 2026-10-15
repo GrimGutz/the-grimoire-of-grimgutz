@@ -5,6 +5,7 @@ import { isAuraDefeated, isAuraIncapacitated } from "./aura-conditions.mjs";
 import { LEADER_PRESENCE_DEFINITIONS } from "./leader-presence-definitions.mjs";
 import {doomedGiftActive,doomedEmpowered} from "./doomed-state.mjs";
 import {DEATHKNIGHT_AURAS} from "../transformations/deathknight-auras.mjs";
+import {HALFDRAGON_AURAS} from "../transformations/halfdragon-auras.mjs";
 import {GOD_AURAS} from "../transformations/god-auras.mjs";
 export { isAuraDefeated, isAuraIncapacitated } from "./aura-conditions.mjs";
 
@@ -20,6 +21,7 @@ const change = (key, value, type = "add") => ({ key, value: String(value), type,
 export const AURA_DEFINITIONS = [
   ...DEATHKNIGHT_AURAS,
   ...GOD_AURAS,
+  ...HALFDRAGON_AURAS,
   ...LEADER_PRESENCE_DEFINITIONS,
   ...[false,true].flatMap(empowered=>[
     {id:`doomed-cold-${empowered?"empowered":"normal"}`,name:"Мёртвый холод",radius:empowered?20:10,indicatorColor:"#7ebfd4",

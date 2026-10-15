@@ -4,10 +4,10 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 300
-- частично: 551
-- обоснованно вручную: 177
-- требует исправления: 362
+- автоматизировано: 302
+- частично: 566
+- обоснованно вручную: 178
+- требует исправления: 363
 
 Полные основания и замечания: [AUTOMATION_COVERAGE.json](AUTOMATION_COVERAGE.json).
 
@@ -77,6 +77,7 @@
 | transformations / Трансформация: Фабрика | частично | module:factory-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Божество | частично | module:god-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Ведьма | частично | module:hag-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
+| transformations / Трансформация: Дракон | частично | module:halfdragon-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
 | features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
 | features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
@@ -893,6 +894,24 @@
 | features / Оживлённая Метла | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
 | features / Проклятие Бабушки | обоснованно вручную | — | нужна отдельная проверка |
 | features / Зов Ковена | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Дыхание | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Драконья Форма | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Жадность | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Чешуя | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Острые Чувства | автоматизировано | runtime:transformations/halfdragon | tests/halfdragon.test.mjs |
+| features / Улучшенный Фундаментум | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Драконий Крик | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Отвратительная Внешность | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Крылья | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Драконьи Конечности | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Драконья Сангромантия | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Оживлённое Дыхание | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Лень Дракона | требует исправления | — | нужна отдельная проверка |
+| features / Полиморф | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Усиленное Дыхание | автоматизировано | runtime:transformations/halfdragon | tests/halfdragon.test.mjs |
+| features / Стража Дракона | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Потомки Богов | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
+| features / Ненасытная Жадность | обоснованно вручную | — | нужна отдельная проверка |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

@@ -464,7 +464,10 @@ async function createToken(actor, owner, summon, scene, sourceTokenId, index) {
 
   const token = actor.prototypeToken?.toObject?.() ?? foundry.utils.deepClone(actor.prototypeToken ?? {});
   const ownerToken = ownerTokenDocument(owner, scene, sourceTokenId);
-  const position = tokenPosition(owner, scene, sourceTokenId, index);
+  const placement = summon.placement;
+  if (placement && (placement.sceneId !== scene.id || !Number.isFinite(placement.x) || !Number.isFinite(placement.y)))
+    throw new Error("Некорректное место размещения призыва.");
+  const position = placement ?? tokenPosition(owner, scene, sourceTokenId, index);
   const tokenData = foundry.utils.mergeObject(token, {
     actorId: actor.id,
     actorLink: summon.unique === true,

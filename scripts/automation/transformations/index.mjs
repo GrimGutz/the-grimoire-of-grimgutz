@@ -17,6 +17,7 @@ import {syncDeathknight} from "./deathknight.mjs";
 import {syncDullahan} from "./dullahan.mjs";
 import {syncFactory} from "./factory-passives.mjs";
 import {syncGod} from "./god.mjs";
+import {syncHalfdragon} from "./halfdragon.mjs";
 import {syncHag} from "./hag.mjs";
 
 export const TRANSFORMATION_ACTIONS = new Set([
@@ -70,4 +71,5 @@ export async function syncTransformations(actor) {
   await syncFactory(actor);
   await syncGod(actor);
   await syncHag(actor);
+  await syncHalfdragon(actor);
 }
