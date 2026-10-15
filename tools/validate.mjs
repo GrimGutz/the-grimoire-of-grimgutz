@@ -3436,7 +3436,7 @@ const hagGrants=hagRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")?
 if(JSON.stringify(hagGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(hagGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(hagChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Hag progression must use cumulative single-boon choices");
 for(const d of hagCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Hag must describe bounded runtime automation: ${d.name}`);
 if(hagCards.find(d=>d.system.identifier==="hag-curse")?.system.uses.recovery[0]?.period!=="lr")errors.push("Hag curse recovers on long rest");
-if(hagCards.find(d=>d.system.identifier==="hag-hex")?.system.uses.recovery.length)errors.push("Hag hex recovery needs explicit GM configuration: no source-defined rest");
+if(hagCards.find(d=>d.system.identifier==="hag-hex")?.system.uses.recovery[0]?.period!=="lr")errors.push("Hag hex must use the user-confirmed long-rest recovery");
 
 if (errors.length) {
   console.error("Validation failed:");

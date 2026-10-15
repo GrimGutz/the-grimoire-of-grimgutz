@@ -7,7 +7,7 @@ import {onConfirmedDamage} from "../shared/damage-events.mjs";
 import {inFeet} from "../shared/combat-benefits.mjs";
 import {applyNativeOnce} from "../shared/native-applications.mjs";
 import {askOwner} from "../shared/owner-prompts.mjs";
-import {hagHas,hagState,hagCharacterLevel,hagAvailable,syncHag,patchHag} from "./hag.mjs";
+import {hagHas,hagState,hagCharacterLevel,hagAvailable,syncHag,hagRules} from "./hag.mjs";
 import {hagPulse,hagGm} from "./hag-use.mjs";
 import {activeHagCurses,hagCurseData,syncHagCurseModifiers,removeHagCurses} from "./hag-curses.mjs";
 import {cleanupHagReflection,guardHagReflection} from "./hag-summons.mjs";
@@ -18,8 +18,7 @@ export function hagNaturalOne(roll){const die=roll?.dice?.find(d=>d.faces===20),
 export async function runHagCall(record){const source=await fromUuid(record.sourceTokenUuid),item=await fromUuid(record.sourceItemUuid);if(!source?.actor||!item||!hagHas(source.actor,"call"))return false;if(record.dice<1)return true;return hagPulse(source,item,[source],{damage:[{formula:`${record.dice}d6`,type:"force"}],requestId:record.id,metadata:{hagCall:true}});}
 export async function runHagRecord(record){if(record.operation==="call")return runHagCall(record);
   const source=await fromUuid(record.sourceTokenUuid),item=await fromUuid(record.sourceItemUuid);if(!source?.actor||!item)return {status:"needs-review"};
-  if(record.operation==="scarlet"){const target=await fromUuid(record.targetTokenUuid),effect=await fromUuid(record.effectUuid);if(!target?.actor||!effect||!activeHagCurses(target.actor).includes(effect))return false;let mode=hagState(source.actor).scarletDamageType;
-    if(!mode){mode=await askOwner(hagGm(source.actor),{title:"GM: тип Алого урона (PDF не задаёт)",choices:[["source","Тип исходного урона"],...Object.keys(CONFIG.DND5E.damageTypes??{}).map(k=>[k,k])]});if(mode!=="source"&&!Object.hasOwn(CONFIG.DND5E.damageTypes??{},mode))return false;await patchHag(source.actor,{scarletDamageType:mode});}
+  if(record.operation==="scarlet"){const target=await fromUuid(record.targetTokenUuid),effect=await fromUuid(record.effectUuid);if(!target?.actor||!effect||!activeHagCurses(target.actor).includes(effect))return false;const mode=hagRules(source.actor).scarletDamageType;
     let type=mode;if(mode==="source"){const types=[...new Set(record.damageTypes)].filter(t=>Object.hasOwn(CONFIG.DND5E.damageTypes??{},t));type=types.length===1?types[0]:await askOwner(hagGm(source.actor),{title:"Смешанный исходный урон: один тип Алого урона",choices:types.map(t=>[t,t])});if(!types.includes(type))return false;}
     return hagPulse(source,item,[target],{damage:[{formula:`1d4 + ${record.tier}`,type}],requestId:record.id,metadata:{hagCurseDamage:true}});
   }

@@ -21,5 +21,6 @@ export const HAG_FEATURES = [
   ["call", "Зов Ковена", 4, 46, ["call"], true]
 ].map(([id, name, level, page, operations = [], flaw = false, requires = null]) => ({id, key: `hag-${id}`, name, level, page, operations, flaw, requires, img: HAG_ICON}));
 export const hagUnlockedTier = level => Math.max(1, Math.min(4, Math.ceil(Number(level) / 5)));
-// No recovery is specified by the source. Keep this explicit rather than infer from neighbouring rules.
-export const HAG_HEX_RECOVERY = [];
+// Explicit user rulings for omissions/ambiguities in the PDF.
+export const HAG_RULE_DEFAULTS = Object.freeze({curseMode:"all",scarletDamageType:"source",hexRecovery:"lr"});
+export const HAG_HEX_RECOVERY = [{period:"lr",type:"recoverAll"}];

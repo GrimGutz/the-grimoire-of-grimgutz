@@ -6,7 +6,7 @@ import {askOwner,confirmOwner} from "../shared/owner-prompts.mjs";
 import {applyNativeOnce} from "../shared/native-applications.mjs";
 import {temporaryEffectTiming,isEffectActive} from "../effects/temporary-effects.mjs";
 import {flaggedPassiveEffectData,syncFlaggedPassiveEffects} from "../effects/passive-helpers.mjs";
-import {hagHas,hagCurses,hagLevel,hagDC,hagChange,hagState,patchHag} from "./hag.mjs";
+import {hagHas,hagCurses,hagLevel,hagDC,hagChange,hagRules} from "./hag.mjs";
 import {hagGm,hagTargets,hagPulse,useHagCost} from "./hag-use.mjs";
 export const hagCurseData=e=>e.getFlag?.(MODULE_ID,"hagCurse");
 export const activeHagCurses=actor=>[...(actor?.effects??[])].filter(e=>hagCurseData(e)&&isEffectActive(e));
@@ -30,7 +30,7 @@ export async function syncHagCurseModifiers(actor){if(!enabled())return;return s
 export async function castHagCurse(actor,activity,source,requestId){const types=hagCurses(actor);if(!types.length)throw Error("Сначала выберите тип Ведьмы.");
   const targets=await hagTargets(actor,source,"Цель Проклятия: дальность подтверждает GM"),target=targets?.[0];if(!target)return false;
   if(!await confirmOwner(hagGm(actor),"Проклятие: допустимость цели","Цель доступна по правилу стола (PDF не задаёт дальность)? Иммунитеты и ограниченное нацеливание проверены?"))return false;
-  let mode=hagState(actor).curseMode;if(types.length>1&&!mode){mode=await askOwner(hagGm(actor),{title:"GM: как трактовать дополнительные проклятия?",choices:[["all","Все выбранные виды: одно применение и один спасбросок"],["one","Выбор одного вида на применение"]]});if(!["all","one"].includes(mode))return false;await patchHag(actor,{curseMode:mode});}
+  const mode=hagRules(actor).curseMode;
   const type=types.length>1&&mode!=="all"?await askOwner(actor,{title:"Вид проклятия этого применения",choices:HAG_TYPES.filter(([id])=>types.includes(id))}):types[0];if(!types.includes(type))return false;const applied=mode==="all"?types:[type];
   return applyNativeOnce(actor,{requestId,action:"hag-curse",activityUuid:activity.uuid},()=>useHagCost(activity,{cost:1}),async()=>{const result=await hagPulse(source,activity.item,[target],{save:"wis",requestId:`${requestId}:save`});if(result.status!=="success")return {status:"needs-review"};if(result.failedSaves.includes(target.uuid))await applyHagCurse(source,target,activity.item,applied);return true;});
 }
