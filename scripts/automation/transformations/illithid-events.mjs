@@ -1,0 +1,38 @@
+import {MODULE_ID} from "../shared/constants.mjs";
+import {enabled,automationData,automationAction,findFeature,notify} from "../shared/helpers.mjs";
+import {isGmAuthority,requestGm,registerGmRequest} from "../shared/gm-requests.mjs";
+import {automationActors,isEffectActive} from "../effects/temporary-effects.mjs";
+import {registerAutomationEvent,runAutomationEvent} from "../shared/event-ledger.mjs";
+import {onConfirmedDamage} from "../shared/damage-events.mjs";
+import {canReact} from "../shared/combat-benefits.mjs";
+import {confirmOwner} from "../shared/owner-prompts.mjs";
+import {ilState,ilPatch,ilHas,ilCharLevel,ilAvailable,syncIllithid} from "./illithid.mjs";
+import {ilGm,ilPulse,ilCondition} from "./illithid-use.mjs";
+import {summonIllithidDevourer,illithidMoment} from "./illithid-summons.mjs";
+import {syncIllithidSlow} from "./illithid-areas.mjs";
+import {controlIllithid} from "./illithid-actions.mjs";
+import {prepareIllithidSpell,prepareIllithidCounter,prepareIllithidSave} from "./illithid-spells.mjs";
+import {interceptIllithidRefuge} from "./illithid-refuge.mjs";
+export function illithidNaturalOne(roll){const die=roll?.dice?.find(d=>d.faces===20),active=die?.results?.filter(r=>r.active!==false&&!r.discarded);return active?.length===1&&Number(active[0].result)===1;}
+export const illithidMagical=(item,activity)=>item?.type==="spell"||activity?.midiProperties?.magicEffect===true||item?.system?.properties?.has?.("mgc")||item?.system?.properties?.includes?.("mgc");
+export async function runIllithidEvent(r){const source=await fromUuid(r.sourceTokenUuid),item=await fromUuid(r.sourceItemUuid);if(!source?.actor||!item||source.parent?.id!==r.sceneId)return false;
+  if(r.operation==="call"){if(!ilHas(source.actor,"call")||r.dice<1)return false;return ilPulse(source,item,[source],{damage:[{formula:`${r.dice}d6`,type:"force"}],requestId:r.id,metadata:{illithidCall:true}});}
+  const target=await fromUuid(r.targetTokenUuid);if(!target?.actor||Number(target.actor.system.attributes.hp.value)!==0)return false;
+  if(!await confirmOwner(ilGm(source.actor),"Извлечение Мозга: подтверждённый результат","Этот конкретный урон снизил цель до 0, у неё действительно есть извлекаемый мозг и он съеден? Подтвердить смерть и возможное питание; документы и инвентарь не удаляются."))return false;
+  if(target.actor.toggleStatusEffect)await target.actor.toggleStatusEffect("dead",{active:true});else await ilCondition(source,target,item,{kind:"extracted",statuses:["dead"]});
+  const kill={id:r.id,sourceTokenUuid:source.uuid,targetTokenUuid:target.uuid,matterAvailable:r.matterAvailable,claimed:null,time:r.time,moment:r.moment};await ilPatch(source.actor,{brainKill:kill,...(r.targetIntelligence>=7?{lastFedAt:Number(game.time.worldTime)}:{})});await syncIllithid(source.actor);
+  if(r.matterAvailable&&r.moment===illithidMoment(source)&&ilHas(source.actor,"matter")&&canReact(source.actor)&&await confirmOwner(source.actor,"Разум и Материя","Использовать реакцию и создать Пожирателя Интеллекта из установленного статблока?")){const a=[...findFeature(source.actor,"illithid-matter").system.activities.values()][0];return summonIllithidDevourer(source.actor,a,source,`${r.id}:summon`);}return true;
+}
+registerAutomationEvent("illithid-event",runIllithidEvent);
+registerGmRequest("illithid-save-call",async(caster,data)=>{const a=await fromUuid(data.activityUuid),target=await fromUuid(data.targetUuid);if(!enabled()||!isGmAuthority()||a?.actor?.uuid!==caster.uuid||!illithidMagical(a.item,a)||!ilHas(target?.actor,"call")||!data.workflowId||!illithidNaturalOne(data.roll))return false;const r={id:`illithid-call:${data.workflowId}:${target.uuid}`,kind:"illithid-event",operation:"call",name:"Зов Старшего",sceneId:target.parent.id,sourceActorUuid:target.actor.uuid,sourceTokenUuid:target.uuid,sourceItemUuid:findFeature(target.actor,"illithid-call").uuid,dice:Math.floor(ilCharLevel(target.actor)/2)};return runAutomationEvent(r,()=>runIllithidEvent(r),{queued:!canvas.ready||canvas.scene?.id!==r.sceneId});});
+export async function finishIllithidSaves(w){if(!enabled()||w?.aborted||!w.actor||!illithidMagical(w.item,w.activity))return;const targets=new Set([...(w.targets??[]),...(w.saves??[]),...(w.failedSaves??[])]);for(const t of targets){const d=t.document??t;if(!ilHas(d.actor,"call"))continue;const roll=w.tokenSaves?.[d.uuid]??w.targetSaveDetails?.[d.uuid]?.saveRoll;if(!illithidNaturalOne(roll))continue;await requestGm("illithid-save-call",w.actor,{activityUuid:w.activity.uuid,workflowId:w.id,targetUuid:d.uuid,roll:{dice:roll.dice.map(v=>({faces:v.faces,results:v.results.map(r=>({result:r.result,active:r.active,discarded:r.discarded}))}))}},{requestId:`illithid-call-request:${w.id}:${d.uuid}`,timeoutMs:180000});}}
+export async function recordIllithidExtraction({actor,amount,event}){if(!enabled()||!isGmAuthority()||amount<=0||!event.illithidExtract||!(Number(event.beforeHp)>0)||Number(actor.system.attributes.hp.value)!==0)return;const source=await fromUuid(event.sourceTokenUuid),target=await fromUuid(event.targetTokenUuid);if(!source?.actor||target?.actor?.uuid!==actor.uuid||source.parent?.id!==target.parent?.id)return;const item=findFeature(source.actor,"illithid-extract");if(!item)return;
+  const r={id:`illithid-brain:${event.key}`,kind:"illithid-event",operation:"brain",name:"Извлечение Мозга",sceneId:source.parent.id,sourceActorUuid:source.actor.uuid,sourceTokenUuid:source.uuid,sourceItemUuid:item.uuid,targetTokenUuid:target.uuid,targetIntelligence:Number(actor.system.abilities.int.value),matterAvailable:ilHas(source.actor,"matter"),time:Number(game.time.worldTime),moment:illithidMoment(source)};return runAutomationEvent(r,()=>runIllithidEvent(r),{queued:!canvas.ready||canvas.scene?.id!==r.sceneId});}
+onConfirmedDamage(recordIllithidExtraction);
+export async function cleanupIllithidLinks(){if(!enabled()||!isGmAuthority())return;for(const actor of automationActors())for(const e of [...actor.effects??[]]){const c=e.getFlag?.(MODULE_ID,"illithidCondition");if(!c?.concentrationUuid)continue;const concentration=await fromUuid(c.concentrationUuid);if(!concentration||!isEffectActive(concentration))await e.delete();}}
+export function installIllithidHooks(){const report=p=>{if(p?.catch)void p.catch(e=>console.error(`${MODULE_ID} | Illithid automation`,e));};const intercept=a=>{if(!enabled()||!a)return;const f=automationData(a);if(f.illithidResolved||f.leaderResolved||f.auraPulse||automationAction(a)!=="illithid-control")return;if(!ilAvailable(a.actor,a.item)){notify("Иллитид: недоступная ступень, требование либо подавленная особенность.","warn");return false;}report(controlIllithid(a.actor,a));return false;};
+  Hooks.on("dnd5e.preUseActivity",intercept);Hooks.on("midi-qol.preTargetingV2",({workflow})=>intercept(workflow?.activity));Hooks.on("dnd5e.preUseActivity",interceptIllithidRefuge);
+  Hooks.on("midi-qol.prePreambleComplete",prepareIllithidCounter);Hooks.on("midi-qol.prePreambleComplete",prepareIllithidSpell);Hooks.on("midi-qol.preTargetSave",prepareIllithidSave);Hooks.on("midi-qol.postCheckSaves",finishIllithidSaves);
+  for(const name of ["createActiveEffect","updateActiveEffect","deleteActiveEffect"])Hooks.on(name,e=>{if(!enabled()||!isGmAuthority())return;if(e.getFlag?.(MODULE_ID,"combatBenefit")?.kind==="illithid-slow")report(syncIllithidSlow(e.parent));if(ilHas(e.parent,"appearance"))report(syncIllithid(e.parent));if(e.statuses?.has?.("concentrating"))report(cleanupIllithidLinks());});
+  for(const name of ["ready","updateWorldTime"])Hooks.on(name,()=>{if(!enabled()||!isGmAuthority())return;report(cleanupIllithidLinks());for(const a of automationActors())if(ilHas(a,"hunger")&&Number.isFinite(ilState(a).lastFedAt))report(syncIllithid(a));});
+}

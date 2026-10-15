@@ -4,8 +4,8 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 302
-- частично: 566
+- автоматизировано: 307
+- частично: 580
 - обоснованно вручную: 178
 - требует исправления: 363
 
@@ -78,6 +78,7 @@
 | transformations / Трансформация: Божество | частично | module:god-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Ведьма | частично | module:hag-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Дракон | частично | module:halfdragon-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
+| transformations / Трансформация: Иллитид | частично | module:illithid-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
 | features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
 | features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
@@ -912,6 +913,24 @@
 | features / Стража Дракона | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
 | features / Потомки Богов | частично | module:halfdragon-control, runtime:transformations/halfdragon-actions | tests/registrations.test.mjs, tests/halfdragon.test.mjs |
 | features / Ненасытная Жадность | обоснованно вручную | — | нужна отдельная проверка |
+| features / Извлечение Мозга | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
+| features / Аберрантная Форма | автоматизировано | runtime:transformations/illithid | tests/illithid.test.mjs |
+| features / Психическая Связь | частично | runtime:transformations/illithid | tests/illithid.test.mjs |
+| features / Горизонт Событий | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
+| features / Ментальный Взрыв | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
+| features / Иллитидский Разум | автоматизировано | runtime:transformations/illithid | tests/illithid.test.mjs |
+| features / Разум и Материя | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
+| features / Отвратительная Внешность | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
+| features / Псионическое Превосходство | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
+| features / Полет | автоматизировано | runtime:transformations/illithid | tests/illithid.test.mjs |
+| features / Псионическое Колдовство | автоматизировано | runtime:transformations/illithid | tests/illithid.test.mjs |
+| features / Ментальное Убежище | частично | module:illithid-control, aura:illithid-refuge, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/auras.test.mjs, tests/aura-events.test.mjs, tests/illithid.test.mjs |
+| features / Голод Интеллекта | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
+| features / Высшая Псионика | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
+| features / Ментальная Крепость | автоматизировано | runtime:transformations/illithid | tests/illithid.test.mjs |
+| features / Зондирование Мыслей | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
+| features / Телекинетическая Мелодия | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
+| features / Зов Старшего | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

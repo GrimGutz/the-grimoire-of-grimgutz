@@ -74,6 +74,11 @@ import {controlGod} from "./transformations/god-actions.mjs";
 import {installGodHooks} from "./transformations/god-events.mjs";
 import {validateGodItem,validateGodAdvancement} from "./transformations/god.mjs";
 import {applyGodElement,applyGodDefenses} from "./transformations/god-midi.mjs";
+import {controlIllithid} from "./transformations/illithid-actions.mjs";
+import {installIllithidHooks} from "./transformations/illithid-events.mjs";
+import {validateIllithidItem,validateIllithidAdvancement} from "./transformations/illithid.mjs";
+import {applyIllithidPacket} from "./transformations/illithid-midi.mjs";
+import {useIllithidRefuge} from "./transformations/illithid-refuge.mjs";
 import {controlHalfdragon} from "./transformations/halfdragon-actions.mjs";
 import {installHalfdragonHooks} from "./transformations/halfdragon-events.mjs";
 import {validateHalfdragonItem,validateHalfdragonAdvancement} from "./transformations/halfdragon.mjs";
@@ -750,6 +755,7 @@ export function getAutomationActionHandlers() {
   registry.set("god-control",controlGod);
   registry.set("hag-control",controlHag);
   registry.set("halfdragon-control",controlHalfdragon);
+  registry.set("illithid-control",controlIllithid);
   registry.set("factory-homunculus",controlFactoryHomunculus);
   registry.set("deathknight-minion",controlDeathknightMinion);
   registry.set("nightmare-summon-control",controlNightmareSummon);
@@ -1134,6 +1140,9 @@ function installHooks() {
   installGodHooks();
   installHagHooks();
   installHalfdragonHooks();
+  installIllithidHooks();
+  Hooks.on("preCreateItem",validateIllithidItem);
+  Hooks.on("dnd5e.preAdvancementManagerComplete",validateIllithidAdvancement);
   Hooks.on("preCreateItem",validateHalfdragonItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateHalfdragonAdvancement);
   Hooks.on("preCreateItem",validateHagItem);
@@ -1328,7 +1337,7 @@ function installHooks() {
 export function getMidiHookHandlers() {
   return { prepareComfortHealing, finishComfortHealing, handleHollowWeaponHit, prepareHollowCast, handleGuardianWeaponHit, prepareArmorSave, finishDefenseReactions, handleInsectBiteHit, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
     prepareLeaderHealing, handleLeaderCritical, handleDistractingPresence, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
-    prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations, applyFactoryDamage, applyFactoryDefense, applyGodElement, applyGodDefenses, applyHagDamage, applyHagDefense, applyHalfdragonBite,
+    prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations, applyFactoryDamage, applyFactoryDefense, applyGodElement, applyGodDefenses, applyHagDamage, applyHagDefense, applyHalfdragonBite, applyIllithidPacket,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
     applySpellSourceResistance, applyBroodmotherToxicDamage, applyChimeraDamagePacket, applyDeathknightPacket, applyDullahanPacket, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
@@ -1363,6 +1372,7 @@ export function exposeApi() {
   if (!module) return;
   module.api = {
     useAreaActivity,
+    useIllithidRefuge,
     useLeaderStratagem,
     chooseLeaderPresenceTargets,
     useInsectBloodDrain,

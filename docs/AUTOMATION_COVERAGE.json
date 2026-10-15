@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 302,
-    "partial": 566,
+    "automatic": 307,
+    "partial": 580,
     "manual": 178,
     "review": 363
   },
@@ -937,6 +937,22 @@
         "tests/progression.test.mjs"
       ],
       "note": " выберите происхождение в Драконьей Форме. Дыхание использует общий пул, нативную область и Midi; Оживлённое Дыхание — статблок из PDF. Дыхание и Крик восстанавливаются после короткого или продолжительного отдыха; HP слу"
+    },
+    {
+      "pack": "transformations",
+      "id": "0bc2a1c69d49d2e0",
+      "name": "Трансформация: Иллитид",
+      "key": "illithid-transformation",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/progression.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
     },
     {
       "pack": "features",
@@ -11858,6 +11874,285 @@
       "entries": [],
       "checks": [],
       "note": " Сюжетное ограничение имущества, без пустого пассивного эффекта или скрытого списания валюты."
+    },
+    {
+      "pack": "features",
+      "id": "388f5d7df3f2ddf8",
+      "name": "Извлечение Мозга",
+      "key": "illithid-extract",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": " Выбор допустимой цели в 5 футах до расхода; INT/6к10 через Midi. Смерть, наличие мозга и питание подтверждает GM только по квитанции положительного окончательного урона, действительно снизившего HP до 0. Дубликат callba"
+    },
+    {
+      "pack": "features",
+      "id": "9925056d2965c76a",
+      "name": "Аберрантная Форма",
+      "key": "illithid-form",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/illithid"
+      ],
+      "checks": [
+        "tests/illithid.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "5cadb213c4f2aed9",
+      "name": "Психическая Связь",
+      "key": "illithid-bond",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/illithid"
+      ],
+      "checks": [
+        "tests/illithid.test.mjs"
+      ],
+      "note": " Помеха только спасброскам от смерти. Поглощение воспоминаний Старшим Мозгом — сюжет, без удаления персонажа или инвентаря."
+    },
+    {
+      "pack": "features",
+      "id": "206641da93c9fe68",
+      "name": "Горизонт Событий",
+      "key": "illithid-horizon",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": " Размещаемый круг 40 футов в 60 футах; GM подтверждает видимость точки и выбирает реальные цели шаблона. STR, урон и числовые штрафы Замедления автоматизированы; притягивание с учётом препятствий, предел атак/действий и "
+    },
+    {
+      "pack": "features",
+      "id": "8a179f9a9a3d71c2",
+      "name": "Ментальный Взрыв",
+      "key": "illithid-blast",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "0f1aa36b6b27ea91",
+      "name": "Иллитидский Разум",
+      "key": "illithid-mind",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/illithid"
+      ],
+      "checks": [
+        "tests/illithid.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "c4acc8629259e7d7",
+      "name": "Разум и Материя",
+      "key": "illithid-matter",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "7fa761d5bcee7b90",
+      "name": "Отвратительная Внешность",
+      "key": "illithid-appearance",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "4a9eb13ff3b05c02",
+      "name": "Псионическое Превосходство",
+      "key": "illithid-superiority",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": " Реакция предлагается владельцу в подходящем Midi-потоке, проверяются враг, цель, расстояние, уровень и ресурс; расход только после согласия. GM подтверждает аннулирование, ячейка заклинателя не возвращается. Восстановле"
+    },
+    {
+      "pack": "features",
+      "id": "4a038dd55fcb786f",
+      "name": "Полет",
+      "key": "illithid-flight",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/illithid"
+      ],
+      "checks": [
+        "tests/illithid.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "58e2add6c34b75db",
+      "name": "Псионическое Колдовство",
+      "key": "illithid-spellcasting",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/illithid"
+      ],
+      "checks": [
+        "tests/illithid.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "39d09050287fb88e",
+      "name": "Ментальное Убежище",
+      "key": "illithid-refuge",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "aura:illithid-refuge",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/auras.test.mjs",
+        "tests/aura-events.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": " Аура-круг автоматически следует за токеном. Обычные нативные активности внутри предлагают штатную или заменённую цену action/bonus через Midi, без бесплатного второго действия. Скриптовые способности других обработчиков"
+    },
+    {
+      "pack": "features",
+      "id": "f128dbbf2ed457f3",
+      "name": "Голод Интеллекта",
+      "key": "illithid-hunger",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": " Отсчёт начинается только после подтверждённого GM питания. Пассивный штраф рассчитывается по мировому времени, без накопительного повторного вычитания. Новое питание снимает только этот штраф; смерть при 0 подтверждает "
+    },
+    {
+      "pack": "features",
+      "id": "590d5ca5afd535ae",
+      "name": "Высшая Псионика",
+      "key": "illithid-supreme",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": " Помеха только спасброскам от подтверждённого очаровывающего/пугающего заклинания и только цели без соответствующего иммунитета. Для нестандартного заклинания есть привязка к конкретной карточке. Обход иммунитета и приме"
+    },
+    {
+      "pack": "features",
+      "id": "671ed0427410f685",
+      "name": "Ментальная Крепость",
+      "key": "illithid-fortress",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/illithid"
+      ],
+      "checks": [
+        "tests/illithid.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "558c5939a4f14262",
+      "name": "Зондирование Мыслей",
+      "key": "illithid-probe",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "1b6bf4ee18ecb2fd",
+      "name": "Телекинетическая Мелодия",
+      "key": "illithid-melody",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "c8b04b83f4218609",
+      "name": "Зов Старшего",
+      "key": "illithid-call",
+      "status": "partial",
+      "entries": [
+        "module:illithid-control",
+        "runtime:transformations/illithid-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/illithid.test.mjs"
+      ],
+      "note": " Естественная 1 проверяется по активной к20, а не отброшенной кости. Один силовой Midi-пульс по уровню персонажа, с адресным обходом иммунитета/сопротивления. Событие другой сцены сохраняется в очереди, не разыгрывается "
     },
     {
       "pack": "features",

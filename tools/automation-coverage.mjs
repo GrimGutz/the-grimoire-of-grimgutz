@@ -8,6 +8,7 @@ import {STRATAGEM_RULES} from "../scripts/automation/classes/leader-stratagems.m
 import {DULLAHAN_FEATURES} from "../scripts/automation/shared/dullahan-definitions.mjs";
 import {FACTORY_FEATURES} from "../scripts/automation/shared/factory-definitions.mjs";
 import {GOD_FEATURES} from "../scripts/automation/shared/god-definitions.mjs";
+import {ILLITHID_FEATURES} from "../scripts/automation/shared/illithid-definitions.mjs";
 import {HALFDRAGON_FEATURES} from "../scripts/automation/shared/halfdragon-definitions.mjs";
 import {HAG_FEATURES} from "../scripts/automation/shared/hag-definitions.mjs";
 
@@ -18,6 +19,7 @@ const known = {...Object.fromEntries(["form","souls"].map(id=>[`deathknight-${id
   ...Object.fromEntries(DULLAHAN_FEATURES.map(r=>[r.key,[`transformations/${r.operations.length?"dullahan-actions":"dullahan"}`,"dullahan"]])),
   "dullahan-unnerving":["transformations/dullahan-combat","dullahan"],
   ...Object.fromEntries(GOD_FEATURES.filter(r=>r.id!=="rival").map(r=>[r.key,[`transformations/${r.operations.length?"god-actions":"god-events"}`,"god"]])),
+  ...Object.fromEntries(ILLITHID_FEATURES.map(r=>[r.key,[`transformations/${r.operations.length?"illithid-actions":"illithid"}`,"illithid"]])),
   ...Object.fromEntries(HALFDRAGON_FEATURES.filter(r=>!["sloth","insatiable"].includes(r.id)).map(r=>[r.key,[`transformations/${r.operations.length?"halfdragon-actions":"halfdragon"}`,"halfdragon"]])),
   ...Object.fromEntries(HAG_FEATURES.filter(r=>r.id!=="grandmother").map(r=>[r.key,[`transformations/${r.operations.length?"hag-actions":"hag"}`,"hag"]])),
   ...Object.fromEntries(FACTORY_FEATURES.filter(r=>r.id!=="appearance").map(r=>[r.key,[`transformations/${r.operations.length?"factory-actions":"factory-events"}`,"factory"]])),

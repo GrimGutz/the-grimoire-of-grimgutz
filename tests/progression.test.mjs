@@ -14,6 +14,7 @@ import {dkTransformationLevel} from "../scripts/automation/transformations/death
 import {dullahanLevel} from "../scripts/automation/transformations/dullahan.mjs";
 import {factoryLevel} from "../scripts/automation/transformations/factory.mjs";
 import {godLevel} from "../scripts/automation/transformations/god.mjs";
+import {ilLevel} from "../scripts/automation/transformations/illithid.mjs";
 import {hdLevel} from "../scripts/automation/transformations/halfdragon.mjs";
 import {hagLevel} from "../scripts/automation/transformations/hag.mjs";
 
@@ -34,7 +35,7 @@ for (const root of transformations) test(`${root.name}: levels 1/6/11/16 grant f
     assert.ok(pool.every(uuid => Number(byUuid.get(uuid)?.flags[MODULE_ID]?.transformationLevel) <= tier));
     previous = pool;
   }
-  const getLevel = {hollow:hollowTransformationLevel,murderspawn:murderspawnTransformationLevel,arkane:arkaneTransformationLevel,automaton:automatonTransformationLevel,broodmother:broodmotherTransformationLevel,chimera:chimeraTransformationLevel,deathknight:dkTransformationLevel,dullahan:dullahanLevel,factory:factoryLevel,god:godLevel,hag:hagLevel,halfdragon:hdLevel}[root.flags[MODULE_ID].transformation];
+  const getLevel = {hollow:hollowTransformationLevel,murderspawn:murderspawnTransformationLevel,arkane:arkaneTransformationLevel,automaton:automatonTransformationLevel,broodmother:broodmotherTransformationLevel,chimera:chimeraTransformationLevel,deathknight:dkTransformationLevel,dullahan:dullahanLevel,factory:factoryLevel,god:godLevel,hag:hagLevel,halfdragon:hdLevel,illithid:ilLevel}[root.flags[MODULE_ID].transformation];
   for (const characterLevel of [1, 5, 6, 10, 11, 15, 16, 20]) {
     const items = grants.filter(grant => grant.level <= characterLevel).flatMap(grant => grant.configuration.items.map(entry => byUuid.get(entry.uuid)));
     // Choosing an older boon must not lower the new transformation tier: its mandatory flaw defines it.

@@ -14,6 +14,7 @@ import {inspectDeathknight} from "../transformations/deathknight.mjs";
 import {inspectDullahan} from "../transformations/dullahan.mjs";
 import {inspectFactory} from "../transformations/factory.mjs";
 import {inspectGod} from "../transformations/god.mjs";
+import {inspectIllithid} from "../transformations/illithid.mjs";
 import {inspectHalfdragon} from "../transformations/halfdragon.mjs";
 import {inspectHag} from "../transformations/hag.mjs";
 
@@ -130,6 +131,7 @@ export async function inspectAutomation(actorOrUuid, { actionHandlers = new Map(
     god:inspectGod(actor),
     hag:inspectHag(actor),
     halfdragon:inspectHalfdragon(actor),
+    illithid:inspectIllithid(actor),
     empath:{level:empathLevel(actor),state:structuredClone(empathState(actor)),effects:empathEffects(actor).map(effect=>({uuid:effect.uuid,...structuredClone(empathEffectData(effect))})),lostActions:structuredClone(actor.getFlag?.(MODULE_ID,"empathLostActions")??null)},
     nightmare:{level:nightmareLevel(actor),resource:nightmareResourceState(actor),known:nightmareKnown(actor).map(entry=>entry.id),
       state:structuredClone(nightmareState(actor)),cooldowns:structuredClone(actor.getFlag?.(MODULE_ID,"nightmareFearCooldowns")??{}),

@@ -17,6 +17,7 @@ import {syncDeathknight} from "./deathknight.mjs";
 import {syncDullahan} from "./dullahan.mjs";
 import {syncFactory} from "./factory-passives.mjs";
 import {syncGod} from "./god.mjs";
+import {syncIllithid} from "./illithid.mjs";
 import {syncHalfdragon} from "./halfdragon.mjs";
 import {syncHag} from "./hag.mjs";
 
@@ -72,4 +73,5 @@ export async function syncTransformations(actor) {
   await syncGod(actor);
   await syncHag(actor);
   await syncHalfdragon(actor);
+  await syncIllithid(actor);
 }

@@ -396,7 +396,9 @@ function actorData(owner, summon, requestedBy) {
     type: "npc",
     img: summon.img,
     items: [...featureItems(summon), ...(summon.extraItems ?? []).map(item => {
-      const data = foundry.utils.deepClone(item); delete data._id; delete data._stats; data.flags = {}; data.effects = []; return data;
+      const data = foundry.utils.deepClone(item); delete data._stats;
+      if (!summon.preserveEmbedded) { delete data._id; data.flags = {}; data.effects = []; }
+      return data;
     })],
     effects: summon.effects ?? [],
     ownership: ownershipFor(owner, requestedBy),
@@ -417,7 +419,9 @@ function actorData(owner, summon, requestedBy) {
         } : null
       }
     },
-    system: actorSystem(summon),
+    // Opt-in native NPC recipes retain their real skills, saves, spell slots
+    // and embedded references instead of reconstructing an incomplete statblock.
+    system: summon.nativeSystem ? foundry.utils.deepClone(summon.nativeSystem) : actorSystem(summon),
     prototypeToken: prototypeToken(summon)
   };
 }
