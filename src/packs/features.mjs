@@ -46,6 +46,7 @@ import {deathknightDocuments,deathknightFolders} from "./deathknight-features.mj
 import {dullahanDocuments,dullahanFolders} from "./dullahan-features.mjs";
 import {factoryDocuments,factoryFolders} from "./factory-features.mjs";
 import {godDocuments,godFolders} from "./god-features.mjs";
+import {hagDocuments,hagFolders} from "./hag-features.mjs";
 
 const MAIN_FOLDER = idFor("folder:class-features");
 const STYLE_FOLDER = idFor("folder:weapon-styles");
@@ -98,6 +99,7 @@ export const folders = [
   ...dullahanFolders,
   ...factoryFolders,
   ...godFolders,
+  ...hagFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -466,6 +468,7 @@ export const documents = configureAreaActivities([
   ...dullahanDocuments,
   ...factoryDocuments,
   ...godDocuments,
+  ...hagDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ]);

@@ -90,8 +90,8 @@ try {
 
 if (documentCounts.classes !== 36) errors.push(`Expected 36 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 834) errors.push(`Expected 834 features, got ${documentCounts.features ?? 0}`);
-if (documentCounts.transformations !== 10) errors.push(`Expected 10 transformations, got ${documentCounts.transformations ?? 0}`);
+if (documentCounts.features !== 852) errors.push(`Expected 852 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.transformations !== 11) errors.push(`Expected 11 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 21) errors.push(`Expected 21 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
 if (documentCounts.bestiary !== 30) errors.push(`Expected 30 bestiary actors, got ${documentCounts.bestiary ?? 0}`);
@@ -1025,11 +1025,11 @@ const allItemsByIdentifier = new Map(
   allItemDocuments.map(document => [document.system.identifier, document])
 );
 const transformationIdentifiers = new Set(transformationDocuments.map(document => document.system.identifier));
-for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation", "dullahan-transformation", "factory-transformation", "god-transformation"]) {
+for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation", "dullahan-transformation", "factory-transformation", "god-transformation", "hag-transformation"]) {
   if (!transformationIdentifiers.has(identifier)) errors.push(`Main transformation card is missing from transformations pack: ${identifier}`);
 }
 for (const document of transformationDocuments) {
-  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation", "dullahan-transformation", "factory-transformation", "god-transformation"].includes(document.system.identifier)) {
+  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation", "dullahan-transformation", "factory-transformation", "god-transformation", "hag-transformation"].includes(document.system.identifier)) {
     errors.push(`Transformations pack must contain only main transformation cards, got: ${document.system.identifier}`);
   }
 }
@@ -3428,6 +3428,15 @@ const godGrants=godRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")?
 if(JSON.stringify(godGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(godGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(godChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("God progression must use cumulative single-boon choices");
 for(const d of godCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`God must describe bounded runtime automation: ${d.name}`);
 if(godCards.find(d=>d.system.identifier==="god-zeal")?.system.uses.recovery.length)errors.push("God zeal recovers at dawn, not SR/LR");
+
+const hagRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="hag").map(e=>e.document);
+const hagCards=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.transformation==="hag").map(e=>e.document);
+if(hagRoots.length!==1||hagRoots[0]?.folder||hagCards.length!==18||hagCards.filter(d=>d.flags[manifest.id].hagFlaw).length!==4)errors.push("Hag needs one separate root, fourteen boons and four flaws");
+const hagGrants=hagRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],hagChoices=hagRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
+if(JSON.stringify(hagGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(hagGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(hagChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Hag progression must use cumulative single-boon choices");
+for(const d of hagCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Hag must describe bounded runtime automation: ${d.name}`);
+if(hagCards.find(d=>d.system.identifier==="hag-curse")?.system.uses.recovery[0]?.period!=="lr")errors.push("Hag curse recovers on long rest");
+if(hagCards.find(d=>d.system.identifier==="hag-hex")?.system.uses.recovery.length)errors.push("Hag hex recovery needs explicit GM configuration: no source-defined rest");
 
 if (errors.length) {
   console.error("Validation failed:");

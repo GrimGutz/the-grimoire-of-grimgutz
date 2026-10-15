@@ -4,9 +4,9 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 299
-- частично: 534
-- обоснованно вручную: 176
+- автоматизировано: 300
+- частично: 551
+- обоснованно вручную: 177
 - требует исправления: 362
 
 Полные основания и замечания: [AUTOMATION_COVERAGE.json](AUTOMATION_COVERAGE.json).
@@ -76,6 +76,7 @@
 | transformations / Трансформация: Дуллахан | частично | module:dullahan-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Фабрика | частично | module:factory-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Божество | частично | module:god-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
+| transformations / Трансформация: Ведьма | частично | module:hag-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
 | features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
 | features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
@@ -874,6 +875,24 @@
 | features / Апофеоз | автоматизировано | runtime:transformations/god-events | tests/god.test.mjs |
 | features / Демисциенция | частично | module:god-control, runtime:transformations/god-actions | tests/registrations.test.mjs, tests/god.test.mjs |
 | features / Небесный Соперник | обоснованно вручную | — | нужна отдельная проверка |
+| features / Проклятие | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Форма Ведьмы | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Межплановая Связь | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Двойное Проклятие | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Зачарованное Тело | частично | runtime:transformations/hag | tests/hag.test.mjs |
+| features / Алхимическое Колдовство | автоматизировано | runtime:transformations/hag | tests/hag.test.mjs |
+| features / Гадалка | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Отвратительная Внешность | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Ковен Проклятий | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Колдовство | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Наговор | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Гротескное Отражение | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Баба-Яга | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Сглаженные Заклинания | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Кукла Вуду | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Оживлённая Метла | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
+| features / Проклятие Бабушки | обоснованно вручную | — | нужна отдельная проверка |
+| features / Зов Ковена | частично | module:hag-control, runtime:transformations/hag-actions | tests/registrations.test.mjs, tests/hag.test.mjs |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

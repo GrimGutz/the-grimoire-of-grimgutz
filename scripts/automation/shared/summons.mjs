@@ -559,7 +559,11 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
   // so it must not reserve the resource or create the group a second time.
   if (previous) return previous;
   const summons = data.summons ?? (data.summon ? [data.summon] : []);
-  if (!summons.length || summons.length > 3 || summons.some(summon => !summon.kind)) throw Error("Неверная группа призывов.");
+  // Hag reflections explicitly reach four at tier IV. Keep the established
+  // three-creature cap for every other recipe instead of splitting the group
+  // and losing transactional rollback when the fourth reflection fails.
+  const maximumGroup = summons.every(summon => summon.kind === "hag-reflection") ? 4 : 3;
+  if (!summons.length || summons.length > maximumGroup || summons.some(summon => !summon.kind)) throw Error("Неверная группа призывов.");
   const scene = data.sceneId ? game.scenes?.get?.(data.sceneId) ?? (canvas?.scene?.id === data.sceneId ? canvas.scene : null) : null;
   if (data.sceneId && !scene) throw Error("Сцена призыва не найдена.");
   if (data.requireScene && !scene) throw Error("Для призыва нужна сцена.");

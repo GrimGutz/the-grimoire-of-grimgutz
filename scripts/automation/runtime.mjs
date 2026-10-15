@@ -74,6 +74,10 @@ import {controlGod} from "./transformations/god-actions.mjs";
 import {installGodHooks} from "./transformations/god-events.mjs";
 import {validateGodItem,validateGodAdvancement} from "./transformations/god.mjs";
 import {applyGodElement,applyGodDefenses} from "./transformations/god-midi.mjs";
+import {controlHag} from "./transformations/hag-actions.mjs";
+import {installHagHooks} from "./transformations/hag-events.mjs";
+import {validateHagItem,validateHagAdvancement} from "./transformations/hag.mjs";
+import {applyHagDamage,applyHagDefense} from "./transformations/hag-combat.mjs";
 import {prepareAutomatonDamage,finishAutomatonCoils} from "./transformations/automaton-combat.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
@@ -740,6 +744,7 @@ export function getAutomationActionHandlers() {
   registry.set("dullahan-control",controlDullahan);
   registry.set("factory-control",controlFactory);
   registry.set("god-control",controlGod);
+  registry.set("hag-control",controlHag);
   registry.set("factory-homunculus",controlFactoryHomunculus);
   registry.set("deathknight-minion",controlDeathknightMinion);
   registry.set("nightmare-summon-control",controlNightmareSummon);
@@ -1122,6 +1127,9 @@ function installHooks() {
   installDullahanHooks();
   installFactoryHooks();
   installGodHooks();
+  installHagHooks();
+  Hooks.on("preCreateItem",validateHagItem);
+  Hooks.on("dnd5e.preAdvancementManagerComplete",validateHagAdvancement);
   Hooks.on("preCreateItem",validateGodItem);
   Hooks.on("dnd5e.preAdvancementManagerComplete",validateGodAdvancement);
   Hooks.on("preCreateItem",validateFactoryItem);
@@ -1312,7 +1320,7 @@ function installHooks() {
 export function getMidiHookHandlers() {
   return { prepareComfortHealing, finishComfortHealing, handleHollowWeaponHit, prepareHollowCast, handleGuardianWeaponHit, prepareArmorSave, finishDefenseReactions, handleInsectBiteHit, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
     prepareLeaderHealing, handleLeaderCritical, handleDistractingPresence, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
-    prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations, applyFactoryDamage, applyFactoryDefense, applyGodElement, applyGodDefenses,
+    prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations, applyFactoryDamage, applyFactoryDefense, applyGodElement, applyGodDefenses, applyHagDamage, applyHagDefense,
     applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
     applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
     applySpellSourceResistance, applyBroodmotherToxicDamage, applyChimeraDamagePacket, applyDeathknightPacket, applyDullahanPacket, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,

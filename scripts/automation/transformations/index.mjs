@@ -17,6 +17,7 @@ import {syncDeathknight} from "./deathknight.mjs";
 import {syncDullahan} from "./dullahan.mjs";
 import {syncFactory} from "./factory-passives.mjs";
 import {syncGod} from "./god.mjs";
+import {syncHag} from "./hag.mjs";
 
 export const TRANSFORMATION_ACTIONS = new Set([
   "gain-hollow-charge",
@@ -68,4 +69,5 @@ export async function syncTransformations(actor) {
   await syncDullahan(actor);
   await syncFactory(actor);
   await syncGod(actor);
+  await syncHag(actor);
 }

@@ -8,6 +8,7 @@ import {deathknightTransformationDocuments} from "./deathknight-transformation.m
 import {dullahanTransformationDocuments} from "./dullahan-transformation.mjs";
 import {factoryTransformationDocuments} from "./factory-transformation.mjs";
 import {godTransformationDocuments} from "./god-transformation.mjs";
+import {hagTransformationDocuments} from "./hag-transformation.mjs";
 
 export const folders = [];
 
@@ -21,5 +22,6 @@ export const documents = [
   ...deathknightTransformationDocuments,
   ...dullahanTransformationDocuments,
   ...factoryTransformationDocuments,
-  ...godTransformationDocuments
+  ...godTransformationDocuments,
+  ...hagTransformationDocuments
 ];

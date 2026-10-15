@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 299,
-    "partial": 534,
-    "manual": 176,
+    "automatic": 300,
+    "partial": 551,
+    "manual": 177,
     "review": 362
   },
   "records": [
@@ -905,6 +905,22 @@
         "tests/progression.test.mjs"
       ],
       "note": " выберите форму и Добрый/Злой вариант, используйте общий запас ОР и нативные активности. Рассвет/видимость/последователи/сюжет подтверждаются GM. Не заданные источником правила не выдумываются."
+    },
+    {
+      "pack": "transformations",
+      "id": "3706268f0952c226",
+      "name": "Трансформация: Ведьма",
+      "key": "hag-transformation",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/progression.test.mjs"
+      ],
+      "note": " перетащите основную карточку, выберите тип в Форме Ведьмы. Проклятия используют общий запас, дополнительные виды не дают дополнительных типов существа. Неоднозначные правила и сюжетные решения подтверждает GM."
     },
     {
       "pack": "features",
@@ -11276,6 +11292,284 @@
       "entries": [],
       "checks": [],
       "note": " Только сюжетный текст для GM. Не создаёт пустой пассив, случайные нападения и скрытое удаление последователей."
+    },
+    {
+      "pack": "features",
+      "id": "1c65066aecb900d4",
+      "name": "Проклятие",
+      "key": "hag-curse",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "b275753744fd6963",
+      "name": "Форма Ведьмы",
+      "key": "hag-form",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "988689b93ea7462c",
+      "name": "Межплановая Связь",
+      "key": "hag-bond",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "2731d512d864aaac",
+      "name": "Двойное Проклятие",
+      "key": "hag-double",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "d37b97dae6f0974b",
+      "name": "Зачарованное Тело",
+      "key": "hag-body",
+      "status": "partial",
+      "entries": [
+        "runtime:transformations/hag"
+      ],
+      "checks": [
+        "tests/hag.test.mjs"
+      ],
+      "note": " Типовые сопротивления и скорость плавания накладываются эффектами. Физическое сопротивление проверяет немагическую атаку, а не любой физический урон. Иммунитет блокирует новые проклятия этой трансформации; внешние прокл"
+    },
+    {
+      "pack": "features",
+      "id": "355a21eb95f28aff",
+      "name": "Алхимическое Колдовство",
+      "key": "hag-alchemy",
+      "status": "automatic",
+      "entries": [
+        "runtime:transformations/hag"
+      ],
+      "checks": [
+        "tests/hag.test.mjs"
+      ],
+      "note": "Событийный обработчик"
+    },
+    {
+      "pack": "features",
+      "id": "5f80f6b077c8e4c2",
+      "name": "Гадалка",
+      "key": "hag-fortune",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "b586ae13d2a5ba0b",
+      "name": "Отвратительная Внешность",
+      "key": "hag-appearance",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "b0a30f808affdb77",
+      "name": "Ковен Проклятий",
+      "key": "hag-coven",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "6652cb14226746c5",
+      "name": "Колдовство",
+      "key": "hag-cauldron",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "e34f62132a7de1dc",
+      "name": "Наговор",
+      "key": "hag-hex",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "60bde3f99c47958d",
+      "name": "Гротескное Отражение",
+      "key": "hag-reflection",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "6b509d08186c583c",
+      "name": "Баба-Яга",
+      "key": "hag-hunger",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": " GM явно включает/снимает последствия недостатка. Помехи реальны; модуль не угадывает календарные месяцы и сюжетные поступки."
+    },
+    {
+      "pack": "features",
+      "id": "5d8ab1bcbfd25022",
+      "name": "Сглаженные Заклинания",
+      "key": "hag-jinx",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "aea3cf5fdf6dca72",
+      "name": "Кукла Вуду",
+      "key": "hag-voodoo",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "4d4b430b3e4dcf4e",
+      "name": "Оживлённая Метла",
+      "key": "hag-broom",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a9ee1e8ef2cb29a7",
+      "name": "Проклятие Бабушки",
+      "key": "hag-grandmother",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Получите конкретную карточку великого проклятия из установленного источника и пометьте всегда подготовленной вручную. Материалы, новолуние и жертвы решает GM; заклинания не выдумываются."
+    },
+    {
+      "pack": "features",
+      "id": "63cb762a09c1f825",
+      "name": "Зов Ковена",
+      "key": "hag-call",
+      "status": "partial",
+      "entries": [
+        "module:hag-control",
+        "runtime:transformations/hag-actions"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs",
+        "tests/hag.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
     },
     {
       "pack": "features",
