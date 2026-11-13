@@ -6,6 +6,7 @@ import { isForwardTurn, combatTurnSnapshot, encounterForScene } from "./combat-f
 import { tokenSceneDistance, feetToSceneUnits } from "./spatial.mjs";
 import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
 import { isAuraIncapacitated, isAuraDefeated } from "./aura-conditions.mjs";
+import { onGmAuthority } from "./authority.mjs";
 
 export const benefitData = effect =>
   effect?.getFlag?.(MODULE_ID, "combatBenefit") ?? effect?.flags?.[MODULE_ID]?.combatBenefit;
@@ -354,10 +355,14 @@ export async function appendCalculatedBonus(token, damageItem, value, type) {
 }
 export function installCombatBenefitHooks() {
   Hooks.on("dnd5e.preRollAttack", applyNativeAttackBonuses);
-  Hooks.on("updateCombat", (combat, changes) => {
-    if (enabled() && isGmAuthority() && isForwardTurn(combat, changes) && combat.combatant?.actor)
-      void combat.combatant.actor.unsetFlag(MODULE_ID, "reactionUse");
-  });
+  onGmAuthority(
+    "updateCombat",
+    (combat, changes) => {
+      if (enabled() && isForwardTurn(combat, changes) && combat.combatant?.actor)
+        return combat.combatant.actor.unsetFlag(MODULE_ID, "reactionUse");
+    },
+    "Reaction reset"
+  );
   Hooks.on("updateCombat", (combat, changes) => {
     void cleanupCombatBenefits(combat, changes).catch(error =>
       console.error(`${MODULE_ID} | Benefit expiry failed`, error)

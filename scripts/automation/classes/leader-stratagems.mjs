@@ -22,6 +22,7 @@ import { isAuraIncapacitated } from "../shared/aura-conditions.mjs";
 import { leaderReceipt, leaderReceiptData } from "../shared/leader-receipts.mjs";
 import { encounterForScene, combatTurnSnapshot } from "../shared/combat-flow.mjs";
 import { effectKey } from "../shared/system-paths.mjs";
+import { onAuthority } from "../shared/authority.mjs";
 
 export const STRATAGEM_RULES = Object.freeze({
   "stratagem-cunning-ruse": "contest",
@@ -519,12 +520,17 @@ export function installLeaderStratagemHooks() {
     if (amount > 0 && record && next !== undefined && Number(next) <= Number(actor.system.attributes.hp.temp))
       updates[`flags.${MODULE_ID}.combatTempHp`] = { ...record, remaining: Number(next) };
   });
-  Hooks.on("deleteActiveEffect", effect => {
-    const record = effect.parent?.getFlag?.(MODULE_ID, "combatTempHp");
-    if (effect.parent?.isOwner && record?.effectUuid === effect.uuid) {
+  // Fires on every client: only the actor's automation authority clears the pool.
+  onAuthority(
+    "deleteActiveEffect",
+    effect => (effect.parent?.documentName === "Actor" ? effect.parent : null),
+    (actor, effect) => {
+      const record = actor.getFlag?.(MODULE_ID, "combatTempHp");
+      if (record?.effectUuid !== effect.uuid) return;
       const update = { [`flags.${MODULE_ID}.-=combatTempHp`]: null };
-      if (Number(effect.parent.system.attributes.hp.temp) === record.remaining) update["system.attributes.hp.temp"] = 0;
-      void effect.parent.update(update);
-    }
-  });
+      if (Number(actor.system.attributes.hp.temp) === record.remaining) update["system.attributes.hp.temp"] = 0;
+      return actor.update(update);
+    },
+    "Leader combat temporary HP cleanup"
+  );
 }
