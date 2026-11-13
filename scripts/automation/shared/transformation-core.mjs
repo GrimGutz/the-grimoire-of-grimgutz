@@ -1,6 +1,6 @@
 import { MODULE_ID, SETTINGS } from "./constants.mjs";
 import { automationData, enabled, notify } from "./helpers.mjs";
-import { serialMutation } from "./transactions.mjs";
+import { flagState } from "./flag-state.mjs";
 
 // Building blocks shared by the tiered transformations (Arkane, Automaton,
 // Broodmother, Chimera, Death Knight, Dullahan, Factory, God, Hag, Dragon,
@@ -35,15 +35,8 @@ export function transformationTier(actor, id, { unlocked = unlockedTier, include
   return Math.min(highest, total ? unlocked(total) : 4);
 }
 
-/** Flag-backed state: `read` never returns null; `patch` merges and is serialized per actor under `lock`. */
-export function transformationState(flag, lock) {
-  const read = actor => actor?.getFlag?.(MODULE_ID, flag) ?? {};
-  const patch = (actor, changes) =>
-    serialMutation(`${lock}:${actor.uuid}`, () =>
-      actor.setFlag(MODULE_ID, flag, { ...structuredClone(read(actor)), ...changes })
-    );
-  return { read, patch };
-}
+/** Flag-backed transformation state; see flagState for the serialized `patch` contract. */
+export const transformationState = (flag, lock) => flagState(flag, lock);
 
 /** One Active Effect change in the Foundry v14 `{type, phase}` format. */
 export const effectChange = (key, value, type = "add", phase = "initial", priority = 20) => ({

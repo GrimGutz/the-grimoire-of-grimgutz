@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 import { automationData, automationAction, enabled, notify, reportFailure } from "../shared/helpers.mjs";
-import { arkaneAvailable, arkaneHas, arkaneState } from "./arkane.mjs";
+import { arkaneAvailable, arkaneHas, arkaneState, patchArkane } from "./arkane.mjs";
 import { controlArkane } from "./arkane-actions.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";
@@ -21,10 +21,7 @@ registerGmRequest("arkane-rest", (actor, _data, { requestId }) =>
       { requestId, action: "arkane-rest", activityUuid: null },
       async () => true,
       async () => {
-        await actor.setFlag(MODULE_ID, "arkaneState", {
-          ...structuredClone(arkaneState(actor)),
-          restEpoch: Number(arkaneState(actor).restEpoch ?? 0) + 1
-        });
+        await patchArkane(actor, latest => ({ ...latest, restEpoch: Number(latest.restEpoch ?? 0) + 1 }));
         return true;
       }
     );
@@ -34,7 +31,7 @@ export async function observeArkaneAppearance(actor) {
   if (!enabled() || !isGmAuthority() || !arkaneHas(actor, "appearance") || arkaneState(actor).appearance === "true")
     return;
   if (actor.statuses?.has("unconscious") || actor.concentration?.effects?.size)
-    await actor.setFlag(MODULE_ID, "arkaneState", { ...structuredClone(arkaneState(actor)), appearance: "true" });
+    await patchArkane(actor, latest => ({ ...latest, appearance: "true" }));
 }
 export function installArkaneHooks() {
   const report = reportFailure("Arkane automation");

@@ -8,7 +8,8 @@ import {
   doomedOccupied,
   doomedCurseActive,
   doomedGiftActive,
-  doomedEmpowered
+  doomedEmpowered,
+  patchDoomed
 } from "../shared/doomed-state.mjs";
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 import { requestGm, registerGmRequest, isGmAuthority } from "../shared/gm-requests.mjs";
@@ -288,9 +289,11 @@ registerGmRequest("doomed-rest", (actor, data, { requestId }) =>
         const long = data.long === true,
           state = structuredClone(doomedState(actor)),
           ending = Boolean(data.endAmplification && data.endAmplification === state.amplification?.id);
-        if (long) state.suppressed = [];
-        if (ending) delete state.amplification;
-        if (long || ending) await actor.setFlag(MODULE_ID, "doomedState", state);
+        if (long || ending)
+          await patchDoomed(actor, latest => {
+            if (long) latest.suppressed = [];
+            if (ending) delete latest.amplification;
+          });
         if (ending)
           for (const effect of [...actor.effects])
             if (effect.getFlag?.(MODULE_ID, "doomedAmplification") === data.endAmplification) await effect.delete();

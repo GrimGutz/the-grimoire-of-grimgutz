@@ -15,7 +15,8 @@ import {
   automatonTransformationLevel,
   automatonDC,
   automatonChange,
-  syncAutomaton
+  syncAutomaton,
+  patchAutomaton
 } from "./automaton.mjs";
 import {
   automatonGm,
@@ -53,7 +54,7 @@ async function chooseModel(actor, activity, requestId) {
     { requestId, action: "automaton-model", activityUuid: activity.uuid },
     async () => true,
     async () => {
-      await actor.setFlag(MODULE_ID, "automatonState", { ...structuredClone(automatonState(actor)), model });
+      await patchAutomaton(actor, latest => ({ ...latest, model }));
       await syncAutomaton(actor);
       return true;
     }
@@ -89,11 +90,11 @@ async function immunities(actor, activity, requestId) {
     { requestId, action: "automaton-immunities", activityUuid: activity.uuid },
     async () => true,
     async () => {
-      await actor.setFlag(MODULE_ID, "automatonState", {
-        ...structuredClone(automatonState(actor)),
+      await patchAutomaton(actor, latest => ({
+        ...latest,
         immunities: selected.map(id => unique.get(id)),
         immunityEpoch: epoch
-      });
+      }));
       return true;
     }
   );
@@ -204,11 +205,11 @@ async function core(actor, activity, requestId) {
     { requestId, action: "automaton-core", activityUuid: activity.uuid },
     () => useAreaActivity(item.system.activities.get(activity.id), { reportOutcome: true }),
     async () => {
-      await actor.setFlag(MODULE_ID, "automatonState", {
-        ...structuredClone(automatonState(actor)),
+      await patchAutomaton(actor, latest => ({
+        ...latest,
         coreAt: Number(game.time.worldTime),
         coreRebuildAt: Number(game.time.worldTime) + 8 * 3600
-      });
+      }));
       return true;
     }
   );
@@ -280,7 +281,7 @@ registerGmRequest("automaton-action", (actor, data, { requestId }) =>
         { requestId, action: operation, activityUuid: activity.uuid },
         async () => true,
         async () => {
-          await actor.setFlag(MODULE_ID, "automatonState", { ...structuredClone(automatonState(actor)), element });
+          await patchAutomaton(actor, latest => ({ ...latest, element }));
           return true;
         }
       );

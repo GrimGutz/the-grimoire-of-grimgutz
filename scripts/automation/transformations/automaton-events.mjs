@@ -5,7 +5,13 @@ import { applyNativeOnce } from "../shared/native-applications.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { combatTurnSnapshot, isForwardTurn } from "../shared/combat-flow.mjs";
 import { runAutomationEvent, registerAutomationEvent } from "../shared/event-ledger.mjs";
-import { automatonAvailable, automatonHas, automatonState, automatonRegeneration } from "./automaton.mjs";
+import {
+  automatonAvailable,
+  automatonHas,
+  automatonState,
+  automatonRegeneration,
+  patchAutomaton
+} from "./automaton.mjs";
 import { controlAutomaton } from "./automaton-actions.mjs";
 import {
   prepareAutomatonRange,
@@ -57,11 +63,11 @@ registerGmRequest("automaton-rest", (actor, data, { requestId }) =>
       async () => true,
       async () => {
         if (data.long)
-          await actor.setFlag(MODULE_ID, "automatonState", {
-            ...structuredClone(automatonState(actor)),
-            restEpoch: Number(automatonState(actor).restEpoch ?? 0) + 1,
+          await patchAutomaton(actor, latest => ({
+            ...latest,
+            restEpoch: Number(latest.restEpoch ?? 0) + 1,
             lastRecharge: Number(game.time.worldTime)
-          });
+          }));
         return true;
       }
     );

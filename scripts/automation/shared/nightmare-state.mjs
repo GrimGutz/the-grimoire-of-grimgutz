@@ -3,9 +3,11 @@ import { classLevel } from "./selectors.mjs";
 import { findFeature, itemUses } from "./helpers.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { nightmareMaximum, NIGHTMARE_FEARS } from "./nightmare-definitions.mjs";
+import { flagState } from "./flag-state.mjs";
 export const nightmareLevel = actor => classLevel(actor, "nightmare");
-export const nightmareState = actor =>
-  actor?.getFlag?.(MODULE_ID, "nightmareState") ?? { known: [], replacementLevels: [] };
+const nightmareStore = flagState("nightmareState", "nightmare-state", () => ({ known: [], replacementLevels: [] }));
+export const nightmareState = nightmareStore.read;
+export const patchNightmare = nightmareStore.patch;
 export const nightmarePool = actor => findFeature(actor, "nightmare-feeding");
 export const nightmarePoints = actor => itemUses(nightmarePool(actor)).remaining;
 export const nightmareDC = actor =>

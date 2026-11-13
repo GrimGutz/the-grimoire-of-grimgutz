@@ -10,7 +10,8 @@ import {
   doomedCurseActive,
   doomedGiftActive,
   doomedEmpowered,
-  doomedDC
+  doomedDC,
+  patchDoomed
 } from "../shared/doomed-state.mjs";
 import { doomedAvailable, syncDoomed } from "./doomed.mjs";
 import { askOwner, confirmOwner, chooseSceneTokens } from "../shared/owner-prompts.mjs";
@@ -70,9 +71,9 @@ export async function chooseDoomedCurse(actor, { gift = false } = {}) {
 }
 export async function suppressDoomedGift(actor, id) {
   if (!doomedCurseActive(actor, id)) throw Error("Проклятие больше не принято.");
-  const state = structuredClone(doomedState(actor));
-  state.suppressed = [...new Set([...(state.suppressed ?? []), id])];
-  await actor.setFlag(MODULE_ID, "doomedState", state);
+  await patchDoomed(actor, state => {
+    state.suppressed = [...new Set([...(state.suppressed ?? []), id])];
+  });
   await syncDoomed(actor);
 }
 async function chooseAbility(actor) {
@@ -83,7 +84,7 @@ async function chooseAbility(actor) {
     choices: choices.map(key => [key, CONFIG.DND5E.abilities?.[key]?.label ?? key])
   });
   if (!choices.includes(choice)) return false;
-  await actor.setFlag(MODULE_ID, "doomedState", { ...structuredClone(doomedState(actor)), ability: choice });
+  await patchDoomed(actor, latest => ({ ...latest, ability: choice }));
   return true;
 }
 export async function acceptDoomedCurse(actor, activity, requestId) {
@@ -121,9 +122,9 @@ export async function acceptDoomedCurse(actor, activity, requestId) {
         [item] = await actor.createEmbeddedDocuments("Item", [data]);
         if (!item) throw Error("Не создана карточка проклятия.");
       }
-      const state = structuredClone(doomedState(actor));
-      state.accepted = [...(state.accepted ?? []), entry.id];
-      await actor.setFlag(MODULE_ID, "doomedState", state);
+      await patchDoomed(actor, state => {
+        state.accepted = [...(state.accepted ?? []), entry.id];
+      });
       if (entry.id === "heart" && Number(actor.system.attributes.hp.temp) > 0)
         await actor.update({ "system.attributes.hp.temp": 0 });
       if (entry.id === "disruption") {
@@ -182,15 +183,15 @@ export async function removeDoomedCurse(actor, activity, requestId) {
     async () => {
       if (mode === "level" && (doomedLevel(actor) !== level || (doomedState(actor).freeLevels ?? []).includes(level)))
         throw Error("Полученный уровень/право замены изменились; проверьте с GM.");
-      state.accepted = (state.accepted ?? []).filter(id => id !== entry.id);
-      state.suppressed = (state.suppressed ?? []).filter(id => id !== entry.id);
-      if (mode === "level") state.freeLevels = [...(state.freeLevels ?? []), level];
-      if (replacement) {
-        if (replacementData) await actor.createEmbeddedDocuments("Item", [replacementData]);
-        state.accepted.push(replacement.id);
-      }
+      if (replacement && replacementData) await actor.createEmbeddedDocuments("Item", [replacementData]);
       // Do not delete the user's owned card or manual edits. Only module-owned effects cease.
-      await actor.setFlag(MODULE_ID, "doomedState", state);
+      // The dialogs above can take minutes: apply the removal to the latest state.
+      await patchDoomed(actor, latest => {
+        latest.accepted = (latest.accepted ?? []).filter(id => id !== entry.id);
+        latest.suppressed = (latest.suppressed ?? []).filter(id => id !== entry.id);
+        if (mode === "level") latest.freeLevels = [...(latest.freeLevels ?? []), level];
+        if (replacement) latest.accepted.push(replacement.id);
+      });
       if (replacement?.id === "heart") await actor.update({ "system.attributes.hp.temp": 0 });
       if (replacement?.id === "disruption") await actor.endConcentration?.();
       await syncDoomed(actor);
@@ -216,7 +217,7 @@ export async function empowerDoomedCurse(actor, activity, requestId) {
     () => useNativeUtility(activity, { dataPatch: expense }),
     async () => {
       const amplification = { curse: entry.id, id: requestId, until: Number(game.time.worldTime) + 60 };
-      await actor.setFlag(MODULE_ID, "doomedState", { ...structuredClone(doomedState(actor)), amplification });
+      await patchDoomed(actor, latest => ({ ...latest, amplification }));
       await actor.createEmbeddedDocuments("ActiveEffect", [
         {
           name: `Усиление проклятия: ${entry.name}`,

@@ -10,7 +10,8 @@ import {
   syncArkane,
   changeArkaneFusion,
   inspectArkane,
-  arkaneChange
+  arkaneChange,
+  patchArkane
 } from "./arkane.mjs";
 import { askOwner, confirmOwner, promptOwner } from "../shared/owner-prompts.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
@@ -95,12 +96,13 @@ async function dailyFusion(actor, activity, requestId) {
     { requestId, action: "arkane-daily-fusion", activityUuid: activity.uuid },
     async () => true,
     async () => {
-      const current = structuredClone(arkaneState(actor));
-      current.fusionDays = [...(current.fusionDays ?? []), day].slice(-366);
-      const lack = Math.max(0, cost - Number(current.fusion ?? 0));
-      current.fusion = Math.max(0, Number(current.fusion ?? 0) - cost);
-      if (lack) current.starvationReview = { day, lack };
-      await actor.setFlag(MODULE_ID, "arkaneState", current);
+      let lack = 0;
+      await patchArkane(actor, current => {
+        current.fusionDays = [...(current.fusionDays ?? []), day].slice(-366);
+        lack = Math.max(0, cost - Number(current.fusion ?? 0));
+        current.fusion = Math.max(0, Number(current.fusion ?? 0) - cost);
+        if (lack) current.starvationReview = { day, lack };
+      });
       if (lack) notify("Не хватает ОС: GM должен определить постоянную потерю ячейки/дальнейшие последствия.", "warn");
       return true;
     }
@@ -332,15 +334,15 @@ async function persistence(actor, activity, source, operation, requestId) {
         workflowOptions: { allowIncapacitated: true }
       }),
     async () => {
-      await actor.setFlag(MODULE_ID, "arkaneState", {
-        ...structuredClone(arkaneState(actor)),
+      await patchArkane(actor, latest => ({
+        ...latest,
         persistence: {
           requestId,
           startedAt: game.time.worldTime,
           bodyActorUuid: actor.uuid,
           review: "GM оформляет отделённый разум и новое тело"
         }
-      });
+      }));
       return true;
     }
   );
@@ -389,7 +391,7 @@ async function manualRule(actor, activity, source, operation, requestId) {
     if (!value) return false;
     if (value === "humanoid" && (actor.statuses?.has("unconscious") || actor.concentration?.effects?.size))
       return false;
-    await actor.setFlag(MODULE_ID, "arkaneState", { ...structuredClone(arkaneState(actor)), appearance: value });
+    await patchArkane(actor, latest => ({ ...latest, appearance: value }));
     return true;
   }
   const selected =
@@ -412,10 +414,7 @@ async function manualRule(actor, activity, source, operation, requestId) {
       }),
     async () => {
       if (operation === "fractal") {
-        await actor.setFlag(MODULE_ID, "arkaneState", {
-          ...structuredClone(arkaneState(actor)),
-          fractalNext: now + 604800
-        });
+        await patchArkane(actor, latest => ({ ...latest, fractalNext: now + 604800 }));
         notify("Симулякр: GM создаёт копию по заклинанию; предел — половина уровня трансформации.");
         return true;
       }

@@ -3,9 +3,11 @@ import { findFeature } from "./helpers.mjs";
 import { classLevel } from "./selectors.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { DOOMED_CURSES, doomedSlots } from "./doomed-definitions.mjs";
+import { flagState } from "./flag-state.mjs";
 export const doomedLevel = actor => classLevel(actor, "doomed");
-export const doomedState = actor =>
-  actor?.getFlag?.(MODULE_ID, "doomedState") ?? { accepted: [], suppressed: [], freeLevels: [] };
+const doomedStore = flagState("doomedState", "doomed-state", () => ({ accepted: [], suppressed: [], freeLevels: [] }));
+export const doomedState = doomedStore.read;
+export const patchDoomed = doomedStore.patch;
 export const doomedAccepted = actor =>
   DOOMED_CURSES.filter(entry => (doomedState(actor).accepted ?? []).includes(entry.id));
 export const doomedOccupied = actor => doomedAccepted(actor).reduce((sum, entry) => sum + entry.cost, 0);

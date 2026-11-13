@@ -15,7 +15,9 @@ import {
   isDuplicateGrant,
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
-export const arkaneState = actor => actor?.getFlag?.(MODULE_ID, "arkaneState") ?? {};
+const arkaneStore = transformationState("arkaneState", "arkane-state");
+export const arkaneState = arkaneStore.read;
+export const patchArkane = arkaneStore.patch;
 export const arkaneCharacterLevel = characterLevel;
 export function arkaneTransformationLevel(actor) {
   return transformationTier(actor, "arkane", { unlocked: arkaneUnlockedTier });
@@ -110,16 +112,17 @@ export async function syncArkane(actor) {
     const maximum = Math.max(0, Number(actor.system.abilities.int.mod));
     if (itemUses(item).maximum !== maximum) await item.update({ "system.uses.max": String(maximum) });
   }
-  const state = arkaneState(actor);
-  if (arkaneTransformationLevel(actor) && !Number.isFinite(state.fusion))
-    await actor.setFlag(MODULE_ID, "arkaneState", { ...structuredClone(state), fusion: 0, totalFusion: 0 });
+  if (arkaneTransformationLevel(actor) && !Number.isFinite(arkaneState(actor).fusion))
+    await patchArkane(actor, latest =>
+      Number.isFinite(latest.fusion) ? latest : { ...latest, fusion: 0, totalFusion: 0 }
+    );
 }
 export async function changeArkaneFusion(actor, amount) {
-  const state = structuredClone(arkaneState(actor));
-  state.fusion = Math.max(0, Number(state.fusion ?? 0) + Number(amount));
-  if (amount > 0) state.totalFusion = Number(state.totalFusion ?? 0) + Number(amount);
-  await actor.setFlag(MODULE_ID, "arkaneState", state);
-  return state;
+  // Concurrent gains and costs must add up, not overwrite each other.
+  return patchArkane(actor, state => {
+    state.fusion = Math.max(0, Number(state.fusion ?? 0) + Number(amount));
+    if (amount > 0) state.totalFusion = Number(state.totalFusion ?? 0) + Number(amount);
+  });
 }
 export function arkanePrerequisiteFailures(actor) {
   const result = [];

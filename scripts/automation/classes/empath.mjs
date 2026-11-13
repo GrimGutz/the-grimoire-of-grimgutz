@@ -1,7 +1,7 @@
 import { MODULE_ID, SETTINGS } from "../shared/constants.mjs";
 import { enabled, isAutomationAuthority, findFeature, itemUses, notify } from "../shared/helpers.mjs";
 import { EMPATH_MASKS, empathTotalLevel } from "../shared/empath-definitions.mjs";
-import { empathLevel, empathState, empathMask, empathMaskActive } from "../shared/empath-state.mjs";
+import { empathLevel, empathState, empathMask, empathMaskActive, patchEmpath } from "../shared/empath-state.mjs";
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { effectKey } from "../shared/system-paths.mjs";
@@ -100,7 +100,7 @@ export async function syncEmpath(actor) {
   await syncFlaggedPassiveEffects(actor, syncing, MODULE_ID, "empathPassive", empathPassiveDefinitions);
   if (!empathLevel(actor)) return;
   if (!EMPATH_MASKS.some(mask => mask.id === empathState(actor).mask))
-    await actor.setFlag(MODULE_ID, "empathState", { ...structuredClone(empathState(actor)), mask: "calm" });
+    await patchEmpath(actor, latest => ({ ...latest, mask: "calm" }));
   for (const id of ["masks", "impulse"]) {
     const item = findFeature(actor, `empath-${id}`);
     if (item && itemUses(item).maximum !== Number(actor.system.attributes.prof))

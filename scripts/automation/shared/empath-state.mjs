@@ -3,8 +3,11 @@ import { classLevel } from "./selectors.mjs";
 import { findFeature } from "./helpers.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { EMPATH_MASKS } from "./empath-definitions.mjs";
+import { flagState } from "./flag-state.mjs";
 export const empathLevel = actor => classLevel(actor, "empath");
-export const empathState = actor => actor?.getFlag?.(MODULE_ID, "empathState") ?? {};
+const empathStore = flagState("empathState", "empath-state");
+export const empathState = empathStore.read;
+export const patchEmpath = empathStore.patch;
 export const empathMask = actor => EMPATH_MASKS.find(mask => mask.id === empathState(actor).mask) ?? EMPATH_MASKS[1];
 export const empathEffects = actor =>
   [...(actor?.effects ?? [])].filter(effect => isEffectActive(effect) && effect.getFlag?.(MODULE_ID, "empathEffect"));

@@ -17,7 +17,9 @@ import {
 } from "../shared/transformation-core.mjs";
 import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 
-export const automatonState = actor => actor?.getFlag?.(MODULE_ID, "automatonState") ?? {};
+const automatonStore = transformationState("automatonState", "automaton-state");
+export const automatonState = automatonStore.read;
+export const patchAutomaton = automatonStore.patch;
 export const automatonCharacterLevel = characterLevel;
 export function automatonTransformationLevel(actor) {
   return transformationTier(actor, "automaton");

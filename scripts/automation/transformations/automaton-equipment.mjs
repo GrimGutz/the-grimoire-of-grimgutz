@@ -4,7 +4,8 @@ import {
   automatonHas,
   automatonTransformationLevel,
   automatonChange,
-  automatonDC
+  automatonDC,
+  patchAutomaton
 } from "./automaton.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { useNativeUtility } from "../shared/native-actions.mjs";
@@ -60,12 +61,12 @@ export async function chooseAutomatonEquipment(actor, activity, requestId) {
     { requestId, action: "automaton-equipment", activityUuid: activity.uuid },
     async () => true,
     async () => {
-      await actor.setFlag(MODULE_ID, "automatonState", {
-        ...structuredClone(automatonState(actor)),
+      await patchAutomaton(actor, latest => ({
+        ...latest,
         equipment: { uuid: item.uuid, kind },
         charges: 0,
         chargeTurn: null
-      });
+      }));
       await automatonStateEffect(actor, activity.item, "equipment", {
         description: `Встроен ${item.name}; усиливается только этот предмет.`
       });
@@ -97,11 +98,7 @@ export async function useAutomatonEquipment(actor, activity, source, operation, 
       { requestId, action: operation, activityUuid: activity.uuid },
       async () => confirmOwner(actor, "Отсоединить предмет", "Завершить усиление выбранного предмета?"),
       async () => {
-        await actor.setFlag(MODULE_ID, "automatonState", {
-          ...structuredClone(automatonState(actor)),
-          equipment: null,
-          charges: 0
-        });
+        await patchAutomaton(actor, latest => ({ ...latest, equipment: null, charges: 0 }));
         await removeAutomatonStateEffect(actor, "equipment");
         return true;
       }
@@ -150,11 +147,11 @@ export async function useAutomatonEquipment(actor, activity, source, operation, 
       async () => {
         const c = game.combat,
           turn = c?.started ? `${c.id}:${c.round}:${c.turn}` : null;
-        await actor.setFlag(MODULE_ID, "automatonState", {
-          ...structuredClone(automatonState(actor)),
+        await patchAutomaton(actor, latest => ({
+          ...latest,
           charges: Number(state.charges ?? 0) + 1,
           chargeTurn: turn
-        });
+        }));
         return true;
       }
     );
@@ -249,11 +246,7 @@ export async function useAutomatonEquipment(actor, activity, source, operation, 
       { requestId, action: operation, activityUuid: activity.uuid },
       () => useAreaActivity(item.system.activities.get(activity.id), { reportOutcome: true }),
       async () => {
-        await actor.setFlag(MODULE_ID, "automatonState", {
-          ...structuredClone(automatonState(actor)),
-          charges: 0,
-          chargeTurn: null
-        });
+        await patchAutomaton(actor, latest => ({ ...latest, charges: 0, chargeTurn: null }));
         return true;
       }
     );

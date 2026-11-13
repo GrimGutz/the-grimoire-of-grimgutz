@@ -6,7 +6,8 @@ import {
   broodmotherState,
   broodmotherDC,
   broodmotherTransformationLevel,
-  broodmotherChange
+  broodmotherChange,
+  patchBroodmother
 } from "./broodmother.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
@@ -111,10 +112,10 @@ async function spinner(actor, activity, source, operation, requestId) {
           extra: { ac: 10, hpPer10: 5 }
         });
       }
-      await actor.setFlag(MODULE_ID, "broodmotherState", {
-        ...structuredClone(broodmotherState(actor)),
+      await patchBroodmother(actor, latest => ({
+        ...latest,
         thread: { sourceTokenUuid: source.uuid, targetUuid: target?.uuid ?? null, range: 90, ac: 10, hpPer10: 5 }
-      });
+      }));
       return true;
     }
   );
@@ -139,10 +140,7 @@ export async function broodmotherContempt(actor, activity, source, requestId, { 
     async () => {
       const deaths = Number(broodmotherState(actor).witnessedDeaths ?? 0) + 1,
         dc = broodmotherDC(actor) + 2 * deaths;
-      await actor.setFlag(MODULE_ID, "broodmotherState", {
-        ...structuredClone(broodmotherState(actor)),
-        witnessedDeaths: deaths
-      });
+      await patchBroodmother(actor, latest => ({ ...latest, witnessedDeaths: deaths }));
       const result = await broodmotherPulse(source, activity.item, [source], { save: "wis", dc, requestId });
       if (result.status !== "success") return { status: "needs-review" };
       if (result.failedSaves.includes(source.uuid)) {
@@ -173,10 +171,7 @@ async function mimic(actor, activity, source, operation, requestId) {
       { requestId, action: operation, activityUuid: activity.uuid },
       async () => true,
       async () => {
-        await actor.setFlag(MODULE_ID, "broodmotherState", {
-          ...structuredClone(broodmotherState(actor)),
-          mimicControl: false
-        });
+        await patchBroodmother(actor, latest => ({ ...latest, mimicControl: false }));
         for (const e of [...(actor.effects ?? [])])
           if (e.getFlag?.(MODULE_ID, "broodmotherMimicBody")) await e.delete();
         return true;
@@ -202,12 +197,12 @@ async function mimic(actor, activity, source, operation, requestId) {
       () => useNativeUtility(activity, { dataPatch: broodmotherExpense(activity) }),
       async () => {
         await target.actor.setFlag(MODULE_ID, "broodmotherMimicOwner", actor.uuid);
-        await actor.setFlag(MODULE_ID, "broodmotherState", {
-          ...structuredClone(broodmotherState(actor)),
+        await patchBroodmother(actor, latest => ({
+          ...latest,
           mimicControl: true,
           mimicTokenUuid: target.uuid,
           mimicActorUuid: target.actor.uuid
-        });
+        }));
         await actor.createEmbeddedDocuments("ActiveEffect", [
           {
             name: "Мимикрия: исходное тело неподвижно",
@@ -254,10 +249,7 @@ async function mimic(actor, activity, source, operation, requestId) {
     { requestId, action: operation, activityUuid: activity.uuid },
     () => useNativeUtility(activity, { dataPatch: broodmotherExpense(activity, { activation: "reaction" }) }),
     async () => {
-      await actor.setFlag(MODULE_ID, "broodmotherState", {
-        ...structuredClone(broodmotherState(actor)),
-        explodedMimicUuid: target.uuid
-      });
+      await patchBroodmother(actor, latest => ({ ...latest, explodedMimicUuid: target.uuid }));
       const size = Number(source.parent.grid.size),
         radius = (feetToSceneUnits(20, source.parent) / Number(source.parent.grid.distance ?? 5)) * size;
       const [zone] = await source.parent.createEmbeddedDocuments("Region", [
@@ -315,10 +307,7 @@ registerGmRequest("broodmother-action", (actor, data, { requestId }) =>
         async () => {
           if (op === "guise" && (actor.statuses?.has("unconscious") || actor.concentration?.effects?.size))
             throw Error("Концентрация/потеря сознания раскрывает истинную форму.");
-          await actor.setFlag(MODULE_ID, "broodmotherState", {
-            ...structuredClone(broodmotherState(actor)),
-            appearance: op === "guise" ? "humanoid" : "true"
-          });
+          await patchBroodmother(actor, latest => ({ ...latest, appearance: op === "guise" ? "humanoid" : "true" }));
           return true;
         }
       );

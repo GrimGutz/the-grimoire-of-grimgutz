@@ -1,7 +1,7 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 import { enabled } from "../shared/helpers.mjs";
 import { arkaneIdentity } from "../shared/arkane-definitions.mjs";
-import { arkaneHas, arkaneState, arkaneTransformationLevel, arkaneBodyActive } from "./arkane.mjs";
+import { arkaneHas, arkaneState, arkaneTransformationLevel, arkaneBodyActive, patchArkane } from "./arkane.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { arkaneGm, arkaneExpense, chooseArkaneSlots } from "./arkane-use.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
@@ -57,11 +57,11 @@ export async function chooseArkaneImmunities(actor, activity, requestId) {
     { requestId, action: "arkane-immunities", activityUuid: activity.uuid },
     async () => true,
     async () => {
-      await actor.setFlag(MODULE_ID, "arkaneState", {
-        ...structuredClone(arkaneState(actor)),
+      await patchArkane(actor, latest => ({
+        ...latest,
         immunities: selected.map(key => unique.get(key)),
         immunityChoiceEpoch: epoch
-      });
+      }));
       return true;
     }
   );

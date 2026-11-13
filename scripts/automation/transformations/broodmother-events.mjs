@@ -5,7 +5,8 @@ import {
   broodmotherHas,
   broodmotherAvailable,
   broodmotherTransformationLevel,
-  broodmotherChange
+  broodmotherChange,
+  patchBroodmother
 } from "./broodmother.mjs";
 import { controlBroodmother, broodmotherContempt } from "./broodmother-actions.mjs";
 import {
@@ -33,10 +34,7 @@ export async function revealBroodmother(actor) {
   )
     return;
   if (actor.statuses?.has?.("unconscious") || actor.concentration?.effects?.size)
-    await actor.setFlag(MODULE_ID, "broodmotherState", {
-      ...structuredClone(broodmotherState(actor)),
-      appearance: "true"
-    });
+    await patchBroodmother(actor, latest => ({ ...latest, appearance: "true" }));
 }
 export async function enhanceBroodmotherPoison(effect) {
   if (
@@ -64,10 +62,7 @@ export async function observeBroodmotherMimic(actor) {
     return;
   const owner = await fromUuid(actor.getFlag(MODULE_ID, "broodmotherMimicOwner"));
   if (!owner || broodmotherState(owner).mimicActorUuid !== actor.uuid || !broodmotherState(owner).mimicControl) return;
-  await owner.setFlag(MODULE_ID, "broodmotherState", {
-    ...structuredClone(broodmotherState(owner)),
-    mimicControl: false
-  });
+  await patchBroodmother(owner, latest => ({ ...latest, mimicControl: false }));
   for (const e of [...(owner.effects ?? [])]) if (e.getFlag?.(MODULE_ID, "broodmotherMimicBody")) await e.delete();
 }
 export async function rechargeBroodmotherWeb(actor) {
@@ -194,10 +189,7 @@ onConfirmedDamage(async ({ actor, amount, event }) => {
   const target = await fromUuid(event.targetTokenUuid);
   if (!target?.actor) return;
   if (broodmotherHas(actor, "pyrophobia") && (event.damageTypes ?? [event.damageType]).includes("fire")) {
-    await actor.setFlag(MODULE_ID, "broodmotherState", {
-      ...structuredClone(broodmotherState(actor)),
-      appearance: "true"
-    });
+    await patchBroodmother(actor, latest => ({ ...latest, appearance: "true" }));
     const combat = encounterForScene(target.parent, target),
       item = findFeature(actor, "broodmother-pyrophobia");
     await addCombatBenefit(target, target, item, {

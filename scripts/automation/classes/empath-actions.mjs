@@ -1,7 +1,14 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 import { enabled, findFeature, itemUses, automationData, notify } from "../shared/helpers.mjs";
 import { EMPATH_MASKS, empathDice, empathTemporaryDice } from "../shared/empath-definitions.mjs";
-import { empathLevel, empathMask, empathState, empathSnapshot, empathAvailable } from "../shared/empath-state.mjs";
+import {
+  empathLevel,
+  empathMask,
+  empathState,
+  empathSnapshot,
+  empathAvailable,
+  patchEmpath
+} from "../shared/empath-state.mjs";
 import { syncEmpath } from "./empath.mjs";
 import { createEmpathEffect, empathPulse, empathPlaceable } from "./empath-effects.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
@@ -57,7 +64,7 @@ async function tempHp(source, selected, formula) {
 }
 export async function setEmpathMask(actor, mask) {
   if (!EMPATH_MASKS.some(entry => entry.id === mask)) return false;
-  await actor.setFlag(MODULE_ID, "empathState", { ...structuredClone(empathState(actor)), mask });
+  await patchEmpath(actor, latest => ({ ...latest, mask }));
   await syncEmpath(actor);
   return true;
 }
@@ -208,7 +215,7 @@ async function nature(actor, activity, requestId) {
     { requestId, action: "empath-nature", activityUuid: activity.uuid },
     async () => true,
     async () => {
-      await actor.setFlag(MODULE_ID, "empathState", { ...structuredClone(empathState(actor)), nature: choice });
+      await patchEmpath(actor, latest => ({ ...latest, nature: choice }));
       await syncEmpath(actor);
       return true;
     }

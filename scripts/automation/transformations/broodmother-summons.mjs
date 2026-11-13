@@ -1,5 +1,11 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { broodmotherHas, broodmotherDC, broodmotherTransformationLevel, broodmotherState } from "./broodmother.mjs";
+import {
+  broodmotherHas,
+  broodmotherDC,
+  broodmotherTransformationLevel,
+  broodmotherState,
+  patchBroodmother
+} from "./broodmother.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { createSummonedGroup } from "../shared/summons.mjs";
 import { useNativeUtility } from "../shared/native-actions.mjs";
@@ -257,11 +263,11 @@ export async function summonBroodmotherHorror(actor, activity, source, requestId
         });
         previousReadyAt = Number(broodmotherState(actor).horrorReadyAt ?? 0);
         reservedReadyAt = now + days * 86400;
-        await actor.setFlag(MODULE_ID, "broodmotherState", {
-          ...structuredClone(broodmotherState(actor)),
+        await patchBroodmother(actor, latest => ({
+          ...latest,
           horrorReadyAt: reservedReadyAt,
           horrorRequestId: requestId
-        });
+        }));
         return true;
       }),
     async () => {
@@ -294,11 +300,11 @@ export async function summonBroodmotherHorror(actor, activity, source, requestId
             await serialMutation(`broodmother-horror:${actor.uuid}`, async () => {
               const state = broodmotherState(actor);
               if (state.horrorRequestId === requestId && state.horrorReadyAt === reservedReadyAt)
-                await actor.setFlag(MODULE_ID, "broodmotherState", {
-                  ...structuredClone(state),
-                  horrorReadyAt: previousReadyAt,
-                  horrorRequestId: null
-                });
+                await patchBroodmother(actor, latest =>
+                  latest.horrorRequestId === requestId && latest.horrorReadyAt === reservedReadyAt
+                    ? { ...latest, horrorReadyAt: previousReadyAt, horrorRequestId: null }
+                    : latest
+                );
             });
           }
           return { status: "needs-review" };

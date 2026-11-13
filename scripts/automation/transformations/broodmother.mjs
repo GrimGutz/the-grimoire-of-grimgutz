@@ -16,7 +16,9 @@ import {
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
 import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
-export const broodmotherState = actor => actor?.getFlag?.(MODULE_ID, "broodmotherState") ?? {};
+const broodmotherStore = transformationState("broodmotherState", "broodmother-state");
+export const broodmotherState = broodmotherStore.read;
+export const patchBroodmother = broodmotherStore.patch;
 export const broodmotherCharacterLevel = characterLevel;
 export function broodmotherTransformationLevel(actor) {
   return transformationTier(actor, "broodmother");

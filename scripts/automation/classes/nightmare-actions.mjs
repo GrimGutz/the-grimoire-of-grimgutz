@@ -10,7 +10,8 @@ import {
   nightmareFears,
   nightmareFearData,
   nightmareFrightened,
-  nightmareManifested
+  nightmareManifested,
+  patchNightmare
 } from "../shared/nightmare-state.mjs";
 import { enabled, automationData, findFeature, itemUses, notify } from "../shared/helpers.mjs";
 import { nightmareAvailable, syncNightmare } from "./nightmare.mjs";
@@ -89,7 +90,7 @@ async function chooseAbility(actor) {
       choices: choices.map(key => [key, CONFIG.DND5E.abilities?.[key]?.label ?? key])
     });
   if (!choices.includes(choice)) return false;
-  await actor.setFlag(MODULE_ID, "nightmareState", { ...structuredClone(nightmareState(actor)), ability: choice });
+  await patchNightmare(actor, latest => ({ ...latest, ability: choice }));
   return true;
 }
 async function getFearCard(entry) {
@@ -158,12 +159,13 @@ export async function learnNightmareFears(actor) {
     const made = await actor.createEmbeddedDocuments("Item", data);
     if (made.length !== data.length) throw Error("Не все карточки страхов созданы; выбор требует проверки GM.");
   }
-  state.known = [
-    ...known.filter(entry => entry.id !== removed).map(entry => entry.id),
-    ...selected.map(entry => entry.id)
-  ];
-  if (removed) state.replacementLevels = [...(state.replacementLevels ?? []), level];
-  await actor.setFlag(MODULE_ID, "nightmareState", state);
+  await patchNightmare(actor, latest => {
+    latest.known = [
+      ...known.filter(entry => entry.id !== removed).map(entry => entry.id),
+      ...selected.map(entry => entry.id)
+    ];
+    if (removed) latest.replacementLevels = [...(latest.replacementLevels ?? []), level];
+  });
   return true;
 }
 async function impose(actor, activity, source, operation, requestId) {

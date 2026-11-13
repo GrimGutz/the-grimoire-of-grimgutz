@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { automatonState, automatonTransformationLevel } from "./automaton.mjs";
+import { automatonState, automatonTransformationLevel, patchAutomaton } from "./automaton.mjs";
 import { askOwner } from "../shared/owner-prompts.mjs";
 import { automatonGm, confirmAutomatonGm } from "./automaton-use.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";
@@ -89,10 +89,10 @@ export async function storeAutomatonSpell(actor, activity, requestId) {
     async () => {
       const [item] = await actor.createEmbeddedDocuments("Item", [native]);
       if (!item) throw Error("Копия заклинания не создана.");
-      await actor.setFlag(MODULE_ID, "automatonState", {
-        ...structuredClone(automatonState(actor)),
+      await patchAutomaton(actor, latest => ({
+        ...latest,
         battery: [
-          ...(automatonState(actor).battery ?? []),
+          ...(latest.battery ?? []),
           {
             id: item.id,
             uuid: item.uuid,
@@ -106,7 +106,7 @@ export async function storeAutomatonSpell(actor, activity, requestId) {
             locked: false
           }
         ]
-      });
+      }));
       return true;
     }
   );
@@ -134,10 +134,10 @@ export async function castAutomatonSpell(actor, activity, requestId) {
     actor,
     { requestId, action: "automaton-battery-cast", activityUuid: activity.uuid },
     async () => {
-      await actor.setFlag(MODULE_ID, "automatonState", {
-        ...structuredClone(automatonState(actor)),
+      await patchAutomaton(actor, latest => ({
+        ...latest,
         battery: rows.map(r => (r.id === id ? { ...r, locked: true } : r))
-      });
+      }));
       const original = chosen.toObject();
       original.flags = { [MODULE_ID]: { automatonResolved: true, automatonBatteryRelease: true, action: "" } };
       original.consumption = { spellSlot: false, targets: [{ type: "itemUses", target: item.id, value: "1" }] };
@@ -152,17 +152,14 @@ export async function castAutomatonSpell(actor, activity, requestId) {
         { configure: true }
       );
       if (result === false || result?.aborted)
-        await actor.setFlag(MODULE_ID, "automatonState", {
-          ...structuredClone(automatonState(actor)),
-          battery: (automatonState(actor).battery ?? []).map(r => (r.id === id ? { ...r, locked: false } : r))
-        });
+        await patchAutomaton(actor, latest => ({
+          ...latest,
+          battery: (latest.battery ?? []).map(r => (r.id === id ? { ...r, locked: false } : r))
+        }));
       return result;
     },
     async () => {
-      await actor.setFlag(MODULE_ID, "automatonState", {
-        ...structuredClone(automatonState(actor)),
-        battery: (automatonState(actor).battery ?? []).filter(r => r.id !== id)
-      });
+      await patchAutomaton(actor, latest => ({ ...latest, battery: (latest.battery ?? []).filter(r => r.id !== id) }));
       return true;
     }
   );
