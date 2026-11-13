@@ -6,11 +6,16 @@ import { fileURLToPath } from "node:url";
 import { ClassicLevel } from "classic-level";
 import { getAutomationActionHandlers, getMidiHookHandlers } from "../scripts/automation/runtime.mjs";
 import { MIDI_QOL_HOOKS } from "../scripts/automation/midi/hooks.mjs";
+import { compatibilityReport, foundryPaths, installedVersions } from "./environment.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const foundryPublic = "C:\\Program Files\\Foundry Virtual Tabletop\\resources\\app\\public";
 const manifest = JSON.parse(await readFile(path.join(root, "module.json"), "utf8"));
-const errors = [];
+// Set FOUNDRY_APP_PATH / FOUNDRY_DATA_PATH when Foundry is installed elsewhere.
+const environment = foundryPaths(root);
+const foundryPublic = environment.public;
+const compatibility = compatibilityReport(manifest, installedVersions(manifest, environment));
+const errors = [...compatibility.errors];
+const warnings = [...compatibility.warnings];
 const AUTOMATION_CONFIG_VERSION = 1;
 
 async function readTextFilesRecursive(directory, extension = ".mjs") {
@@ -3895,6 +3900,10 @@ for (const id of ["extract", "horizon", "melody", "superiority"])
 if (ilCards.find(d => d.system.identifier === "illithid-blast")?.system.uses?.recovery?.length)
   errors.push("Mental Blast must not invent recovery/uses");
 
+if (warnings.length) {
+  console.warn("Validation warnings:");
+  for (const warning of warnings) console.warn(`- ${warning}`);
+}
 if (errors.length) {
   console.error("Validation failed:");
   for (const error of errors) console.error(`- ${error}`);
