@@ -1218,7 +1218,13 @@ test("manual passive edits and disabled state survive synchronization", async ()
   await sight.update({
     disabled: true,
     "system.changes": [
-      { key: "system.attributes.senses.ranges.truesight", value: "200", type: "upgrade", phase: "initial", priority: 20 }
+      {
+        key: "system.attributes.senses.ranges.truesight",
+        value: "200",
+        type: "upgrade",
+        phase: "initial",
+        priority: 20
+      }
     ]
   });
   await syncDullahan(actor);

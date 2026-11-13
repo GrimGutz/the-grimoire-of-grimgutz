@@ -6,17 +6,7 @@ import {
   validateHollowActivityUse
 } from "./hollow.mjs";
 import { syncMurderspawnPassiveEffects, syncMurderspawnTransformation } from "./murderspawn.mjs";
-import { syncArkane } from "./arkane.mjs";
-import { syncAutomaton } from "./automaton.mjs";
-import { syncBroodmother } from "./broodmother.mjs";
-import { syncChimera } from "./chimera.mjs";
-import { syncDeathknight } from "./deathknight.mjs";
-import { syncDullahan } from "./dullahan.mjs";
-import { syncFactory } from "./factory-passives.mjs";
-import { syncGod } from "./god.mjs";
-import { syncIllithid } from "./illithid.mjs";
-import { syncHalfdragon } from "./halfdragon.mjs";
-import { syncHag } from "./hag.mjs";
+import { contentSyncs } from "../content-registry.mjs";
 
 export const TRANSFORMATION_ACTIONS = new Set(["gain-hollow-charge", "use-hollow-charges"]);
 
@@ -57,15 +47,6 @@ export async function syncTransformationPassiveEffects(actor) {
 export async function syncTransformations(actor) {
   await syncMurderspawnTransformation(actor);
   await syncHollowTransformation(actor);
-  await syncArkane(actor);
-  await syncAutomaton(actor);
-  await syncBroodmother(actor);
-  await syncChimera(actor);
-  await syncDeathknight(actor);
-  await syncDullahan(actor);
-  await syncFactory(actor);
-  await syncGod(actor);
-  await syncHag(actor);
-  await syncHalfdragon(actor);
-  await syncIllithid(actor);
+  // Self-registering transformations (content-registry.mjs), in registry order.
+  for (const sync of contentSyncs("transformation")) await sync(actor);
 }

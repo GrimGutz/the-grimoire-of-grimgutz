@@ -3,20 +3,10 @@ import { automationAction, automationConfig, automationData, findFeature, itemId
 import { isLikelyModuleItem, moduleItemSources } from "../effects/module-passives.mjs";
 import { migrationFingerprint, ownedItemMigrationPlan } from "./owned-item-migration.mjs";
 import { listAutomationEvents } from "./event-ledger.mjs";
+import { inspectContent } from "../content-registry.mjs";
 import { doomedLevel, doomedCapacity, doomedAccepted } from "./doomed-state.mjs";
 import { nightmareLevel, nightmareResourceState, nightmareKnown, nightmareState } from "./nightmare-state.mjs";
 import { empathLevel, empathState, empathEffects, empathEffectData } from "./empath-state.mjs";
-import { inspectArkane } from "../transformations/arkane.mjs";
-import { inspectAutomaton } from "../transformations/automaton.mjs";
-import { inspectBroodmother } from "../transformations/broodmother.mjs";
-import { inspectChimera } from "../transformations/chimera.mjs";
-import { inspectDeathknight } from "../transformations/deathknight.mjs";
-import { inspectDullahan } from "../transformations/dullahan.mjs";
-import { inspectFactory } from "../transformations/factory.mjs";
-import { inspectGod } from "../transformations/god.mjs";
-import { inspectIllithid } from "../transformations/illithid.mjs";
-import { inspectHalfdragon } from "../transformations/halfdragon.mjs";
-import { inspectHag } from "../transformations/hag.mjs";
 
 const timeUnits = {
   seconds: 1,
@@ -246,17 +236,7 @@ export async function inspectAutomation(actorOrUuid, { actionHandlers = new Map(
       giftTurns: structuredClone(actor.getFlag?.(MODULE_ID, "doomedGiftTurns") ?? {}),
       decayTurns: structuredClone(actor.getFlag?.(MODULE_ID, "doomedDecayTurns") ?? [])
     },
-    arkane: inspectArkane(actor),
-    automaton: inspectAutomaton(actor),
-    broodmother: inspectBroodmother(actor),
-    chimera: inspectChimera(actor),
-    deathknight: inspectDeathknight(actor),
-    dullahan: inspectDullahan(actor),
-    factory: inspectFactory(actor),
-    god: inspectGod(actor),
-    hag: inspectHag(actor),
-    halfdragon: inspectHalfdragon(actor),
-    illithid: inspectIllithid(actor),
+    ...inspectContent(actor),
     empath: {
       level: empathLevel(actor),
       state: structuredClone(empathState(actor)),

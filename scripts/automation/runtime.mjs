@@ -14,77 +14,14 @@ import { clamp } from "./shared/dnd5e.mjs";
 import { serialMutation } from "./shared/transactions.mjs";
 import { automationActors, installTemporaryEffectHooks } from "./effects/temporary-effects.mjs";
 import { createActorSynchronizer } from "./shared/actor-sync.mjs";
-import { syncMaster, extendMasterCasting, validateMasterItem, validateMasterAdvancement } from "./classes/master.mjs";
-import { controlMaster, installMasterHooks } from "./classes/master-combat.mjs";
-import { syncHunter, validateHunterItem } from "./classes/bounty-hunter.mjs";
-import { controlHunter, installHunterActionHooks } from "./classes/bounty-hunter-actions.mjs";
-import { installHunterCombatHooks } from "./classes/bounty-hunter-combat.mjs";
-import { installHunterZoneHooks } from "./classes/bounty-hunter-zones.mjs";
-import { installHunterEventHooks } from "./classes/bounty-hunter-events.mjs";
-import { validateHunterDisposable } from "./classes/bounty-hunter-capture.mjs";
-import { syncJester, validateJesterItem } from "./classes/jester.mjs";
-import { controlJester } from "./classes/jester-actions.mjs";
-import { installJesterHooks } from "./classes/jester-events.mjs";
-import { syncFlagellant, validateFlagellantItem } from "./classes/flagellant.mjs";
-import { controlFlagellant } from "./classes/flagellant-actions.mjs";
-import { installFlagellantHooks } from "./classes/flagellant-events.mjs";
-import { syncDoomed, validateDoomedItem } from "./classes/doomed.mjs";
-import { controlDoomed } from "./classes/doomed-actions.mjs";
-import { installDoomedHooks } from "./classes/doomed-events.mjs";
-import { syncNightmare, validateNightmareItem } from "./classes/nightmare.mjs";
-import { controlNightmare } from "./classes/nightmare-actions.mjs";
-import { controlNightmareSummon } from "./classes/nightmare-summons.mjs";
-import { installNightmareHooks } from "./classes/nightmare-events.mjs";
-import { syncEmpath, validateEmpathItem } from "./classes/empath.mjs";
-import { controlEmpath } from "./classes/empath-actions.mjs";
-import { installEmpathHooks } from "./classes/empath-events.mjs";
-import { validateArkaneItem, validateArkaneAdvancement } from "./transformations/arkane.mjs";
-import { controlArkane } from "./transformations/arkane-actions.mjs";
-import { installArkaneHooks } from "./transformations/arkane-events.mjs";
-import { validateAutomatonItem, validateAutomatonAdvancement } from "./transformations/automaton.mjs";
-import { controlAutomaton } from "./transformations/automaton-actions.mjs";
-import { installAutomatonHooks } from "./transformations/automaton-events.mjs";
-import { validateBroodmotherItem, validateBroodmotherAdvancement } from "./transformations/broodmother.mjs";
-import { controlBroodmother } from "./transformations/broodmother-actions.mjs";
-import { installBroodmotherHooks } from "./transformations/broodmother-events.mjs";
-import { applyBroodmotherToxicDamage } from "./transformations/broodmother-combat.mjs";
-import { validateChimeraItem, validateChimeraAdvancement } from "./transformations/chimera.mjs";
-import { controlChimera } from "./transformations/chimera-actions.mjs";
-import { installChimeraHooks } from "./transformations/chimera-events.mjs";
-import { applyChimeraDamagePacket } from "./transformations/chimera-spells.mjs";
-import { validateDeathknightItem, validateDeathknightAdvancement } from "./transformations/deathknight.mjs";
-import { controlDeathknight } from "./transformations/deathknight-actions.mjs";
-import { controlDeathknightMinion } from "./transformations/deathknight-minions.mjs";
-import { installDeathknightHooks } from "./transformations/deathknight-events.mjs";
-import { applyDeathknightPacket } from "./transformations/deathknight-spells.mjs";
-import { validateDullahanItem, validateDullahanAdvancement } from "./transformations/dullahan.mjs";
-import { controlDullahan } from "./transformations/dullahan-actions.mjs";
-import { installDullahanHooks } from "./transformations/dullahan-events.mjs";
-import { applyDullahanPacket } from "./transformations/dullahan-combat.mjs";
-import { controlFactory } from "./transformations/factory-actions.mjs";
-import { controlFactoryHomunculus } from "./transformations/factory-homunculi.mjs";
-import { installFactoryHooks } from "./transformations/factory-events.mjs";
-import { validateFactoryItem, validateFactoryAdvancement } from "./transformations/factory.mjs";
-import { applyFactoryDamage } from "./transformations/factory-damage.mjs";
-import { applyFactoryDefense } from "./transformations/factory-defense.mjs";
-import { controlGod } from "./transformations/god-actions.mjs";
-import { installGodHooks } from "./transformations/god-events.mjs";
-import { validateGodItem, validateGodAdvancement } from "./transformations/god.mjs";
-import { applyGodElement, applyGodDefenses } from "./transformations/god-midi.mjs";
-import { controlIllithid } from "./transformations/illithid-actions.mjs";
-import { installIllithidHooks } from "./transformations/illithid-events.mjs";
-import { validateIllithidItem, validateIllithidAdvancement } from "./transformations/illithid.mjs";
-import { applyIllithidPacket } from "./transformations/illithid-midi.mjs";
-import { useIllithidRefuge } from "./transformations/illithid-refuge.mjs";
-import { controlHalfdragon } from "./transformations/halfdragon-actions.mjs";
-import { installHalfdragonHooks } from "./transformations/halfdragon-events.mjs";
-import { validateHalfdragonItem, validateHalfdragonAdvancement } from "./transformations/halfdragon.mjs";
-import { applyHalfdragonBite } from "./transformations/halfdragon-combat.mjs";
-import { controlHag } from "./transformations/hag-actions.mjs";
-import { installHagHooks } from "./transformations/hag-events.mjs";
-import { validateHagItem, validateHagAdvancement } from "./transformations/hag.mjs";
-import { applyHagDamage, applyHagDefense } from "./transformations/hag-combat.mjs";
-import { prepareAutomatonDamage, finishAutomatonCoils } from "./transformations/automaton-combat.mjs";
+import { extendMasterCasting } from "./classes/master.mjs";
+import {
+  contentApi,
+  contentMidiHandlers,
+  contentSyncs,
+  installContent,
+  registerContentActions
+} from "./content-registry.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { registerAutomationPanel, openAutomationPanel } from "./shared/control-panel.mjs";
@@ -790,28 +727,7 @@ export function getAutomationActionHandlers() {
 }
 
 function buildAutomationActionHandlers() {
-  const registry = new Map(COMMON_ACTIVITY_ACTIONS);
-  registry.set("master-control", controlMaster);
-  registry.set("bounty-hunter-control", controlHunter);
-  registry.set("jester-control", controlJester);
-  registry.set("flagellant-control", controlFlagellant);
-  registry.set("doomed-control", controlDoomed);
-  registry.set("nightmare-control", controlNightmare);
-  registry.set("empath-control", controlEmpath);
-  registry.set("arkane-control", controlArkane);
-  registry.set("automaton-control", controlAutomaton);
-  registry.set("broodmother-control", controlBroodmother);
-  registry.set("chimera-control", controlChimera);
-  registry.set("deathknight-control", controlDeathknight);
-  registry.set("dullahan-control", controlDullahan);
-  registry.set("factory-control", controlFactory);
-  registry.set("god-control", controlGod);
-  registry.set("hag-control", controlHag);
-  registry.set("halfdragon-control", controlHalfdragon);
-  registry.set("illithid-control", controlIllithid);
-  registry.set("factory-homunculus", controlFactoryHomunculus);
-  registry.set("deathknight-minion", controlDeathknightMinion);
-  registry.set("nightmare-summon-control", controlNightmareSummon);
+  const registry = registerContentActions(new Map(COMMON_ACTIVITY_ACTIONS));
   for (const [actions, handler] of [
     [TRANSFORMATION_ACTIONS, handleTransformationAction],
     [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
@@ -1076,43 +992,6 @@ const validateAdvancement = createAdvancementValidator({
   sanguinistPrerequisiteFailures
 });
 
-// Content modules that own their item/advancement validation (newer classes and
-// transformations). Registered as separate hooks in this order.
-const CONTENT_ITEM_VALIDATORS = [
-  validateHunterItem,
-  validateJesterItem,
-  validateFlagellantItem,
-  validateNightmareItem,
-  validateBroodmotherItem,
-  validateChimeraItem,
-  validateDeathknightItem,
-  validateIllithidItem,
-  validateHalfdragonItem,
-  validateHagItem,
-  validateGodItem,
-  validateFactoryItem,
-  validateDullahanItem,
-  validateAutomatonItem,
-  validateArkaneItem,
-  validateEmpathItem,
-  validateDoomedItem,
-  validateMasterItem
-];
-const CONTENT_ADVANCEMENT_VALIDATORS = [
-  validateBroodmotherAdvancement,
-  validateChimeraAdvancement,
-  validateDeathknightAdvancement,
-  validateIllithidAdvancement,
-  validateHalfdragonAdvancement,
-  validateHagAdvancement,
-  validateGodAdvancement,
-  validateFactoryAdvancement,
-  validateDullahanAdvancement,
-  validateAutomatonAdvancement,
-  validateArkaneAdvancement,
-  validateMasterAdvancement
-];
-
 /**
  * Optional (strict-mode) prerequisite gates evaluated by one preCreateItem hook,
  * all as `(item, options, userId)`. The first explicit `false` cancels creation.
@@ -1244,13 +1123,7 @@ const actorSynchronizer = createActorSynchronizer([
   syncTransformations,
   syncDarkGuard,
   syncUniqueSummons,
-  syncMaster,
-  syncHunter,
-  syncJester,
-  syncFlagellant,
-  syncDoomed,
-  syncNightmare,
-  syncEmpath
+  ...contentSyncs("class")
 ]);
 const schedulePassiveSync = actorSynchronizer.schedule;
 
@@ -1316,32 +1189,8 @@ function installHooks() {
   installZoneHooks();
   installAreaActivityHooks({ validate: validateActivityUse });
   installWitchBladeHooks();
-  installMasterHooks();
-  installHunterActionHooks();
-  installHunterCombatHooks();
-  installHunterZoneHooks();
-  installHunterEventHooks();
-  Hooks.on("dnd5e.preUseActivity", validateHunterDisposable);
-  installJesterHooks();
-  installFlagellantHooks();
-  installDoomedHooks();
-  installNightmareHooks();
-  installEmpathHooks();
-  installArkaneHooks();
-  installAutomatonHooks();
-  installBroodmotherHooks();
-  installChimeraHooks();
-  installDeathknightHooks();
-  installDullahanHooks();
-  installFactoryHooks();
-  installGodHooks();
-  installHagHooks();
-  installHalfdragonHooks();
-  installIllithidHooks();
-  // Self-contained content validators. Order only decides which warning wins
-  // when several reject the same document; it matches the historical order.
-  for (const validate of CONTENT_ITEM_VALIDATORS) Hooks.on("preCreateItem", validate);
-  for (const validate of CONTENT_ADVANCEMENT_VALIDATORS) Hooks.on("dnd5e.preAdvancementManagerComplete", validate);
+  // Self-registering classes and transformations (content-registry.mjs).
+  installContent();
   installRitualistZoneHooks();
   installJuggernautRegenerationHooks();
   installRitualistSpiritHooks();
@@ -1473,14 +1322,6 @@ export function getMidiHookHandlers() {
     commitCombatAttackBenefits,
     prepareConfirmedDamage,
     finishDamageReservations,
-    applyFactoryDamage,
-    applyFactoryDefense,
-    applyGodElement,
-    applyGodDefenses,
-    applyHagDamage,
-    applyHagDefense,
-    applyHalfdragonBite,
-    applyIllithidPacket,
     applyMidiAttackDisadvantage,
     applyPowerfulCleaving,
     applyGiantKillerHook,
@@ -1488,18 +1329,13 @@ export function getMidiHookHandlers() {
     markForestRootFireDamageHook,
     applyHellfireFuryHook,
     applySpellSourceResistance,
-    applyBroodmotherToxicDamage,
-    applyChimeraDamagePacket,
-    applyDeathknightPacket,
-    applyDullahanPacket,
-    prepareAutomatonDamage,
-    finishAutomatonCoils,
     applySummonProtection,
     handleSummonSelfCost,
     handleAuraMeleeAttack,
     applyMidiWeaponBuffAttackAutomation,
     prepareMidiSteelWill,
-    finishMidiSteelWill
+    finishMidiSteelWill,
+    ...contentMidiHandlers()
   };
 }
 
@@ -1530,8 +1366,8 @@ export function exposeApi() {
   const module = game.modules.get(MODULE_ID);
   if (!module) return;
   module.api = {
+    ...contentApi(),
     useAreaActivity,
-    useIllithidRefuge,
     useLeaderStratagem,
     chooseLeaderPresenceTargets,
     useInsectBloodDrain,
