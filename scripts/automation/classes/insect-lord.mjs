@@ -1,17 +1,8 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
-import {
-  automationData,
-  findFeature,
-  isAutomationAuthority,
-  itemIdentifier,
-  notify
-} from "../shared/helpers.mjs";
+import { automationData, findFeature, isAutomationAuthority, itemIdentifier, notify } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
-import {
-  flaggedPassiveEffectData,
-  syncFlaggedPassiveEffects
-} from "../effects/passive-helpers.mjs";
+import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 import { createSummonedCreature, registerSummonRecipe } from "../shared/summons.mjs";
 import { manageSummons } from "../shared/summon-lifecycle.mjs";
 import { ownedAreaActivity, useAreaActivity } from "../shared/area-activities.mjs";
@@ -47,7 +38,10 @@ export function validateInsectLordPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "insect-lord") return true;
   const failures = insectLordPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Владыка насекомых». Не выполнено: ${failures.join(", ")}. Посвящение разумным насекомоподобным существом подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Владыка насекомых». Не выполнено: ${failures.join(", ")}. Посвящение разумным насекомоподобным существом подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -107,16 +101,15 @@ export async function syncInsectLordResources(actor, { notifyResult = false } = 
 }
 
 function equippedArmor(actor) {
-  return actor?.items?.some(item => {
-    if (item.type !== "equipment" || item.system?.equipped !== true) return false;
-    const type = String(
-      item.system?.type?.value
-      ?? item.system?.armor?.type
-      ?? item.system?.type
-      ?? ""
-    ).toLowerCase();
-    return ["light", "medium", "heavy", "lgt", "med", "hvy"].includes(type);
-  }) ?? false;
+  return (
+    actor?.items?.some(item => {
+      if (item.type !== "equipment" || item.system?.equipped !== true) return false;
+      const type = String(
+        item.system?.type?.value ?? item.system?.armor?.type ?? item.system?.type ?? ""
+      ).toLowerCase();
+      return ["light", "medium", "heavy", "lgt", "med", "hvy"].includes(type);
+    }) ?? false
+  );
 }
 
 function insectLordPassiveDefinitions(actor) {
@@ -124,24 +117,34 @@ function insectLordPassiveDefinitions(actor) {
   const definitions = [];
   const carapace = findFeature(actor, "chitinous-carapace");
   if (carapace && !equippedArmor(actor)) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.INSECT_LORD_PASSIVE, {
-      key: "chitinous-carapace",
-      feature: carapace,
-      changes: [{
-        key: "system.attributes.ac.bonus",
-        type: "add",
-        value: String(insectLordLevel(actor) >= 5 ? 5 : 3),
-        phase: "final",
-        priority: 20
-      }]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.INSECT_LORD_PASSIVE, {
+        key: "chitinous-carapace",
+        feature: carapace,
+        changes: [
+          {
+            key: "system.attributes.ac.bonus",
+            type: "add",
+            value: String(insectLordLevel(actor) >= 5 ? 5 : 3),
+            phase: "final",
+            priority: 20
+          }
+        ]
+      })
+    );
   }
   return definitions;
 }
 
 export async function syncInsectLordPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  return syncFlaggedPassiveEffects(actor, insectLordPassiveSyncs, MODULE_ID, FLAGS.INSECT_LORD_PASSIVE, insectLordPassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    insectLordPassiveSyncs,
+    MODULE_ID,
+    FLAGS.INSECT_LORD_PASSIVE,
+    insectLordPassiveDefinitions
+  );
 }
 
 function bestPhysicalModifier(actor) {
@@ -172,7 +175,11 @@ export async function rollInsectTailSting(actor) {
   }
   const modifier = bestPhysicalModifier(actor);
   await rollToChat(actor, `1d4 ${signed(modifier)}`, "Хвост с жалом: колющий урон");
-  await rollToChat(actor, "2d6", `Хвост с жалом: урон ядом; спасбросок Телосложения Сл ${insectLordSaveDc(actor)}, половина при успехе`);
+  await rollToChat(
+    actor,
+    "2d6",
+    `Хвост с жалом: урон ядом; спасбросок Телосложения Сл ${insectLordSaveDc(actor)}, половина при успехе`
+  );
   return true;
 }
 
@@ -191,7 +198,9 @@ export async function rollInsectBite(actor) {
     notify("Для броска требуется особенность «Высасывание крови».", "warn");
     return false;
   }
-  const activity = [...(findFeature(actor, "blood-drain").system.activities?.values?.() ?? [])].find(activity => activity.flags?.[MODULE_ID]?.insectBite);
+  const activity = [...(findFeature(actor, "blood-drain").system.activities?.values?.() ?? [])].find(
+    activity => activity.flags?.[MODULE_ID]?.insectBite
+  );
   if (activity && globalThis.MidiQOL?.completeActivityUse) return MidiQOL.completeActivityUse(activity);
   await rollToChat(actor, "1d4", "Жвалы: колющий урон");
   return true;
@@ -219,7 +228,10 @@ export async function useCrawlingArmor(actor) {
 
 export async function rollInsectSpew(actor, activity = null) {
   const chosen = activity?.item ? activity : ownedAreaActivity(actor, "spew-insects");
-  if (!chosen) { notify("Не найдена активность Изрыгания насекомых на персонаже.", "warn"); return false; }
+  if (!chosen) {
+    notify("Не найдена активность Изрыгания насекомых на персонаже.", "warn");
+    return false;
+  }
   return Boolean(await useAreaActivity(chosen));
 }
 
@@ -307,9 +319,7 @@ export async function summonInsectFamiliar(actor, activity) {
     return false;
   }
   const configured = automationData(activity).insectFamiliarForm;
-  const form = FAMILIAR_FORMS[configured]
-    ? configured
-    : await chooseInsectFamiliarForm();
+  const form = FAMILIAR_FORMS[configured] ? configured : await chooseInsectFamiliarForm();
   if (!form) return false;
   return createSummonedCreature(actor, insectFamiliarSummon(actor, form));
 }
@@ -329,7 +339,10 @@ function insectSwarmSummon(actor) {
     abilities: { str: 5, dex: 17, con: 12, int: 2, wis: 7, cha: 1 },
     movement: { walk: 30, climb: 30 },
     senses: { blindsight: 30 },
-    dr: { value: ["bludgeoning", "piercing", "slashing"], custom: "магический урон, направленный против одиночных целей" },
+    dr: {
+      value: ["bludgeoning", "piercing", "slashing"],
+      custom: "магический урон, направленный против одиночных целей"
+    },
     description: `
       <p><strong>Разум роя.</strong> Рой связан с Владыкой насекомых телепатически на расстоянии до 1 мили.</p>
       <ul>
@@ -338,13 +351,27 @@ function insectSwarmSummon(actor) {
         <li><strong>Призыв к еде:</strong> один раз между короткими отдыхами рой может вызвать 2к4 роя насекомых; поглощение призванных роёв лечит 2к10 хитов за каждый.</li>
       </ul>
     `,
-    features: [{
-      name: "Поглощение",
-      activities: [{ name: "Поглощение: спасбросок и урон", type: "save", formula: "4d6 + 3", damageType: "piercing",
-        saveAbility: "con", dc: insectLordSaveDc(actor), onSave: "half", range: 0, activation: "special",
-        condition: "В начале хода роя; цель занимает пространство роя. Состояния и невозможность говорить подтверждает Мастер." }],
-      description: `<p>Спасбросок Телосложения против СЛ ${insectLordSaveDc(actor)}. Провал: 4к6 + 3 колющего урона и сенсорные ограничения; успех: половина урона.</p>`
-    }],
+    features: [
+      {
+        name: "Поглощение",
+        activities: [
+          {
+            name: "Поглощение: спасбросок и урон",
+            type: "save",
+            formula: "4d6 + 3",
+            damageType: "piercing",
+            saveAbility: "con",
+            dc: insectLordSaveDc(actor),
+            onSave: "half",
+            range: 0,
+            activation: "special",
+            condition:
+              "В начале хода роя; цель занимает пространство роя. Состояния и невозможность говорить подтверждает Мастер."
+          }
+        ],
+        description: `<p>Спасбросок Телосложения против СЛ ${insectLordSaveDc(actor)}. Провал: 4к6 + 3 колющего урона и сенсорные ограничения; успех: половина урона.</p>`
+      }
+    ],
     note: "Недельную перезарядку после уничтожения роя отметьте вручную."
   };
 }
@@ -413,13 +440,15 @@ export async function detachCrawlingEye(actor) {
       }
     },
     system: {
-      changes: [{
-        key: "system.attributes.hp.max",
-        type: "add",
-        value: "-2",
-        phase: "final",
-        priority: 20
-      }]
+      changes: [
+        {
+          key: "system.attributes.hp.max",
+          type: "add",
+          value: "-2",
+          phase: "final",
+          priority: 20
+        }
+      ]
     }
   };
   const summoned = await createSummonedCreature(actor, { ...crawlingEyeSummon(actor), ownerEffects: [data] });
@@ -434,7 +463,11 @@ export async function returnCrawlingEye(actor) {
     notify(`${actor?.name ?? "Персонаж"}: активного эффекта «Ползучий глаз» нет.`, "info");
     return false;
   }
-  const result = await manageSummons(actor, { action: "dismiss", source: "crawling-eye", removeOwnerEffect: FLAGS.CREEPING_EYE_EFFECT });
+  const result = await manageSummons(actor, {
+    action: "dismiss",
+    source: "crawling-eye",
+    removeOwnerEffect: FLAGS.CREEPING_EYE_EFFECT
+  });
   if (result.status !== "success") return false;
   notify(`${actor.name}: Ползучий глаз возвращён.`);
   return true;

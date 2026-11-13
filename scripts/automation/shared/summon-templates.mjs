@@ -2,10 +2,12 @@ import { abilityMod } from "./dnd5e.mjs";
 import { registerSummonRecipe } from "./summons.mjs";
 
 function abilityValues(actor) {
-  return Object.fromEntries(["str", "dex", "con", "int", "wis", "cha"].map(ability => [
-    ability,
-    Number(actor?.system?.abilities?.[ability]?.value ?? 10)
-  ]));
+  return Object.fromEntries(
+    ["str", "dex", "con", "int", "wis", "cha"].map(ability => [
+      ability,
+      Number(actor?.system?.abilities?.[ability]?.value ?? 10)
+    ])
+  );
 }
 
 function actorSize(actor, fallback = "med") {
@@ -21,7 +23,9 @@ function actorHpMax(actor, fallback = 1) {
 }
 
 function onmyojiLevel(actor) {
-  return Number(actor?.items?.find(item => item.type === "class" && item.system?.identifier === "onmyoji")?.system?.levels ?? 0);
+  return Number(
+    actor?.items?.find(item => item.type === "class" && item.system?.identifier === "onmyoji")?.system?.levels ?? 0
+  );
 }
 
 function ownerSpellAttack(actor) {
@@ -54,7 +58,11 @@ export function quasitFamiliarSummon(actor) {
     abilities: { str: 5, dex: 17, con: 10, int: 7, wis: 10, cha: 10 },
     movement: { walk: 40 },
     senses: { darkvision: 120 },
-    dr: { value: ["cold", "fire", "lightning", "bludgeoning", "piercing", "slashing"], bypasses: ["mgc"], custom: "дробящий, колющий и рубящий урон от немагических атак" },
+    dr: {
+      value: ["cold", "fire", "lightning", "bludgeoning", "piercing", "slashing"],
+      bypasses: ["mgc"],
+      custom: "дробящий, колющий и рубящий урон от немагических атак"
+    },
     di: { value: ["poison"] },
     ci: { value: ["poisoned"] },
     languages: { value: ["abyssal", "common"], custom: "" },
@@ -65,18 +73,25 @@ export function quasitFamiliarSummon(actor) {
     features: [
       {
         name: "Укус/когти квазита",
-        activities: [{ name: "Укус/когти", attackBonus: 4, formula: "1d4 + 3", damageType: "piercing" },
-          { name: "Яд квазита", type: "save", formula: "2d4", damageType: "poison", saveAbility: "con", dc: 10 }],
-        description: "<p>Рукопашная атака: +4 к попаданию, 1d4 + 3 колющего урона, цель совершает спасбросок Телосложения СЛ 10 или получает 2d4 урона ядом и отравлена на 1 минуту.</p>"
+        activities: [
+          { name: "Укус/когти", attackBonus: 4, formula: "1d4 + 3", damageType: "piercing" },
+          { name: "Яд квазита", type: "save", formula: "2d4", damageType: "poison", saveAbility: "con", dc: 10 }
+        ],
+        description:
+          "<p>Рукопашная атака: +4 к попаданию, 1d4 + 3 колющего урона, цель совершает спасбросок Телосложения СЛ 10 или получает 2d4 урона ядом и отравлена на 1 минуту.</p>"
       },
       {
         name: "Пугающий облик",
-        activities: [{ name: "Спасбросок от испуга", type: "save", formula: "0", saveAbility: "wis", dc: 10, range: 20 }],
-        description: "<p>Одно существо в пределах 20 футов совершает спасбросок Мудрости СЛ 10 или испугано на 1 минуту.</p>"
+        activities: [
+          { name: "Спасбросок от испуга", type: "save", formula: "0", saveAbility: "wis", dc: 10, range: 20 }
+        ],
+        description:
+          "<p>Одно существо в пределах 20 футов совершает спасбросок Мудрости СЛ 10 или испугано на 1 минуту.</p>"
       },
       {
         name: "Невидимость и смена формы",
-        description: "<p>Квазит может становиться невидимым и принимать малые звериные формы по обычным правилам квазита.</p>"
+        description:
+          "<p>Квазит может становиться невидимым и принимать малые звериные формы по обычным правилам квазита.</p>"
       }
     ],
     note: "Фамильяр создан как уникальный призыв: повторное использование не создаёт второго актёра."
@@ -100,7 +115,11 @@ export function impFamiliarSummon(actor) {
     abilities: { str: 6, dex: 17, con: 13, int: 11, wis: 12, cha: 14 },
     movement: { walk: 20, fly: 40 },
     senses: { darkvision: 120 },
-    dr: { value: ["cold", "bludgeoning", "piercing", "slashing"], bypasses: ["mgc", "sil"], custom: "дробящий, колющий и рубящий урон от немагических атак, не посеребрённого оружия" },
+    dr: {
+      value: ["cold", "bludgeoning", "piercing", "slashing"],
+      bypasses: ["mgc", "sil"],
+      custom: "дробящий, колющий и рубящий урон от немагических атак, не посеребрённого оружия"
+    },
     di: { value: ["fire", "poison"] },
     ci: { value: ["poisoned"] },
     languages: { value: ["infernal", "common"], custom: "" },
@@ -111,13 +130,25 @@ export function impFamiliarSummon(actor) {
     features: [
       {
         name: "Жало беса",
-        activities: [{ name: "Жало", attackBonus: 5, formula: "1d4 + 3", damageType: "piercing" },
-          { name: "Яд беса", type: "save", formula: "3d6", damageType: "poison", saveAbility: "con", dc: 11, onSave: "half" }],
-        description: "<p>Рукопашная атака: +5 к попаданию, 1d4 + 3 колющего урона, цель совершает спасбросок Телосложения СЛ 11 или получает 3d6 урона ядом, половину при успехе.</p>"
+        activities: [
+          { name: "Жало", attackBonus: 5, formula: "1d4 + 3", damageType: "piercing" },
+          {
+            name: "Яд беса",
+            type: "save",
+            formula: "3d6",
+            damageType: "poison",
+            saveAbility: "con",
+            dc: 11,
+            onSave: "half"
+          }
+        ],
+        description:
+          "<p>Рукопашная атака: +5 к попаданию, 1d4 + 3 колющего урона, цель совершает спасбросок Телосложения СЛ 11 или получает 3d6 урона ядом, половину при успехе.</p>"
       },
       {
         name: "Невидимость, магическое сопротивление и смена формы",
-        description: "<p>Бес может становиться невидимым, имеет преимущество на спасброски против заклинаний и других магических эффектов и может менять форму по обычным правилам беса.</p>"
+        description:
+          "<p>Бес может становиться невидимым, имеет преимущество на спасброски против заклинаний и других магических эффектов и может менять форму по обычным правилам беса.</p>"
       }
     ],
     note: "Фамильяр создан как уникальный призыв: повторное использование не создаёт второго актёра."
@@ -151,13 +182,21 @@ export function shikigamiSummon(actor) {
     features: [
       {
         name: "Атака Шикигами",
-        activities: empowered ? [{ name: "Атака Шикигами выбранной формы", attackBonus,
-          condition: "Владелец потратил бонусное действие; урон задаёт выбранная форма" }] : [],
+        activities: empowered
+          ? [
+              {
+                name: "Атака Шикигами выбранной формы",
+                attackBonus,
+                condition: "Владелец потратил бонусное действие; урон задаёт выбранная форма"
+              }
+            ]
+          : [],
         description: `<p>Если Онмёджи тратит бонусное действие, Шикигами может атаковать. На 5-м уровне используйте бонус атаки владельца: <strong>+${attackBonus}</strong>; урон выбранной формы может добавлять модификатор Мудрости владельца (${damageBonus}).</p>`
       },
       {
         name: "Духовная форма",
-        description: "<p>Шикигами может проходить через немагические двери и окна. Если бумажное тело уничтожено, создайте новое за 2 зм и 10 минут.</p>"
+        description:
+          "<p>Шикигами может проходить через немагические двери и окна. Если бумажное тело уничтожено, создайте новое за 2 зм и 10 минут.</p>"
       }
     ],
     note: "Если Шикигами отпущен как фамильяр, вручную примените соответствующий бонус КД/виспов владельцу."
@@ -175,8 +214,12 @@ export function ghostWalkerSpiritSummon(actor, targetActor = null) {
     img: targetActor?.img ?? "icons/magic/death/undead-ghost-scream-teal.webp",
     source: "unfinished-business",
     lifecycle: { seconds: 60 },
-    extraItems: [...(targetActor?.items ?? [])].filter(item => ["weapon", "feat"].includes(item.type)
-      && [...(item.system?.activities?.values?.() ?? [])].some(activity => activity.type === "attack"))
+    extraItems: [...(targetActor?.items ?? [])]
+      .filter(
+        item =>
+          ["weapon", "feat"].includes(item.type) &&
+          [...(item.system?.activities?.values?.() ?? [])].some(activity => activity.type === "attack")
+      )
       .map(item => item.toObject()),
     size: actorSize(targetActor, "med"),
     type: "undead",
@@ -198,7 +241,8 @@ export function ghostWalkerSpiritSummon(actor, targetActor = null) {
     features: [
       {
         name: "Приказ",
-        description: "<p>Призрачный странник отдаёт духу приказ как при заклинании Внушение. Дух исчезает, когда задача выполнена, его хиты падают до 0, он изгнан/рассеян или проходит 1 минута.</p>"
+        description:
+          "<p>Призрачный странник отдаёт духу приказ как при заклинании Внушение. Дух исчезает, когда задача выполнена, его хиты падают до 0, он изгнан/рассеян или проходит 1 минута.</p>"
       }
     ],
     note: "Если нужен точный статблок умершего существа, используйте созданного актёра как заготовку и скорректируйте атаки/особенности вручную."
@@ -208,4 +252,3 @@ export function ghostWalkerSpiritSummon(actor, targetActor = null) {
 registerSummonRecipe("shikigami-talisman", owner => shikigamiSummon(owner));
 registerSummonRecipe("infernal-familiar", owner => quasitFamiliarSummon(owner));
 registerSummonRecipe("imp-familiar", owner => impFamiliarSummon(owner));
-

@@ -1,0 +1,7 @@
+node_modules/
+packs/
+tmp/
+assets/
+docs/
+*.md
+*.json

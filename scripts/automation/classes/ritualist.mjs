@@ -11,15 +11,30 @@ import { abilityMod } from "../shared/dnd5e.mjs";
 import { choiceDialog, numberDialog } from "../shared/dialogs.mjs";
 import { createSummonedGroup } from "../shared/summons.mjs";
 import { manageSummons } from "../shared/summon-lifecycle.mjs";
-import {flaggedPassiveEffectData, syncFlaggedPassiveEffects} from "../effects/passive-helpers.mjs";
+import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const ritualistSyncs = new Set();
 const ritualistPassiveSyncs = new Set();
 export async function syncRitualistPassiveEffects(actor) {
   return syncFlaggedPassiveEffects(actor, ritualistPassiveSyncs, MODULE_ID, "ritualistPassive", () => {
     const feature = findFeature(actor, "mind-body-and-soul");
-    return feature && ritualistLevel(actor) >= 2 ? [flaggedPassiveEffectData(MODULE_ID, "ritualistPassive", {key: "mind-body-and-soul", feature,
-      changes: [{key: "system.attributes.concentration.roll.mode", value: "1", type: "upgrade", phase: "final", priority: 20}]})] : [];
+    return feature && ritualistLevel(actor) >= 2
+      ? [
+          flaggedPassiveEffectData(MODULE_ID, "ritualistPassive", {
+            key: "mind-body-and-soul",
+            feature,
+            changes: [
+              {
+                key: "system.attributes.concentration.roll.mode",
+                value: "1",
+                type: "upgrade",
+                phase: "final",
+                priority: 20
+              }
+            ]
+          })
+        ]
+      : [];
   });
 }
 
@@ -45,7 +60,10 @@ export function validateRitualistPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "ritualist") return true;
   const failures = ritualistPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Ритуалист». Не выполнено: ${failures.join(", ")}. Сюжетный ритуал контроля духа подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Ритуалист». Не выполнено: ${failures.join(", ")}. Сюжетный ритуал контроля духа подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -96,7 +114,10 @@ async function syncUses(feature, maximum) {
 
 export async function syncRitualistResources(actor, { notifyResult = false } = {}) {
   if (!actor?.isOwner || !isAutomationAuthority(actor) || ritualistSyncs.has(actor.uuid)) return false;
-  if (!ritualistClass(actor)) {await syncRitualistPassiveEffects(actor); return false;}
+  if (!ritualistClass(actor)) {
+    await syncRitualistPassiveEffects(actor);
+    return false;
+  }
 
   ritualistSyncs.add(actor.uuid);
   try {
@@ -175,16 +196,20 @@ async function spendRitualistRitualPoints(actor, cost) {
 export async function useRitualistRitualPoints(actor, activity) {
   if (!validateRitualistRitualPointUse(actor, activity)) return false;
   const cost = await chooseRitualistRitualPointCost(actor, activity);
-  if (!cost || !validateRitualistRitualPointUse(actor, {
-    ...activity,
-    flags: {
-      ...(activity.flags ?? {}),
-      [MODULE_ID]: {
-        ...automationData(activity),
-        ritualistRitualPointCost: cost
+  if (
+    !cost ||
+    !validateRitualistRitualPointUse(actor, {
+      ...activity,
+      flags: {
+        ...(activity.flags ?? {}),
+        [MODULE_ID]: {
+          ...automationData(activity),
+          ritualistRitualPointCost: cost
+        }
       }
-    }
-  })) return false;
+    })
+  )
+    return false;
   await spendRitualistRitualPoints(actor, cost);
   return true;
 }
@@ -214,7 +239,10 @@ export async function showRitualistSpiritDC(actor) {
     notify("Эта активность требует класс «Ритуалист».", "warn");
     return false;
   }
-  await chat(actor, `<p><strong>${actor.name}: СЛ способностей духа.</strong> ${ritualistSpiritSaveDC(actor)} = 8 + бонус мастерства + модификатор Мудрости.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: СЛ способностей духа.</strong> ${ritualistSpiritSaveDC(actor)} = 8 + бонус мастерства + модификатор Мудрости.</p>`
+  );
   return true;
 }
 
@@ -228,7 +256,12 @@ function ritualistSpiritSummon(actor, index, total, activity, replaceConcentrati
     source: "binding-ritual",
     lifecycle: { seconds: 600, concentration: "hostile", activityUuid: activity?.uuid ?? null, replaceConcentration },
     variant,
-    ritualistRules: {level: ritualistLevel(actor), dc: ritualistSpiritSaveDC(actor), conMod: abilityMod(actor, "con"), wisMod: abilityMod(actor, "wis")},
+    ritualistRules: {
+      level: ritualistLevel(actor),
+      dc: ritualistSpiritSaveDC(actor),
+      conMod: abilityMod(actor, "con"),
+      wisMod: abilityMod(actor, "wis")
+    },
     size: "med",
     type: "undead",
     ac: 11,
@@ -237,9 +270,25 @@ function ritualistSpiritSummon(actor, index, total, activity, replaceConcentrati
     abilities: { str: 7, dex: 13, con: 10, int: 10, wis: 12, cha: 15 },
     movement: { walk: 0, fly: 30, hover: true },
     senses: { darkvision: 60 },
-    dr: { value: ["thunder", "acid", "fire", "lightning", "bludgeoning", "piercing", "slashing"], bypasses: ["mgc"], custom: "дробящий, колющий и рубящий урон только от немагических атак" },
+    dr: {
+      value: ["thunder", "acid", "fire", "lightning", "bludgeoning", "piercing", "slashing"],
+      bypasses: ["mgc"],
+      custom: "дробящий, колющий и рубящий урон только от немагических атак"
+    },
     di: { value: ["necrotic", "cold", "poison"] },
-    ci: { value: ["grappled", "frightened", "exhaustion", "petrified", "restrained", "poisoned", "charmed", "paralyzed", "prone"] },
+    ci: {
+      value: [
+        "grappled",
+        "frightened",
+        "exhaustion",
+        "petrified",
+        "restrained",
+        "poisoned",
+        "charmed",
+        "paralyzed",
+        "prone"
+      ]
+    },
     description: `
       <p><strong>Призванный дух Ритуалиста.</strong> Существует до 10 минут или до 0 хитов. Концентрация определяет контроль; потеряв её, Ритуалист оставляет в мире враждебного духа.</p>
       <ul>
@@ -250,19 +299,102 @@ function ritualistSpiritSummon(actor, index, total, activity, replaceConcentrati
       </ul>
       <p>Вариант духа выберите по карточке «Ритуал привязки». Броски способностей духа есть отдельными активностями на этой карточке.</p>
     `,
-    features: [{
-      name: "Варианты духов",
-      activities: variant === "life" ? [{ name: "Дух жизни: лечение", type: "heal", formula: `${Math.max(1, ritualistLevel(actor))}d6`, range: 30, selfCost: { value: 14, type: "force", excludeTypes: ["undead", "construct"] } }]
-        : variant === "protection" ? [{ name: "Дух защиты: защитить союзника", type: "utility", activation: "special", range: 30, action: "summon-spirit-protection", condition: "Когда союзник в пределах 30 футов получает урон от атаки или заклинания" }]
-        : variant === "sorrow" ? [{ name: "Скорбная песня", type: "save", formula: "1d4", damageType: "force", saveAbility: "con", dc: ritualistSpiritSaveDC(actor), range: 30, metadata: {ritualistSorrow: true} }]
-        : variant === "blood-song" ? [{name: "Кровавая песня", type: "attack", attackType: "ranged", attackBonus: 4, formula: "2d6 + 2", damageType: "necrotic", range: 30, longRange: 60, metadata: {ritualistBloodSong: true}}]
-        : variant === "possibilities" ? [{name: "Выбрать получателей временных хитов", type: "utility", activation: "special", action: "choose-ritualist-spirit-targets"}]
-        : variant === "destruction" ? [{ name: "Разрушение: урон за один раунд", type: "save", formula: "1d6", damageType: "force", saveAbility: "wis", dc: ritualistSpiritSaveDC(actor), onSave: "half", range: 15, activation: "special",
-          condition: "Только при уничтожении/исчезновении духа. Укажите число к6 за прожитые раунды, максимум 8; цели — враги в 15 футах." }]
-        : variant === "agony" ? [{ name: "Дух агонии", type: "save", formula: `${Math.max(1, ritualistLevel(actor))}d6`, damageType: "psychic", saveAbility: "wis", dc: ritualistSpiritSaveDC(actor), range: 30, activation: "special",
-          condition: "Когда враждебное существо в 30 футах поражается атакой или заклинанием" }] : [],
-      description: "<p>Выберите вариант: Дух агонии, Кровавой песни, Разрушения, Великих возможностей, Жизни, Защиты или Скорбной песни. Автоматические броски находятся на карточке Ритуалиста.</p>"
-    }],
+    features: [
+      {
+        name: "Варианты духов",
+        activities:
+          variant === "life"
+            ? [
+                {
+                  name: "Дух жизни: лечение",
+                  type: "heal",
+                  formula: `${Math.max(1, ritualistLevel(actor))}d6`,
+                  range: 30,
+                  selfCost: { value: 14, type: "force", excludeTypes: ["undead", "construct"] }
+                }
+              ]
+            : variant === "protection"
+              ? [
+                  {
+                    name: "Дух защиты: защитить союзника",
+                    type: "utility",
+                    activation: "special",
+                    range: 30,
+                    action: "summon-spirit-protection",
+                    condition: "Когда союзник в пределах 30 футов получает урон от атаки или заклинания"
+                  }
+                ]
+              : variant === "sorrow"
+                ? [
+                    {
+                      name: "Скорбная песня",
+                      type: "save",
+                      formula: "1d4",
+                      damageType: "force",
+                      saveAbility: "con",
+                      dc: ritualistSpiritSaveDC(actor),
+                      range: 30,
+                      metadata: { ritualistSorrow: true }
+                    }
+                  ]
+                : variant === "blood-song"
+                  ? [
+                      {
+                        name: "Кровавая песня",
+                        type: "attack",
+                        attackType: "ranged",
+                        attackBonus: 4,
+                        formula: "2d6 + 2",
+                        damageType: "necrotic",
+                        range: 30,
+                        longRange: 60,
+                        metadata: { ritualistBloodSong: true }
+                      }
+                    ]
+                  : variant === "possibilities"
+                    ? [
+                        {
+                          name: "Выбрать получателей временных хитов",
+                          type: "utility",
+                          activation: "special",
+                          action: "choose-ritualist-spirit-targets"
+                        }
+                      ]
+                    : variant === "destruction"
+                      ? [
+                          {
+                            name: "Разрушение: урон за один раунд",
+                            type: "save",
+                            formula: "1d6",
+                            damageType: "force",
+                            saveAbility: "wis",
+                            dc: ritualistSpiritSaveDC(actor),
+                            onSave: "half",
+                            range: 15,
+                            activation: "special",
+                            condition:
+                              "Только при уничтожении/исчезновении духа. Укажите число к6 за прожитые раунды, максимум 8; цели — враги в 15 футах."
+                          }
+                        ]
+                      : variant === "agony"
+                        ? [
+                            {
+                              name: "Дух агонии",
+                              type: "save",
+                              formula: `${Math.max(1, ritualistLevel(actor))}d6`,
+                              damageType: "psychic",
+                              saveAbility: "wis",
+                              dc: ritualistSpiritSaveDC(actor),
+                              range: 30,
+                              activation: "special",
+                              condition: "Когда враждебное существо в 30 футах поражается атакой или заклинанием"
+                            }
+                          ]
+                        : [],
+        description:
+          "<p>Выберите вариант: Дух агонии, Кровавой песни, Разрушения, Великих возможностей, Жизни, Защиты или Скорбной песни. Автоматические броски находятся на карточке Ритуалиста.</p>"
+      }
+    ],
     note: "Через 10 минут или при 0 хитов дух исчезает. Потеря концентрации делает его враждебным."
   };
 }
@@ -271,8 +403,19 @@ export async function summonRitualistSpirits(actor, activity) {
   if (!validateRitualistRitualPointUse(actor, activity)) return false;
   const cost = await chooseRitualistRitualPointCost(actor, activity, { title: "Призвать духов Ритуалиста" });
   if (!cost) return false;
-  const variant = await choiceDialog({ title: "Вариант духов", label: "Каких духов призвать",
-    choices: [["agony", "Агонии"], ["life", "Жизни"], ["protection", "Защиты"], ["sorrow", "Скорбной песни"], ["destruction", "Разрушения"], ["blood-song", "Кровавой песни"], ["possibilities", "Великих возможностей"]] });
+  const variant = await choiceDialog({
+    title: "Вариант духов",
+    label: "Каких духов призвать",
+    choices: [
+      ["agony", "Агонии"],
+      ["life", "Жизни"],
+      ["protection", "Защиты"],
+      ["sorrow", "Скорбной песни"],
+      ["destruction", "Разрушения"],
+      ["blood-song", "Кровавой песни"],
+      ["possibilities", "Великих возможностей"]
+    ]
+  });
   if (!variant) return false;
   const resource = bindingRitualResource(actor);
   if (cost > resource.remaining || cost > 3) {
@@ -282,14 +425,27 @@ export async function summonRitualistSpirits(actor, activity) {
   let replaceConcentration = [];
   const current = [...(actor.concentration?.effects ?? [])];
   if (current.length >= Number(actor.system?.attributes?.concentration?.limit ?? 1)) {
-    const confirmed = await choiceDialog({ title: "Концентрация Ритуалиста", label: "Завершить текущую концентрацию для духов?",
-      choices: [["replace", "Завершить и призвать духов"], ["cancel", "Отмена"]] });
+    const confirmed = await choiceDialog({
+      title: "Концентрация Ритуалиста",
+      label: "Завершить текущую концентрацию для духов?",
+      choices: [
+        ["replace", "Завершить и призвать духов"],
+        ["cancel", "Отмена"]
+      ]
+    });
     if (confirmed !== "replace") return false;
     replaceConcentration = current.map(effect => effect.uuid);
   }
-  const result = await createSummonedGroup(actor, Array.from({ length: cost }, (_value, index) => ritualistSpiritSummon(actor, index, cost, activity, replaceConcentration, variant)), {
-    requireScene: true, resource: { itemUuid: resource.feature.uuid, cost }
-  });
+  const result = await createSummonedGroup(
+    actor,
+    Array.from({ length: cost }, (_value, index) =>
+      ritualistSpiritSummon(actor, index, cost, activity, replaceConcentration, variant)
+    ),
+    {
+      requireScene: true,
+      resource: { itemUuid: resource.feature.uuid, cost }
+    }
+  );
   return result.status === "success";
 }
 
@@ -298,10 +454,18 @@ export async function dismissRitualistSpirits(actor) {
 }
 
 export async function regainRitualistSpirits(actor) {
-  const dc = await numberDialog({ title: "Вернуть контроль духов", label: "СЛ предыдущей проверки концентрации", min: 1, max: 100, defaultValue: actor.getFlag(MODULE_ID, "lastConcentrationDC") ?? 10,
-    hint: "Укажите прежнюю СЛ: она не определяется автоматически, если проверка выполнялась вручную." });
+  const dc = await numberDialog({
+    title: "Вернуть контроль духов",
+    label: "СЛ предыдущей проверки концентрации",
+    min: 1,
+    max: 100,
+    defaultValue: actor.getFlag(MODULE_ID, "lastConcentrationDC") ?? 10,
+    hint: "Укажите прежнюю СЛ: она не определяется автоматически, если проверка выполнялась вручную."
+  });
   if (dc == null) return false;
-  const activity = [...(findFeature(actor, "binding-ritual")?.system.activities?.values?.() ?? [])].find(a => automationData(a).action === "regain-ritualist-spirits");
+  const activity = [...(findFeature(actor, "binding-ritual")?.system.activities?.values?.() ?? [])].find(
+    a => automationData(a).action === "regain-ritualist-spirits"
+  );
   return manageSummons(actor, { action: "regain", source: "binding-ritual", dc, activityUuid: activity?.uuid });
 }
 
@@ -311,7 +475,11 @@ export async function rollRitualistSpiritAgony(actor) {
     return false;
   }
   const level = Math.max(1, ritualistLevel(actor));
-  await rollToChat(actor, `${level}d6`, `Дух агонии: психический урон при провале спасброска Мудрости. СЛ ${ritualistSpiritSaveDC(actor)}.`);
+  await rollToChat(
+    actor,
+    `${level}d6`,
+    `Дух агонии: психический урон при провале спасброска Мудрости. СЛ ${ritualistSpiritSaveDC(actor)}.`
+  );
   return true;
 }
 
@@ -339,7 +507,11 @@ export async function rollRitualistSpiritSorrow(actor) {
     notify("Эта активность требует класс «Ритуалист».", "warn");
     return false;
   }
-  await rollToChat(actor, "1d4", `Дух скорбной песни: урон силовым полем при провале спасброска Телосложения. СЛ ${ritualistSpiritSaveDC(actor)}. Длительность слепоты/глухоты: ${Math.max(1, abilityMod(actor, "wis"))} раунд.`);
+  await rollToChat(
+    actor,
+    "1d4",
+    `Дух скорбной песни: урон силовым полем при провале спасброска Телосложения. СЛ ${ritualistSpiritSaveDC(actor)}. Длительность слепоты/глухоты: ${Math.max(1, abilityMod(actor, "wis"))} раунд.`
+  );
   return true;
 }
 
@@ -348,7 +520,11 @@ export async function rollRitualistSpiritDestructionDie(actor) {
     notify("Эта активность требует класс «Ритуалист».", "warn");
     return false;
   }
-  await rollToChat(actor, "1d6", `Дух разрушения: урон за 1 раунд жизни духа, максимум 8к6. Спасбросок Мудрости, СЛ ${ritualistSpiritSaveDC(actor)}, при успехе половина.`);
+  await rollToChat(
+    actor,
+    "1d6",
+    `Дух разрушения: урон за 1 раунд жизни духа, максимум 8к6. Спасбросок Мудрости, СЛ ${ritualistSpiritSaveDC(actor)}, при успехе половина.`
+  );
   return true;
 }
 
@@ -357,7 +533,9 @@ export async function showRitualistSpiritChannel(actor) {
     notify("Для этой активности требуется особенность «Канал духов».", "warn");
     return false;
   }
-  await chat(actor, `
+  await chat(
+    actor,
+    `
     <p><strong>${actor.name}: Канал духов.</strong> При изгнании духа создайте пул очков, равный текущим хитам духа.</p>
     <ul>
       <li><strong>Дух к плоти:</strong> 1 очко = 1 хит лечения, максимум до половины максимума хитов цели; не действует на нежить и конструктов.</li>
@@ -365,6 +543,7 @@ export async function showRitualistSpiritChannel(actor) {
       <li><strong>Призрачный удар:</strong> каждые 7 очков = +1к6 урона к атаке или заклинанию.</li>
       <li><strong>Общение:</strong> 28 очков = 1 ритуальное очко; излишки сверх максимума теряются после отдыха.</li>
     </ul>
-  `);
+  `
+  );
   return true;
 }

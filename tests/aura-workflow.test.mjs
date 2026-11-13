@@ -6,54 +6,147 @@ import { automationAction } from "../scripts/automation/shared/helpers.mjs";
 
 let actor, sourceItem, sourceToken, targets, calls, restored, scene;
 function item(data) {
-  const doc = { uuid: "Actor.owner.Item.feature", name: "Aura", img: "icon", actor, toObject: () => structuredClone(data),
+  const doc = {
+    uuid: "Actor.owner.Item.feature",
+    name: "Aura",
+    img: "icon",
+    actor,
+    toObject: () => structuredClone(data),
     clone(patch) {
-      const activities = Object.fromEntries(Object.entries(patch.system.activities).map(([id, activity]) => [id,
-        { ...activity, flags: { ...data.system.activities[id]?.flags, ...activity.flags,
-          [MODULE_ID]: { ...data.system.activities[id]?.flags?.[MODULE_ID], ...activity.flags?.[MODULE_ID] } } }]));
+      const activities = Object.fromEntries(
+        Object.entries(patch.system.activities).map(([id, activity]) => [
+          id,
+          {
+            ...activity,
+            flags: {
+              ...data.system.activities[id]?.flags,
+              ...activity.flags,
+              [MODULE_ID]: { ...data.system.activities[id]?.flags?.[MODULE_ID], ...activity.flags?.[MODULE_ID] }
+            }
+          }
+        ])
+      );
       return item({ ...structuredClone(data), ...patch, system: { ...data.system, ...patch.system, activities } });
-    } };
-  doc.system = { ...data.system, activities: new Map(Object.entries(data.system.activities).map(([id, data]) => [id,
-    { ...data, id, uuid: `${doc.uuid}.Activity.${id}`, item: doc, actor }])) };
+    }
+  };
+  doc.system = {
+    ...data.system,
+    activities: new Map(
+      Object.entries(data.system.activities).map(([id, data]) => [
+        id,
+        { ...data, id, uuid: `${doc.uuid}.Activity.${id}`, item: doc, actor }
+      ])
+    )
+  };
   return doc;
 }
 beforeEach(() => {
-  actor = { uuid: "Actor.owner", system: { attributes: { hp: { value: 40 } } } }; calls = []; restored = [];
-  sourceItem = item({ system: { uses: { max: "1", spent: 1 }, activities: { first: { _id: "first", type: "utility",
-    consumption: { targets: [{ type: "itemUses", target: "", value: "1" }] }, flags: { [MODULE_ID]: { action: "spirit-vessel-fiend-flames" } } } } }, effects: [] });
+  actor = { uuid: "Actor.owner", system: { attributes: { hp: { value: 40 } } } };
+  calls = [];
+  restored = [];
+  sourceItem = item({
+    system: {
+      uses: { max: "1", spent: 1 },
+      activities: {
+        first: {
+          _id: "first",
+          type: "utility",
+          consumption: { targets: [{ type: "itemUses", target: "", value: "1" }] },
+          flags: { [MODULE_ID]: { action: "spirit-vessel-fiend-flames" } }
+        }
+      }
+    },
+    effects: []
+  });
   sourceToken = { actor, document: { uuid: "Scene.one.Token.owner", hidden: false } };
   targets = [{ id: "enemy", actor: {}, document: { uuid: "Scene.one.Token.enemy" } }];
-  scene = { id: "one" }; globalThis.canvas = { ready: true, scene };
-  globalThis.game = { user: { id: "gm", targets: new Set([{ id: "previous" }]), async updateTokenTargets(ids) { restored.push(ids); } },
-    modules: new Map([["midi-qol", { active: true }]]) };
-  globalThis.ChatMessage = { getSpeaker: () => ({}) }; globalThis.ui = { notifications: { warn() {} } };
-  class Workflow { constructor(actor, activity, speaker, targets, options) { Object.assign(this, { actor, activity, targets, workflowOptions: options.workflowOptions }); } }
-  class TrapWorkflow extends Workflow { constructor() { throw Error("Self-starting Trap constructor must not run"); } }
-  globalThis.MidiQOL = { Workflow, TrapWorkflow, async completeActivityUse(...args) { calls.push(args); return { aborted: false }; } };
+  scene = { id: "one" };
+  globalThis.canvas = { ready: true, scene };
+  globalThis.game = {
+    user: {
+      id: "gm",
+      targets: new Set([{ id: "previous" }]),
+      async updateTokenTargets(ids) {
+        restored.push(ids);
+      }
+    },
+    modules: new Map([["midi-qol", { active: true }]])
+  };
+  globalThis.ChatMessage = { getSpeaker: () => ({}) };
+  globalThis.ui = { notifications: { warn() {} } };
+  class Workflow {
+    constructor(actor, activity, speaker, targets, options) {
+      Object.assign(this, { actor, activity, targets, workflowOptions: options.workflowOptions });
+    }
+  }
+  class TrapWorkflow extends Workflow {
+    constructor() {
+      throw Error("Self-starting Trap constructor must not run");
+    }
+  }
+  globalThis.MidiQOL = {
+    Workflow,
+    TrapWorkflow,
+    async completeActivityUse(...args) {
+      calls.push(args);
+      return { aborted: false };
+    }
+  };
 });
-const pulse = event => useAuraPulse({ sourceToken, sourceItem, targets, scene, template: { uuid: "Scene.one.Region.aura" }, event, eventKey: "source-start:turn-one" });
+const pulse = event =>
+  useAuraPulse({
+    sourceToken,
+    sourceItem,
+    targets,
+    scene,
+    template: { uuid: "Scene.one.Region.aura" },
+    event,
+    eventKey: "source-start:turn-one"
+  });
 test("save-only automation exposes only confirmed native save outcomes", async () => {
-  MidiQOL.completeActivityUse = async () => ({saves: new Set(), failedSaves: new Set(targets)});
-  const result = await pulse({save: "con", dc: "16", damage: [], returnSaveOutcome: true});
+  MidiQOL.completeActivityUse = async () => ({ saves: new Set(), failedSaves: new Set(targets) });
+  const result = await pulse({ save: "con", dc: "16", damage: [], returnSaveOutcome: true });
   assert.deepEqual(result.failedSaves, [targets[0].document.uuid]);
   assert.deepEqual(result.saves, []);
 });
 
 test("a successful repeated bleeding save removes only its source-owned effect", async () => {
   let removed = 0;
-  globalThis.fromUuid = async () => ({ getFlag: (_module, key) => key === "repeatSave" ? { sourceItemUuid: sourceItem.uuid } : null, async delete() { removed++; } });
-  MidiQOL.completeActivityUse = async (...args) => { calls.push(args); return { saves: new Set(targets), failedSaves: new Set() }; };
-  await pulse({ save: "con", dc: "16", damage: [{ formula: "2d8", type: "necrotic" }], removeEffectOnSaveUuid: "bleeding" });
+  globalThis.fromUuid = async () => ({
+    getFlag: (_module, key) => (key === "repeatSave" ? { sourceItemUuid: sourceItem.uuid } : null),
+    async delete() {
+      removed++;
+    }
+  });
+  MidiQOL.completeActivityUse = async (...args) => {
+    calls.push(args);
+    return { saves: new Set(targets), failedSaves: new Set() };
+  };
+  await pulse({
+    save: "con",
+    dc: "16",
+    damage: [{ formula: "2d8", type: "necrotic" }],
+    removeEffectOnSaveUuid: "bleeding"
+  });
   assert.equal(removed, 1);
   assert.equal(calls[0][0].damage.onSave, "none");
 });
 
 test("an unknown repeat-save result is marked for review instead of deleting or rolling twice", async () => {
   let review = false;
-  globalThis.fromUuid = async () => ({ async setFlag(module, key, value) { assert.equal(key, "repeatSaveReview"); review = value; },
-    async delete() { throw Error("Unknown save cannot end bleeding"); } });
+  globalThis.fromUuid = async () => ({
+    async setFlag(module, key, value) {
+      assert.equal(key, "repeatSaveReview");
+      review = value;
+    },
+    async delete() {
+      throw Error("Unknown save cannot end bleeding");
+    }
+  });
   const result = await pulse({ save: "con", dc: "16", damage: [], removeEffectOnSaveUuid: "bleeding" });
-  assert.equal(result.status, "needs-review"); assert.equal(review, true); assert.equal(calls.length, 1);
+  assert.equal(result.status, "needs-review");
+  assert.equal(review, true);
+  assert.equal(calls.length, 1);
 });
 
 test("aura uses Midi's fire-resistance override without ignoring immunity or other traits", async () => {
@@ -66,13 +159,19 @@ test("aura uses Midi's fire-resistance override without ignoring immunity or oth
 test("aura damage uses native Midi, its attached Region, and no further costs or dialogs", async () => {
   assert.ok(await pulse({ damage: [{ formula: "1d6", type: "fire" }] }));
   const [activity, usage, dialog] = calls[0];
-  assert.equal(activity.type, "damage"); assert.deepEqual(activity.damage.parts[0].types, ["fire"]);
-  assert.equal(activity.flags[MODULE_ID].areaResolved, true); assert.equal(activity.midiProperties.forceDamageDialog, "never");
-  assert.deepEqual(usage.consume, { resources: false, spellSlot: false, action: false }); assert.equal(dialog.configure, false);
-  assert.equal(usage.create.measuredTemplate, false); assert.equal(usage.midiOptions.workflowOptions.templateUuid, "Scene.one.Region.aura");
+  assert.equal(activity.type, "damage");
+  assert.deepEqual(activity.damage.parts[0].types, ["fire"]);
+  assert.equal(activity.flags[MODULE_ID].areaResolved, true);
+  assert.equal(activity.midiProperties.forceDamageDialog, "never");
+  assert.deepEqual(usage.consume, { resources: false, spellSlot: false, action: false });
+  assert.equal(dialog.configure, false);
+  assert.equal(usage.create.measuredTemplate, false);
+  assert.equal(usage.midiOptions.workflowOptions.templateUuid, "Scene.one.Region.aura");
   assert.equal(usage.midiOptions.workflowOptions.noOnUseMacro, true);
-  assert.deepEqual(usage.midiOptions.targetUuids, [targets[0].document.uuid]); assert.ok(usage.workflow instanceof MidiQOL.TrapWorkflow);
-  assert.equal(sourceItem.toObject().system.uses.spent, 1); assert.equal(sourceItem.toObject().system.activities.first.type, "utility");
+  assert.deepEqual(usage.midiOptions.targetUuids, [targets[0].document.uuid]);
+  assert.ok(usage.workflow instanceof MidiQOL.TrapWorkflow);
+  assert.equal(sourceItem.toObject().system.uses.spent, 1);
+  assert.equal(sourceItem.toObject().system.activities.first.type, "utility");
   assert.deepEqual(restored.at(-1), ["previous"]);
 });
 
@@ -84,35 +183,64 @@ test("a pulse clone must not inherit its already consumed activation action", as
 
 test("timed pulses never expire the source's pending action, spell or weapon-hit effects", async () => {
   await pulse({ damage: [{ formula: "1d6", type: "fire" }] });
-  const workflow = calls[0][1].workflow; workflow.activity.hasDamage = true;
+  const workflow = calls[0][1].workflow;
+  workflow.activity.hasDamage = true;
   const native = [];
-  for (const name of ["WorkflowState_SavesComplete", "WorkflowState_WaitForDamageRoll", "WorkflowState_DamageRollComplete"])
-    MidiQOL.Workflow.prototype[name] = () => { throw Error("Normal action/hit expiry stage must not run"); };
-  MidiQOL.TrapWorkflow.prototype.WorkflowState_WaitForDamageRoll = async () => { native.push("damage"); };
-  MidiQOL.TrapWorkflow.prototype.WorkflowState_DamageRollComplete = async () => { native.push("complete"); };
+  for (const name of [
+    "WorkflowState_SavesComplete",
+    "WorkflowState_WaitForDamageRoll",
+    "WorkflowState_DamageRollComplete"
+  ])
+    MidiQOL.Workflow.prototype[name] = () => {
+      throw Error("Normal action/hit expiry stage must not run");
+    };
+  MidiQOL.TrapWorkflow.prototype.WorkflowState_WaitForDamageRoll = async () => {
+    native.push("damage");
+  };
+  MidiQOL.TrapWorkflow.prototype.WorkflowState_DamageRollComplete = async () => {
+    native.push("complete");
+  };
   workflow.callMidiHooks = async name => native.push(name);
   assert.equal(await workflow.WorkflowState_SavesComplete(), workflow.WorkflowState_WaitForDamageRoll);
-  await workflow.WorkflowState_WaitForDamageRoll(); await workflow.WorkflowState_DamageRollComplete();
+  await workflow.WorkflowState_WaitForDamageRoll();
+  await workflow.WorkflowState_DamageRollComplete();
   assert.deepEqual(native, ["damage", "midi-qol.DamageRollComplete", "complete"]);
 });
 
 test("plague pulse links a permanent latent condition to failed native saves only", async () => {
-  await pulse({ save: "con", dc: "15", damage: [], condition: { name: "Latent plague", key: "hidden-intellect-plague", persistent: true } });
-  const [activity] = calls[0]; assert.equal(activity.type, "save"); assert.deepEqual(activity.save.ability, ["con"]);
-  assert.equal(activity.save.dc.formula, "15"); assert.equal(activity.effects[0].onSave, false);
-  const effect = activity.item.toObject().effects[0]; assert.equal(effect.flags[MODULE_ID].auraPersistentCondition, "hidden-intellect-plague");
-  assert.equal(effect.duration.value, null); assert.equal(effect.transfer, false); assert.equal(effect.showIcon, 0);
+  await pulse({
+    save: "con",
+    dc: "15",
+    damage: [],
+    condition: { name: "Latent plague", key: "hidden-intellect-plague", persistent: true }
+  });
+  const [activity] = calls[0];
+  assert.equal(activity.type, "save");
+  assert.deepEqual(activity.save.ability, ["con"]);
+  assert.equal(activity.save.dc.formula, "15");
+  assert.equal(activity.effects[0].onSave, false);
+  const effect = activity.item.toObject().effects[0];
+  assert.equal(effect.flags[MODULE_ID].auraPersistentCondition, "hidden-intellect-plague");
+  assert.equal(effect.duration.value, null);
+  assert.equal(effect.transfer, false);
+  assert.equal(effect.showIcon, 0);
   assert.equal(sourceItem.toObject().effects.length, 0);
 });
 
 test("missing Midi or another open scene cannot silently apply raw HP damage", async () => {
-  game.modules.get("midi-qol").active = false; assert.equal(await pulse({ damage: [{ formula: "1d6", type: "fire" }] }), false);
-  game.modules.get("midi-qol").active = true; canvas.scene = { id: "other" };
-  assert.equal(await pulse({ damage: [{ formula: "1d6", type: "fire" }] }), false); assert.equal(calls.length, 0);
+  game.modules.get("midi-qol").active = false;
+  assert.equal(await pulse({ damage: [{ formula: "1d6", type: "fire" }] }), false);
+  game.modules.get("midi-qol").active = true;
+  canvas.scene = { id: "other" };
+  assert.equal(await pulse({ damage: [{ formula: "1d6", type: "fire" }] }), false);
+  assert.equal(calls.length, 0);
 });
 
 test("native failure restores target selection and never charges the aura activation again", async () => {
-  MidiQOL.completeActivityUse = async () => { throw Error("native failure"); };
+  MidiQOL.completeActivityUse = async () => {
+    throw Error("native failure");
+  };
   await assert.rejects(pulse({ damage: [{ formula: "1d6", type: "fire" }] }), /native failure/);
-  assert.deepEqual(restored.at(-1), ["previous"]); assert.equal(sourceItem.toObject().system.uses.spent, 1);
+  assert.deepEqual(restored.at(-1), ["previous"]);
+  assert.equal(sourceItem.toObject().system.uses.spent, 1);
 });

@@ -43,7 +43,10 @@ export function validateBlinkerPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "blinker") return true;
   const failures = blinkerPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Мерцающий». Не выполнено: ${failures.join(", ")}. Специальное задание или учителя подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Мерцающий». Не выполнено: ${failures.join(", ")}. Специальное задание или учителя подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -187,13 +190,15 @@ export async function activateSidewaysShift(actor) {
     },
     ...temporaryEffectTiming(game.combat?.started ? { turns: 0, expiry: "turnEnd" } : { seconds: 6 }),
     system: {
-      changes: [{
-        key: "flags.midi-qol.advantage.attack.all",
-        type: "custom",
-        value: "true",
-        phase: "initial",
-        priority: 20
-      }]
+      changes: [
+        {
+          key: "flags.midi-qol.advantage.attack.all",
+          type: "custom",
+          value: "true",
+          phase: "initial",
+          priority: 20
+        }
+      ]
     }
   };
 

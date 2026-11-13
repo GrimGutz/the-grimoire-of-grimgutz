@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import {combatTurnSnapshot, encounterForActor} from "../shared/combat-flow.mjs";
+import { combatTurnSnapshot, encounterForActor } from "../shared/combat-flow.mjs";
 
 const TIME_UNITS = new Set(["seconds", "minutes", "hours", "days", "weeks", "months", "years"]);
 let cleanupRunning = null;
@@ -35,7 +35,18 @@ function durationSpec(duration) {
 
 function durationPatch(update) {
   const result = {};
-  for (const key of ["value", "units", "seconds", "rounds", "turns", "expiry", "expired", "startTime", "startRound", "startTurn"]) {
+  for (const key of [
+    "value",
+    "units",
+    "seconds",
+    "rounds",
+    "turns",
+    "expiry",
+    "expired",
+    "startTime",
+    "startRound",
+    "startTurn"
+  ]) {
     const value = field(update, `duration.${key}`);
     if (value !== undefined) result[key] = value;
   }
@@ -51,11 +62,19 @@ function defaultExpiry(units) {
   return TIME_UNITS.has(units) && elapsedTime ? "updateWorldTime" : "turnStart";
 }
 
-export function temporaryEffectTiming({ seconds = null, rounds = null, turns = null, expiry = null, actor = null } = {}) {
+export function temporaryEffectTiming({
+  seconds = null,
+  rounds = null,
+  turns = null,
+  expiry = null,
+  actor = null
+} = {}) {
   const spec = durationSpec({ seconds, rounds, turns });
   if (!spec) return { duration: { value: null, units: "seconds", expiry: null, expired: false } };
   return {
-    start: CONFIG.ActiveEffect.documentClass.getEffectStart(actor ? encounterForActor(actor) : game.combat?.started ? game.combat : null),
+    start: CONFIG.ActiveEffect.documentClass.getEffectStart(
+      actor ? encounterForActor(actor) : game.combat?.started ? game.combat : null
+    ),
     duration: { ...spec, expiry: expiry ?? defaultExpiry(spec.units), expired: false }
   };
 }
@@ -69,23 +88,28 @@ export function prepareModuleTemporaryEffectExpiry(effect, update = null, option
   if (patch.expired === true) return;
 
   const base = sourceData(effect).duration ?? {};
-  const explicitTimer = ["value", "units", "seconds", "rounds", "turns", "startTime", "startRound", "startTurn"]
-    .some(key => Object.hasOwn(patch, key));
+  const explicitTimer = ["value", "units", "seconds", "rounds", "turns", "startTime", "startRound", "startTurn"].some(
+    key => Object.hasOwn(patch, key)
+  );
   const spec = durationSpec(patch) ?? durationSpec({ ...base, ...patch });
   const oldSpec = durationSpec(base);
   const timerChanged = spec && (spec.value !== oldSpec?.value || spec.units !== oldSpec?.units);
-  const startChanged = ["time", "combat", "combatant", "round", "turn"].some(key => {
-    const value = field(update, `start.${key}`);
-    return value !== undefined && value !== sourceData(effect).start?.[key];
-  }) || ["startTime", "startRound", "startTurn"].some(key => {
-    const startKey = { startTime: "time", startRound: "round", startTurn: "turn" }[key];
-    return patch[key] !== undefined && patch[key] !== sourceData(effect).start?.[startKey];
-  });
-  const restarting = update && (
-    timerChanged || startChanged || options?.[MODULE_ID]?.reactivate === true
-    || (base.expired && (explicitTimer || patch.expired === false))
-    || (field(update, "disabled") === false && (effect.disabled || base.expired))
-  );
+  const startChanged =
+    ["time", "combat", "combatant", "round", "turn"].some(key => {
+      const value = field(update, `start.${key}`);
+      return value !== undefined && value !== sourceData(effect).start?.[key];
+    }) ||
+    ["startTime", "startRound", "startTurn"].some(key => {
+      const startKey = { startTime: "time", startRound: "round", startTurn: "turn" }[key];
+      return patch[key] !== undefined && patch[key] !== sourceData(effect).start?.[startKey];
+    });
+  const restarting =
+    update &&
+    (timerChanged ||
+      startChanged ||
+      options?.[MODULE_ID]?.reactivate === true ||
+      (base.expired && (explicitTimer || patch.expired === false)) ||
+      (field(update, "disabled") === false && (effect.disabled || base.expired)));
   if (update && !restarting) return;
 
   if (!spec) return;
@@ -93,13 +117,21 @@ export function prepareModuleTemporaryEffectExpiry(effect, update = null, option
   setField(target, "duration.value", spec.value);
   setField(target, "duration.units", spec.units);
   setField(target, "duration.expired", false);
-  setField(target, "duration.expiry", patch.expiry ?? (update && !explicitTimer ? base.expiry : null) ?? defaultExpiry(spec.units));
+  setField(
+    target,
+    "duration.expiry",
+    patch.expiry ?? (update && !explicitTimer ? base.expiry : null) ?? defaultExpiry(spec.units)
+  );
   setField(target, "flags.dae.expiryMode", "delete");
 
   const suppliedStart = (update ?? creationData)?.start;
   const actor = effect.actor ?? (effect.parent?.documentName === "Actor" ? effect.parent : null);
-  const start = suppliedStart ?? (update ? null : sourceData(effect).start)
-    ?? CONFIG.ActiveEffect.documentClass.getEffectStart(actor ? encounterForActor(actor) : game.combat?.started ? game.combat : null);
+  const start =
+    suppliedStart ??
+    (update ? null : sourceData(effect).start) ??
+    CONFIG.ActiveEffect.documentClass.getEffectStart(
+      actor ? encounterForActor(actor) : game.combat?.started ? game.combat : null
+    );
   for (const [key, value] of Object.entries(start)) setField(target, `start.${key}`, value);
   if (!update) effect.updateSource(target);
 }
@@ -118,13 +150,17 @@ export function isExpiredTemporaryEffect(effect, { elapsed = false, context = un
 }
 
 export function isEffectActive(effect) {
-  return Boolean(effect && !effect.disabled && effect.active !== false && !effect.isSuppressed && !isExpiredTemporaryEffect(effect));
+  return Boolean(
+    effect && !effect.disabled && effect.active !== false && !effect.isSuppressed && !isExpiredTemporaryEffect(effect)
+  );
 }
 
 /** Include synthetic actors from every scene; the canvas need not be open. */
 export function automationActors() {
   const actors = new Map();
-  const add = actor => { if (actor?.uuid) actors.set(actor.uuid, actor); };
+  const add = actor => {
+    if (actor?.uuid) actors.set(actor.uuid, actor);
+  };
   for (const actor of game.actors ?? []) add(actor);
   for (const scene of game.scenes ?? []) {
     for (const token of scene.tokens ?? []) add(token.actor);
@@ -142,12 +178,17 @@ function expiryEventReached(effect, event, context) {
   if (event === "updateWorldTime" && raw.expiry === "updateWorldTime") return true;
   const snapshot = context?.turnSnapshot;
   if (snapshot && ["turnEnd", "turnStart"].includes(raw.expiry) && event === raw.expiry) {
-    const start = effect.start ?? sourceData(effect).start ?? {}, combat = context.combat;
+    const start = effect.start ?? sourceData(effect).start ?? {},
+      combat = context.combat;
     const startCombatId = start.combat?.id ?? start.combat;
-    const participant = startCombatId === combat.id ? combat.combatants?.get?.(start.combatant)
-      : combat.getCombatantsByActor?.(effect.actor ?? effect.parent)?.[0];
-    const actor = effect.actor ?? effect.parent, entry = event === "turnEnd" ? snapshot.previous : snapshot.current;
-    if (participant) return entry.combatantId ? participant.id === entry.combatantId : participant.turnNumber === entry.turn;
+    const participant =
+      startCombatId === combat.id
+        ? combat.combatants?.get?.(start.combatant)
+        : combat.getCombatantsByActor?.(effect.actor ?? effect.parent)?.[0];
+    const actor = effect.actor ?? effect.parent,
+      entry = event === "turnEnd" ? snapshot.previous : snapshot.current;
+    if (participant)
+      return entry.combatantId ? participant.id === entry.combatantId : participant.turnNumber === entry.turn;
     return Boolean(actor?.uuid && actor.uuid === entry.actor?.uuid);
   }
   return effect.isExpiryEvent?.(event, context) ?? (TIME_UNITS.has(raw.units) && event === "updateWorldTime");
@@ -157,11 +198,21 @@ async function cleanupPass(event, context) {
   for (const actor of automationActors()) {
     // Only disposable actor-owned module effects. Item passives are never deleted here.
     const ids = [...(actor.effects ?? [])]
-      .filter(effect => hasModuleFlag(effect) && effect.transfer !== true
-        && expiryEventReached(effect, event, context)
-        && isExpiredTemporaryEffect(effect, { elapsed: true, context: context.turnSnapshot ? {
-          round: context.turnSnapshot.current.round, turn: context.turnSnapshot.current.turn
-        } : undefined }))
+      .filter(
+        effect =>
+          hasModuleFlag(effect) &&
+          effect.transfer !== true &&
+          expiryEventReached(effect, event, context) &&
+          isExpiredTemporaryEffect(effect, {
+            elapsed: true,
+            context: context.turnSnapshot
+              ? {
+                  round: context.turnSnapshot.current.round,
+                  turn: context.turnSnapshot.current.turn
+                }
+              : undefined
+          })
+      )
       .map(effect => effect.id);
     if (!ids.length) continue;
     try {
@@ -177,15 +228,17 @@ async function cleanupPass(event, context) {
 export function deleteExpiredModuleTemporaryEffects(event = "ready", context = {}) {
   if (!game.users?.activeGM?.isSelf) return Promise.resolve();
   const key = `${event}:${context.turnSnapshot ? `${context.turnSnapshot.id}:${context.turnSnapshot.current.round}:${context.turnSnapshot.current.turn}` : "global"}`;
-  cleanupEvents.set(key, {event, context});
+  cleanupEvents.set(key, { event, context });
   if (cleanupRunning) return cleanupRunning;
   cleanupRunning = (async () => {
     while (cleanupEvents.size) {
-      const [key, {event: nextEvent, context: nextContext}] = cleanupEvents.entries().next().value;
+      const [key, { event: nextEvent, context: nextContext }] = cleanupEvents.entries().next().value;
       cleanupEvents.delete(key);
       await cleanupPass(nextEvent, nextContext);
     }
-  })().finally(() => { cleanupRunning = null; });
+  })().finally(() => {
+    cleanupRunning = null;
+  });
   return cleanupRunning;
 }
 
@@ -195,7 +248,9 @@ export function installTemporaryEffectHooks() {
   });
   Hooks.on("preUpdateActiveEffect", prepareModuleTemporaryEffectExpiry);
   const cleanup = (event, context) => {
-    void deleteExpiredModuleTemporaryEffects(event, context).catch(error => console.error(`${MODULE_ID} | Effect cleanup failed`, error));
+    void deleteExpiredModuleTemporaryEffects(event, context).catch(error =>
+      console.error(`${MODULE_ID} | Effect cleanup failed`, error)
+    );
   };
   Hooks.once("ready", () => cleanup("ready"));
   Hooks.on("canvasReady", () => cleanup("canvasReady"));

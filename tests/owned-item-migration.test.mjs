@@ -5,23 +5,60 @@ import { migrateOwnedItems } from "../scripts/automation/runtime.mjs";
 import { ownedItemMigrationPlan } from "../scripts/automation/shared/owned-item-migration.mjs";
 
 test("legacy edited descriptions and activities are not silently replaced", async () => {
-  const original = { name: "Feature", type: "feat", system: { identifier: "feature", description: { value: "Source rules" },
-    activities: { source: { flags: { [MODULE_ID]: { action: "take-root" } } } } }, flags: { [MODULE_ID]: { feature: "feature" } }, effects: [] };
+  const original = {
+    name: "Feature",
+    type: "feat",
+    system: {
+      identifier: "feature",
+      description: { value: "Source rules" },
+      activities: { source: { flags: { [MODULE_ID]: { action: "take-root" } } } }
+    },
+    flags: { [MODULE_ID]: { feature: "feature" } },
+    effects: []
+  };
   const source = { ...original, toObject: () => structuredClone(original) };
-  globalThis.game = { user: { id: "gm" }, users: { activeGM: { id: "gm" } },
-    packs: new Map([[`${MODULE_ID}.features`, { getDocuments: async () => [source] }]]) };
-  const item = { ...structuredClone(original), id: "item", _stats: { compendiumSource: `Compendium.${MODULE_ID}.features.Item.item` } };
+  globalThis.game = {
+    user: { id: "gm" },
+    users: { activeGM: { id: "gm" } },
+    packs: new Map([[`${MODULE_ID}.features`, { getDocuments: async () => [source] }]])
+  };
+  const item = {
+    ...structuredClone(original),
+    id: "item",
+    _stats: { compendiumSource: `Compendium.${MODULE_ID}.features.Item.item` }
+  };
   item.system.description.value = "My campaign rule";
   item.system.activities = { manual: { name: "Custom attack", type: "attack" } };
   const updates = [];
-  await migrateOwnedItems({ uuid: "Actor.owner", name: "owner", isOwner: true, items: [item],
-    async updateEmbeddedDocuments(type, data) { updates.push(...data); } });
+  await migrateOwnedItems({
+    uuid: "Actor.owner",
+    name: "owner",
+    isOwner: true,
+    items: [item],
+    async updateEmbeddedDocuments(type, data) {
+      updates.push(...data);
+    }
+  });
   assert.ok(updates.every(update => !Object.keys(update).some(key => key.startsWith("system."))));
 });
 
 test("advancement changes require review and never erase existing choices", () => {
-  const item = { id: "one", flags: {}, system: { advancement: [{ _id: "grant", type: "ItemChoice", configuration: { allowDrops: true }, value: { added: { 6: "Chosen.Item.uuid" } } }] } };
-  const source = structuredClone(item); source.system.advancement[0].value = { added: {} };
+  const item = {
+    id: "one",
+    flags: {},
+    system: {
+      advancement: [
+        {
+          _id: "grant",
+          type: "ItemChoice",
+          configuration: { allowDrops: true },
+          value: { added: { 6: "Chosen.Item.uuid" } }
+        }
+      ]
+    }
+  };
+  const source = structuredClone(item);
+  source.system.advancement[0].value = { added: {} };
   assert.equal(ownedItemMigrationPlan(item, source).conflicts.length, 0);
   source.system.advancement[0].configuration.allowDrops = false;
   const plan = ownedItemMigrationPlan(item, source);

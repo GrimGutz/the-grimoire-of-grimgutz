@@ -9,10 +9,7 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
-import {
-  flaggedPassiveEffectData,
-  syncFlaggedPassiveEffects
-} from "../effects/passive-helpers.mjs";
+import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const feyWarriorSyncs = new Set();
 const feyWarriorPassiveSyncs = new Set();
@@ -39,7 +36,10 @@ export function validateFeyWarriorPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "fey-warrior") return true;
   const failures = feyWarriorPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Воитель фей». Не выполнено: ${failures.join(", ")}. Пребывание в Стране Фей подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Воитель фей». Не выполнено: ${failures.join(", ")}. Пребывание в Стране Фей подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -64,16 +64,15 @@ export function validateFeyWarriorFeaturePrerequisites(item, options, userId) {
 }
 
 function equippedArmor(actor) {
-  return actor?.items?.some(item => {
-    if (item.type !== "equipment" || item.system?.equipped !== true) return false;
-    const type = String(
-      item.system?.type?.value
-      ?? item.system?.armor?.type
-      ?? item.system?.type
-      ?? ""
-    ).toLowerCase();
-    return ["light", "medium", "heavy", "lgt", "med", "hvy"].includes(type);
-  }) ?? false;
+  return (
+    actor?.items?.some(item => {
+      if (item.type !== "equipment" || item.system?.equipped !== true) return false;
+      const type = String(
+        item.system?.type?.value ?? item.system?.armor?.type ?? item.system?.type ?? ""
+      ).toLowerCase();
+      return ["light", "medium", "heavy", "lgt", "med", "hvy"].includes(type);
+    }) ?? false
+  );
 }
 
 function feyWarriorPassiveDefinitions(actor) {
@@ -83,17 +82,21 @@ function feyWarriorPassiveDefinitions(actor) {
   const charmingDefense = findFeature(actor, "charming-defense");
   const charismaBonus = Math.max(0, abilityMod(actor, "cha"));
   if (charmingDefense && charismaBonus > 0 && !equippedArmor(actor)) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.FEY_WARRIOR_PASSIVE, {
-      key: "charming-defense",
-      feature: charmingDefense,
-      changes: [{
-        key: "system.attributes.ac.bonus",
-        type: "add",
-        value: String(charismaBonus),
-        phase: "final",
-        priority: 20
-      }]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.FEY_WARRIOR_PASSIVE, {
+        key: "charming-defense",
+        feature: charmingDefense,
+        changes: [
+          {
+            key: "system.attributes.ac.bonus",
+            type: "add",
+            value: String(charismaBonus),
+            phase: "final",
+            priority: 20
+          }
+        ]
+      })
+    );
   }
 
   return definitions;
@@ -101,7 +104,13 @@ function feyWarriorPassiveDefinitions(actor) {
 
 export async function syncFeyWarriorPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  return syncFlaggedPassiveEffects(actor, feyWarriorPassiveSyncs, MODULE_ID, FLAGS.FEY_WARRIOR_PASSIVE, feyWarriorPassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    feyWarriorPassiveSyncs,
+    MODULE_ID,
+    FLAGS.FEY_WARRIOR_PASSIVE,
+    feyWarriorPassiveDefinitions
+  );
 }
 
 function currentMax(item) {
@@ -126,7 +135,10 @@ export async function syncFeyWarriorResources(actor, { notifyResult = false } = 
 
   feyWarriorSyncs.add(actor.uuid);
   try {
-    const changed = await syncUses(findFeature(actor, "permanent-manifestation"), Math.max(1, abilityMod(actor, "cha")));
+    const changed = await syncUses(
+      findFeature(actor, "permanent-manifestation"),
+      Math.max(1, abilityMod(actor, "cha"))
+    );
     if (notifyResult && changed) notify(`${actor.name}: ресурсы Воителя фей синхронизированы.`);
     return changed;
   } finally {

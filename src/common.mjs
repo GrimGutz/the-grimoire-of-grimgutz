@@ -13,10 +13,7 @@ export function uuidFor(pack, key) {
   return `Compendium.${MODULE_ID}.${pack}.Item.${idFor(key)}`;
 }
 
-export function sourceData(
-  page = "",
-  custom = "Престиж-класс: Сокрушитель; перевод Айвендил, 26.03.2018"
-) {
+export function sourceData(page = "", custom = "Престиж-класс: Сокрушитель; перевод Айвендил, 26.03.2018") {
   return {
     custom,
     book: "TGoGG",
@@ -28,11 +25,9 @@ export function sourceData(
 }
 
 function omitAutomationMeta(data = {}) {
-  return Object.fromEntries(Object.entries(data).filter(([key]) => ![
-    "automation",
-    "automationConfig",
-    "schemaVersion"
-  ].includes(key)));
+  return Object.fromEntries(
+    Object.entries(data).filter(([key]) => !["automation", "automationConfig", "schemaVersion"].includes(key))
+  );
 }
 
 function automationActionId(data = {}) {
@@ -45,7 +40,8 @@ function inferAutomationKind(data = {}, context = {}) {
   if (data.prestigeClass) return "prestige-class";
   if (data.wizardSubclass || data.keeperSubclass || data.spiritVesselSubclass || data.masterSubclass) return "subclass";
   if (data.transformation && data.transformationFeature !== true) return "transformation";
-  if (data.transformationFeature === true || data.hollowFeature === true || data.murderspawnFeature === true) return "transformation-feature";
+  if (data.transformationFeature === true || data.hollowFeature === true || data.murderspawnFeature === true)
+    return "transformation-feature";
   if (data.massiveWeapon === true || data.murderspawnWeapon === true || data.weaponKey) return "equipment";
   if (data.forestLordSpell || data.witchBladeSpell || data.bloodMageSpell || data.nethereseGreatSpell) return "spell";
   if (data.feature) return "feature";
@@ -53,17 +49,19 @@ function inferAutomationKind(data = {}, context = {}) {
 }
 
 function inferAutomationId(data = {}, context = {}) {
-  return automationActionId(data)
-    || data.feature
-    || data.prestigeClass
-    || data.wizardSubclass
-    || data.keeperSubclass
-    || data.spiritVesselSubclass
-    || data.masterSubclass
-    || data.transformation
-    || data.weaponKey
-    || context.key
-    || "";
+  return (
+    automationActionId(data) ||
+    data.feature ||
+    data.prestigeClass ||
+    data.wizardSubclass ||
+    data.keeperSubclass ||
+    data.spiritVesselSubclass ||
+    data.masterSubclass ||
+    data.transformation ||
+    data.weaponKey ||
+    context.key ||
+    ""
+  );
 }
 
 function automationTags(data = {}) {
@@ -75,9 +73,12 @@ function automationTags(data = {}) {
 
 function automationRequirements(data = {}) {
   const requirements = {};
-  if (data.minimumLevel !== undefined && data.minimumLevel !== null) requirements.minimumLevel = Number(data.minimumLevel);
-  if (data.transformationLevel !== undefined && data.transformationLevel !== null) requirements.transformationLevel = Number(data.transformationLevel);
-  if (data.prerequisiteLevel !== undefined && data.prerequisiteLevel !== null) requirements.prerequisiteLevel = Number(data.prerequisiteLevel);
+  if (data.minimumLevel !== undefined && data.minimumLevel !== null)
+    requirements.minimumLevel = Number(data.minimumLevel);
+  if (data.transformationLevel !== undefined && data.transformationLevel !== null)
+    requirements.transformationLevel = Number(data.transformationLevel);
+  if (data.prerequisiteLevel !== undefined && data.prerequisiteLevel !== null)
+    requirements.prerequisiteLevel = Number(data.prerequisiteLevel);
   return Object.fromEntries(Object.entries(requirements).filter(([_key, value]) => Number.isFinite(value)));
 }
 
@@ -94,18 +95,21 @@ export function automationConfig(data = {}, context = {}) {
     version: AUTOMATION_CONFIG_VERSION,
     kind,
     id,
-    ...(action ? {
-      action: {
-        id: action,
-        data: actionData
-      }
-    } : {}),
+    ...(action
+      ? {
+          action: {
+            id: action,
+            data: actionData
+          }
+        }
+      : {}),
     document: {
       type: context.type ?? null,
       key: context.key ?? id,
       feature: legacy.feature ?? null,
       prestigeClass: legacy.prestigeClass ?? null,
-      subclass: legacy.wizardSubclass ?? legacy.keeperSubclass ?? legacy.spiritVesselSubclass ?? legacy.masterSubclass ?? null,
+      subclass:
+        legacy.wizardSubclass ?? legacy.keeperSubclass ?? legacy.spiritVesselSubclass ?? legacy.masterSubclass ?? null,
       transformation: legacy.transformation ?? null,
       equipment: legacy.weaponKey ?? null
     },
@@ -119,9 +123,7 @@ export function withAutomationConfig(flags = {}, context = {}) {
   const moduleFlags = flags?.[MODULE_ID];
   if (!moduleFlags) return flags;
   const legacy = omitAutomationMeta(moduleFlags);
-  const existing = moduleFlags.automation && typeof moduleFlags.automation === "object"
-    ? moduleFlags.automation
-    : {};
+  const existing = moduleFlags.automation && typeof moduleFlags.automation === "object" ? moduleFlags.automation : {};
   return {
     ...flags,
     [MODULE_ID]: {
@@ -150,16 +152,7 @@ export function stats() {
   };
 }
 
-export function baseDocument({
-  key,
-  name,
-  type,
-  img,
-  system,
-  folder = null,
-  flags = {},
-  effects = []
-}) {
+export function baseDocument({ key, name, type, img, system, folder = null, flags = {}, effects = [] }) {
   const normalizedFlags = withAutomationConfig(flags, { key, type });
   return {
     name,
@@ -234,28 +227,23 @@ export function feature({
   });
 }
 
-export function activeEffect({
-  key,
-  name,
-  img,
-  changes,
-  transfer = false,
-  flags = {}
-}) {
-  const normalizedFlags = withAutomationConfig({
-    ...flags,
-    [MODULE_ID]: {
-      ...(flags[MODULE_ID] ?? {}),
-      passiveEffect: true
-    }
-  }, { key, type: "effect" });
-  const finalPhase = key => (
-    key.startsWith("system.attributes.ac.")
-    || key.startsWith("system.attributes.init.")
-    || key.startsWith("system.attributes.movement.")
-    || key.startsWith("system.attributes.senses.")
-    || key.endsWith(".roll.mode")
+export function activeEffect({ key, name, img, changes, transfer = false, flags = {} }) {
+  const normalizedFlags = withAutomationConfig(
+    {
+      ...flags,
+      [MODULE_ID]: {
+        ...(flags[MODULE_ID] ?? {}),
+        passiveEffect: true
+      }
+    },
+    { key, type: "effect" }
   );
+  const finalPhase = key =>
+    key.startsWith("system.attributes.ac.") ||
+    key.startsWith("system.attributes.init.") ||
+    key.startsWith("system.attributes.movement.") ||
+    key.startsWith("system.attributes.senses.") ||
+    key.endsWith(".roll.mode");
   return {
     _id: idFor(`effect:${key}`),
     name,
@@ -307,12 +295,15 @@ export function utilityActivity({
 }) {
   const activityId = idFor(`activity:${key}`);
   const flags = action
-    ? withAutomationConfig({
-        [MODULE_ID]: {
-          action,
-          ...actionData
-        }
-      }, { key, type: "activity" })
+    ? withAutomationConfig(
+        {
+          [MODULE_ID]: {
+            action,
+            ...actionData
+          }
+        },
+        { key, type: "activity" }
+      )
     : {};
   return {
     [activityId]: {
@@ -329,15 +320,17 @@ export function utilityActivity({
       },
       consumption: {
         targets: consumeItemUse
-          ? [{
-              type: "itemUses",
-              target: "",
-              value: "1",
-              scaling: {
-                mode: "",
-                formula: ""
+          ? [
+              {
+                type: "itemUses",
+                target: "",
+                value: "1",
+                scaling: {
+                  mode: "",
+                  formula: ""
+                }
               }
-            }]
+            ]
           : [],
         scaling: {
           allowed: false,
@@ -449,16 +442,7 @@ export function itemGrantUuids({ key, level, uuids, title = "Особеннос�
   };
 }
 
-export function itemChoice({
-  key,
-  level,
-  items,
-  count = 1,
-  allowDrops = true,
-  title,
-  hint,
-  pack = "features"
-}) {
+export function itemChoice({ key, level, items, count = 1, allowDrops = true, title, hint, pack = "features" }) {
   return {
     _id: idFor(`advancement:${key}`),
     type: "ItemChoice",
@@ -508,15 +492,7 @@ export function traitAdvancement({ key, level, grants, title }) {
   };
 }
 
-export function traitChoiceAdvancement({
-  key,
-  level,
-  pool,
-  count = 1,
-  mode = "default",
-  title,
-  hint = ""
-}) {
+export function traitChoiceAdvancement({ key, level, pool, count = 1, mode = "default", title, hint = "" }) {
   return {
     _id: idFor(`advancement:${key}`),
     type: "Trait",
@@ -524,10 +500,12 @@ export function traitChoiceAdvancement({
       mode,
       allowReplacements: false,
       grants: [],
-      choices: [{
-        count,
-        pool
-      }]
+      choices: [
+        {
+          count,
+          pool
+        }
+      ]
     },
     level,
     title,
@@ -538,11 +516,7 @@ export function traitChoiceAdvancement({
   };
 }
 
-export function abilityScoreImprovementAdvancement({
-  key,
-  level,
-  title = "Улучшение характеристик"
-}) {
+export function abilityScoreImprovementAdvancement({ key, level, title = "Улучшение характеристик" }) {
   return {
     _id: idFor(`advancement:${key}`),
     type: "AbilityScoreImprovement",
@@ -565,13 +539,7 @@ export function abilityScoreImprovementAdvancement({
   };
 }
 
-export function fixedAbilityScoreAdvancement({
-  key,
-  level,
-  fixed,
-  max,
-  title
-}) {
+export function fixedAbilityScoreAdvancement({ key, level, fixed, max, title }) {
   return {
     _id: idFor(`advancement:${key}`),
     type: "AbilityScoreImprovement",
@@ -599,13 +567,7 @@ export function fixedAbilityScoreAdvancement({
   };
 }
 
-export function scaleValueAdvancement({
-  key,
-  identifier,
-  scale,
-  title,
-  type = "number"
-}) {
+export function scaleValueAdvancement({ key, identifier, scale, title, type = "number" }) {
   return {
     _id: idFor(`advancement:${key}`),
     type: "ScaleValue",
@@ -659,12 +621,7 @@ export function hitPointsAdvancement(key = "hit-points") {
   };
 }
 
-export function subclassAdvancement({
-  key,
-  level,
-  title = "Подкласс",
-  hint = ""
-}) {
+export function subclassAdvancement({ key, level, title = "Подкласс", hint = "" }) {
   return {
     _id: idFor(`advancement:${key}`),
     type: "Subclass",
@@ -764,22 +721,14 @@ export function attackActivity() {
   };
 }
 
-export function weapon({
-  key,
-  name,
-  img,
-  price,
-  weight,
-  dice,
-  damageTypes,
-  properties,
-  special = ""
-}) {
-  const massiveRule = "<p><strong>Массивное.</strong> Для эффективного использования оружия требуется Сила 18. Иначе все атаки этим оружием совершаются с помехой.</p>";
+export function weapon({ key, name, img, price, weight, dice, damageTypes, properties, special = "" }) {
+  const massiveRule =
+    "<p><strong>Массивное.</strong> Для эффективного использования оружия требуется Сила 18. Иначе все атаки этим оружием совершаются с помехой.</p>";
   const specialRule = special ? `<p><strong>Особое.</strong> ${special}</p>` : "";
-  const automationRule = key === "odachi"
-    ? "<p><strong>Автоматизация Foundry:</strong> модуль применяет помеху при Силе ниже 18. При использовании Midi-QOL он также применяет помеху, если выбранная цель находится в пределах 5 футов.</p>"
-    : "<p><strong>Автоматизация Foundry:</strong> модуль автоматически применяет помеху к броску атаки, если Сила владельца ниже 18.</p>";
+  const automationRule =
+    key === "odachi"
+      ? "<p><strong>Автоматизация Foundry:</strong> модуль применяет помеху при Силе ниже 18. При использовании Midi-QOL он также применяет помеху, если выбранная цель находится в пределах 5 футов.</p>"
+      : "<p><strong>Автоматизация Foundry:</strong> модуль автоматически применяет помеху к броску атаки, если Сила владельца ниже 18.</p>";
 
   return baseDocument({
     key,

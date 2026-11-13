@@ -1,16 +1,9 @@
 import { FLAGS, MODULE_ID } from "./constants.mjs";
 import { isEffectActive, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
-import {
-  activityActor,
-  activityItem,
-  enabled,
-  notify
-} from "./helpers.mjs";
+import { activityActor, activityItem, enabled, notify } from "./helpers.mjs";
 
 function weaponBuffEffect(actor, key) {
-  return actor?.effects?.find(effect =>
-    effect.getFlag?.(MODULE_ID, FLAGS.WEAPON_BUFF_EFFECT) === key
-  );
+  return actor?.effects?.find(effect => effect.getFlag?.(MODULE_ID, FLAGS.WEAPON_BUFF_EFFECT) === key);
 }
 
 export function activeWeaponBuffs(actor) {
@@ -23,17 +16,10 @@ export function activeWeaponBuffs(actor) {
     }));
 }
 
-export async function createWeaponBuff(actor, {
-  key,
-  name,
-  sourceItem = null,
-  img = null,
-  data = {},
-  duration = {},
-  description = "",
-  changes = [],
-  replace = true
-}) {
+export async function createWeaponBuff(
+  actor,
+  { key, name, sourceItem = null, img = null, data = {}, duration = {}, description = "", changes = [], replace = true }
+) {
   if (!actor) return false;
   const effectData = {
     name,
@@ -70,9 +56,7 @@ function isWeaponItem(item) {
 }
 
 function activityClassification(activity) {
-  return activity?.attack?.type?.classification
-    ?? activity?.system?.attack?.type?.classification
-    ?? "";
+  return activity?.attack?.type?.classification ?? activity?.system?.attack?.type?.classification ?? "";
 }
 
 function isWeaponAttack(activity, item) {
@@ -82,9 +66,7 @@ function isWeaponAttack(activity, item) {
 }
 
 function attackType(activity) {
-  return activity?.attack?.type?.value
-    ?? activity?.system?.attack?.type?.value
-    ?? "";
+  return activity?.attack?.type?.value ?? activity?.system?.attack?.type?.value ?? "";
 }
 
 function isMeleeWeaponAttack(activity, item) {
@@ -137,7 +119,11 @@ export function applyWeaponBuffAttackAutomation(config) {
 
   for (const { key, data } of activeWeaponBuffs(actor)) {
     if (!weaponBuffApplies(data, item, key)) continue;
-    if (data.advantageAgainstSpellcasters && config.workflow?.targets?.size === 1 && targetsHaveSpellSlots(config.workflow.targets)) {
+    if (
+      data.advantageAgainstSpellcasters &&
+      config.workflow?.targets?.size === 1 &&
+      targetsHaveSpellSlots(config.workflow.targets)
+    ) {
       roll.options ??= {};
       roll.options.advantage = true;
     }
@@ -184,8 +170,13 @@ export function applyWeaponBuffReach(activity) {
   if (!enabled() || !isMeleeWeaponAttack(activity, activity?.item)) return;
   // Native activity hooks receive ephemeral Item clones, never edit owned data.
   if (activity.item === activity.actor?.items?.get?.(activity.item.id)) return;
-  const reach = Math.max(0, ...activeWeaponBuffs(activity.actor).filter(({key, data}) => weaponBuffApplies(data, activity.item, key)).map(({data}) => Number(data.reach) || 0));
-  if (reach) activity.updateSource?.({"range.value": reach, "range.units": "ft", "range.override": true});
+  const reach = Math.max(
+    0,
+    ...activeWeaponBuffs(activity.actor)
+      .filter(({ key, data }) => weaponBuffApplies(data, activity.item, key))
+      .map(({ data }) => Number(data.reach) || 0)
+  );
+  if (reach) activity.updateSource?.({ "range.value": reach, "range.units": "ft", "range.override": true });
 }
 
 export async function postWeaponBuffMessage(actor, title, content) {

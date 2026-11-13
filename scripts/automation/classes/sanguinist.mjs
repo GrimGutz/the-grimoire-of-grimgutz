@@ -81,9 +81,11 @@ export function sanguinistLevel(actor) {
 }
 
 function totalCharacterLevel(actor) {
-  return actor?.items
-    ?.filter(item => item.type === "class")
-    .reduce((sum, item) => sum + Number(item.system?.levels ?? 0), 0) ?? 0;
+  return (
+    actor?.items
+      ?.filter(item => item.type === "class")
+      .reduce((sum, item) => sum + Number(item.system?.levels ?? 0), 0) ?? 0
+  );
 }
 
 function spellSlotMax(actor, level) {
@@ -105,25 +107,28 @@ function hasMentalAbility(actor) {
 }
 
 function itemSearchText(item) {
-  return [
-    item?.name,
-    item?.system?.identifier,
-    item?.system?.description?.value
-  ].filter(Boolean).join(" ").toLocaleLowerCase("en");
+  return [item?.name, item?.system?.identifier, item?.system?.description?.value]
+    .filter(Boolean)
+    .join(" ")
+    .toLocaleLowerCase("en");
 }
 
 function hasBloodMagicPrerequisite(actor) {
-  return actor?.items?.some(item => {
-    const identifier = itemIdentifier(item);
-    if (["blood-mage", "hematurgy", "blood-rites", "pact-of-the-blood"].includes(identifier)) return true;
-    const text = itemSearchText(item);
-    return text.includes("hematurgy")
-      || text.includes("blood rites")
-      || text.includes("pact of the blood")
-      || text.includes("blood mage")
-      || text.includes("гематург")
-      || text.includes("кровав");
-  }) ?? false;
+  return (
+    actor?.items?.some(item => {
+      const identifier = itemIdentifier(item);
+      if (["blood-mage", "hematurgy", "blood-rites", "pact-of-the-blood"].includes(identifier)) return true;
+      const text = itemSearchText(item);
+      return (
+        text.includes("hematurgy") ||
+        text.includes("blood rites") ||
+        text.includes("pact of the blood") ||
+        text.includes("blood mage") ||
+        text.includes("гематург") ||
+        text.includes("кровав")
+      );
+    }) ?? false
+  );
 }
 
 export function sanguinistPrerequisiteFailures(actor) {
@@ -131,7 +136,8 @@ export function sanguinistPrerequisiteFailures(actor) {
   if (!hasMentalAbility(actor)) failures.push("Интеллект, Мудрость или Харизма 15");
   if (totalCharacterLevel(actor) < 11) failures.push("11-й уровень персонажа");
   if (!hasSpellSlots(actor)) failures.push("Накладывание заклинаний или Договор магии с ячейками");
-  if (!hasBloodMagicPrerequisite(actor)) failures.push("Hematurgy, Blood Rites, Pact of the Blood или черта Blood Mage");
+  if (!hasBloodMagicPrerequisite(actor))
+    failures.push("Hematurgy, Blood Rites, Pact of the Blood или черта Blood Mage");
   return failures;
 }
 
@@ -218,13 +224,7 @@ function signed(value) {
   return value >= 0 ? `+ ${value}` : `- ${Math.abs(value)}`;
 }
 
-async function promptNumber({
-  title,
-  label,
-  min = 1,
-  max = 1,
-  defaultValue = min
-}) {
+async function promptNumber({ title, label, min = 1, max = 1, defaultValue = min }) {
   return numberDialog({ title, label, min, max, defaultValue });
 }
 
@@ -261,7 +261,10 @@ async function selfBloodDamage(actor, formula, flavor) {
     detail = `${first.total} и ${second.total}; выбран меньший результат ${total}`;
   }
   await applyDirectDamage(actor, total);
-  await chat(actor, `<p><strong>${actor.name}: ${flavor}.</strong> Самоповреждение <strong>${total}</strong> некротическим уроном (${formula}; ${detail}). Урон игнорирует сопротивление/иммунитет и не вызывает спасбросков концентрации.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: ${flavor}.</strong> Самоповреждение <strong>${total}</strong> некротическим уроном (${formula}; ${detail}). Урон игнорирует сопротивление/иммунитет и не вызывает спасбросков концентрации.</p>`
+  );
   return total;
 }
 
@@ -272,7 +275,11 @@ export async function syncSanguinistResources(actor, { notifyResult = false } = 
     const feature = bloodMagicFeature(actor);
     const maximum = maxBloodMagicUses(actor);
     if (!feature || !maximum) {
-      if (notifyResult) notify(`${actor?.name ?? "Актёр"}: для синхронизации нужен класс и особенность «Кровавая магия» Сангвиниста.`, "warn");
+      if (notifyResult)
+        notify(
+          `${actor?.name ?? "Актёр"}: для синхронизации нужен класс и особенность «Кровавая магия» Сангвиниста.`,
+          "warn"
+        );
       return false;
     }
     const updates = {};
@@ -292,7 +299,9 @@ export async function syncSanguinistResources(actor, { notifyResult = false } = 
     }
     if (changed) await feature.update(updates);
     if (notifyResult) {
-      notify(`${actor.name}: Кровавая магия Сангвиниста синхронизирована (${maximum} использований, ${sanguinistBloodPoints(actor)} ед. крови).`);
+      notify(
+        `${actor.name}: Кровавая магия Сангвиниста синхронизирована (${maximum} использований, ${sanguinistBloodPoints(actor)} ед. крови).`
+      );
     }
     return changed;
   } finally {
@@ -327,7 +336,10 @@ export async function spendBloodPoints(actor, amount) {
 
 async function handleGainBloodPoint(actor) {
   await gainBloodPoints(actor, 1);
-  await chat(actor, `<p><strong>${actor.name}: Кровавая магия.</strong> Получена 1 единица крови. Текущий запас: <strong>${sanguinistBloodPoints(actor)}</strong>.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Кровавая магия.</strong> Получена 1 единица крови. Текущий запас: <strong>${sanguinistBloodPoints(actor)}</strong>.</p>`
+  );
   return true;
 }
 
@@ -336,12 +348,15 @@ async function handleGainBloodOfOthers(actor) {
     notify("Для этого действия нужна «Кровь других».", "warn");
     return false;
   }
-  if (!await spendBloodMagicUses(actor, 2)) {
+  if (!(await spendBloodMagicUses(actor, 2))) {
     notify(`${actor.name}: нужно 2 оставшихся использования Кровавой магии.`, "warn");
     return false;
   }
   await gainBloodPoints(actor, 2);
-  await chat(actor, `<p><strong>${actor.name}: Кровь других.</strong> Потрачены 2 использования Кровавой магии, получены 2 единицы крови. Текущий запас: <strong>${sanguinistBloodPoints(actor)}</strong>.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Кровь других.</strong> Потрачены 2 использования Кровавой магии, получены 2 единицы крови. Текущий запас: <strong>${sanguinistBloodPoints(actor)}</strong>.</p>`
+  );
   return true;
 }
 
@@ -358,19 +373,24 @@ async function handleSpendBloodPoints(actor) {
     max: Math.min(5, current)
   });
   if (!amount) return false;
-  if (!await spendBloodPoints(actor, amount)) return false;
-  await chat(actor, `<p><strong>${actor.name}: Кровавая магия.</strong> Потрачено ${amount} ед. крови. Следующее заклинание ${amount}-го уровня или ниже не тратит ячейку и считается Кровавым. Если это не некромантия, лечение заменяется временными хитами в половинном размере.</p>`);
+  if (!(await spendBloodPoints(actor, amount))) return false;
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Кровавая магия.</strong> Потрачено ${amount} ед. крови. Следующее заклинание ${amount}-го уровня или ниже не тратит ячейку и считается Кровавым. Если это не некромантия, лечение заменяется временными хитами в половинном размере.</p>`
+  );
   return true;
 }
 
 function classHitDiceAvailable(actor) {
-  return actor?.items
-    ?.filter(item => item.type === "class")
-    .reduce((sum, item) => {
-      const levels = Math.max(0, Number(item.system?.levels ?? 0));
-      const used = Math.max(0, Number(item.system?.hitDiceUsed ?? 0));
-      return sum + Math.max(0, levels - used);
-    }, 0) ?? 0;
+  return (
+    actor?.items
+      ?.filter(item => item.type === "class")
+      .reduce((sum, item) => {
+        const levels = Math.max(0, Number(item.system?.levels ?? 0));
+        const used = Math.max(0, Number(item.system?.hitDiceUsed ?? 0));
+        return sum + Math.max(0, levels - used);
+      }, 0) ?? 0
+  );
 }
 
 function classHitDiceSpendUpdates(actor, amount) {
@@ -428,17 +448,23 @@ async function handleHematurgy(actor) {
     max: maxDice
   });
   if (!dice) return false;
-  if (!await spendHitDice(actor, dice)) return false;
+  if (!(await spendHitDice(actor, dice))) return false;
   await selfBloodDamage(actor, `${dice}d8`, "Гематургия");
   await actor.setFlag(MODULE_ID, FLAGS.SANGUINIST_HEMATURGY_SPENT, spent + dice);
-  await chat(actor, `<p><strong>${actor.name}: Гематургия.</strong> Автоматически списано ${dice} кост. хитов. До продолжительного отдыха потрачено ${spent + dice}/${level * 2} костей хитов на Гематургию. Следующее заклинание в этом ходу считается Кровавым и может быть наложено без ячейки, если его уровень не выше ${dice}.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Гематургия.</strong> Автоматически списано ${dice} кост. хитов. До продолжительного отдыха потрачено ${spent + dice}/${level * 2} костей хитов на Гематургию. Следующее заклинание в этом ходу считается Кровавым и может быть наложено без ячейки, если его уровень не выше ${dice}.</p>`
+  );
   return true;
 }
 
 async function showSpellcasting(actor) {
   const level = sanguinistLevel(actor);
   const ability = sanguinistAbility(actor);
-  await chat(actor, `<p><strong>${actor.name}: заклинания Сангвиниста.</strong> Характеристика: <strong>${ability.toUpperCase()}</strong>, СЛ <strong>${sanguinistSpellDC(actor)}</strong>, атака заклинанием <strong>${signed(sanguinistSpellAttack(actor))}</strong>. Известно кровавых заклинаний: ${KNOWN_BLOOD_SPELLS[level] ?? 0}. Ячейки: 1-й круг ${BLOOD_SPELL_SLOTS[1][level] ?? 0}, 2-й круг ${BLOOD_SPELL_SLOTS[2][level] ?? 0}, 3-й круг ${BLOOD_SPELL_SLOTS[3][level] ?? 0}.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: заклинания Сангвиниста.</strong> Характеристика: <strong>${ability.toUpperCase()}</strong>, СЛ <strong>${sanguinistSpellDC(actor)}</strong>, атака заклинанием <strong>${signed(sanguinistSpellAttack(actor))}</strong>. Известно кровавых заклинаний: ${KNOWN_BLOOD_SPELLS[level] ?? 0}. Ячейки: 1-й круг ${BLOOD_SPELL_SLOTS[1][level] ?? 0}, 2-й круг ${BLOOD_SPELL_SLOTS[2][level] ?? 0}, 3-й круг ${BLOOD_SPELL_SLOTS[3][level] ?? 0}.</p>`
+  );
   return true;
 }
 
@@ -450,7 +476,10 @@ async function handleBloodReading(actor) {
     return false;
   }
   await actor.setFlag(MODULE_ID, FLAGS.SANGUINIST_BLOOD_READING_USED, used + 1);
-  await chat(actor, `<p><strong>${actor.name}: Чтение крови.</strong> Вы накладываете <em>Чтение крови</em> без ячейки. Использований до продолжительного отдыха: ${used + 1}/${maximum}.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Чтение крови.</strong> Вы накладываете <em>Чтение крови</em> без ячейки. Использований до продолжительного отдыха: ${used + 1}/${maximum}.</p>`
+  );
   return true;
 }
 
@@ -465,20 +494,26 @@ async function chooseSpellLevel(title) {
 async function handleSanguinePowerHitDie(actor) {
   const spellLevel = await chooseSpellLevel("Багровая сила: кость хитов");
   if (spellLevel == null) return false;
-  if (!await spendHitDice(actor, 1)) return false;
+  if (!(await spendHitDice(actor, 1))) return false;
   await rollToChat(actor, "1d8", "Багровая сила: бонусный урон от потраченной кости хитов");
   await applyDirectDamage(actor, 1 + spellLevel);
-  await chat(actor, `<p><strong>${actor.name}: Багровая сила.</strong> Автоматически списана 1 кость хитов. Получено ${1 + spellLevel} некротического самоповреждения. Добавьте результат 1к8 к одному броску урона заклинания.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Багровая сила.</strong> Автоматически списана 1 кость хитов. Получено ${1 + spellLevel} некротического самоповреждения. Добавьте результат 1к8 к одному броску урона заклинания.</p>`
+  );
   return true;
 }
 
 async function handleSanguinePowerBloodPoint(actor) {
   const spellLevel = await chooseSpellLevel("Багровая сила: единица крови");
   if (spellLevel == null) return false;
-  if (!await spendBloodPoints(actor, 1)) return false;
+  if (!(await spendBloodPoints(actor, 1))) return false;
   await rollToChat(actor, "1d8", "Багровая сила: бонусный урон от 1 единицы крови");
   await applyDirectDamage(actor, 1 + spellLevel);
-  await chat(actor, `<p><strong>${actor.name}: Багровая сила.</strong> Потрачена 1 ед. крови, получено ${1 + spellLevel} некротического самоповреждения. Добавьте результат 1к8 к одному броску урона заклинания.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Багровая сила.</strong> Потрачена 1 ед. крови, получено ${1 + spellLevel} некротического самоповреждения. Добавьте результат 1к8 к одному броску урона заклинания.</p>`
+  );
   return true;
 }
 
@@ -524,12 +559,18 @@ async function clearAllHitDiceUsed(actor) {
 }
 
 async function handleVitalRestoration(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Жизненное восстановление.</strong> После продолжительного отдыха модуль восстановит все недостающие кости хитов, а не только половину.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Жизненное восстановление.</strong> После продолжительного отдыха модуль восстановит все недостающие кости хитов, а не только половину.</p>`
+  );
   return true;
 }
 
 async function handleBloodCompatibility(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Кровавая совместимость.</strong> Выберите через Advancement одну опцию: <em>Моя собственная кровь</em> или <em>Кровь других</em>. Выбор можно заменить при получении уровня Сангвиниста или уровня с Улучшением характеристик.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Кровавая совместимость.</strong> Выберите через Advancement одну опцию: <em>Моя собственная кровь</em> или <em>Кровь других</em>. Выбор можно заменить при получении уровня Сангвиниста или уровня с Улучшением характеристик.</p>`
+  );
   return true;
 }
 
@@ -546,24 +587,36 @@ async function handleMyOwnBloodRecovery(actor) {
   }
   await feature.update({ "system.uses.spent": uses.maximum });
   await actor.updateEmbeddedDocuments("Item", classHitDiceUpdates(actor, uses.remaining));
-  await chat(actor, `<p><strong>${actor.name}: Моя собственная кровь.</strong> Потрачено ${uses.remaining} оставшихся использований Кровавой магии для восстановления до ${uses.remaining} костей хитов после короткого отдыха.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Моя собственная кровь.</strong> Потрачено ${uses.remaining} оставшихся использований Кровавой магии для восстановления до ${uses.remaining} костей хитов после короткого отдыха.</p>`
+  );
   return true;
 }
 
 async function handleRitualSacrifice(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Ритуальное жертвоприношение.</strong> После успешного часового ритуала выберите усиление следующего немедленно накладываемого заклинания: увеличенная длительность, увеличенная дистанция, увеличенная область, неумолимость или особые цели. Успех ритуала и ценность крови подтверждает Мастер.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Ритуальное жертвоприношение.</strong> После успешного часового ритуала выберите усиление следующего немедленно накладываемого заклинания: увеличенная длительность, увеличенная дистанция, увеличенная область, неумолимость или особые цели. Успех ритуала и ценность крови подтверждает Мастер.</p>`
+  );
   return true;
 }
 
 async function spendFixedBlood(actor, amount, label) {
-  if (!await spendBloodPoints(actor, amount)) return false;
-  await chat(actor, `<p><strong>${actor.name}: ${label}.</strong> Потрачено ${amount} ед. крови. Осталось: <strong>${sanguinistBloodPoints(actor)}</strong>. СЛ Сангвиниста: <strong>${sanguinistSpellDC(actor)}</strong>.</p>`);
+  if (!(await spendBloodPoints(actor, amount))) return false;
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: ${label}.</strong> Потрачено ${amount} ед. крови. Осталось: <strong>${sanguinistBloodPoints(actor)}</strong>. СЛ Сангвиниста: <strong>${sanguinistSpellDC(actor)}</strong>.</p>`
+  );
   return true;
 }
 
 async function handleArterialPuppetry(actor) {
-  if (!await spendFixedBlood(actor, 3, "Артериальная марионетка")) return false;
-  await chat(actor, `<p>Цель с кровью совершает спасбросок Телосложения против СЛ <strong>${sanguinistSpellDC(actor)}</strong>. При провале вы направляете её перемещение в следующий ход, а её действие тратится на атаку выбранной вами цели с помехой.</p>`);
+  if (!(await spendFixedBlood(actor, 3, "Артериальная марионетка"))) return false;
+  await chat(
+    actor,
+    `<p>Цель с кровью совершает спасбросок Телосложения против СЛ <strong>${sanguinistSpellDC(actor)}</strong>. При провале вы направляете её перемещение в следующий ход, а её действие тратится на атаку выбранной вами цели с помехой.</p>`
+  );
   return true;
 }
 
@@ -575,9 +628,16 @@ async function handleBloodBacklash(actor) {
     min: 1,
     max: Math.min(5, current)
   });
-  if (!amount || !await spendBloodPoints(actor, amount)) return false;
-  await rollToChat(actor, `${amount * 2}d8 ${signed(sanguinistSpellModifier(actor))}`, "Кровавая обратная связь: урон силой + некротический модификатор");
-  await chat(actor, `<p><strong>${actor.name}: Кровавая обратная связь.</strong> Атака заклинанием <strong>${signed(sanguinistSpellAttack(actor))}</strong>, дистанция 150 футов. При попадании примените урон выше.</p>`);
+  if (!amount || !(await spendBloodPoints(actor, amount))) return false;
+  await rollToChat(
+    actor,
+    `${amount * 2}d8 ${signed(sanguinistSpellModifier(actor))}`,
+    "Кровавая обратная связь: урон силой + некротический модификатор"
+  );
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Кровавая обратная связь.</strong> Атака заклинанием <strong>${signed(sanguinistSpellAttack(actor))}</strong>, дистанция 150 футов. При попадании примените урон выше.</p>`
+  );
   return true;
 }
 
@@ -586,8 +646,11 @@ async function handleBloodletting(actor) {
 }
 
 async function handleContusion(actor) {
-  if (!await spendFixedBlood(actor, 2, "Ушиб")) return false;
-  await chat(actor, `<p>При провале спасброска Телосложения цель 1 минуту не может поддерживать концентрацию или реакции, совершает проверки характеристик и атаки с помехой, а её скорость и грузоподъёмность уменьшены вдвое. Повторный спасбросок — в конце каждого её хода.</p>`);
+  if (!(await spendFixedBlood(actor, 2, "Ушиб"))) return false;
+  await chat(
+    actor,
+    `<p>При провале спасброска Телосложения цель 1 минуту не может поддерживать концентрацию или реакции, совершает проверки характеристик и атаки с помехой, а её скорость и грузоподъёмность уменьшены вдвое. Повторный спасбросок — в конце каждого её хода.</p>`
+  );
   return true;
 }
 
@@ -596,7 +659,7 @@ function crimsonFuryEffect(actor) {
 }
 
 async function handleCrimsonFury(actor) {
-  if (!await spendBloodPoints(actor, 1)) return false;
+  if (!(await spendBloodPoints(actor, 1))) return false;
   const currentTemp = Number(actor.system?.attributes?.hp?.temp ?? 0);
   const temp = inspiringTemporaryHp(actor, 5);
   if (currentTemp < temp) await actor.update({ "system.attributes.hp.temp": temp });
@@ -624,14 +687,20 @@ async function handleCrimsonFury(actor) {
   const current = crimsonFuryEffect(actor);
   if (current) await current.update(data);
   else await actor.createEmbeddedDocuments("ActiveEffect", [data]);
-  await chat(actor, `<p><strong>${actor.name}: Багровая ярость.</strong> Потрачена 1 ед. крови, временные хиты минимум 5. До начала следующего хода: преимущество на атаки оружием и спасброски от очарования/испуга; концентрацию поддерживать нельзя.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Багровая ярость.</strong> Потрачена 1 ед. крови, временные хиты минимум 5. До начала следующего хода: преимущество на атаки оружием и спасброски от очарования/испуга; концентрацию поддерживать нельзя.</p>`
+  );
   return true;
 }
 
 async function handleSanguineStorm(actor) {
-  if (!await spendFixedBlood(actor, 3, "Багровая буря")) return false;
+  if (!(await spendFixedBlood(actor, 3, "Багровая буря"))) return false;
   await rollToChat(actor, "6d6", "Багровая буря: некротический урон в 10 футах");
-  await chat(actor, `<p>Существа в 10 футах от цели совершают спасбросок Телосложения против СЛ <strong>${sanguinistSpellDC(actor)}</strong>. Цель, сниженная до 0 хитов, автоматически проваливает одну проверку смерти.</p>`);
+  await chat(
+    actor,
+    `<p>Существа в 10 футах от цели совершают спасбросок Телосложения против СЛ <strong>${sanguinistSpellDC(actor)}</strong>. Цель, сниженная до 0 хитов, автоматически проваливает одну проверку смерти.</p>`
+  );
   return true;
 }
 
@@ -643,10 +712,13 @@ async function handleTransfusion(actor) {
     min: 1,
     max: current
   });
-  if (!amount || !await spendBloodPoints(actor, amount)) return false;
+  if (!amount || !(await spendBloodPoints(actor, amount))) return false;
   const roll = await rollToChat(actor, `${amount * 2}d6`, "Переливание: временные хиты цели");
   const tempHp = Math.min(40, Math.max(0, Number(roll.total ?? 0)));
-  await chat(actor, `<p><strong>${actor.name}: Переливание.</strong> Цель с кровью получает <strong>${tempHp}</strong> временных хитов на 1 минуту (максимум 40). Примените их к выбранной цели вручную.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Переливание.</strong> Цель с кровью получает <strong>${tempHp}</strong> временных хитов на 1 минуту (максимум 40). Примените их к выбранной цели вручную.</p>`
+  );
   return true;
 }
 
@@ -658,10 +730,13 @@ async function handleVampirism(actor) {
     min: 1,
     max: Math.min(5, current)
   });
-  if (!amount || !await spendBloodPoints(actor, amount)) return false;
+  if (!amount || !(await spendBloodPoints(actor, amount))) return false;
   const healing = amount * 5;
   await healActor(actor, healing);
-  await chat(actor, `<p><strong>${actor.name}: Вампиризм.</strong> Потрачено ${amount} ед. крови, восстановлено <strong>${healing}</strong> хитов.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Вампиризм.</strong> Потрачено ${amount} ед. крови, восстановлено <strong>${healing}</strong> хитов.</p>`
+  );
   return true;
 }
 
@@ -745,18 +820,21 @@ export function validateSanguinistActivityUse(actor, activity, action) {
       return false;
     }
   }
-  if ([
-    "spend-sanguinist-blood-points",
-    "sanguine-power-blood-point",
-    "use-arterial-puppetry",
-    "use-blood-backlash",
-    "use-bloodletting",
-    "use-contusion",
-    "use-crimson-fury",
-    "use-sanguine-storm",
-    "use-transfusion",
-    "use-vampirism"
-  ].includes(action) && sanguinistBloodPoints(actor) <= 0) {
+  if (
+    [
+      "spend-sanguinist-blood-points",
+      "sanguine-power-blood-point",
+      "use-arterial-puppetry",
+      "use-blood-backlash",
+      "use-bloodletting",
+      "use-contusion",
+      "use-crimson-fury",
+      "use-sanguine-storm",
+      "use-transfusion",
+      "use-vampirism"
+    ].includes(action) &&
+    sanguinistBloodPoints(actor) <= 0
+  ) {
     notify(`${actor.name}: нет единиц крови.`, "warn");
     return false;
   }

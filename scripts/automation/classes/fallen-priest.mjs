@@ -1,9 +1,5 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
-import {
-  automationData,
-  itemIdentifier,
-  notify
-} from "../shared/helpers.mjs";
+import { automationData, itemIdentifier, notify } from "../shared/helpers.mjs";
 
 const fallenPriestSyncs = new Set();
 
@@ -41,7 +37,10 @@ export function validateFallenPriestPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "fallen-priest") return true;
   const failures = fallenPriestPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Падший жрец». Не выполнено: ${failures.join(", ")}. Отступничество и прежний доступ к божественной магии 3-го круга подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Падший жрец». Не выполнено: ${failures.join(", ")}. Отступничество и прежний доступ к божественной магии 3-го круга подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -96,10 +95,8 @@ export async function syncFallenPriestSpellcasting(actor, { notifyResult = false
       } else if (stored) {
         updates.push({
           _id: cleric.id,
-          "system.spellcasting.preparation.formula": cleric.getFlag(
-            MODULE_ID,
-            FLAGS.FALLEN_PRIEST_ORIGINAL_PREPARATION
-          ) ?? "",
+          "system.spellcasting.preparation.formula":
+            cleric.getFlag(MODULE_ID, FLAGS.FALLEN_PRIEST_ORIGINAL_PREPARATION) ?? "",
           [`flags.${MODULE_ID}.-=${FLAGS.FALLEN_PRIEST_ORIGINAL_PREPARATION}`]: null
         });
       }

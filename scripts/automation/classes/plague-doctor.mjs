@@ -1,11 +1,5 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
-import {
-  automationData,
-  findFeature,
-  isAutomationAuthority,
-  itemIdentifier,
-  notify
-} from "../shared/helpers.mjs";
+import { automationData, findFeature, isAutomationAuthority, itemIdentifier, notify } from "../shared/helpers.mjs";
 
 const plagueDoctorSyncs = new Set();
 
@@ -37,7 +31,10 @@ export function validatePlagueDoctorPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "plague-doctor") return true;
   const failures = plagueDoctorPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Чумной маг». Не выполнено: ${failures.join(", ")}. Выживание после смертельной или магической инфекции подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Чумной маг». Не выполнено: ${failures.join(", ")}. Выживание после смертельной или магической инфекции подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -138,30 +135,34 @@ export async function createSmartInfection(actor, activity) {
     return false;
   }
 
-  await actor.createEmbeddedDocuments("ActiveEffect", [{
-    name: `Умная инфекция: вложено ${cost} Инт`,
-    img: feature.img,
-    origin: feature.uuid,
-    transfer: false,
-    disabled: false,
-    showIcon: 1,
-    statuses: [],
-    flags: {
-      [MODULE_ID]: {
-        [FLAGS.SMART_INFECTION_EFFECT]: true,
-        intCost: cost
+  await actor.createEmbeddedDocuments("ActiveEffect", [
+    {
+      name: `Умная инфекция: вложено ${cost} Инт`,
+      img: feature.img,
+      origin: feature.uuid,
+      transfer: false,
+      disabled: false,
+      showIcon: 1,
+      statuses: [],
+      flags: {
+        [MODULE_ID]: {
+          [FLAGS.SMART_INFECTION_EFFECT]: true,
+          intCost: cost
+        }
+      },
+      system: {
+        changes: [
+          {
+            key: "system.abilities.int.value",
+            type: "add",
+            value: String(-cost),
+            phase: "initial",
+            priority: 20
+          }
+        ]
       }
-    },
-    system: {
-      changes: [{
-        key: "system.abilities.int.value",
-        type: "add",
-        value: String(-cost),
-        phase: "initial",
-        priority: 20
-      }]
     }
-  }]);
+  ]);
   notify(`${actor.name}: создан вирусный агент, Интеллект временно снижен на ${cost}.`);
   return true;
 }
@@ -173,7 +174,10 @@ export async function clearSmartInfections(actor) {
     notify(`${actor.name}: активных эффектов «Умной инфекции» нет.`, "info");
     return false;
   }
-  await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
+  await actor.deleteEmbeddedDocuments(
+    "ActiveEffect",
+    effects.map(effect => effect.id)
+  );
   notify(`${actor.name}: Интеллект от Умной инфекции возвращён.`);
   return true;
 }

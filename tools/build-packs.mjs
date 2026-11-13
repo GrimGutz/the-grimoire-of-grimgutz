@@ -52,11 +52,7 @@ function embeddedRecords(document) {
 }
 
 function validateRecords({ name, documents, folders }) {
-  const records = [
-    ...documents,
-    ...folders,
-    ...documents.flatMap(embeddedRecords)
-  ];
+  const records = [...documents, ...folders, ...documents.flatMap(embeddedRecords)];
   const ids = new Set();
 
   for (const record of records) {
@@ -104,9 +100,16 @@ for (const pack of loadedPacks) {
   validateRecords(pack);
   if (!existsSync(target)) continue;
   const probe = new ClassicLevel(target, { valueEncoding: "json", createIfMissing: false });
-  try { await probe.open(); }
-  catch (error) { throw new Error(`Pack ${pack.name} is unavailable. Close the Foundry world before building. No packs were replaced.`, { cause: error }); }
-  finally { await probe.close().catch(() => {}); }
+  try {
+    await probe.open();
+  } catch (error) {
+    throw new Error(
+      `Pack ${pack.name} is unavailable. Close the Foundry world before building. No packs were replaced.`,
+      { cause: error }
+    );
+  } finally {
+    await probe.close().catch(() => {});
+  }
 }
 
 for (const pack of loadedPacks) {
@@ -145,11 +148,13 @@ for (const pack of loadedPacks) {
       value: storedDocument(pack, document)
     })),
     ...(pack.documentType === "Actor"
-      ? documents.flatMap(document => (document._embeddedItems ?? []).map(item => ({
-          type: "put",
-          key: `!actors.items!${document._id}.${item._id}`,
-          value: item
-        })))
+      ? documents.flatMap(document =>
+          (document._embeddedItems ?? []).map(item => ({
+            type: "put",
+            key: `!actors.items!${document._id}.${item._id}`,
+            value: item
+          }))
+        )
       : [])
   ];
 

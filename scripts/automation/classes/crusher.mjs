@@ -12,10 +12,7 @@ import {
 import { abilityMod, strengthValue } from "../shared/dnd5e.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
 import { crusherClass, crusherLevel } from "../shared/selectors.mjs";
-import {
-  flaggedPassiveEffectData,
-  syncFlaggedPassiveEffects
-} from "../effects/passive-helpers.mjs";
+import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const pendingSteelWillSaves = new Set();
 const crusherPassiveSyncs = new Set();
@@ -61,8 +58,7 @@ function activeStyle(actor) {
 }
 
 function gwmEnabled(actor) {
-  return hasFeature(actor, "great-weapon-style")
-    && actor?.getFlag(MODULE_ID, FLAGS.GWM_ENABLED) === true;
+  return hasFeature(actor, "great-weapon-style") && actor?.getFlag(MODULE_ID, FLAGS.GWM_ENABLED) === true;
 }
 
 export async function setStyle(actor, style) {
@@ -112,17 +108,21 @@ function crusherPassiveDefinitions(actor) {
 
   const greatWeaponStyle = findFeature(actor, "great-weapon-style");
   if (greatWeaponStyle) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.CRUSHER_PASSIVE, {
-      key: "great-weapon-style",
-      feature: greatWeaponStyle,
-      changes: [{
-        key: "system.traits.weaponProf.custom",
-        type: "custom",
-        value: "Массивное оружие",
-        phase: "initial",
-        priority: 20
-      }]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.CRUSHER_PASSIVE, {
+        key: "great-weapon-style",
+        feature: greatWeaponStyle,
+        changes: [
+          {
+            key: "system.traits.weaponProf.custom",
+            type: "custom",
+            value: "Массивное оружие",
+            phase: "initial",
+            priority: 20
+          }
+        ]
+      })
+    );
   }
 
   return definitions;
@@ -130,7 +130,13 @@ function crusherPassiveDefinitions(actor) {
 
 export async function syncCrusherPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  return syncFlaggedPassiveEffects(actor, crusherPassiveSyncs, MODULE_ID, FLAGS.CRUSHER_PASSIVE, crusherPassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    crusherPassiveSyncs,
+    MODULE_ID,
+    FLAGS.CRUSHER_PASSIVE,
+    crusherPassiveDefinitions
+  );
 }
 
 function attackContext(config) {
@@ -237,17 +243,12 @@ export function applyCrusherDamageAutomation(config) {
     if (bonus) appendRollPart(roll, bonus);
   }
 
-  if (
-    style === STYLES.CRUSHING
-    && hasFeature(actor, "powerful-crushing")
-    && canUseStyle(actor, STYLES.CRUSHING)
-  ) {
+  if (style === STYLES.CRUSHING && hasFeature(actor, "powerful-crushing") && canUseStyle(actor, STYLES.CRUSHING)) {
     roll.options ??= {};
     roll.options.critical ??= {};
-    roll.options.critical.bonusDamage = [
-      roll.options.critical.bonusDamage,
-      `1d${die.denomination}`
-    ].filter(Boolean).join(" + ");
+    roll.options.critical.bonusDamage = [roll.options.critical.bonusDamage, `1d${die.denomination}`]
+      .filter(Boolean)
+      .join(" + ");
   }
 }
 
@@ -255,14 +256,16 @@ export async function applyPowerfulCleaving(workflow) {
   if (!enabled() || workflow?._grimgutzPowerfulCleaving) return;
   if (!workflow?.isCritical || !workflow.actor || !isMassiveWeapon(workflow.item)) return;
   if (activeStyle(workflow.actor) !== STYLES.CLEAVING || !hasFeature(workflow.actor, "powerful-cleaving")) return;
-  if ((workflow.targets?.size ?? 0) > 0 && (workflow.hitTargets?.size ?? 0) === 0 && (workflow.hitTargetsEC?.size ?? 0) === 0) return;
+  if (
+    (workflow.targets?.size ?? 0) > 0 &&
+    (workflow.hitTargets?.size ?? 0) === 0 &&
+    (workflow.hitTargetsEC?.size ?? 0) === 0
+  )
+    return;
 
   workflow._grimgutzPowerfulCleaving = true;
   const improvements = new Map();
-  const rolls = [
-    ...(workflow.damageRolls ?? []),
-    ...(workflow.bonusDamageRolls ?? [])
-  ];
+  const rolls = [...(workflow.damageRolls ?? []), ...(workflow.bonusDamageRolls ?? [])];
   for (const damageRoll of rolls) {
     let improvement = 0;
     for (const die of damageRoll.dice ?? []) {
@@ -273,11 +276,10 @@ export async function applyPowerfulCleaving(workflow) {
       }
     }
     if (improvement <= 0) continue;
-    const type = damageRoll.options?.type
-      ?? workflow.defaultDamageType
-      ?? workflow.rawDamageDetail?.find(
-        detail => !["midi-none", "temphp", "healing"].includes(detail.type)
-      )?.type;
+    const type =
+      damageRoll.options?.type ??
+      workflow.defaultDamageType ??
+      workflow.rawDamageDetail?.find(detail => !["midi-none", "temphp", "healing"].includes(detail.type))?.type;
     const properties = Array.from(damageRoll.options?.properties ?? []);
     const key = `${type ?? ""}:${properties.slice().sort().join(",")}`;
     const current = improvements.get(key) ?? { value: 0, type, properties };
@@ -288,15 +290,13 @@ export async function applyPowerfulCleaving(workflow) {
 
   const bonusRolls = [];
   for (const { value, type, properties } of improvements.values()) {
-    bonusRolls.push(await new CONFIG.Dice.DamageRoll(
-      String(value),
-      workflow.actor.getRollData(),
-      {
+    bonusRolls.push(
+      await new CONFIG.Dice.DamageRoll(String(value), workflow.actor.getRollData(), {
         type,
         properties,
         flavor: "Мощное раскалывание"
-      }
-    ).evaluate());
+      }).evaluate()
+    );
   }
   await workflow.setBonusDamageRolls([...(workflow.bonusDamageRolls ?? []), ...bonusRolls]);
 }
@@ -304,12 +304,15 @@ export async function applyPowerfulCleaving(workflow) {
 function constructStrengthSave(actor, existingRoll) {
   const ability = actor.system.abilities?.str;
   const rollData = actor.getRollData();
-  const { parts, data } = CONFIG.Dice.D20Roll.constructParts({
-    mod: ability?.mod,
-    prof: ability?.saveProf?.hasProficiency ? ability.saveProf.term : null,
-    strSaveBonus: ability?.bonuses?.save,
-    saveBonus: actor.system.bonuses?.abilities?.save
-  }, rollData);
+  const { parts, data } = CONFIG.Dice.D20Roll.constructParts(
+    {
+      mod: ability?.mod,
+      prof: ability?.saveProf?.hasProficiency ? ability.saveProf.term : null,
+      strSaveBonus: ability?.bonuses?.save,
+      saveBonus: actor.system.bonuses?.abilities?.save
+    },
+    rollData
+  );
   actor.addRollExhaustion?.(parts, data);
 
   return {
@@ -346,9 +349,10 @@ export function replaceDexteritySave(config, dialog, message) {
 }
 
 function midiSaveAbilities(workflow) {
-  const values = workflow?.activity?.save?.ability
-    ?? workflow?.activity?.save?.abilities
-    ?? workflow?.saveItem?.system?.save?.ability;
+  const values =
+    workflow?.activity?.save?.ability ??
+    workflow?.activity?.save?.abilities ??
+    workflow?.saveItem?.system?.save?.ability;
   if (values instanceof Set) return values;
   if (Array.isArray(values)) return new Set(values);
   return values ? new Set([values]) : new Set();
@@ -380,12 +384,14 @@ export async function clearPendingSteelWill(actor) {
 }
 
 function hasStrengthOverride(actor) {
-  return actor?.appliedEffects?.some(effect => {
-    if (!(effect.parent instanceof Item)) return false;
-    return effect.system?.changes?.some(change => {
-      return change.key === "system.abilities.str.value" && change.type === "override";
-    });
-  }) ?? false;
+  return (
+    actor?.appliedEffects?.some(effect => {
+      if (!(effect.parent instanceof Item)) return false;
+      return effect.system?.changes?.some(change => {
+        return change.key === "system.abilities.str.value" && change.type === "override";
+      });
+    }) ?? false
+  );
 }
 
 function steelGiantEffect(actor) {
@@ -400,27 +406,31 @@ export async function syncSteelGiant(actor, { notifyResult = false } = {}) {
     const current = steelGiantEffect(actor);
     if (shouldApply && !current) {
       const origin = findFeature(actor, "steel-giant")?.uuid;
-      await actor.createEmbeddedDocuments("ActiveEffect", [{
-        name: "Стальной гигант: магический предмет",
-        img: "icons/skills/melee/hand-grip-sword-orange.webp",
-        origin,
-        transfer: false,
-        disabled: false,
-        showIcon: 1,
-        flags: {
-          [MODULE_ID]: {
-            [FLAGS.STEEL_GIANT_EFFECT]: true
+      await actor.createEmbeddedDocuments("ActiveEffect", [
+        {
+          name: "Стальной гигант: магический предмет",
+          img: "icons/skills/melee/hand-grip-sword-orange.webp",
+          origin,
+          transfer: false,
+          disabled: false,
+          showIcon: 1,
+          flags: {
+            [MODULE_ID]: {
+              [FLAGS.STEEL_GIANT_EFFECT]: true
+            }
+          },
+          system: {
+            changes: [
+              {
+                key: "system.abilities.str.value",
+                type: "add",
+                value: 1,
+                priority: 100
+              }
+            ]
           }
-        },
-        system: {
-          changes: [{
-            key: "system.abilities.str.value",
-            type: "add",
-            value: 1,
-            priority: 100
-          }]
         }
-      }]);
+      ]);
       if (notifyResult) notify(`${actor.name}: значение Силы от магического предмета увеличено на 1.`);
     } else if (!shouldApply && current) {
       await current.delete();
@@ -447,9 +457,7 @@ async function chooseWeaponForSmithing(weapons) {
 
 export async function applySmithing(actor) {
   if (!actor || !hasFeature(actor, "smithing")) return false;
-  const candidates = massiveWeapons(actor).filter(
-    weapon => weapon.getFlag(MODULE_ID, FLAGS.SMITHING_REDUCED) !== true
-  );
+  const candidates = massiveWeapons(actor).filter(weapon => weapon.getFlag(MODULE_ID, FLAGS.SMITHING_REDUCED) !== true);
   if (!candidates.length) {
     notify("Нет массивного оружия, которое ещё можно облегчить.", "warn");
     return false;

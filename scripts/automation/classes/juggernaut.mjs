@@ -22,7 +22,10 @@ export function validateJuggernautPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "juggernaut") return true;
   const failures = juggernautPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Джаггернаут». Не выполнено: ${failures.join(", ")}. Способность исцелять себя и прошлую натуральную 20 на спасброске от смерти подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Джаггернаут». Не выполнено: ${failures.join(", ")}. Способность исцелять себя и прошлую натуральную 20 на спасброске от смерти подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;

@@ -1,17 +1,12 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
-import {
-  automationData,
-  findFeature,
-  itemIdentifier,
-  notify,
-} from "../shared/helpers.mjs";
+import { automationData, findFeature, itemIdentifier, notify } from "../shared/helpers.mjs";
 
 const BLOOD_MAGIC_COSTS = {
   1: "2d8",
   2: "3d8",
   3: "5d8",
   4: "6d8",
-  5: "7d8",
+  5: "7d8"
 };
 
 export function bloodMageClass(actor) {
@@ -36,11 +31,9 @@ function textParts(...values) {
 }
 
 function actorTypeText(actor) {
-  return textParts(
-    actor?.system?.details?.type,
-    actor?.system?.details?.race,
-    actor?.system?.details?.species
-  ).join(" ");
+  return textParts(actor?.system?.details?.type, actor?.system?.details?.race, actor?.system?.details?.species).join(
+    " "
+  );
 }
 
 export function isBloodlessActor(actor) {
@@ -48,15 +41,9 @@ export function isBloodlessActor(actor) {
   if (!text) return false;
   if (/\bliving construct\b/.test(text)) return true;
   if (/\b(construct|elemental|ooze|slime|plant|undead)\b/.test(text)) return true;
-  return [
-    "живой конструкт",
-    "конструкт",
-    "элементаль",
-    "элементал",
-    "слиз",
-    "растен",
-    "нежит",
-  ].some(pattern => text.includes(pattern));
+  return ["живой конструкт", "конструкт", "элементаль", "элементал", "слиз", "растен", "нежит"].some(pattern =>
+    text.includes(pattern)
+  );
 }
 
 function spellSlotMax(actor, level) {
@@ -99,7 +86,10 @@ export function validateBloodMagePrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "blood-mage") return true;
   const failures = bloodMagePrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Маг крови». Не выполнено: ${failures.join(", ")}. Доступ к тайне магии крови подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Маг крови». Не выполнено: ${failures.join(", ")}. Доступ к тайне магии крови подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -154,7 +144,10 @@ export function validateBloodMagicCostUse(actor, activity) {
     return false;
   }
   if (slotLevel > level) {
-    notify(`${actor.name}: Магия крови не может использовать ячейку ${slotLevel}-го уровня при ${level}-м уровне Мага крови.`, "warn");
+    notify(
+      `${actor.name}: Магия крови не может использовать ячейку ${slotLevel}-го уровня при ${level}-м уровне Мага крови.`,
+      "warn"
+    );
     return false;
   }
   return true;
@@ -168,7 +161,7 @@ export async function applyBloodMagicCost(actor, activity) {
   const roll = await new Roll(formula, actor.getRollData()).evaluate();
   await roll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor }),
-    flavor: `Магия крови: цена ячейки ${slotLevel}-го уровня (${formula})`,
+    flavor: `Магия крови: цена ячейки ${slotLevel}-го уровня (${formula})`
   });
 
   const damage = Math.max(0, Number(roll.total ?? 0));
@@ -189,22 +182,26 @@ export async function applyBloodMagicCost(actor, activity) {
     flags: {
       [MODULE_ID]: {
         [FLAGS.BLOOD_MAGIC_COST_EFFECT]: true,
-        bloodMagicCostAmount: totalReduction,
-      },
+        bloodMagicCostAmount: totalReduction
+      }
     },
     system: {
-      changes: [{
-        key: "system.attributes.hp.max",
-        type: "add",
-        value: String(-totalReduction),
-        phase: "final",
-        priority: 20,
-      }],
-    },
+      changes: [
+        {
+          key: "system.attributes.hp.max",
+          type: "add",
+          value: String(-totalReduction),
+          phase: "final",
+          priority: 20
+        }
+      ]
+    }
   };
   if (currentEffect) await currentEffect.update(effectData);
   else await actor.createEmbeddedDocuments("ActiveEffect", [effectData]);
-  notify(`${actor.name}: Магия крови нанесла ${damage} некротического урона и снизила максимум хитов на ${totalReduction} до продолжительного отдыха.`);
+  notify(
+    `${actor.name}: Магия крови нанесла ${damage} некротического урона и снизила максимум хитов на ${totalReduction} до продолжительного отдыха.`
+  );
   return true;
 }
 
@@ -212,7 +209,10 @@ export async function clearBloodMagicCosts(actor, result, { automationEnabled = 
   if (!automationEnabled || result?.type !== "long" || !actor?.isOwner) return false;
   const effects = actor.effects?.filter(effect => effect.getFlag(MODULE_ID, FLAGS.BLOOD_MAGIC_COST_EFFECT)) ?? [];
   if (!effects.length) return false;
-  await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
+  await actor.deleteEmbeddedDocuments(
+    "ActiveEffect",
+    effects.map(effect => effect.id)
+  );
   notify(`${actor.name}: снижение максимума хитов от Магии крови снято после продолжительного отдыха.`);
   return true;
 }
@@ -235,13 +235,13 @@ export async function rollBloodMageSacrifice(actor) {
   const roll = await new Roll("4d8", actor.getRollData()).evaluate();
   await roll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor }),
-    flavor: "Жертва: некротический урон цели при провале спасброска Телосложения",
+    flavor: "Жертва: некротический урон цели при провале спасброска Телосложения"
   });
   if (bloodMageLevel(actor) >= 5) {
     const extra = await new Roll("2d8", actor.getRollData()).evaluate();
     await extra.toMessage({
       speaker: ChatMessage.getSpeaker({ actor }),
-      flavor: "Жертва: дополнительное исцеление, если цель умерла или потеряла сознание",
+      flavor: "Жертва: дополнительное исцеление, если цель умерла или потеряла сознание"
     });
   }
   return true;

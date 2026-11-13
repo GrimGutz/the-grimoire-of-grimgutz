@@ -11,11 +11,8 @@ import {
   notify
 } from "../shared/helpers.mjs";
 import { leaderClass } from "../shared/selectors.mjs";
-import {encounterForActor, combatTurnSnapshot} from "../shared/combat-flow.mjs";
-import {
-  flaggedPassiveEffectData,
-  syncFlaggedPassiveEffects
-} from "../effects/passive-helpers.mjs";
+import { encounterForActor, combatTurnSnapshot } from "../shared/combat-flow.mjs";
+import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const leaderPassiveSyncs = new Set();
 
@@ -44,15 +41,19 @@ function leaderPassiveDefinitions(actor) {
   const definitions = [];
 
   const boisterous = findFeature(actor, "boisterous-presence");
-  const configured = actor.getFlag?.(MODULE_ID, "leaderPresenceRecipients")?.some(record => record.key === "boisterous-presence");
+  const configured = actor
+    .getFlag?.(MODULE_ID, "leaderPresenceRecipients")
+    ?.some(record => record.key === "boisterous-presence");
   if (boisterous && !configured) {
     const changes = leaderMovementBonusChanges(actor, 10);
     if (changes.length) {
-      definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.LEADER_PASSIVE, {
-        key: "boisterous-presence",
-        feature: boisterous,
-        changes
-      }));
+      definitions.push(
+        flaggedPassiveEffectData(MODULE_ID, FLAGS.LEADER_PASSIVE, {
+          key: "boisterous-presence",
+          feature: boisterous,
+          changes
+        })
+      );
     }
   }
 
@@ -62,7 +63,13 @@ function leaderPassiveDefinitions(actor) {
 export async function syncLeaderPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
   if (actor.getFlag?.(MODULE_ID, "leaderLegacyBoiConflict")) return;
-  return syncFlaggedPassiveEffects(actor, leaderPassiveSyncs, MODULE_ID, FLAGS.LEADER_PASSIVE, leaderPassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    leaderPassiveSyncs,
+    MODULE_ID,
+    FLAGS.LEADER_PASSIVE,
+    leaderPassiveDefinitions
+  );
 }
 
 export function validateStratagemUse(activity, combat = encounterForActor(activityActor(activity))) {
@@ -71,7 +78,10 @@ export function validateStratagemUse(activity, combat = encounterForActor(activi
   if (automationData(item).stratagem !== true || !combat?.started) return true;
   if (!actor?.getFlag(MODULE_ID, FLAGS.LEADER_STRATAGEM_LOCK)) return true;
   if (actor.getFlag(MODULE_ID, FLAGS.GLIMPSE_ARMED)) return true;
-  notify(`${actor.name}: новую стратагему можно использовать в начале следующего хода или через «Проблеск гения».`, "warn");
+  notify(
+    `${actor.name}: новую стратагему можно использовать в начале следующего хода или через «Проблеск гения».`,
+    "warn"
+  );
   return false;
 }
 
@@ -87,7 +97,7 @@ async function applyFrontlineCommander(actor, snapshot) {
     .map(type => ({
       key: `system.attributes.movement.${type}`,
       type: "add",
-      value: feetToSceneUnits(10, {grid: {units: movement.units ?? "ft"}}),
+      value: feetToSceneUnits(10, { grid: { units: movement.units ?? "ft" } }),
       phase: "final",
       priority: 20
     }));
@@ -103,27 +113,32 @@ async function applyFrontlineCommander(actor, snapshot) {
     return;
   }
 
-  await actor.createEmbeddedDocuments("ActiveEffect", [{
-    name: "Командир на передовой",
-    img: "icons/skills/movement/arrow-upward-yellow.webp",
-    origin: findFeature(actor, "frontline-commander")?.uuid,
-    transfer: false,
-    disabled: false,
-    showIcon: 1,
-    flags: {
-      [MODULE_ID]: {
-        [FLAGS.FRONTLINE_EFFECT]: {
-          skipCurrentTurnEnd: usedDuringOwnTurn
+  await actor.createEmbeddedDocuments("ActiveEffect", [
+    {
+      name: "Командир на передовой",
+      img: "icons/skills/movement/arrow-upward-yellow.webp",
+      origin: findFeature(actor, "frontline-commander")?.uuid,
+      transfer: false,
+      disabled: false,
+      showIcon: 1,
+      flags: {
+        [MODULE_ID]: {
+          [FLAGS.FRONTLINE_EFFECT]: {
+            skipCurrentTurnEnd: usedDuringOwnTurn
+          }
         }
-      }
-    },
-    start: null,
-    duration: {value: null, units: "seconds", expiry: null, expired: false},
-    system: {changes}
-  }]);
+      },
+      start: null,
+      duration: { value: null, units: "seconds", expiry: null, expired: false },
+      system: { changes }
+    }
+  ]);
 }
 
-export async function handleStratagemUse(activity, {combat = encounterForActor(activityActor(activity)), snapshot = combat && combatTurnSnapshot(combat)} = {}) {
+export async function handleStratagemUse(
+  activity,
+  { combat = encounterForActor(activityActor(activity)), snapshot = combat && combatTurnSnapshot(combat) } = {}
+) {
   if (!enabled()) return;
   const item = activityItem(activity);
   const actor = activityActor(activity);

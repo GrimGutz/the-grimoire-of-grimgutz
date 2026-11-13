@@ -1,9 +1,4 @@
-import {
-  FLAGS,
-  MODULE_ID,
-  SETTINGS,
-  STYLES
-} from "./shared/constants.mjs";
+import { FLAGS, MODULE_ID, SETTINGS, STYLES } from "./shared/constants.mjs";
 import {
   activityActor,
   actorFromEffect,
@@ -19,77 +14,77 @@ import { clamp } from "./shared/dnd5e.mjs";
 import { serialMutation } from "./shared/transactions.mjs";
 import { automationActors, installTemporaryEffectHooks } from "./effects/temporary-effects.mjs";
 import { createActorSynchronizer } from "./shared/actor-sync.mjs";
-import {syncMaster, extendMasterCasting, validateMasterItem, validateMasterAdvancement} from "./classes/master.mjs";
-import {controlMaster, installMasterHooks} from "./classes/master-combat.mjs";
-import {syncHunter,validateHunterItem} from "./classes/bounty-hunter.mjs";
-import {controlHunter,installHunterActionHooks} from "./classes/bounty-hunter-actions.mjs";
-import {installHunterCombatHooks} from "./classes/bounty-hunter-combat.mjs";
-import {installHunterZoneHooks} from "./classes/bounty-hunter-zones.mjs";
-import {installHunterEventHooks} from "./classes/bounty-hunter-events.mjs";
-import {validateHunterDisposable} from "./classes/bounty-hunter-capture.mjs";
-import {syncJester,validateJesterItem} from "./classes/jester.mjs";
-import {controlJester} from "./classes/jester-actions.mjs";
-import {installJesterHooks} from "./classes/jester-events.mjs";
-import {syncFlagellant,validateFlagellantItem} from "./classes/flagellant.mjs";
-import {controlFlagellant} from "./classes/flagellant-actions.mjs";
-import {installFlagellantHooks} from "./classes/flagellant-events.mjs";
-import {syncDoomed,validateDoomedItem} from "./classes/doomed.mjs";
-import {controlDoomed} from "./classes/doomed-actions.mjs";
-import {installDoomedHooks} from "./classes/doomed-events.mjs";
-import {syncNightmare,validateNightmareItem} from "./classes/nightmare.mjs";
-import {controlNightmare} from "./classes/nightmare-actions.mjs";
-import {controlNightmareSummon} from "./classes/nightmare-summons.mjs";
-import {installNightmareHooks} from "./classes/nightmare-events.mjs";
-import {syncEmpath,validateEmpathItem} from "./classes/empath.mjs";
-import {controlEmpath} from "./classes/empath-actions.mjs";
-import {installEmpathHooks} from "./classes/empath-events.mjs";
-import {validateArkaneItem,validateArkaneAdvancement} from "./transformations/arkane.mjs";
-import {controlArkane} from "./transformations/arkane-actions.mjs";
-import {installArkaneHooks} from "./transformations/arkane-events.mjs";
-import {validateAutomatonItem,validateAutomatonAdvancement} from "./transformations/automaton.mjs";
-import {controlAutomaton} from "./transformations/automaton-actions.mjs";
-import {installAutomatonHooks} from "./transformations/automaton-events.mjs";
-import {validateBroodmotherItem,validateBroodmotherAdvancement} from "./transformations/broodmother.mjs";
-import {controlBroodmother} from "./transformations/broodmother-actions.mjs";
-import {installBroodmotherHooks} from "./transformations/broodmother-events.mjs";
-import {applyBroodmotherToxicDamage} from "./transformations/broodmother-combat.mjs";
-import {validateChimeraItem,validateChimeraAdvancement} from "./transformations/chimera.mjs";
-import {controlChimera} from "./transformations/chimera-actions.mjs";
-import {installChimeraHooks} from "./transformations/chimera-events.mjs";
-import {applyChimeraDamagePacket} from "./transformations/chimera-spells.mjs";
-import {validateDeathknightItem,validateDeathknightAdvancement} from "./transformations/deathknight.mjs";
-import {controlDeathknight} from "./transformations/deathknight-actions.mjs";
-import {controlDeathknightMinion} from "./transformations/deathknight-minions.mjs";
-import {installDeathknightHooks} from "./transformations/deathknight-events.mjs";
-import {applyDeathknightPacket} from "./transformations/deathknight-spells.mjs";
-import {validateDullahanItem,validateDullahanAdvancement} from "./transformations/dullahan.mjs";
-import {controlDullahan} from "./transformations/dullahan-actions.mjs";
-import {installDullahanHooks} from "./transformations/dullahan-events.mjs";
-import {applyDullahanPacket} from "./transformations/dullahan-combat.mjs";
-import {controlFactory} from "./transformations/factory-actions.mjs";
-import {controlFactoryHomunculus} from "./transformations/factory-homunculi.mjs";
-import {installFactoryHooks} from "./transformations/factory-events.mjs";
-import {validateFactoryItem,validateFactoryAdvancement} from "./transformations/factory.mjs";
-import {applyFactoryDamage} from "./transformations/factory-damage.mjs";
-import {applyFactoryDefense} from "./transformations/factory-defense.mjs";
-import {controlGod} from "./transformations/god-actions.mjs";
-import {installGodHooks} from "./transformations/god-events.mjs";
-import {validateGodItem,validateGodAdvancement} from "./transformations/god.mjs";
-import {applyGodElement,applyGodDefenses} from "./transformations/god-midi.mjs";
-import {controlIllithid} from "./transformations/illithid-actions.mjs";
-import {installIllithidHooks} from "./transformations/illithid-events.mjs";
-import {validateIllithidItem,validateIllithidAdvancement} from "./transformations/illithid.mjs";
-import {applyIllithidPacket} from "./transformations/illithid-midi.mjs";
-import {useIllithidRefuge} from "./transformations/illithid-refuge.mjs";
-import {controlHalfdragon} from "./transformations/halfdragon-actions.mjs";
-import {installHalfdragonHooks} from "./transformations/halfdragon-events.mjs";
-import {validateHalfdragonItem,validateHalfdragonAdvancement} from "./transformations/halfdragon.mjs";
-import {applyHalfdragonBite} from "./transformations/halfdragon-combat.mjs";
-import {controlHag} from "./transformations/hag-actions.mjs";
-import {installHagHooks} from "./transformations/hag-events.mjs";
-import {validateHagItem,validateHagAdvancement} from "./transformations/hag.mjs";
-import {applyHagDamage,applyHagDefense} from "./transformations/hag-combat.mjs";
-import {prepareAutomatonDamage,finishAutomatonCoils} from "./transformations/automaton-combat.mjs";
+import { syncMaster, extendMasterCasting, validateMasterItem, validateMasterAdvancement } from "./classes/master.mjs";
+import { controlMaster, installMasterHooks } from "./classes/master-combat.mjs";
+import { syncHunter, validateHunterItem } from "./classes/bounty-hunter.mjs";
+import { controlHunter, installHunterActionHooks } from "./classes/bounty-hunter-actions.mjs";
+import { installHunterCombatHooks } from "./classes/bounty-hunter-combat.mjs";
+import { installHunterZoneHooks } from "./classes/bounty-hunter-zones.mjs";
+import { installHunterEventHooks } from "./classes/bounty-hunter-events.mjs";
+import { validateHunterDisposable } from "./classes/bounty-hunter-capture.mjs";
+import { syncJester, validateJesterItem } from "./classes/jester.mjs";
+import { controlJester } from "./classes/jester-actions.mjs";
+import { installJesterHooks } from "./classes/jester-events.mjs";
+import { syncFlagellant, validateFlagellantItem } from "./classes/flagellant.mjs";
+import { controlFlagellant } from "./classes/flagellant-actions.mjs";
+import { installFlagellantHooks } from "./classes/flagellant-events.mjs";
+import { syncDoomed, validateDoomedItem } from "./classes/doomed.mjs";
+import { controlDoomed } from "./classes/doomed-actions.mjs";
+import { installDoomedHooks } from "./classes/doomed-events.mjs";
+import { syncNightmare, validateNightmareItem } from "./classes/nightmare.mjs";
+import { controlNightmare } from "./classes/nightmare-actions.mjs";
+import { controlNightmareSummon } from "./classes/nightmare-summons.mjs";
+import { installNightmareHooks } from "./classes/nightmare-events.mjs";
+import { syncEmpath, validateEmpathItem } from "./classes/empath.mjs";
+import { controlEmpath } from "./classes/empath-actions.mjs";
+import { installEmpathHooks } from "./classes/empath-events.mjs";
+import { validateArkaneItem, validateArkaneAdvancement } from "./transformations/arkane.mjs";
+import { controlArkane } from "./transformations/arkane-actions.mjs";
+import { installArkaneHooks } from "./transformations/arkane-events.mjs";
+import { validateAutomatonItem, validateAutomatonAdvancement } from "./transformations/automaton.mjs";
+import { controlAutomaton } from "./transformations/automaton-actions.mjs";
+import { installAutomatonHooks } from "./transformations/automaton-events.mjs";
+import { validateBroodmotherItem, validateBroodmotherAdvancement } from "./transformations/broodmother.mjs";
+import { controlBroodmother } from "./transformations/broodmother-actions.mjs";
+import { installBroodmotherHooks } from "./transformations/broodmother-events.mjs";
+import { applyBroodmotherToxicDamage } from "./transformations/broodmother-combat.mjs";
+import { validateChimeraItem, validateChimeraAdvancement } from "./transformations/chimera.mjs";
+import { controlChimera } from "./transformations/chimera-actions.mjs";
+import { installChimeraHooks } from "./transformations/chimera-events.mjs";
+import { applyChimeraDamagePacket } from "./transformations/chimera-spells.mjs";
+import { validateDeathknightItem, validateDeathknightAdvancement } from "./transformations/deathknight.mjs";
+import { controlDeathknight } from "./transformations/deathknight-actions.mjs";
+import { controlDeathknightMinion } from "./transformations/deathknight-minions.mjs";
+import { installDeathknightHooks } from "./transformations/deathknight-events.mjs";
+import { applyDeathknightPacket } from "./transformations/deathknight-spells.mjs";
+import { validateDullahanItem, validateDullahanAdvancement } from "./transformations/dullahan.mjs";
+import { controlDullahan } from "./transformations/dullahan-actions.mjs";
+import { installDullahanHooks } from "./transformations/dullahan-events.mjs";
+import { applyDullahanPacket } from "./transformations/dullahan-combat.mjs";
+import { controlFactory } from "./transformations/factory-actions.mjs";
+import { controlFactoryHomunculus } from "./transformations/factory-homunculi.mjs";
+import { installFactoryHooks } from "./transformations/factory-events.mjs";
+import { validateFactoryItem, validateFactoryAdvancement } from "./transformations/factory.mjs";
+import { applyFactoryDamage } from "./transformations/factory-damage.mjs";
+import { applyFactoryDefense } from "./transformations/factory-defense.mjs";
+import { controlGod } from "./transformations/god-actions.mjs";
+import { installGodHooks } from "./transformations/god-events.mjs";
+import { validateGodItem, validateGodAdvancement } from "./transformations/god.mjs";
+import { applyGodElement, applyGodDefenses } from "./transformations/god-midi.mjs";
+import { controlIllithid } from "./transformations/illithid-actions.mjs";
+import { installIllithidHooks } from "./transformations/illithid-events.mjs";
+import { validateIllithidItem, validateIllithidAdvancement } from "./transformations/illithid.mjs";
+import { applyIllithidPacket } from "./transformations/illithid-midi.mjs";
+import { useIllithidRefuge } from "./transformations/illithid-refuge.mjs";
+import { controlHalfdragon } from "./transformations/halfdragon-actions.mjs";
+import { installHalfdragonHooks } from "./transformations/halfdragon-events.mjs";
+import { validateHalfdragonItem, validateHalfdragonAdvancement } from "./transformations/halfdragon.mjs";
+import { applyHalfdragonBite } from "./transformations/halfdragon-combat.mjs";
+import { controlHag } from "./transformations/hag-actions.mjs";
+import { installHagHooks } from "./transformations/hag-events.mjs";
+import { validateHagItem, validateHagAdvancement } from "./transformations/hag.mjs";
+import { applyHagDamage, applyHagDefense } from "./transformations/hag-combat.mjs";
+import { prepareAutomatonDamage, finishAutomatonCoils } from "./transformations/automaton-combat.mjs";
 import { ownedItemMigrationPlan } from "./shared/owned-item-migration.mjs";
 import { inspectAutomation as inspectActorAutomation } from "./shared/diagnostics.mjs";
 import { registerAutomationPanel, openAutomationPanel } from "./shared/control-panel.mjs";
@@ -97,27 +92,69 @@ import { installZoneHooks } from "./shared/zones.mjs";
 import { installPeriodicZoneHooks } from "./shared/periodic-zones.mjs";
 import { resolvePendingAutomation } from "./shared/event-ledger.mjs";
 import { installOwnerPromptHooks } from "./shared/owner-prompts.mjs";
-import { installCombatBenefitHooks, prepareCombatAttackBenefits, commitCombatAttackBenefits } from "./shared/combat-benefits.mjs";
+import {
+  installCombatBenefitHooks,
+  prepareCombatAttackBenefits,
+  commitCombatAttackBenefits
+} from "./shared/combat-benefits.mjs";
 import { installDamageEventHooks, prepareConfirmedDamage, finishDamageReservations } from "./shared/damage-events.mjs";
 import { installLeaderStratagemHooks, useLeaderStratagem } from "./classes/leader-stratagems.mjs";
-import { installLeaderEventHooks, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll } from "./classes/leader-events.mjs";
-import {installLeaderComfortHooks, prepareComfortHealing, finishComfortHealing} from "./classes/leader-comfort.mjs";
-import { installLeaderPresenceHooks, chooseLeaderPresenceTargets, handleLeaderCritical, handleDistractingPresence, prepareLeaderHealing } from "./classes/leader-presences.mjs";
-import { installSanguinistCombatHooks, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves } from "./classes/sanguinist-combat.mjs";
-import { installInsectCombatHooks, handleInsectBiteHit, useInsectBloodDrain, endInsectBloodDrain } from "./classes/insect-combat.mjs";
-import { installDefenseHooks, handleGuardianWeaponHit, prepareArmorSave, finishDefenseReactions } from "./classes/defensive-reactions.mjs";
-import { installHollowCombatHooks, handleHollowWeaponHit, prepareHollowCast } from "./transformations/hollow-combat.mjs";
+import {
+  installLeaderEventHooks,
+  prepareLeaderTargetSave,
+  finishLeaderSaves,
+  finishLeaderRoll
+} from "./classes/leader-events.mjs";
+import { installLeaderComfortHooks, prepareComfortHealing, finishComfortHealing } from "./classes/leader-comfort.mjs";
+import {
+  installLeaderPresenceHooks,
+  chooseLeaderPresenceTargets,
+  handleLeaderCritical,
+  handleDistractingPresence,
+  prepareLeaderHealing
+} from "./classes/leader-presences.mjs";
+import {
+  installSanguinistCombatHooks,
+  prepareBloodSpell,
+  finishBloodSpell,
+  handleBloodFailedSaves
+} from "./classes/sanguinist-combat.mjs";
+import {
+  installInsectCombatHooks,
+  handleInsectBiteHit,
+  useInsectBloodDrain,
+  endInsectBloodDrain
+} from "./classes/insect-combat.mjs";
+import {
+  installDefenseHooks,
+  handleGuardianWeaponHit,
+  prepareArmorSave,
+  finishDefenseReactions
+} from "./classes/defensive-reactions.mjs";
+import {
+  installHollowCombatHooks,
+  handleHollowWeaponHit,
+  prepareHollowCast
+} from "./transformations/hollow-combat.mjs";
 import { installAreaActivityHooks, useAreaActivity } from "./shared/area-activities.mjs";
-import {installWitchBladeHooks} from "./classes/witch-blade.mjs";
-import {installRitualistZoneHooks} from "./classes/ritualist-zones.mjs";
-import {installJuggernautRegenerationHooks, configureJuggernautRegeneration} from "./classes/juggernaut-regeneration.mjs";
-import {installRitualistSpiritHooks, chooseRitualistSpiritRecipients} from "./classes/ritualist-spirits.mjs";
-import {applyWeaponBuffReach} from "./shared/weapon-buffs.mjs";
+import { installWitchBladeHooks } from "./classes/witch-blade.mjs";
+import { installRitualistZoneHooks } from "./classes/ritualist-zones.mjs";
+import {
+  installJuggernautRegenerationHooks,
+  configureJuggernautRegeneration
+} from "./classes/juggernaut-regeneration.mjs";
+import { installRitualistSpiritHooks, chooseRitualistSpiritRecipients } from "./classes/ritualist-spirits.mjs";
+import { applyWeaponBuffReach } from "./shared/weapon-buffs.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
 import { installSummonLifecycleHooks, manageSummons } from "./shared/summon-lifecycle.mjs";
 import { dismissRitualistSpirits, regainRitualistSpirits } from "./classes/ritualist.mjs";
 import { applySpellSourceResistance } from "./midi/spell-resistance.mjs";
-import { applySummonProtection, handleSummonSelfCost, installSummonCombatHooks, useSummonProtection } from "./shared/summon-combat.mjs";
+import {
+  applySummonProtection,
+  handleSummonSelfCost,
+  installSummonCombatHooks,
+  useSummonProtection
+} from "./shared/summon-combat.mjs";
 import { installRepeatedSaveHooks } from "./effects/repeated-saves.mjs";
 import { isForwardTurn, previousCombatActor } from "./shared/combat-flow.mjs";
 import { TRANSFORMATION_ACTIONS } from "./transformations/index.mjs";
@@ -126,11 +163,7 @@ import { SPIRIT_VESSEL_ACTIONS } from "./classes/spirit-vessel.mjs";
 import { ORACLE_ACTIONS } from "./classes/oracle.mjs";
 import { DEMONOLOGIST_ACTIONS } from "./classes/demonologist.mjs";
 import { SANGUINIST_ACTIONS } from "./classes/sanguinist.mjs";
-import {
-  deathKnightClass,
-  deathKnightLevel,
-  paladinLevel
-} from "./shared/selectors.mjs";
+import { deathKnightClass, deathKnightLevel, paladinLevel } from "./shared/selectors.mjs";
 import {
   juggernautPrerequisiteFailures,
   validateJuggernautFeaturePrerequisites,
@@ -390,19 +423,10 @@ import {
 } from "./transformations/index.mjs";
 import { createPrerequisiteValidators } from "./validation/prerequisites.mjs";
 import { createAdvancementValidator } from "./validation/advancement.mjs";
-import {
-  isLikelyModuleItem,
-  moduleItemSources,
-  syncModulePassiveEffects
-} from "./effects/module-passives.mjs";
+import { isLikelyModuleItem, moduleItemSources, syncModulePassiveEffects } from "./effects/module-passives.mjs";
 import { installMidiQolHooks } from "./midi/hooks.mjs";
 import { installSummonSocket } from "./shared/summons.mjs";
-import {
-  auraDefinitions,
-  installAuraHooks,
-  scheduleAuraSync,
-  syncSceneAuras
-} from "./shared/auras.mjs";
+import { auraDefinitions, installAuraHooks, scheduleAuraSync, syncSceneAuras } from "./shared/auras.mjs";
 import { chooseCarnageAuraType, handleAuraMeleeAttack } from "./shared/aura-events.mjs";
 import {
   applyMidiWeaponBuffAttackAutomation,
@@ -638,7 +662,11 @@ function actionFromActivity(activity) {
 const COMMON_ACTIVITY_ACTIONS = new Map([
   ["choose-ritualist-spirit-targets", async actor => chooseRitualistSpiritRecipients(actor)],
   ["configure-juggernaut-regeneration", async actor => configureJuggernautRegeneration(actor)],
-  ["choose-leader-presence-targets", async (actor, activity) => chooseLeaderPresenceTargets(actor, automationData(activity).leaderPresenceKey ?? itemIdentifier(activity.item))],
+  [
+    "choose-leader-presence-targets",
+    async (actor, activity) =>
+      chooseLeaderPresenceTargets(actor, automationData(activity).leaderPresenceKey ?? itemIdentifier(activity.item))
+  ],
   ["choose-carnage-aura-type", async actor => chooseCarnageAuraType(actor)],
   ["toggle-gwm", async (actor, activity, context) => toggleGreatWeaponMaster(actor)],
   ["set-style-cleaving", async (actor, activity, context) => setStyle(actor, STYLES.CLEAVING)],
@@ -667,12 +695,19 @@ const COMMON_ACTIVITY_ACTIONS = new Map([
   ["use-crusader-consecration", async (actor, activity, context) => useCrusaderConsecration(actor)],
   ["condemn-crusader-target", async (actor, activity, context) => condemnCrusaderTarget(actor)],
   ["activate-spirit-form", async (actor, activity, context) => activateSpiritForm(actor)],
-  ["summon-ghost-walker-spirit", async (actor, activity, context) => summonUnfinishedBusinessSpirit(actor, activity, { consumed: context.nativeSummonConsumption === true })],
+  [
+    "summon-ghost-walker-spirit",
+    async (actor, activity, context) =>
+      summonUnfinishedBusinessSpirit(actor, activity, { consumed: context.nativeSummonConsumption === true })
+  ],
   ["end-spirit-form", async (actor, activity, context) => endSpiritForm(actor)],
   ["use-inner-blink", async (actor, activity, context) => useInnerBlink(actor)],
   ["use-outer-blink", async (actor, activity, context) => useOuterBlink(actor)],
   ["activate-sideways-shift", async (actor, activity, context) => activateSidewaysShift(actor)],
-  ["sync-fallen-priest-spellcasting", async (actor, activity, context) => syncFallenPriestSpellcasting(actor, { notifyResult: true })],
+  [
+    "sync-fallen-priest-spellcasting",
+    async (actor, activity, context) => syncFallenPriestSpellcasting(actor, { notifyResult: true })
+  ],
   ["roll-plague-sneak-attack", async (actor, activity, context) => rollPlagueSneakAttack(actor)],
   ["create-smart-infection", async (actor, activity, context) => createSmartInfection(actor, activity)],
   ["clear-smart-infections", async (actor, activity, context) => clearSmartInfections(actor)],
@@ -696,7 +731,10 @@ const COMMON_ACTIVITY_ACTIONS = new Map([
   ["sync-onmyoji-resources", async (actor, activity, context) => syncOnmyojiResources(actor, { notifyResult: true })],
   ["summon-onmyoji-shikigami", async (actor, activity, context) => summonOnmyojiShikigami(actor)],
   ["use-onmyoji-ki", async (actor, activity, context) => useOnmyojiKi(actor, activity)],
-  ["sync-ritualist-resources", async (actor, activity, context) => syncRitualistResources(actor, { notifyResult: true })],
+  [
+    "sync-ritualist-resources",
+    async (actor, activity, context) => syncRitualistResources(actor, { notifyResult: true })
+  ],
   ["summon-ritualist-spirits", async (actor, activity, context) => summonRitualistSpirits(actor, activity)],
   ["summon-spirit-protection", async (actor, activity, context) => useSummonProtection(actor)],
   ["dismiss-ritualist-spirits", async (actor, activity, context) => dismissRitualistSpirits(actor)],
@@ -707,11 +745,17 @@ const COMMON_ACTIVITY_ACTIONS = new Map([
   ["roll-ritualist-spirit-life", async (actor, activity, context) => rollRitualistSpiritLife(actor)],
   ["roll-ritualist-spirit-protection", async (actor, activity, context) => rollRitualistSpiritProtection(actor)],
   ["roll-ritualist-spirit-sorrow", async (actor, activity, context) => rollRitualistSpiritSorrow(actor)],
-  ["roll-ritualist-spirit-destruction-die", async (actor, activity, context) => rollRitualistSpiritDestructionDie(actor)],
+  [
+    "roll-ritualist-spirit-destruction-die",
+    async (actor, activity, context) => rollRitualistSpiritDestructionDie(actor)
+  ],
   ["show-ritualist-spirit-channel", async (actor, activity, context) => showRitualistSpiritChannel(actor)],
   ["apply-black-magic-oil", async (actor, activity, context) => applyBlackMagicOil(actor)],
   ["drink-dark-warrior-elixir", async (actor, activity, context) => drinkDarkWarriorElixir(actor, activity)],
-  ["sync-dark-warrior-resources", async (actor, activity, context) => syncDarkWarriorResources(actor, { notifyResult: true })],
+  [
+    "sync-dark-warrior-resources",
+    async (actor, activity, context) => syncDarkWarriorResources(actor, { notifyResult: true })
+  ],
   ["choose-devil-worshipper-ability", async (actor, activity, context) => chooseDevilWorshipperAbility(actor)],
   ["show-dark-luck", async (actor, activity, context) => showDarkLuck(actor)],
   ["show-empowered-charms", async (actor, activity, context) => showEmpoweredCharms(actor)],
@@ -742,44 +786,49 @@ let actionHandlerRegistry;
 
 /** Action id → handler. Static, so it is built once instead of on every activity use. */
 export function getAutomationActionHandlers() {
-  return actionHandlerRegistry ??= buildAutomationActionHandlers();
+  return (actionHandlerRegistry ??= buildAutomationActionHandlers());
 }
 
 function buildAutomationActionHandlers() {
   const registry = new Map(COMMON_ACTIVITY_ACTIONS);
   registry.set("master-control", controlMaster);
-  registry.set("bounty-hunter-control",controlHunter);
-  registry.set("jester-control",controlJester);
-  registry.set("flagellant-control",controlFlagellant);
-  registry.set("doomed-control",controlDoomed);
-  registry.set("nightmare-control",controlNightmare);
-  registry.set("empath-control",controlEmpath);
-  registry.set("arkane-control",controlArkane);
-  registry.set("automaton-control",controlAutomaton);
-  registry.set("broodmother-control",controlBroodmother);
-  registry.set("chimera-control",controlChimera);
-  registry.set("deathknight-control",controlDeathknight);
-  registry.set("dullahan-control",controlDullahan);
-  registry.set("factory-control",controlFactory);
-  registry.set("god-control",controlGod);
-  registry.set("hag-control",controlHag);
-  registry.set("halfdragon-control",controlHalfdragon);
-  registry.set("illithid-control",controlIllithid);
-  registry.set("factory-homunculus",controlFactoryHomunculus);
-  registry.set("deathknight-minion",controlDeathknightMinion);
-  registry.set("nightmare-summon-control",controlNightmareSummon);
+  registry.set("bounty-hunter-control", controlHunter);
+  registry.set("jester-control", controlJester);
+  registry.set("flagellant-control", controlFlagellant);
+  registry.set("doomed-control", controlDoomed);
+  registry.set("nightmare-control", controlNightmare);
+  registry.set("empath-control", controlEmpath);
+  registry.set("arkane-control", controlArkane);
+  registry.set("automaton-control", controlAutomaton);
+  registry.set("broodmother-control", controlBroodmother);
+  registry.set("chimera-control", controlChimera);
+  registry.set("deathknight-control", controlDeathknight);
+  registry.set("dullahan-control", controlDullahan);
+  registry.set("factory-control", controlFactory);
+  registry.set("god-control", controlGod);
+  registry.set("hag-control", controlHag);
+  registry.set("halfdragon-control", controlHalfdragon);
+  registry.set("illithid-control", controlIllithid);
+  registry.set("factory-homunculus", controlFactoryHomunculus);
+  registry.set("deathknight-minion", controlDeathknightMinion);
+  registry.set("nightmare-summon-control", controlNightmareSummon);
   for (const [actions, handler] of [
-    [TRANSFORMATION_ACTIONS, handleTransformationAction], [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
-    [SPIRIT_VESSEL_ACTIONS, handleSpiritVesselAction], [ORACLE_ACTIONS, handleOracleAction],
-    [DEMONOLOGIST_ACTIONS, handleDemonologistAction], [SANGUINIST_ACTIONS, handleSanguinistAction]
-  ]) for (const action of actions) registry.set(action, (actor, activity) => handler(actor, activity, action));
+    [TRANSFORMATION_ACTIONS, handleTransformationAction],
+    [SCHOOL_OF_STEEL_ACTIONS, handleSchoolOfSteelAction],
+    [SPIRIT_VESSEL_ACTIONS, handleSpiritVesselAction],
+    [ORACLE_ACTIONS, handleOracleAction],
+    [DEMONOLOGIST_ACTIONS, handleDemonologistAction],
+    [SANGUINIST_ACTIONS, handleSanguinistAction]
+  ])
+    for (const action of actions) registry.set(action, (actor, activity) => handler(actor, activity, action));
   return registry;
 }
 
 async function handleActivityAction(activity, context = {}) {
   if (!enabled()) return;
   if (automationData(activity).areaResolved) return;
-  const actor = activityActor(activity), action = actionFromActivity(activity);
+  const actor = activityActor(activity),
+    action = actionFromActivity(activity);
   if (!actor || !action) return;
   const handler = getAutomationActionHandlers().get(action);
   if (!handler) throw new Error(`Unhandled module activity: ${action}`);
@@ -788,17 +837,30 @@ async function handleActivityAction(activity, context = {}) {
 
 // Action families that share one use validator.
 const WITCH_BLADE_RAGE_ACTIONS = new Set([
-  "use-witch-blade-rage", "activate-witch-hunter-empower", "activate-ethereal-storm",
-  "open-immaterial-whirlwind", "use-witch-blade-seal-evil"
+  "use-witch-blade-rage",
+  "activate-witch-hunter-empower",
+  "activate-ethereal-storm",
+  "open-immaterial-whirlwind",
+  "use-witch-blade-seal-evil"
 ]);
 const DARK_WARRIOR_ACTIONS = new Set(["apply-black-magic-oil", "drink-dark-warrior-elixir"]);
 const DEVIL_WORSHIPPER_ACTIONS = new Set([
-  "choose-devil-worshipper-ability", "show-dark-luck", "show-empowered-charms", "summon-devil-imp-familiar",
-  "summon-devil-glaive", "roll-devil-glaive-damage", "roll-devil-glaive-grapple-damage", "gain-devil-soul-aura-temp-hp"
+  "choose-devil-worshipper-ability",
+  "show-dark-luck",
+  "show-empowered-charms",
+  "summon-devil-imp-familiar",
+  "summon-devil-glaive",
+  "roll-devil-glaive-damage",
+  "roll-devil-glaive-grapple-damage",
+  "gain-devil-soul-aura-temp-hp"
 ]);
 const NETHERESE_ARCANIST_ACTIONS = new Set([
-  "show-scholar-arcanist", "activate-mini-mythal", "teleport-in-mini-mythal",
-  "overload-mini-mythal", "use-ancient-knowledge", "cast-netherese-great-spell"
+  "show-scholar-arcanist",
+  "activate-mini-mythal",
+  "teleport-in-mini-mythal",
+  "overload-mini-mythal",
+  "use-ancient-knowledge",
+  "cast-netherese-great-spell"
 ]);
 
 function validateActivityUse(activity) {
@@ -826,7 +888,8 @@ function validateActivityUse(activity) {
   if (action === "roll-blood-mage-sacrifice") return validateBloodMageSacrificeUse(actor);
   if (action === "use-onmyoji-ki") return validateOnmyojiKiUse(actor, activity);
   if (action === "summon-onmyoji-shikigami") return validateOnmyojiShikigamiUse(actor);
-  if (action === "use-ritualist-ritual-points" || action === "summon-ritualist-spirits") return validateRitualistRitualPointUse(actor, activity);
+  if (action === "use-ritualist-ritual-points" || action === "summon-ritualist-spirits")
+    return validateRitualistRitualPointUse(actor, activity);
   if (DARK_WARRIOR_ACTIONS.has(action)) return validateDarkWarriorActivityUse(actor, activity, action);
   if (DEVIL_WORSHIPPER_ACTIONS.has(action)) return validateDevilWorshipperActivityUse(actor, activity, action);
   if (NETHERESE_ARCANIST_ACTIONS.has(action)) return validateNethereseArcanistActivityUse(actor, activity, action);
@@ -847,9 +910,8 @@ function validateActivityUse(activity) {
 function recalculateDamageItem(token, damageItem, rawDamage) {
   const actor = token.actor;
   const selector = damageItem.damageSelector ?? "combinedDamage";
-  const options = damageItem.damageDetails?.calcDamageOptions?.[selector]
-    ?? damageItem.calcDamageOptions
-    ?? { invertHealing: true, multiplier: 1 };
+  const options = damageItem.damageDetails?.calcDamageOptions?.[selector] ??
+    damageItem.calcDamageOptions ?? { invertHealing: true, multiplier: 1 };
   const calculated = foundry.utils.deepClone(actor.calculateDamage(rawDamage, options));
 
   damageItem.rawDamageDetail = rawDamage;
@@ -874,7 +936,7 @@ function recalculateDamageItem(token, damageItem, rawDamage) {
   const oldHP = Number(hp.value ?? 0);
   const oldTempHP = Number(hp.temp ?? 0);
   const absorbed = rounded > 0 ? Math.min(oldTempHP, rounded) : 0;
-  const hpDamage = clamp(rounded - absorbed, -(Number(hp.damage ?? 0)), oldHP);
+  const hpDamage = clamp(rounded - absorbed, -Number(hp.damage ?? 0), oldHP);
 
   damageItem.oldHP = oldHP;
   damageItem.newHP = oldHP - hpDamage;
@@ -917,9 +979,7 @@ function applyDeathKnightHealingRestriction(token, { workflow, damageItem }) {
 
   const selector = damageItem.damageSelector ?? "combinedDamage";
   const rawKey = `raw${selector}`;
-  const rawDamage = foundry.utils.deepClone(
-    damageItem.damageDetails?.[rawKey] ?? damageItem.rawDamageDetail ?? []
-  );
+  const rawDamage = foundry.utils.deepClone(damageItem.damageDetails?.[rawKey] ?? damageItem.rawDamageDetail ?? []);
   if (!rawDamage.some(detail => detail.type === "healing")) return;
 
   const filtered = rawDamage.filter(detail => detail.type !== "healing");
@@ -1019,16 +1079,38 @@ const validateAdvancement = createAdvancementValidator({
 // Content modules that own their item/advancement validation (newer classes and
 // transformations). Registered as separate hooks in this order.
 const CONTENT_ITEM_VALIDATORS = [
-  validateHunterItem, validateJesterItem, validateFlagellantItem, validateNightmareItem,
-  validateBroodmotherItem, validateChimeraItem, validateDeathknightItem, validateIllithidItem,
-  validateHalfdragonItem, validateHagItem, validateGodItem, validateFactoryItem, validateDullahanItem,
-  validateAutomatonItem, validateArkaneItem, validateEmpathItem, validateDoomedItem, validateMasterItem
+  validateHunterItem,
+  validateJesterItem,
+  validateFlagellantItem,
+  validateNightmareItem,
+  validateBroodmotherItem,
+  validateChimeraItem,
+  validateDeathknightItem,
+  validateIllithidItem,
+  validateHalfdragonItem,
+  validateHagItem,
+  validateGodItem,
+  validateFactoryItem,
+  validateDullahanItem,
+  validateAutomatonItem,
+  validateArkaneItem,
+  validateEmpathItem,
+  validateDoomedItem,
+  validateMasterItem
 ];
 const CONTENT_ADVANCEMENT_VALIDATORS = [
-  validateBroodmotherAdvancement, validateChimeraAdvancement, validateDeathknightAdvancement,
-  validateIllithidAdvancement, validateHalfdragonAdvancement, validateHagAdvancement, validateGodAdvancement,
-  validateFactoryAdvancement, validateDullahanAdvancement, validateAutomatonAdvancement,
-  validateArkaneAdvancement, validateMasterAdvancement
+  validateBroodmotherAdvancement,
+  validateChimeraAdvancement,
+  validateDeathknightAdvancement,
+  validateIllithidAdvancement,
+  validateHalfdragonAdvancement,
+  validateHagAdvancement,
+  validateGodAdvancement,
+  validateFactoryAdvancement,
+  validateDullahanAdvancement,
+  validateAutomatonAdvancement,
+  validateArkaneAdvancement,
+  validateMasterAdvancement
 ];
 
 /**
@@ -1040,31 +1122,68 @@ function prerequisiteValidatorChain() {
   const byUser = validate => (item, _options, userId) => validate(item, userId);
   return [
     ...[
-      validateCrusherPrerequisites, validateLeaderPrerequisites, validateDeathKnightPrerequisites,
-      validateHereticPrerequisites, validateForestLordPrerequisites, validateAberrantPrerequisites,
-      validateWitchBladePrerequisites, validateJuggernautPrerequisites, validateSoulEaterPrerequisites,
-      validateGuardianPrerequisites, validateCrusaderPrerequisites, validateFeyWarriorPrerequisites,
-      validateGhostWalkerPrerequisites, validateBlinkerPrerequisites, validateFallenPriestPrerequisites,
-      validatePlagueDoctorPrerequisites, validateInsectLordPrerequisites, validateGamblerPrerequisites,
-      validateKeeperPrerequisites, validateBloodMagePrerequisites, validateOnmyojiPrerequisites,
-      validateRitualistPrerequisites, validateDarkWarriorPrerequisites, validateDevilWorshipperPrerequisites,
-      validateNethereseArcanistPrerequisites, validateSpiritVesselPrerequisites, validateOraclePrerequisites,
-      validateDemonologistPrerequisites, validateSanguinistPrerequisites
+      validateCrusherPrerequisites,
+      validateLeaderPrerequisites,
+      validateDeathKnightPrerequisites,
+      validateHereticPrerequisites,
+      validateForestLordPrerequisites,
+      validateAberrantPrerequisites,
+      validateWitchBladePrerequisites,
+      validateJuggernautPrerequisites,
+      validateSoulEaterPrerequisites,
+      validateGuardianPrerequisites,
+      validateCrusaderPrerequisites,
+      validateFeyWarriorPrerequisites,
+      validateGhostWalkerPrerequisites,
+      validateBlinkerPrerequisites,
+      validateFallenPriestPrerequisites,
+      validatePlagueDoctorPrerequisites,
+      validateInsectLordPrerequisites,
+      validateGamblerPrerequisites,
+      validateKeeperPrerequisites,
+      validateBloodMagePrerequisites,
+      validateOnmyojiPrerequisites,
+      validateRitualistPrerequisites,
+      validateDarkWarriorPrerequisites,
+      validateDevilWorshipperPrerequisites,
+      validateNethereseArcanistPrerequisites,
+      validateSpiritVesselPrerequisites,
+      validateOraclePrerequisites,
+      validateDemonologistPrerequisites,
+      validateSanguinistPrerequisites
     ].map(byUser),
     validateKeeperSubclassPrerequisites,
     validateSpiritVesselSubclassPrerequisites,
     byUser(validateSchoolOfSteelPrerequisites),
     validateTechniquePrerequisites,
-    validateLeaderFeaturePrerequisites, validateDeathKnightFeaturePrerequisites, validateHereticFeaturePrerequisites,
-    validateForestLordFeaturePrerequisites, validateAberrantFeaturePrerequisites, validateWitchBladeFeaturePrerequisites,
-    validateJuggernautFeaturePrerequisites, validateSoulEaterFeaturePrerequisites, validateGuardianFeaturePrerequisites,
-    validateCrusaderFeaturePrerequisites, validateFeyWarriorFeaturePrerequisites, validateGhostWalkerFeaturePrerequisites,
-    validateBlinkerFeaturePrerequisites, validateFallenPriestFeaturePrerequisites, validatePlagueDoctorFeaturePrerequisites,
-    validateInsectLordFeaturePrerequisites, validateGamblerFeaturePrerequisites, validateKeeperFeaturePrerequisites,
-    validateBloodMageFeaturePrerequisites, validateOnmyojiFeaturePrerequisites, validateRitualistFeaturePrerequisites,
-    validateDarkWarriorFeaturePrerequisites, validateDevilWorshipperFeaturePrerequisites,
-    validateNethereseArcanistFeaturePrerequisites, validateSpiritVesselFeaturePrerequisites,
-    validateOracleFeaturePrerequisites, validateDemonologistFeaturePrerequisites, validateSanguinistFeaturePrerequisites,
+    validateLeaderFeaturePrerequisites,
+    validateDeathKnightFeaturePrerequisites,
+    validateHereticFeaturePrerequisites,
+    validateForestLordFeaturePrerequisites,
+    validateAberrantFeaturePrerequisites,
+    validateWitchBladeFeaturePrerequisites,
+    validateJuggernautFeaturePrerequisites,
+    validateSoulEaterFeaturePrerequisites,
+    validateGuardianFeaturePrerequisites,
+    validateCrusaderFeaturePrerequisites,
+    validateFeyWarriorFeaturePrerequisites,
+    validateGhostWalkerFeaturePrerequisites,
+    validateBlinkerFeaturePrerequisites,
+    validateFallenPriestFeaturePrerequisites,
+    validatePlagueDoctorFeaturePrerequisites,
+    validateInsectLordFeaturePrerequisites,
+    validateGamblerFeaturePrerequisites,
+    validateKeeperFeaturePrerequisites,
+    validateBloodMageFeaturePrerequisites,
+    validateOnmyojiFeaturePrerequisites,
+    validateRitualistFeaturePrerequisites,
+    validateDarkWarriorFeaturePrerequisites,
+    validateDevilWorshipperFeaturePrerequisites,
+    validateNethereseArcanistFeaturePrerequisites,
+    validateSpiritVesselFeaturePrerequisites,
+    validateOracleFeaturePrerequisites,
+    validateDemonologistFeaturePrerequisites,
+    validateSanguinistFeaturePrerequisites,
     validateSchoolOfSteelFeaturePrerequisites
   ];
 }
@@ -1087,18 +1206,51 @@ const scheduleMysticalPowerSync = deferredAuthorityTask(syncMysticalPower, "Myst
 const scheduleNatureMagicSync = deferredAuthorityTask(syncNatureMagic, "Nature Magic");
 
 const actorSynchronizer = createActorSynchronizer([
-  syncCrusherPassiveEffects, syncLeaderPassiveEffects, syncDeathKnightPassiveEffects,
-  syncHereticPassiveEffects, syncForestPassiveEffects, syncAberrantPassiveEffects,
-  syncTransformationPassiveEffects, syncModulePassiveEffects, syncWitchBladeRage,
-  updateOwnedMassiveWeaponProficiency, syncSteelGiant, syncMysticalPower, syncNatureMagic,
-  syncGuardianResources, syncCrusaderResources, syncFeyWarriorResources,
-  syncFallenPriestSpellcasting, syncGamblerResources, syncKeeperResources,
-  syncOnmyojiResources, syncRitualistResources, syncDarkWarriorResources,
-  syncPlagueDoctorResources, syncInsectLordResources, syncInsectLordPassiveEffects,
-  syncFeyWarriorPassiveEffects, syncGhostWalkerResources, syncGhostWalkerPassiveEffects,
-  syncBlinkerResources, syncSpiritVesselResources, syncSpiritVesselPassiveEffects,
-  syncOracleResources, syncOraclePassiveEffects, syncSanguinistResources,
-  syncSchoolOfSteel, syncTransformations, syncDarkGuard, syncUniqueSummons, syncMaster, syncHunter, syncJester, syncFlagellant, syncDoomed, syncNightmare, syncEmpath
+  syncCrusherPassiveEffects,
+  syncLeaderPassiveEffects,
+  syncDeathKnightPassiveEffects,
+  syncHereticPassiveEffects,
+  syncForestPassiveEffects,
+  syncAberrantPassiveEffects,
+  syncTransformationPassiveEffects,
+  syncModulePassiveEffects,
+  syncWitchBladeRage,
+  updateOwnedMassiveWeaponProficiency,
+  syncSteelGiant,
+  syncMysticalPower,
+  syncNatureMagic,
+  syncGuardianResources,
+  syncCrusaderResources,
+  syncFeyWarriorResources,
+  syncFallenPriestSpellcasting,
+  syncGamblerResources,
+  syncKeeperResources,
+  syncOnmyojiResources,
+  syncRitualistResources,
+  syncDarkWarriorResources,
+  syncPlagueDoctorResources,
+  syncInsectLordResources,
+  syncInsectLordPassiveEffects,
+  syncFeyWarriorPassiveEffects,
+  syncGhostWalkerResources,
+  syncGhostWalkerPassiveEffects,
+  syncBlinkerResources,
+  syncSpiritVesselResources,
+  syncSpiritVesselPassiveEffects,
+  syncOracleResources,
+  syncOraclePassiveEffects,
+  syncSanguinistResources,
+  syncSchoolOfSteel,
+  syncTransformations,
+  syncDarkGuard,
+  syncUniqueSummons,
+  syncMaster,
+  syncHunter,
+  syncJester,
+  syncFlagellant,
+  syncDoomed,
+  syncNightmare,
+  syncEmpath
 ]);
 const schedulePassiveSync = actorSynchronizer.schedule;
 
@@ -1123,7 +1275,8 @@ export function migrateOwnedItems(actor) {
 
 async function migrateOwnedItemsNow(actor) {
   const sources = await moduleItemSources();
-  const updates = [], effectSyncs = [];
+  const updates = [],
+    effectSyncs = [];
   for (const item of actor.items) {
     const source = sources.get(itemIdentifier(item));
     if (!source || !isLikelyModuleItem(item, source)) continue;
@@ -1168,7 +1321,7 @@ function installHooks() {
   installHunterCombatHooks();
   installHunterZoneHooks();
   installHunterEventHooks();
-  Hooks.on("dnd5e.preUseActivity",validateHunterDisposable);
+  Hooks.on("dnd5e.preUseActivity", validateHunterDisposable);
   installJesterHooks();
   installFlagellantHooks();
   installDoomedHooks();
@@ -1192,7 +1345,7 @@ function installHooks() {
   installRitualistZoneHooks();
   installJuggernautRegenerationHooks();
   installRitualistSpiritHooks();
-  Hooks.on("midi-qol.preTargetingV2", ({workflow}) => applyWeaponBuffReach(workflow?.activity));
+  Hooks.on("midi-qol.preTargetingV2", ({ workflow }) => applyWeaponBuffReach(workflow?.activity));
   Hooks.on("dnd5e.preUseActivity", applyWeaponBuffReach);
   installTemporaryEffectHooks();
   Hooks.on("dnd5e.preAdvancementManagerComplete", validateAdvancement);
@@ -1206,10 +1359,15 @@ function installHooks() {
   Hooks.on("dnd5e.postUseActivity", (activity, usageConfig, results) => {
     if (automationData(activity).areaResolved || automationData(activity).leaderResolved) return;
     const deltas = results?.message?.system?.deltas?.item?.[activity.item?.id] ?? [];
-    const nativeSummonConsumption = !usageConfig?.[MODULE_ID]?.managedSummonResource
-      && deltas.some(delta => delta.keyPath === "system.uses.spent" && delta.delta > 0);
-    void handleActivityAction(activity, { nativeSummonConsumption }).catch(error => console.error(`${MODULE_ID} | Activity automation failed`, error));
-    void handleStratagemUse(activity).catch(error => console.error(`${MODULE_ID} | Stratagem automation failed`, error));
+    const nativeSummonConsumption =
+      !usageConfig?.[MODULE_ID]?.managedSummonResource &&
+      deltas.some(delta => delta.keyPath === "system.uses.spent" && delta.delta > 0);
+    void handleActivityAction(activity, { nativeSummonConsumption }).catch(error =>
+      console.error(`${MODULE_ID} | Activity automation failed`, error)
+    );
+    void handleStratagemUse(activity).catch(error =>
+      console.error(`${MODULE_ID} | Stratagem automation failed`, error)
+    );
   });
   Hooks.on("dnd5e.preRollAttack", applyNativeAttackAutomation);
   Hooks.on("dnd5e.preRollDamage", applyDamageAutomation);
@@ -1217,14 +1375,14 @@ function installHooks() {
   Hooks.on("dnd5e.computeLeveledProgression", applyMysticalPowerProgression);
   Hooks.on("dnd5e.computeSpellProgression", applyMysticalPowerProgression);
   Hooks.on("dnd5e.restCompleted", (actor, result) => {
-    void restoreDefiledHeart(actor, result, { automationEnabled: enabled() }).catch(
-      error => console.error(`${MODULE_ID} | Defiled Heart recovery failed`, error)
+    void restoreDefiledHeart(actor, result, { automationEnabled: enabled() }).catch(error =>
+      console.error(`${MODULE_ID} | Defiled Heart recovery failed`, error)
     );
-    void clearBloodMagicCosts(actor, result, { automationEnabled: enabled() }).catch(
-      error => console.error(`${MODULE_ID} | Blood Magic recovery failed`, error)
+    void clearBloodMagicCosts(actor, result, { automationEnabled: enabled() }).catch(error =>
+      console.error(`${MODULE_ID} | Blood Magic recovery failed`, error)
     );
-    void clearSanguinistRestState(actor, result, { automationEnabled: enabled() }).catch(
-      error => console.error(`${MODULE_ID} | Sanguinist recovery failed`, error)
+    void clearSanguinistRestState(actor, result, { automationEnabled: enabled() }).catch(error =>
+      console.error(`${MODULE_ID} | Sanguinist recovery failed`, error)
     );
   });
   Hooks.on("dnd5e.rollSavingThrow", (_rolls, { subject }) => {
@@ -1293,13 +1451,56 @@ function installHooks() {
 }
 
 export function getMidiHookHandlers() {
-  return { prepareComfortHealing, finishComfortHealing, handleHollowWeaponHit, prepareHollowCast, handleGuardianWeaponHit, prepareArmorSave, finishDefenseReactions, handleInsectBiteHit, prepareBloodSpell, finishBloodSpell, handleBloodFailedSaves,
-    prepareLeaderHealing, handleLeaderCritical, handleDistractingPresence, prepareLeaderTargetSave, finishLeaderSaves, finishLeaderRoll,
-    prepareCombatAttackBenefits, commitCombatAttackBenefits, prepareConfirmedDamage, finishDamageReservations, applyFactoryDamage, applyFactoryDefense, applyGodElement, applyGodDefenses, applyHagDamage, applyHagDefense, applyHalfdragonBite, applyIllithidPacket,
-    applyMidiAttackDisadvantage, applyPowerfulCleaving, applyGiantKillerHook,
-    applyDeathKnightHealingRestriction, markForestRootFireDamageHook, applyHellfireFuryHook,
-    applySpellSourceResistance, applyBroodmotherToxicDamage, applyChimeraDamagePacket, applyDeathknightPacket, applyDullahanPacket, prepareAutomatonDamage, finishAutomatonCoils, applySummonProtection, handleSummonSelfCost, handleAuraMeleeAttack,
-    applyMidiWeaponBuffAttackAutomation, prepareMidiSteelWill, finishMidiSteelWill };
+  return {
+    prepareComfortHealing,
+    finishComfortHealing,
+    handleHollowWeaponHit,
+    prepareHollowCast,
+    handleGuardianWeaponHit,
+    prepareArmorSave,
+    finishDefenseReactions,
+    handleInsectBiteHit,
+    prepareBloodSpell,
+    finishBloodSpell,
+    handleBloodFailedSaves,
+    prepareLeaderHealing,
+    handleLeaderCritical,
+    handleDistractingPresence,
+    prepareLeaderTargetSave,
+    finishLeaderSaves,
+    finishLeaderRoll,
+    prepareCombatAttackBenefits,
+    commitCombatAttackBenefits,
+    prepareConfirmedDamage,
+    finishDamageReservations,
+    applyFactoryDamage,
+    applyFactoryDefense,
+    applyGodElement,
+    applyGodDefenses,
+    applyHagDamage,
+    applyHagDefense,
+    applyHalfdragonBite,
+    applyIllithidPacket,
+    applyMidiAttackDisadvantage,
+    applyPowerfulCleaving,
+    applyGiantKillerHook,
+    applyDeathKnightHealingRestriction,
+    markForestRootFireDamageHook,
+    applyHellfireFuryHook,
+    applySpellSourceResistance,
+    applyBroodmotherToxicDamage,
+    applyChimeraDamagePacket,
+    applyDeathknightPacket,
+    applyDullahanPacket,
+    prepareAutomatonDamage,
+    finishAutomatonCoils,
+    applySummonProtection,
+    handleSummonSelfCost,
+    handleAuraMeleeAttack,
+    applyMidiWeaponBuffAttackAutomation,
+    prepareMidiSteelWill,
+    finishMidiSteelWill
+  };
 }
 
 export function registerAutomation() {
@@ -1335,7 +1536,8 @@ export function exposeApi() {
     chooseLeaderPresenceTargets,
     useInsectBloodDrain,
     endInsectBloodDrain,
-    inspectAutomation: actorOrUuid => inspectActorAutomation(actorOrUuid, { actionHandlers: getAutomationActionHandlers() }),
+    inspectAutomation: actorOrUuid =>
+      inspectActorAutomation(actorOrUuid, { actionHandlers: getAutomationActionHandlers() }),
     resolvePendingAutomation,
     openAutomationPanel,
     summonRequestResult,
@@ -1485,8 +1687,11 @@ export async function initializeOwnedActors() {
   if (!enabled()) return;
   for (const actor of automationActors()) {
     if (!actor.isOwner || !isAutomationAuthority(actor)) continue;
-    try { await migrateOwnedItems(actor); }
-    catch (error) { console.error(`${MODULE_ID} | Migration failed for ${actor.uuid}`, error); }
+    try {
+      await migrateOwnedItems(actor);
+    } catch (error) {
+      console.error(`${MODULE_ID} | Migration failed for ${actor.uuid}`, error);
+    }
     await actorSynchronizer.synchronize(actor);
   }
   scheduleAuraSync();

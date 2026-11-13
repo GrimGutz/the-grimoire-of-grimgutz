@@ -60,8 +60,9 @@ function canCastThirdLevelSpell(actor) {
 function hasArcanaOrReligion(actor) {
   const arcana = actor?.system?.skills?.arc;
   const religion = actor?.system?.skills?.rel;
-  return Number(arcana?.value ?? arcana?.proficient ?? 0) > 0
-    || Number(religion?.value ?? religion?.proficient ?? 0) > 0;
+  return (
+    Number(arcana?.value ?? arcana?.proficient ?? 0) > 0 || Number(religion?.value ?? religion?.proficient ?? 0) > 0
+  );
 }
 
 export function devilWorshipperPrerequisiteFailures(actor) {
@@ -77,7 +78,10 @@ export function validateDevilWorshipperPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "devil-worshipper") return true;
   const failures = devilWorshipperPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Дьяволопоклонник». Не выполнено: ${failures.join(", ")}. Контракт с дьяволом подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Дьяволопоклонник». Не выполнено: ${failures.join(", ")}. Контракт с дьяволом подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -184,16 +188,18 @@ function traitHas(actor, trait, damageType) {
 function rawDamageDetails(damageItem) {
   const selector = damageItem?.damageSelector ?? "combinedDamage";
   const rawKey = `raw${selector}`;
-  return foundry.utils.deepClone(
-    damageItem?.damageDetails?.[rawKey] ?? damageItem?.rawDamageDetail ?? []
-  );
+  return foundry.utils.deepClone(damageItem?.damageDetails?.[rawKey] ?? damageItem?.rawDamageDetail ?? []);
 }
 
 function damageValue(detail) {
   return Math.max(0, Number(detail?.value ?? detail?.damage ?? 0));
 }
 
-export async function applyHellfireFury(token, { workflow, damageItem }, { automationEnabled = true, recalculateDamageItem } = {}) {
+export async function applyHellfireFury(
+  token,
+  { workflow, damageItem },
+  { automationEnabled = true, recalculateDamageItem } = {}
+) {
   const actor = workflow?.actor;
   if (!automationEnabled || !actor || !token?.actor || workflow?.item?.type !== "spell") return;
   if (!hasFeature(actor, "hellfire-fury")) return;
@@ -223,9 +229,11 @@ export async function applyHellfireFury(token, { workflow, damageItem }, { autom
   });
   recalculateDamageItem(token, damageItem, rawDamage);
   damageItem.details ??= [];
-  damageItem.details.push(immune
-    ? "Ярость адского огня: иммунитет к огню получает половину урона"
-    : "Ярость адского огня: сопротивление огню игнорируется");
+  damageItem.details.push(
+    immune
+      ? "Ярость адского огня: иммунитет к огню получает половину урона"
+      : "Ярость адского огня: сопротивление огню игнорируется"
+  );
 }
 
 async function chat(actor, content) {
@@ -240,7 +248,10 @@ export async function showDarkLuck(actor) {
     notify("Эта активность требует класс «Дьяволопоклонник».", "warn");
     return false;
   }
-  await chat(actor, `<p><strong>${actor.name}: Тёмная удача.</strong> Один раз за ход при натуральной 1 на атаке, проверке характеристики или спасброске можно перебросить кубик и использовать второй результат. Ситуационную помощь дьявола подтверждает Мастер.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Тёмная удача.</strong> Один раз за ход при натуральной 1 на атаке, проверке характеристики или спасброске можно перебросить кубик и использовать второй результат. Ситуационную помощь дьявола подтверждает Мастер.</p>`
+  );
   return true;
 }
 
@@ -250,7 +261,10 @@ export async function showEmpoweredCharms(actor) {
     return false;
   }
   const count = Math.max(1, devilModifier(actor));
-  await chat(actor, `<p><strong>${actor.name}: Усиленные чары.</strong> Можно перебросить ${count} к. урона заклинания и использовать новые результаты. Характеристика: ${DEVIL_ABILITIES[devilWorshipperAbility(actor)]}.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Усиленные чары.</strong> Можно перебросить ${count} к. урона заклинания и использовать новые результаты. Характеристика: ${DEVIL_ABILITIES[devilWorshipperAbility(actor)]}.</p>`
+  );
   return true;
 }
 

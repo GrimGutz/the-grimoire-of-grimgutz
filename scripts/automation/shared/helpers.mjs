@@ -10,14 +10,15 @@ function rawAutomationFlags(documentOrFlags) {
   if (!documentOrFlags) return {};
   if (documentOrFlags[MODULE_ID]) return documentOrFlags[MODULE_ID] ?? {};
   if (
-    documentOrFlags.automation
-    || documentOrFlags.schemaVersion
-    || documentOrFlags.action
-    || documentOrFlags.moduleAction
-    || documentOrFlags.feature
-    || documentOrFlags.prestigeClass
-    || documentOrFlags.transformation
-  ) return documentOrFlags;
+    documentOrFlags.automation ||
+    documentOrFlags.schemaVersion ||
+    documentOrFlags.action ||
+    documentOrFlags.moduleAction ||
+    documentOrFlags.feature ||
+    documentOrFlags.prestigeClass ||
+    documentOrFlags.transformation
+  )
+    return documentOrFlags;
   return documentOrFlags.flags?.[MODULE_ID] ?? {};
 }
 
@@ -29,26 +30,31 @@ function inferAutomationKind(flags = {}) {
   if (automationActionId(flags)) return "activity";
   if (flags.passiveEffect === true) return "effect";
   if (flags.prestigeClass) return "prestige-class";
-  if (flags.wizardSubclass || flags.keeperSubclass || flags.spiritVesselSubclass || flags.masterSubclass) return "subclass";
+  if (flags.wizardSubclass || flags.keeperSubclass || flags.spiritVesselSubclass || flags.masterSubclass)
+    return "subclass";
   if (flags.transformation && flags.transformationFeature !== true) return "transformation";
-  if (flags.transformationFeature === true || flags.hollowFeature === true || flags.murderspawnFeature === true) return "transformation-feature";
+  if (flags.transformationFeature === true || flags.hollowFeature === true || flags.murderspawnFeature === true)
+    return "transformation-feature";
   if (flags.massiveWeapon === true || flags.murderspawnWeapon === true || flags.weaponKey) return "equipment";
-  if (flags.forestLordSpell || flags.witchBladeSpell || flags.bloodMageSpell || flags.nethereseGreatSpell) return "spell";
+  if (flags.forestLordSpell || flags.witchBladeSpell || flags.bloodMageSpell || flags.nethereseGreatSpell)
+    return "spell";
   if (flags.feature) return "feature";
   return "document";
 }
 
 function inferAutomationId(flags = {}) {
-  return automationActionId(flags)
-    || flags.feature
-    || flags.prestigeClass
-    || flags.wizardSubclass
-    || flags.keeperSubclass
-    || flags.spiritVesselSubclass
-    || flags.masterSubclass
-    || flags.transformation
-    || flags.weaponKey
-    || "";
+  return (
+    automationActionId(flags) ||
+    flags.feature ||
+    flags.prestigeClass ||
+    flags.wizardSubclass ||
+    flags.keeperSubclass ||
+    flags.spiritVesselSubclass ||
+    flags.masterSubclass ||
+    flags.transformation ||
+    flags.weaponKey ||
+    ""
+  );
 }
 
 function automationTags(flags = {}) {
@@ -60,18 +66,19 @@ function automationTags(flags = {}) {
 
 function automationRequirements(flags = {}) {
   const requirements = {};
-  if (flags.minimumLevel !== undefined && flags.minimumLevel !== null) requirements.minimumLevel = Number(flags.minimumLevel);
-  if (flags.transformationLevel !== undefined && flags.transformationLevel !== null) requirements.transformationLevel = Number(flags.transformationLevel);
-  if (flags.prerequisiteLevel !== undefined && flags.prerequisiteLevel !== null) requirements.prerequisiteLevel = Number(flags.prerequisiteLevel);
+  if (flags.minimumLevel !== undefined && flags.minimumLevel !== null)
+    requirements.minimumLevel = Number(flags.minimumLevel);
+  if (flags.transformationLevel !== undefined && flags.transformationLevel !== null)
+    requirements.transformationLevel = Number(flags.transformationLevel);
+  if (flags.prerequisiteLevel !== undefined && flags.prerequisiteLevel !== null)
+    requirements.prerequisiteLevel = Number(flags.prerequisiteLevel);
   return Object.fromEntries(Object.entries(requirements).filter(([_key, value]) => Number.isFinite(value)));
 }
 
 function legacyFlags(flags = {}) {
-  return Object.fromEntries(Object.entries(flags).filter(([key]) => ![
-    "automation",
-    "automationConfig",
-    "schemaVersion"
-  ].includes(key)));
+  return Object.fromEntries(
+    Object.entries(flags).filter(([key]) => !["automation", "automationConfig", "schemaVersion"].includes(key))
+  );
 }
 
 export function automationConfig(documentOrFlags) {
@@ -90,18 +97,26 @@ export function automationConfig(documentOrFlags) {
     version: AUTOMATION_CONFIG_VERSION,
     kind: existing.kind ?? inferAutomationKind({ ...legacy, automation: existing }),
     id: existing.id ?? inferAutomationId({ ...legacy, automation: existing }),
-    ...(action ? {
-      action: {
-        id: action,
-        data: actionData
-      }
-    } : {}),
+    ...(action
+      ? {
+          action: {
+            id: action,
+            data: actionData
+          }
+        }
+      : {}),
     document: {
       type: existing.document?.type ?? null,
       key: existing.document?.key ?? existing.id ?? inferAutomationId({ ...legacy, automation: existing }),
       feature: existing.document?.feature ?? legacy.feature ?? null,
       prestigeClass: existing.document?.prestigeClass ?? legacy.prestigeClass ?? null,
-      subclass: existing.document?.subclass ?? legacy.wizardSubclass ?? legacy.keeperSubclass ?? legacy.spiritVesselSubclass ?? legacy.masterSubclass ?? null,
+      subclass:
+        existing.document?.subclass ??
+        legacy.wizardSubclass ??
+        legacy.keeperSubclass ??
+        legacy.spiritVesselSubclass ??
+        legacy.masterSubclass ??
+        null,
       transformation: existing.document?.transformation ?? legacy.transformation ?? null,
       equipment: existing.document?.equipment ?? legacy.weaponKey ?? null
     },
@@ -126,15 +141,19 @@ export function automationData(document) {
   return {
     ...(config.data ?? {}),
     ...(config.action?.data ?? {}),
-    ...(config.action?.id ? {
-      action: config.action.id,
-      moduleAction: config.action.id
-    } : {}),
+    ...(config.action?.id
+      ? {
+          action: config.action.id,
+          moduleAction: config.action.id
+        }
+      : {}),
     ...(config.document?.feature ? { feature: config.document.feature } : {}),
     ...(config.document?.prestigeClass ? { prestigeClass: config.document.prestigeClass } : {}),
     ...(config.document?.transformation ? { transformation: config.document.transformation } : {}),
     ...(config.requirements?.minimumLevel !== undefined ? { minimumLevel: config.requirements.minimumLevel } : {}),
-    ...(config.requirements?.transformationLevel !== undefined ? { transformationLevel: config.requirements.transformationLevel } : {}),
+    ...(config.requirements?.transformationLevel !== undefined
+      ? { transformationLevel: config.requirements.transformationLevel }
+      : {}),
     automation: config,
     schemaVersion: flags.schemaVersion ?? config.version
   };
@@ -165,10 +184,12 @@ export function itemIdentifier(item) {
 }
 
 export function hasFeature(actor, key) {
-  return actor?.items?.some(item => {
-    const data = automationData(item);
-    return data.feature === key || itemIdentifier(item) === key;
-  }) ?? false;
+  return (
+    actor?.items?.some(item => {
+      const data = automationData(item);
+      return data.feature === key || itemIdentifier(item) === key;
+    }) ?? false
+  );
 }
 
 export function findFeature(actor, key) {

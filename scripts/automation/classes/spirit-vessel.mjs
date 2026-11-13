@@ -14,10 +14,7 @@ import { abilityMod, clamp } from "../shared/dnd5e.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
 import { applyTargetEffect } from "../shared/target-effects.mjs";
 import { isEffectActive, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
-import {
-  flaggedPassiveEffectData,
-  syncFlaggedPassiveEffects
-} from "../effects/passive-helpers.mjs";
+import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const spiritVesselSyncs = new Set();
 const spiritVesselPassiveSyncs = new Set();
@@ -59,9 +56,18 @@ const STRIKE_DAMAGE_OPTIONS = {
   aberration: [["psychic", "психический"]],
   celestial: [["radiant", "излучение"]],
   "elemental-earth": [["bludgeoning", "дробящий"]],
-  "elemental-air": [["piercing", "колющий"], ["cold", "холод"]],
-  "elemental-fire": [["fire", "огонь"], ["lightning", "молния"]],
-  "elemental-water": [["slashing", "режущий"], ["acid", "кислота"]],
+  "elemental-air": [
+    ["piercing", "колющий"],
+    ["cold", "холод"]
+  ],
+  "elemental-fire": [
+    ["fire", "огонь"],
+    ["lightning", "молния"]
+  ],
+  "elemental-water": [
+    ["slashing", "режущий"],
+    ["acid", "кислота"]
+  ],
   fey: [["force", "силовое поле"]],
   fiend: [["fire", "огонь"]],
   undead: [["poison", "яд"]]
@@ -98,9 +104,10 @@ export function spiritVesselLevel(actor) {
 }
 
 function spiritVesselSubclass(actor) {
-  return actor?.items?.find(item =>
-    item.type === "subclass"
-    && (item.system?.classIdentifier === "spirit-vessel" || automationData(item).spiritVesselSubclass)
+  return actor?.items?.find(
+    item =>
+      item.type === "subclass" &&
+      (item.system?.classIdentifier === "spirit-vessel" || automationData(item).spiritVesselSubclass)
   );
 }
 
@@ -188,7 +195,10 @@ export function validateSpiritVesselPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "spirit-vessel") return true;
   const failures = spiritVesselPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Сосуд Духа». Не выполнено: ${failures.join(", ")}. Получение духа ПО 2+ подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Сосуд Духа». Не выполнено: ${failures.join(", ")}. Получение духа ПО 2+ подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -203,11 +213,13 @@ export function validateSpiritVesselSubclassPrerequisites(item, options, userId)
     notify(`Подкласс «${item.name}» требует класс «Сосуд Духа».`, "error");
     return false;
   }
-  const existing = actor.items?.filter(existingItem =>
-    existingItem.id !== item.id
-    && existingItem.type === "subclass"
-    && (existingItem.system?.classIdentifier === "spirit-vessel" || automationData(existingItem).spiritVesselSubclass)
-  ) ?? [];
+  const existing =
+    actor.items?.filter(
+      existingItem =>
+        existingItem.id !== item.id &&
+        existingItem.type === "subclass" &&
+        (existingItem.system?.classIdentifier === "spirit-vessel" || automationData(existingItem).spiritVesselSubclass)
+    ) ?? [];
   if (existing.length && !options?.isAdvancement) {
     notify("Сосуд Духа может иметь только один тип духа.", "error");
     return false;
@@ -240,13 +252,15 @@ function spiritVesselPassiveDefinitions(actor) {
 
   const halvedEgo = findFeature(actor, "halved-ego");
   if (halvedEgo) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.SPIRIT_VESSEL_PASSIVE, {
-      key: "halved-ego",
-      feature: halvedEgo,
-      name: "Уполовиненное эго: устойчивое присутствие",
-      img: halvedEgo.img,
-      changes: [change("system.attributes.init.roll.mode", "upgrade", "1", "final")]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.SPIRIT_VESSEL_PASSIVE, {
+        key: "halved-ego",
+        feature: halvedEgo,
+        name: "Уполовиненное эго: устойчивое присутствие",
+        img: halvedEgo.img,
+        changes: [change("system.attributes.init.roll.mode", "upgrade", "1", "final")]
+      })
+    );
   }
 
   const spirit = spiritVesselSpirit(actor);
@@ -305,7 +319,8 @@ function spiritVesselPassiveDefinitions(actor) {
       }
     }
     if (spirit === "elemental-water") {
-      if (level >= 1) changes.push(change("system.attributes.movement.swim", "upgrade", level >= 2 ? "60" : "30", "final"));
+      if (level >= 1)
+        changes.push(change("system.attributes.movement.swim", "upgrade", level >= 2 ? "60" : "30", "final"));
       if (level >= 3) {
         changes.push(
           change("system.traits.dr.value", "custom", "slashing"),
@@ -330,26 +345,30 @@ function spiritVesselPassiveDefinitions(actor) {
       );
     }
     if (changes.length) {
-      definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.SPIRIT_VESSEL_PASSIVE, {
-        key: `spirit-${spirit}`,
-        feature,
-        name: `${feature.name}: пассивные эффекты`,
-        img: feature.img,
-        changes
-      }));
+      definitions.push(
+        flaggedPassiveEffectData(MODULE_ID, FLAGS.SPIRIT_VESSEL_PASSIVE, {
+          key: `spirit-${spirit}`,
+          feature,
+          name: `${feature.name}: пассивные эффекты`,
+          img: feature.img,
+          changes
+        })
+      );
     }
   }
 
   const incarnation = findFeature(actor, "metaphysical-incarnation");
   const ability = INCARNATION_ABILITY[spirit];
   if (incarnation && level >= 5 && ability) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.SPIRIT_VESSEL_PASSIVE, {
-      key: `metaphysical-incarnation-${spirit}`,
-      feature: incarnation,
-      name: `Метафизическое воплощение: ${ABILITY_LABELS[ability]} 21`,
-      img: incarnation.img,
-      changes: [change(`system.abilities.${ability}.value`, "upgrade", "21")]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.SPIRIT_VESSEL_PASSIVE, {
+        key: `metaphysical-incarnation-${spirit}`,
+        feature: incarnation,
+        name: `Метафизическое воплощение: ${ABILITY_LABELS[ability]} 21`,
+        img: incarnation.img,
+        changes: [change(`system.abilities.${ability}.value`, "upgrade", "21")]
+      })
+    );
   }
 
   return definitions;
@@ -357,7 +376,13 @@ function spiritVesselPassiveDefinitions(actor) {
 
 export async function syncSpiritVesselPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  return syncFlaggedPassiveEffects(actor, spiritVesselPassiveSyncs, MODULE_ID, FLAGS.SPIRIT_VESSEL_PASSIVE, spiritVesselPassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    spiritVesselPassiveSyncs,
+    MODULE_ID,
+    FLAGS.SPIRIT_VESSEL_PASSIVE,
+    spiritVesselPassiveDefinitions
+  );
 }
 
 export async function syncSpiritVesselResources(actor, { notifyResult = false } = {}) {
@@ -378,7 +403,11 @@ export async function chooseSpiritVesselAbility(actor) {
   const ability = await choiceDialog({
     title: "Магия договора Сосуда Духа",
     label: "Заклинательная характеристика",
-    choices: [["int", "Интеллект"], ["wis", "Мудрость"], ["cha", "Харизма"]]
+    choices: [
+      ["int", "Интеллект"],
+      ["wis", "Мудрость"],
+      ["cha", "Харизма"]
+    ]
   });
   if (!ability) return false;
   await actor.setFlag(MODULE_ID, FLAGS.SPIRIT_VESSEL_ABILITY, ability);
@@ -439,7 +468,10 @@ export async function rollSpiritVesselConcentratedStrike(actor, activity) {
 
 export async function showSpiritVesselAbilityImprovement(actor) {
   if (!actor || !findFeature(actor, "spirit-ability-improvement")) return false;
-  await chat(actor, `<p><strong>${actor.name}: Улучшение характеристики.</strong> В конце длительного отдыха распределите +2 к одной характеристике или +1 к двум характеристикам. После следующего длительного отдыха эти очки можно перераспределить.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Улучшение характеристики.</strong> В конце длительного отдыха распределите +2 к одной характеристике или +1 к двум характеристикам. После следующего длительного отдыха эти очки можно перераспределить.</p>`
+  );
   return true;
 }
 
@@ -491,22 +523,28 @@ export async function beginSpiritVesselTurn(actor) {
 }
 
 async function showSpiritSave(actor, title, saveAbility, extra = "") {
-  await chat(actor, `<p><strong>${actor.name}: ${title}.</strong> Цель совершает спасбросок ${saveAbility} против СЛ <strong>${spiritVesselSaveDC(actor)}</strong>. ${extra}</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: ${title}.</strong> Цель совершает спасбросок ${saveAbility} против СЛ <strong>${spiritVesselSaveDC(actor)}</strong>. ${extra}</p>`
+  );
 }
 
-async function applySpiritTargetCondition(actor, {
-  featureKey,
-  key,
-  title,
-  name,
-  status,
-  statusLabel,
-  saveAbility,
-  duration = {},
-  repeatSave = null,
-  note = "",
-  description = ""
-}) {
+async function applySpiritTargetCondition(
+  actor,
+  {
+    featureKey,
+    key,
+    title,
+    name,
+    status,
+    statusLabel,
+    saveAbility,
+    duration = {},
+    repeatSave = null,
+    note = "",
+    description = ""
+  }
+) {
   const feature = findFeature(actor, featureKey) ?? spiritFeature(actor);
   const applied = await applyTargetEffect({
     sourceActor: actor,
@@ -572,7 +610,8 @@ export async function handleSpiritVesselAction(actor, activity, action) {
         statusLabel: "Очарован",
         saveAbility: "Мудрость",
         note: "Цель должна недавно общаться с вами телепатически. Эффект не имеет фиксированной длительности: снимите его вручную, когда вы причините цели вред или перестанете поддерживать эффект.",
-        description: "<p>Цель очарована Сосудом духа после провала спасброска Мудрости. Снимите эффект вручную, если Сосуд причинит цели вред или перестанет поддерживать эффект.</p>"
+        description:
+          "<p>Цель очарована Сосудом духа после провала спасброска Мудрости. Снимите эффект вручную, если Сосуд причинит цели вред или перестанет поддерживать эффект.</p>"
       });
     case "spirit-vessel-fey-charm":
       return applySpiritTargetCondition(actor, {
@@ -585,7 +624,8 @@ export async function handleSpiritVesselAction(actor, activity, action) {
         saveAbility: "Харизма",
         duration: { seconds: 86400 },
         note: "Цель должна видеть вас. Лимиты целей и 24-часовая невосприимчивость после успеха/окончания эффекта отслеживаются вручную.",
-        description: "<p>Цель очарована Сосудом духа на 24 часа после провала спасброска Харизмы, пока Сосуд не умрёт, не перейдёт на другой план или не окончит эффект.</p>"
+        description:
+          "<p>Цель очарована Сосудом духа на 24 часа после провала спасброска Харизмы, пока Сосуд не умрёт, не перейдёт на другой план или не окончит эффект.</p>"
       });
     case "spirit-vessel-fiend-flames":
       return activateFiendFlames(actor);
@@ -601,7 +641,8 @@ export async function handleSpiritVesselAction(actor, activity, action) {
         duration: { seconds: 60 },
         repeatSave: { ability: "wis", dc: spiritVesselSaveDC(actor), event: "turnEnd" },
         note: "В конце хода цели GM автоматически бросает повторный спасбросок; успех снимает испуг. Старение при провале на 5+ и 24-часовая невосприимчивость отслеживаются вручную.",
-        description: "<p>Цель испугана Сосудом духа на 1 минуту после провала спасброска Мудрости. Повторяйте спасбросок в конце каждого хода цели.</p>"
+        description:
+          "<p>Цель испугана Сосудом духа на 1 минуту после провала спасброска Мудрости. Повторяйте спасбросок в конце каждого хода цели.</p>"
       });
     default:
       return false;
@@ -634,12 +675,15 @@ export function validateSpiritVesselActivityUse(actor, activity, action) {
       return false;
     }
   }
-  if ([
-    "spirit-vessel-aberration-charm",
-    "spirit-vessel-fey-charm",
-    "spirit-vessel-fiend-flames",
-    "spirit-vessel-undead-frighten"
-  ].includes(action) && level < 2) {
+  if (
+    [
+      "spirit-vessel-aberration-charm",
+      "spirit-vessel-fey-charm",
+      "spirit-vessel-fiend-flames",
+      "spirit-vessel-undead-frighten"
+    ].includes(action) &&
+    level < 2
+  ) {
     notify("Это действие духа требует 2-й уровень Сосуда Духа.", "warn");
     return false;
   }

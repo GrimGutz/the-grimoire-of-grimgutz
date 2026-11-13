@@ -2,13 +2,10 @@ import { FLAGS, MODULE_ID, SETTINGS } from "./constants.mjs";
 import { automationActors, isEffectActive, isExpiredTemporaryEffect } from "../effects/temporary-effects.mjs";
 import { feetToSceneUnits, tokenSceneDistance } from "./spatial.mjs";
 import { installAuraEventHooks } from "./aura-events.mjs";
-import {combatTurnSnapshot, combatantToken} from "./combat-flow.mjs";
+import { combatTurnSnapshot, combatantToken } from "./combat-flow.mjs";
 import { AURA_DEFINITIONS, auraFeature } from "./aura-definitions.mjs";
 import { auraKey, auraIndicatorData, reconcileAuraIndicators, tokensInAuraTemplate } from "./aura-templates.mjs";
-import {
-  enabled,
-  isAutomationAuthority
-} from "./helpers.mjs";
+import { enabled, isAutomationAuthority } from "./helpers.mjs";
 
 const AURA_SYNC_DELAY = 100;
 let auraSyncTimeout = null;
@@ -33,16 +30,29 @@ function effectFlag(effect, key) {
 }
 
 function hasActiveEffectFlag(actor, flag, value) {
-  return actorEffects(actor).some(effect => isEffectActive(effect) && effectFlag(effect, flag)
-    && (value === undefined || effectFlag(effect, flag) === value));
+  return actorEffects(actor).some(
+    effect =>
+      isEffectActive(effect) && effectFlag(effect, flag) && (value === undefined || effectFlag(effect, flag) === value)
+  );
 }
 
 function activeTokens(scene = canvas?.scene) {
   if (canvas?.scene === scene && canvas?.ready) return canvas?.tokens?.placeables?.filter(token => token?.actor) ?? [];
-  return [...(scene?.tokens ?? [])].filter(document => document.actor).map(document => document.object ?? {
-    id: document.id, document, actor: document.actor, combatant: document.combatant,
-    center: document.getCenterPoint?.() ?? { x: document.x + document.width * scene.grid.size / 2, y: document.y + document.height * scene.grid.size / 2 }
-  });
+  return [...(scene?.tokens ?? [])]
+    .filter(document => document.actor)
+    .map(
+      document =>
+        document.object ?? {
+          id: document.id,
+          document,
+          actor: document.actor,
+          combatant: document.combatant,
+          center: document.getCenterPoint?.() ?? {
+            x: document.x + (document.width * scene.grid.size) / 2,
+            y: document.y + (document.height * scene.grid.size) / 2
+          }
+        }
+    );
 }
 
 function tokenUuid(token) {
@@ -94,12 +104,7 @@ function relationMatches(definition, sourceToken, targetToken) {
 function normalizedCreatureType(actor) {
   const type = actor?.system?.details?.type;
   if (typeof type === "string") return type.toLocaleLowerCase("ru");
-  return [
-    type?.value,
-    type?.subtype,
-    type?.custom,
-    type?.label
-  ].filter(Boolean).join(" ").toLocaleLowerCase("ru");
+  return [type?.value, type?.subtype, type?.custom, type?.label].filter(Boolean).join(" ").toLocaleLowerCase("ru");
 }
 
 function isUndead(actor) {
@@ -121,26 +126,33 @@ function sourceMatches(definition, sourceToken) {
   if (!actor) return false;
   if (!isAutomationAuthority(actor)) return false;
   if ((definition.sourceFeature || definition.sourceFeatures) && !auraFeature(actor, definition)) return false;
-  if (definition.sourceEffectFlag && !hasActiveEffectFlag(actor, definition.sourceEffectFlag, definition.sourceEffectValue)) return false;
+  if (
+    definition.sourceEffectFlag &&
+    !hasActiveEffectFlag(actor, definition.sourceEffectFlag, definition.sourceEffectValue)
+  )
+    return false;
   if (definition.sourceCondition && !definition.sourceCondition(sourceToken)) return false;
   return true;
 }
 
 function targetsForAura(definition, sourceToken, tokens = activeTokens(), scene = canvas?.scene, template = null) {
   const inside = tokensInAuraTemplate(template, sourceToken, tokens, scene);
-  return tokens.filter(targetToken =>
-    targetToken?.actor
-    && relationMatches(definition, sourceToken, targetToken)
-    && targetTypeMatches(definition, targetToken)
-    && (!definition.targetCondition || definition.targetCondition(sourceToken, targetToken))
-    && (definition.unlimitedRange || (inside ? inside.has(targetToken) : tokenDistance(sourceToken, targetToken, scene) <= feetToSceneUnits(definition.radius ?? 0, scene)))
+  return tokens.filter(
+    targetToken =>
+      targetToken?.actor &&
+      relationMatches(definition, sourceToken, targetToken) &&
+      targetTypeMatches(definition, targetToken) &&
+      (!definition.targetCondition || definition.targetCondition(sourceToken, targetToken)) &&
+      (definition.unlimitedRange ||
+        (inside
+          ? inside.has(targetToken)
+          : tokenDistance(sourceToken, targetToken, scene) <= feetToSceneUnits(definition.radius ?? 0, scene)))
   );
 }
 
 function baseEffectData(definition, sourceToken, targetToken, scene) {
-  const provided = typeof definition.effect === "function"
-    ? definition.effect(sourceToken, targetToken)
-    : definition.effect;
+  const provided =
+    typeof definition.effect === "function" ? definition.effect(sourceToken, targetToken) : definition.effect;
   if (!provided) return null;
 
   const key = auraKey(definition, sourceToken);
@@ -187,7 +199,9 @@ function effectSignature(effectOrData) {
 }
 
 function effectScene(effect) {
-  return effectFlag(effect, "auraScene") ?? String(effectFlag(effect, FLAGS.AURA_SOURCE) ?? "").match(/^Scene\.([^.]+)/)?.[1];
+  return (
+    effectFlag(effect, "auraScene") ?? String(effectFlag(effect, FLAGS.AURA_SOURCE) ?? "").match(/^Scene\.([^.]+)/)?.[1]
+  );
 }
 
 async function reconcileActorAuraEffects(actor, desiredEffects, sceneId = canvas.scene.id) {
@@ -208,10 +222,21 @@ async function reconcileActorAuraEffects(actor, desiredEffects, sceneId = canvas
   // Linked actors share a sheet across scenes: retain records, but never add
   // multiple copies of the same bonus to that sheet.
   for (const definition of AURA_DEFINITIONS.filter(definition => definition.stacking === "highest")) {
-    const desired = [...desiredEffects.values()].filter(data => data.flags[MODULE_ID][FLAGS.AURA_EFFECT] === definition.id);
-    const foreign = actorEffects(actor).filter(effect => effectScene(effect) !== sceneId && isEffectActive(effect) && effectFlag(effect, FLAGS.AURA_EFFECT) === definition.id);
-    const candidates = [...desired, ...foreign].map(data => ({ data, key: effectFlag(data, FLAGS.AURA_KEY),
-      value: Number((effectFlag(data, "auraOriginalChanges") ?? data.system?.changes)?.[0]?.value ?? -Infinity) }))
+    const desired = [...desiredEffects.values()].filter(
+      data => data.flags[MODULE_ID][FLAGS.AURA_EFFECT] === definition.id
+    );
+    const foreign = actorEffects(actor).filter(
+      effect =>
+        effectScene(effect) !== sceneId &&
+        isEffectActive(effect) &&
+        effectFlag(effect, FLAGS.AURA_EFFECT) === definition.id
+    );
+    const candidates = [...desired, ...foreign]
+      .map(data => ({
+        data,
+        key: effectFlag(data, FLAGS.AURA_KEY),
+        value: Number((effectFlag(data, "auraOriginalChanges") ?? data.system?.changes)?.[0]?.value ?? -Infinity)
+      }))
       .sort((a, b) => b.value - a.value || String(a.key).localeCompare(String(b.key)));
     for (const data of desired) if (effectFlag(data, FLAGS.AURA_KEY) !== candidates[0]?.key) data.system.changes = [];
   }
@@ -221,8 +246,7 @@ async function reconcileActorAuraEffects(actor, desiredEffects, sceneId = canvas
     else if (current.disabled || isExpiredTemporaryEffect(current)) {
       deletes.push(current.id);
       creates.push(data);
-    }
-    else if (effectSignature(current) !== effectSignature(data)) updates.push({ _id: current.id, ...data });
+    } else if (effectSignature(current) !== effectSignature(data)) updates.push({ _id: current.id, ...data });
     existing.delete(key);
   }
 
@@ -232,13 +256,19 @@ async function reconcileActorAuraEffects(actor, desiredEffects, sceneId = canvas
   if (creates.length) await actor.createEmbeddedDocuments("ActiveEffect", creates);
   const stackingUpdates = [];
   for (const definition of AURA_DEFINITIONS.filter(definition => definition.stacking === "highest")) {
-    const candidates = actorEffects(actor).filter(effect => effectFlag(effect, FLAGS.AURA_EFFECT) === definition.id && isEffectActive(effect))
-      .sort((a, b) => Number(effectFlag(b, "auraOriginalChanges")?.[0]?.value ?? -Infinity) - Number(effectFlag(a, "auraOriginalChanges")?.[0]?.value ?? -Infinity)
-        || String(effectFlag(a, FLAGS.AURA_KEY)).localeCompare(String(effectFlag(b, FLAGS.AURA_KEY))));
+    const candidates = actorEffects(actor)
+      .filter(effect => effectFlag(effect, FLAGS.AURA_EFFECT) === definition.id && isEffectActive(effect))
+      .sort(
+        (a, b) =>
+          Number(effectFlag(b, "auraOriginalChanges")?.[0]?.value ?? -Infinity) -
+            Number(effectFlag(a, "auraOriginalChanges")?.[0]?.value ?? -Infinity) ||
+          String(effectFlag(a, FLAGS.AURA_KEY)).localeCompare(String(effectFlag(b, FLAGS.AURA_KEY)))
+      );
     for (const effect of candidates) {
-      const changes = effect === candidates[0] ? effectFlag(effect, "auraOriginalChanges") ?? [] : [];
+      const changes = effect === candidates[0] ? (effectFlag(effect, "auraOriginalChanges") ?? []) : [];
       const current = effect.toObject?.().system?.changes ?? effect.system?.changes ?? [];
-      if (JSON.stringify(current) !== JSON.stringify(changes)) stackingUpdates.push({ _id: effect.id, "system.changes": changes });
+      if (JSON.stringify(current) !== JSON.stringify(changes))
+        stackingUpdates.push({ _id: effect.id, "system.changes": changes });
     }
   }
   if (stackingUpdates.length) await actor.updateEmbeddedDocuments("ActiveEffect", stackingUpdates);
@@ -260,7 +290,11 @@ async function syncSceneAurasPass(scene) {
   const sources = [];
   let cached = sceneActorCache.get(scene.id);
   if (!cached) {
-    cached = new Map(automationActors().filter(actor => actorEffects(actor).some(effect => effectScene(effect) === scene.id)).map(actor => [actor.uuid, actor]));
+    cached = new Map(
+      automationActors()
+        .filter(actor => actorEffects(actor).some(effect => effectScene(effect) === scene.id))
+        .map(actor => [actor.uuid, actor])
+    );
     sceneActorCache.set(scene.id, cached);
   }
   for (const token of tokens) if (token.actor) cached.set(token.actor.uuid, token.actor);
@@ -280,8 +314,13 @@ async function syncSceneAurasPass(scene) {
   const indicators = await reconcileAuraIndicators(desiredIndicators, scene);
   const frames = sources.map(({ definition, sourceToken }) => {
     const template = indicators.get(auraKey(definition, sourceToken));
-    return { definition, sourceToken, template, targets: targetsForAura(definition, sourceToken, tokens, scene, template),
-      isActive: () => enabled() && sourceMatches(definition, sourceToken) };
+    return {
+      definition,
+      sourceToken,
+      template,
+      targets: targetsForAura(definition, sourceToken, tokens, scene, template),
+      isActive: () => enabled() && sourceMatches(definition, sourceToken)
+    };
   });
   sceneAuraFrames.set(scene.id, frames);
   for (const { definition, sourceToken, targets } of frames) {
@@ -292,8 +331,11 @@ async function syncSceneAurasPass(scene) {
       const bucket = desiredByActor.get(targetToken.actor.uuid);
       if (bucket) {
         if (definition.stacking === "highest") {
-          const previous = [...bucket.effects.entries()].find(([, effect]) => effect.flags[MODULE_ID][FLAGS.AURA_EFFECT] === definition.id);
-          if (previous && Number(previous[1].system.changes[0]?.value) >= Number(data.system.changes[0]?.value)) continue;
+          const previous = [...bucket.effects.entries()].find(
+            ([, effect]) => effect.flags[MODULE_ID][FLAGS.AURA_EFFECT] === definition.id
+          );
+          if (previous && Number(previous[1].system.changes[0]?.value) >= Number(data.system.changes[0]?.value))
+            continue;
           if (previous) bucket.effects.delete(previous[0]);
         }
         bucket.effects.set(data.flags[MODULE_ID][FLAGS.AURA_KEY], data);
@@ -302,14 +344,20 @@ async function syncSceneAurasPass(scene) {
   }
 
   for (const { actor, effects } of desiredByActor.values()) {
-    try { await reconcileActorAuraEffects(actor, effects, scene.id); }
-    catch (error) { console.error(`${MODULE_ID} | Aura effects failed for ${actor.uuid}`, error); }
-    if (!effects.size && !actorEffects(actor).some(effect => effectScene(effect) === scene.id)) cached.delete(actor.uuid);
+    try {
+      await reconcileActorAuraEffects(actor, effects, scene.id);
+    } catch (error) {
+      console.error(`${MODULE_ID} | Aura effects failed for ${actor.uuid}`, error);
+    }
+    if (!effects.size && !actorEffects(actor).some(effect => effectScene(effect) === scene.id))
+      cached.delete(actor.uuid);
   }
   return true;
 }
 
-export function getSceneAuraFrames(scene = canvas?.scene) { return sceneAuraFrames.get(scene?.id) ?? []; }
+export function getSceneAuraFrames(scene = canvas?.scene) {
+  return sceneAuraFrames.get(scene?.id) ?? [];
+}
 
 export function syncSceneAuras(scene = canvas?.scene) {
   if (!scene) return Promise.resolve(false);
@@ -323,17 +371,21 @@ export function syncSceneAuras(scene = canvas?.scene) {
       result = await syncSceneAurasPass(next);
     }
     return result;
-  })().finally(() => { auraSyncRunning = null; });
+  })().finally(() => {
+    auraSyncRunning = null;
+  });
   return auraSyncRunning;
 }
 
 export function scheduleAuraSync(document) {
   if (!isAuraAuthority()) return;
-  const exact = document?.documentName === "Scene" ? document : document?.parent?.documentName === "Scene" ? document.parent : null;
+  const exact =
+    document?.documentName === "Scene" ? document : document?.parent?.documentName === "Scene" ? document.parent : null;
   const effectSceneId = effectScene(document);
   if (exact) scheduledAuraScenes.set(exact.id, exact);
   else if (effectSceneId) {
-    const scene = game.scenes?.get?.(effectSceneId) ?? [...(game.scenes ?? [])].find(scene => scene.id === effectSceneId);
+    const scene =
+      game.scenes?.get?.(effectSceneId) ?? [...(game.scenes ?? [])].find(scene => scene.id === effectSceneId);
     if (scene) scheduledAuraScenes.set(scene.id, scene);
   } else {
     if (canvas?.scene) scheduledAuraScenes.set(canvas.scene.id, canvas.scene);
@@ -341,24 +393,33 @@ export function scheduleAuraSync(document) {
       const scene = game.scenes?.get?.(id) ?? [...(game.scenes ?? [])].find(scene => scene.id === id);
       if (scene) scheduledAuraScenes.set(id, scene);
     }
-    for (const combat of game.combats ?? []) if (combat.started) {
-      if (combat.scene) scheduledAuraScenes.set(combat.scene.id, combat.scene);
-      for (const participant of combat.combatants ?? combat.turns ?? []) {
-        const scene = combatantToken(combat, participant)?.parent;
-        if (scene) scheduledAuraScenes.set(scene.id, scene);
+    for (const combat of game.combats ?? [])
+      if (combat.started) {
+        if (combat.scene) scheduledAuraScenes.set(combat.scene.id, combat.scene);
+        for (const participant of combat.combatants ?? combat.turns ?? []) {
+          const scene = combatantToken(combat, participant)?.parent;
+          if (scene) scheduledAuraScenes.set(scene.id, scene);
+        }
       }
-    }
   }
   if (auraSyncTimeout) window.clearTimeout(auraSyncTimeout);
   auraSyncTimeout = window.setTimeout(() => {
     auraSyncTimeout = null;
-    const scenes = [...scheduledAuraScenes.values()]; scheduledAuraScenes.clear();
-    void Promise.all(scenes.map(scene => syncSceneAuras(scene))).catch(error => console.error(`${MODULE_ID} | Aura sync failed`, error));
+    const scenes = [...scheduledAuraScenes.values()];
+    scheduledAuraScenes.clear();
+    void Promise.all(scenes.map(scene => syncSceneAuras(scene))).catch(error =>
+      console.error(`${MODULE_ID} | Aura sync failed`, error)
+    );
   }, AURA_SYNC_DELAY);
 }
 
 export function installAuraHooks() {
-  installAuraEventHooks({ synchronize: syncSceneAuras, framesForScene: getSceneAuraFrames, tokensForScene: activeTokens, isAuthority: isAuraAuthority });
+  installAuraEventHooks({
+    synchronize: syncSceneAuras,
+    framesForScene: getSceneAuraFrames,
+    tokensForScene: activeTokens,
+    isAuthority: isAuraAuthority
+  });
   Hooks.once("ready", scheduleAuraSync);
   Hooks.on("canvasReady", scheduleAuraSync);
   Hooks.on("createToken", scheduleAuraSync);
@@ -370,8 +431,10 @@ export function installAuraHooks() {
       // membership once at the final position, not with an actor sweep per frame.
       queueMicrotask(() => {
         const animation = _tokenDocument.object?.movementAnimationPromise;
-        if (animation) void animation.then(() => scheduleAuraSync(_tokenDocument))
-          .catch(error => console.error(`${MODULE_ID} | Aura movement sync failed`, error));
+        if (animation)
+          void animation
+            .then(() => scheduleAuraSync(_tokenDocument))
+            .catch(error => console.error(`${MODULE_ID} | Aura movement sync failed`, error));
       });
     }
   });
@@ -388,13 +451,23 @@ export function installAuraHooks() {
   });
   Hooks.on("updateCombat", (combat, changes) => {
     const snapshot = combatTurnSnapshot(combat);
-    for (const scene of new Set([combat.scene, snapshot.current.scene, snapshot.previous.scene].filter(Boolean))) scheduleAuraSync(scene);
+    for (const scene of new Set([combat.scene, snapshot.current.scene, snapshot.previous.scene].filter(Boolean)))
+      scheduleAuraSync(scene);
   });
   Hooks.on("deleteCombat", () => {
     scheduleAuraSync();
   });
-  for (const name of ["createRegion", "updateRegion", "deleteRegion", "createMeasuredTemplate", "updateMeasuredTemplate", "deleteMeasuredTemplate"])
-    Hooks.on(name, document => { if (effectFlag(document, "auraIndicator")) scheduleAuraSync(document); });
+  for (const name of [
+    "createRegion",
+    "updateRegion",
+    "deleteRegion",
+    "createMeasuredTemplate",
+    "updateMeasuredTemplate",
+    "deleteMeasuredTemplate"
+  ])
+    Hooks.on(name, document => {
+      if (effectFlag(document, "auraIndicator")) scheduleAuraSync(document);
+    });
 }
 
 export const auraDefinitions = AURA_DEFINITIONS;

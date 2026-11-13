@@ -28,7 +28,10 @@ export function validateSoulEaterPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "soul-eater") return true;
   const failures = soulEaterPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Пожиратель душ». Не выполнено: ${failures.join(", ")}. Событие на грани смерти и особый ритуал подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Пожиратель душ». Не выполнено: ${failures.join(", ")}. Событие на грани смерти и особый ритуал подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -86,23 +89,25 @@ export async function activateSoulShard(actor) {
     notify(`${actor.name}: эффект «Осколок души» обновлён.`);
     return true;
   }
-  await actor.createEmbeddedDocuments("ActiveEffect", [{
-    name: "Осколок души",
-    img: feature?.img ?? "icons/magic/unholy/hand-claw-fire-blue.webp",
-    origin: feature?.uuid ?? null,
-    transfer: false,
-    disabled: false,
-    showIcon: 1,
-    statuses: [],
-    flags: {
-      [MODULE_ID]: {
-        [FLAGS.SOUL_SHARD_EFFECT]: true
+  await actor.createEmbeddedDocuments("ActiveEffect", [
+    {
+      name: "Осколок души",
+      img: feature?.img ?? "icons/magic/unholy/hand-claw-fire-blue.webp",
+      origin: feature?.uuid ?? null,
+      transfer: false,
+      disabled: false,
+      showIcon: 1,
+      statuses: [],
+      flags: {
+        [MODULE_ID]: {
+          [FLAGS.SOUL_SHARD_EFFECT]: true
+        }
+      },
+      system: {
+        changes
       }
-    },
-    system: {
-      changes
     }
-  }]);
+  ]);
   notify(`${actor.name}: активирован «Осколок души» (+2 Сила, +2 Телосложение до конца боя).`);
   return true;
 }

@@ -1,11 +1,5 @@
 import { MODULE_ID, SETTINGS } from "../shared/constants.mjs";
-import {
-  automationData,
-  findFeature,
-  isAutomationAuthority,
-  itemIdentifier,
-  notify
-} from "../shared/helpers.mjs";
+import { automationData, findFeature, isAutomationAuthority, itemIdentifier, notify } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
 import { createSummonedCreature, registerSummonRecipe } from "../shared/summons.mjs";
@@ -88,7 +82,9 @@ function bestKeeperAbility(actor) {
 
 export function keeperPrerequisiteFailures(actor) {
   const failures = [];
-  const hasAbility = ["int", "wis", "cha"].some(ability => Number(actor?.system?.abilities?.[ability]?.value ?? 0) >= 13);
+  const hasAbility = ["int", "wis", "cha"].some(
+    ability => Number(actor?.system?.abilities?.[ability]?.value ?? 0) >= 13
+  );
   if (!hasAbility) failures.push("Интеллект, Мудрость или Харизма 13");
   if (Number(actor?.system?.details?.level ?? 0) < 3) failures.push("3-й уровень персонажа");
   return failures;
@@ -100,7 +96,9 @@ export function keeperSubclassPrerequisiteFailures(actor, subclassIdentifier) {
   if (!requirement) return [];
   const matches = specializationMatches(actor, specialization);
   if (matches >= 2) return [];
-  return [`специализация «${requirement.name}»: минимум два подходящих владения навыками или инструментами, найдено ${matches}`];
+  return [
+    `специализация «${requirement.name}»: минимум два подходящих владения навыками или инструментами, найдено ${matches}`
+  ];
 }
 
 export function validateKeeperPrerequisites(item, userId) {
@@ -109,7 +107,10 @@ export function validateKeeperPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "keeper") return true;
   const failures = keeperPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Хранитель». Не выполнено: ${failures.join(", ")}. Требования специализации проверяются при её выборе.`, "error");
+    notify(
+      `Нельзя добавить класс «Хранитель». Не выполнено: ${failures.join(", ")}. Требования специализации проверяются при её выборе.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -154,7 +155,10 @@ export function validateKeeperFeaturePrerequisites(item, options, userId) {
     const matches = specializationMatches(actor, specialization);
     if (matches < 2) {
       const name = SPECIALIZATION_REQUIREMENTS[specialization]?.name ?? item.name;
-      notify(`Специализация «${name}» требует минимум два подходящих владения навыками или инструментами. Найдено: ${matches}.`, "error");
+      notify(
+        `Специализация «${name}» требует минимум два подходящих владения навыками или инструментами. Найдено: ${matches}.`,
+        "error"
+      );
       return false;
     }
   }
@@ -261,9 +265,7 @@ function keeperAllySummon(actor, form) {
   const level = Math.max(1, keeperLevel(actor));
   const totalLevel = characterLevel(actor);
   const flying = form === "flying";
-  const hp = flying
-    ? 8 + (4 * level) + (2 * totalLevel)
-    : 10 + (5 * level) + (3 * totalLevel);
+  const hp = flying ? 8 + 4 * level + 2 * totalLevel : 10 + 5 * level + 3 * totalLevel;
   const ac = (flying ? 11 : 12) + level;
   const damageDie = allyDamageDie(actor);
   return {
@@ -284,9 +286,7 @@ function keeperAllySummon(actor, form) {
     abilities: flying
       ? { str: 8, dex: 10, con: 10, int: 6, wis: 10, cha: 6 }
       : { str: 10, dex: 10, con: 12, int: 6, wis: 10, cha: 6 },
-    movement: flying
-      ? { walk: 15, fly: 30 }
-      : { walk: 30 },
+    movement: flying ? { walk: 15, fly: 30 } : { walk: 30 },
     languages: {
       custom: "понимает языки владельца"
     },
@@ -295,17 +295,25 @@ function keeperAllySummon(actor, form) {
       <ul>
         <li><strong>КД:</strong> ${ac}; <strong>хиты:</strong> ${hp}.</li>
         <li><strong>Удар:</strong> бонус атаки +${Number(actor?.system?.attributes?.prof ?? 0) + level}, урон 1${damageDie} − 1 + ${level} дробящий, колющий или рубящий.</li>
-        <li><strong>Кость хитов:</strong> ${totalLevel + (2 * level)}к8.</li>
+        <li><strong>Кость хитов:</strong> ${totalLevel + 2 * level}к8.</li>
         <li><strong>Спасброски:</strong> получают бонус, равный уровню Хранителя (${level}).</li>
       </ul>
       <p>Таланты, специализацию, тип существа и команды союзника применяйте по выбранной сборке Хранителя.</p>
     `,
-    features: [{
-      name: "Удар союзника",
-      activities: [{ name: "Удар союзника", attackBonus: Number(actor?.system?.attributes?.prof ?? 0) + level,
-        formula: `1${damageDie} - 1 + ${level}`, damageType: "bludgeoning" }],
-      description: `<p>Бонус атаки +${Number(actor?.system?.attributes?.prof ?? 0) + level}; урон 1${damageDie} − 1 + ${level}. Для автоматического броска можно использовать активность «Удар союзника» на карточке Хранителя.</p>`
-    }],
+    features: [
+      {
+        name: "Удар союзника",
+        activities: [
+          {
+            name: "Удар союзника",
+            attackBonus: Number(actor?.system?.attributes?.prof ?? 0) + level,
+            formula: `1${damageDie} - 1 + ${level}`,
+            damageType: "bludgeoning"
+          }
+        ],
+        description: `<p>Бонус атаки +${Number(actor?.system?.attributes?.prof ?? 0) + level}; урон 1${damageDie} − 1 + ${level}. Для автоматического броска можно использовать активность «Удар союзника» на карточке Хранителя.</p>`
+      }
+    ],
     note: "Таланты союзника не выбираются автоматически: добавьте их на лист союзника после создания."
   };
 }
@@ -316,14 +324,14 @@ export async function summonKeeperAlly(actor, activity) {
     return false;
   }
   const configured = automationData(activity).keeperAllyForm;
-  const form = KEEPER_ALLY_FORMS[configured]
-    ? configured
-    : await chooseKeeperAllyForm();
+  const form = KEEPER_ALLY_FORMS[configured] ? configured : await chooseKeeperAllyForm();
   if (!form) return false;
   return createSummonedCreature(actor, keeperAllySummon(actor, form));
 }
 
-registerSummonRecipe("keeper-ward-and-warded", (owner, template) => keeperAllySummon(owner, template.form ?? (template.kind.endsWith("flying") ? "flying" : "base")));
+registerSummonRecipe("keeper-ward-and-warded", (owner, template) =>
+  keeperAllySummon(owner, template.form ?? (template.kind.endsWith("flying") ? "flying" : "base"))
+);
 
 export async function rollKeeperRestRecovery(actor) {
   if (!actor || !keeperClass(actor)) {

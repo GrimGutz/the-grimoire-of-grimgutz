@@ -70,36 +70,44 @@ function murderspawnPassiveDefinitions(actor) {
 
   const deathRun = findFeature(actor, "death-run");
   if (deathRun) {
-    definitions.push(murderspawnPassiveEffectData({
-      key: "death-run",
-      feature: deathRun,
-      name: "Смертельный бег",
-      img: deathRun.img,
-      changes: [{
-        key: "system.attributes.movement.walk",
-        type: "add",
-        value: "10",
-        phase: "final",
-        priority: 20
-      }]
-    }));
+    definitions.push(
+      murderspawnPassiveEffectData({
+        key: "death-run",
+        feature: deathRun,
+        name: "Смертельный бег",
+        img: deathRun.img,
+        changes: [
+          {
+            key: "system.attributes.movement.walk",
+            type: "add",
+            value: "10",
+            phase: "final",
+            priority: 20
+          }
+        ]
+      })
+    );
   }
 
   const primalReflexes = findFeature(actor, "primal-reflexes");
   if (primalReflexes) {
-    definitions.push(murderspawnPassiveEffectData({
-      key: "primal-reflexes",
-      feature: primalReflexes,
-      name: "Первобытные рефлексы",
-      img: primalReflexes.img,
-      changes: [{
-        key: "system.attributes.init.bonus",
-        type: "add",
-        value: "10",
-        phase: "final",
-        priority: 20
-      }]
-    }));
+    definitions.push(
+      murderspawnPassiveEffectData({
+        key: "primal-reflexes",
+        feature: primalReflexes,
+        name: "Первобытные рефлексы",
+        img: primalReflexes.img,
+        changes: [
+          {
+            key: "system.attributes.init.bonus",
+            type: "add",
+            value: "10",
+            phase: "final",
+            priority: 20
+          }
+        ]
+      })
+    );
   }
 
   return definitions;
@@ -107,5 +115,11 @@ function murderspawnPassiveDefinitions(actor) {
 
 export async function syncMurderspawnPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  return syncFlaggedPassiveEffects(actor, murderspawnPassiveSyncs, MODULE_ID, FLAGS.MURDERSPAWN_PASSIVE, murderspawnPassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    murderspawnPassiveSyncs,
+    MODULE_ID,
+    FLAGS.MURDERSPAWN_PASSIVE,
+    murderspawnPassiveDefinitions
+  );
 }

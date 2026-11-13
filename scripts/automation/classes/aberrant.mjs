@@ -9,10 +9,7 @@ import {
 } from "../shared/helpers.mjs";
 import { abilityMod, clamp, sizeNumber } from "../shared/dnd5e.mjs";
 import { aberrantLevel } from "../shared/selectors.mjs";
-import {
-  flaggedPassiveEffectData,
-  syncFlaggedPassiveEffects
-} from "../effects/passive-helpers.mjs";
+import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const aberrantPassiveSyncs = new Set();
 
@@ -28,15 +25,14 @@ export function applyAberrantNativeAttackAutomation(config) {
   const attackItem = activityItem(activity);
   const roll = config.rolls?.[0];
   const properties = attackItem?.system?.properties;
-  const heavy = typeof properties?.has === "function"
-    ? properties.has("hvy")
-    : Array.from(properties ?? []).includes("hvy");
+  const heavy =
+    typeof properties?.has === "function" ? properties.has("hvy") : Array.from(properties ?? []).includes("hvy");
   if (
-    actor?.getFlag(MODULE_ID, FLAGS.DEADLY_PRECISION_ARMED)
-    && attackItem?.type === "weapon"
-    && Number(attackItem.system?.proficient ?? 0) > 0
-    && !heavy
-    && roll
+    actor?.getFlag(MODULE_ID, FLAGS.DEADLY_PRECISION_ARMED) &&
+    attackItem?.type === "weapon" &&
+    Number(attackItem.system?.proficient ?? 0) > 0 &&
+    !heavy &&
+    roll
   ) {
     const denomination = [4, 6, 8, 10, 12][clamp(aberrantLevel(actor), 1, 5) - 1];
     appendRollPart(roll, `1d${denomination}`);
@@ -50,66 +46,80 @@ function aberrantPassiveDefinitions(actor) {
   const reflexes = findFeature(actor, "monster-reflexes");
   if (reflexes && level > 0) {
     const bonus = [0, 5, 10, 10, 15, 15][level];
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
-      key: "monster-reflexes",
-      feature: reflexes,
-      name: "Рефлексы чудовища",
-      img: reflexes.img,
-      changes: [{
-        key: "system.attributes.movement.walk",
-        type: "add",
-        value: String(bonus),
-        phase: "final",
-        priority: 20
-      }]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
+        key: "monster-reflexes",
+        feature: reflexes,
+        name: "Рефлексы чудовища",
+        img: reflexes.img,
+        changes: [
+          {
+            key: "system.attributes.movement.walk",
+            type: "add",
+            value: String(bonus),
+            phase: "final",
+            priority: 20
+          }
+        ]
+      })
+    );
   }
 
   const toxicBlood = findFeature(actor, "toxic-blood");
   if (toxicBlood) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
-      key: "toxic-blood",
-      feature: toxicBlood,
-      name: "Токсичная кровь",
-      img: toxicBlood.img,
-      changes: [
-        { key: "system.traits.dr.value", type: "custom", value: "poison", phase: "initial", priority: 20 },
-        { key: "system.traits.ci.value", type: "custom", value: "poisoned", phase: "initial", priority: 20 }
-      ]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
+        key: "toxic-blood",
+        feature: toxicBlood,
+        name: "Токсичная кровь",
+        img: toxicBlood.img,
+        changes: [
+          { key: "system.traits.dr.value", type: "custom", value: "poison", phase: "initial", priority: 20 },
+          { key: "system.traits.ci.value", type: "custom", value: "poisoned", phase: "initial", priority: 20 }
+        ]
+      })
+    );
   }
 
   const burnedVeins = findFeature(actor, "aberrant-burned-veins");
   if (burnedVeins) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
-      key: "aberrant-burned-veins",
-      feature: burnedVeins,
-      name: "Сгоревшие вены",
-      img: burnedVeins.img,
-      changes: [{ key: "system.traits.dr.value", type: "custom", value: "acid", phase: "initial", priority: 20 }]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
+        key: "aberrant-burned-veins",
+        feature: burnedVeins,
+        name: "Сгоревшие вены",
+        img: burnedVeins.img,
+        changes: [{ key: "system.traits.dr.value", type: "custom", value: "acid", phase: "initial", priority: 20 }]
+      })
+    );
   }
 
   const catEyes = findFeature(actor, "aberrant-cat-eyes");
   if (catEyes) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
-      key: "aberrant-cat-eyes",
-      feature: catEyes,
-      name: "Кошачьи глаза",
-      img: catEyes.img,
-      changes: [{ key: "system.attributes.senses.ranges.darkvision", type: "add", value: "30", phase: "final", priority: 20 }]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
+        key: "aberrant-cat-eyes",
+        feature: catEyes,
+        name: "Кошачьи глаза",
+        img: catEyes.img,
+        changes: [
+          { key: "system.attributes.senses.ranges.darkvision", type: "add", value: "30", phase: "final", priority: 20 }
+        ]
+      })
+    );
   }
 
   const albino = findFeature(actor, "aberrant-albino");
   if (albino) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
-      key: "aberrant-albino",
-      feature: albino,
-      name: "Альбинос",
-      img: albino.img,
-      changes: [{ key: "system.skills.itm.roll.mode", type: "upgrade", value: "1", phase: "final", priority: 20 }]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
+        key: "aberrant-albino",
+        feature: albino,
+        name: "Альбинос",
+        img: albino.img,
+        changes: [{ key: "system.skills.itm.roll.mode", type: "upgrade", value: "1", phase: "final", priority: 20 }]
+      })
+    );
   }
 
   const finalStrength = findFeature(actor, "final-changes-strength");
@@ -117,16 +127,24 @@ function aberrantPassiveDefinitions(actor) {
   const finalChange = finalStrength ?? finalDexterity;
   if (finalChange) {
     const ability = finalStrength ? "str" : "dex";
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
-      key: finalStrength ? "final-changes-strength" : "final-changes-dexterity",
-      feature: finalChange,
-      name: finalChange.name,
-      img: finalChange.img,
-      changes: [
-        { key: `system.abilities.${ability}.value`, type: "add", value: "2", phase: "initial", priority: 20 },
-        { key: "system.attributes.senses.ranges.blindsight", type: "upgrade", value: "30", phase: "final", priority: 20 }
-      ]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.ABERRANT_PASSIVE, {
+        key: finalStrength ? "final-changes-strength" : "final-changes-dexterity",
+        feature: finalChange,
+        name: finalChange.name,
+        img: finalChange.img,
+        changes: [
+          { key: `system.abilities.${ability}.value`, type: "add", value: "2", phase: "initial", priority: 20 },
+          {
+            key: "system.attributes.senses.ranges.blindsight",
+            type: "upgrade",
+            value: "30",
+            phase: "final",
+            priority: 20
+          }
+        ]
+      })
+    );
   }
 
   return definitions;
@@ -134,7 +152,13 @@ function aberrantPassiveDefinitions(actor) {
 
 export async function syncAberrantPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  return syncFlaggedPassiveEffects(actor, aberrantPassiveSyncs, MODULE_ID, FLAGS.ABERRANT_PASSIVE, aberrantPassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    aberrantPassiveSyncs,
+    MODULE_ID,
+    FLAGS.ABERRANT_PASSIVE,
+    aberrantPassiveDefinitions
+  );
 }
 
 export async function armDeadlyPrecision(actor) {
@@ -147,11 +171,9 @@ export async function armDeadlyPrecision(actor) {
 export async function useVigorousNature(actor) {
   if (!actor || !hasFeature(actor, "vigorous-nature")) return false;
   const denomination = aberrantLevel(actor) >= 5 ? 12 : aberrantLevel(actor) >= 4 ? 10 : 8;
-  const roll = await new Roll(
-    `1d${denomination} + @abilities.con.mod`,
-    actor.getRollData(),
-    { flavor: "Энергичная природа" }
-  ).evaluate();
+  const roll = await new Roll(`1d${denomination} + @abilities.con.mod`, actor.getRollData(), {
+    flavor: "Энергичная природа"
+  }).evaluate();
   await roll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor }),
     flavor: "Энергичная природа: временные хиты"
@@ -169,7 +191,11 @@ export function validateAberrantAction(actor, action) {
   return true;
 }
 
-export async function applyGiantKiller(token, { workflow, damageItem }, { automationEnabled = true, isMassiveWeapon, recalculateDamageItem }) {
+export async function applyGiantKiller(
+  token,
+  { workflow, damageItem },
+  { automationEnabled = true, isMassiveWeapon, recalculateDamageItem }
+) {
   if (!automationEnabled || !workflow?.actor || !token?.actor || !isMassiveWeapon(workflow.item)) return;
   if (!hasFeature(workflow.actor, "giant-killer")) return;
   if (damageItem.damageSelector && damageItem.damageSelector !== "combinedDamage") return;
@@ -190,12 +216,11 @@ export async function applyGiantKiller(token, { workflow, damageItem }, { automa
 
   const selector = damageItem.damageSelector ?? "combinedDamage";
   const rawKey = `raw${selector}`;
-  const rawDamage = foundry.utils.deepClone(
-    damageItem.damageDetails?.[rawKey] ?? damageItem.rawDamageDetail ?? []
-  );
-  const type = workflow.defaultDamageType
-    ?? rawDamage.find(detail => !["midi-none", "temphp", "healing"].includes(detail.type))?.type
-    ?? "bludgeoning";
+  const rawDamage = foundry.utils.deepClone(damageItem.damageDetails?.[rawKey] ?? damageItem.rawDamageDetail ?? []);
+  const type =
+    workflow.defaultDamageType ??
+    rawDamage.find(detail => !["midi-none", "temphp", "healing"].includes(detail.type))?.type ??
+    "bludgeoning";
   const properties = rawDamage.find(detail => detail.type === type)?.properties ?? new Set();
   rawDamage.push({
     value: bonus,

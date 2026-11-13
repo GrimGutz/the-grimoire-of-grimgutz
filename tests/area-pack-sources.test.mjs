@@ -6,7 +6,9 @@ import { MODULE_ID } from "../src/common.mjs";
 import { AREA_DEFINITIONS } from "../scripts/automation/shared/area-definitions.mjs";
 
 const all = [...features, ...spells];
-function activities(document) { return Object.values(document.system.activities); }
+function activities(document) {
+  return Object.values(document.system.activities);
+}
 
 test("every configured AoE is authored as one native save activity with valid typed damage", () => {
   for (const spec of AREA_DEFINITIONS) {
@@ -21,7 +23,11 @@ test("every configured AoE is authored as one native save activity with valid ty
     assert.equal(activity.target.template.type, spec.shape, spec.id);
     assert.equal(Number(activity.target.template.size), spec.size, spec.id);
     assert.equal(activity.damage.onSave, spec.onSave, spec.id);
-    assert.deepEqual(activity.damage.parts.map(part => part.types), spec.damage.map(part => [part.type === "alignment" ? "radiant" : part.type]), spec.id);
+    assert.deepEqual(
+      activity.damage.parts.map(part => part.types),
+      spec.damage.map(part => [part.type === "alignment" ? "radiant" : part.type]),
+      spec.id
+    );
     assert.deepEqual(activity.flags[MODULE_ID].automation.data.area, spec, spec.id);
   }
 });

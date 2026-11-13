@@ -41,7 +41,10 @@ export function validateDarkWarriorPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "dark-warrior") return true;
   const failures = darkWarriorPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Воин тьмы». Не выполнено: ${failures.join(", ")}. Недельный ритуал, исследования и ритуальные отметины подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Воин тьмы». Не выполнено: ${failures.join(", ")}. Недельный ритуал, исследования и ритуальные отметины подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -161,9 +164,7 @@ export async function applyBlackMagicOil(actor) {
 }
 
 function elixirEffect(actor, type) {
-  return actor?.effects?.find(effect =>
-    effect.getFlag(MODULE_ID, FLAGS.DARK_WARRIOR_ELIXIR_EFFECT) === type
-  );
+  return actor?.effects?.find(effect => effect.getFlag(MODULE_ID, FLAGS.DARK_WARRIOR_ELIXIR_EFFECT) === type);
 }
 
 function spellSaveDC(actor) {
@@ -203,13 +204,15 @@ function elixirData(actor, feature, type) {
         ...base,
         name: "Эликсир чёрной магии: Адская сила",
         system: {
-          changes: [{
-            key: "system.abilities.str.value",
-            type: "add",
-            value: "3",
-            phase: "initial",
-            priority: 20
-          }]
+          changes: [
+            {
+              key: "system.abilities.str.value",
+              type: "add",
+              value: "3",
+              phase: "initial",
+              priority: 20
+            }
+          ]
         }
       };
     case "shield":
@@ -217,13 +220,15 @@ function elixirData(actor, feature, type) {
         ...base,
         name: "Эликсир чёрной магии: Адский щит",
         system: {
-          changes: [{
-            key: "system.attributes.ac.bonus",
-            type: "add",
-            value: "1",
-            phase: "final",
-            priority: 20
-          }]
+          changes: [
+            {
+              key: "system.attributes.ac.bonus",
+              type: "add",
+              value: "1",
+              phase: "final",
+              priority: 20
+            }
+          ]
         }
       };
     case "eye":
@@ -231,13 +236,15 @@ function elixirData(actor, feature, type) {
         ...base,
         name: "Эликсир чёрной магии: Демонический глаз",
         system: {
-          changes: [{
-            key: "system.attributes.senses.ranges.truesight",
-            type: "upgrade",
-            value: "30",
-            phase: "final",
-            priority: 20
-          }]
+          changes: [
+            {
+              key: "system.attributes.senses.ranges.truesight",
+              type: "upgrade",
+              value: "30",
+              phase: "final",
+              priority: 20
+            }
+          ]
         }
       };
     case "horrifying":
@@ -267,7 +274,10 @@ export async function drinkDarkWarriorElixir(actor, activity) {
   else await actor.createEmbeddedDocuments("ActiveEffect", [data]);
 
   if (type === "horrifying") {
-    await chat(actor, `<p><strong>${actor.name}: Ужасающий облик.</strong> Существа в пределах 30 футов совершают спасбросок Мудрости против СЛ ${spellSaveDC(actor)}. При провале они напуганы; при успехе получают иммунитет к этому эффекту на 24 часа.</p>`);
+    await chat(
+      actor,
+      `<p><strong>${actor.name}: Ужасающий облик.</strong> Существа в пределах 30 футов совершают спасбросок Мудрости против СЛ ${spellSaveDC(actor)}. При провале они напуганы; при успехе получают иммунитет к этому эффекту на 24 часа.</p>`
+    );
   }
   notify(`${actor.name}: активирован эффект «${data.name}» на 1 час.`);
   return true;

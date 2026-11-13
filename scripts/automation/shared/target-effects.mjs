@@ -68,15 +68,7 @@ function targetEffectData({
   };
 }
 
-async function postTargetEffectSummary({
-  sourceActor,
-  sourceItem,
-  title,
-  targets,
-  statusLabel,
-  saveText,
-  note
-}) {
+async function postTargetEffectSummary({ sourceActor, sourceItem, title, targets, statusLabel, saveText, note }) {
   const targetNames = targets.map(token => escapeHtml(token.name ?? token.actor?.name ?? "Без имени")).join(", ");
   await ChatMessage.create({
     user: game.user.id,
@@ -121,8 +113,23 @@ export async function applyTargetEffect({
   }
   if (!game.user?.isGM && usableTargets.some(token => !token.actor.isOwner)) {
     const result = await requestGm("target-effects", sourceActor, {
-      sourceItemUuid: sourceItem?.uuid, targetUuids: usableTargets.map(token => token.actor.uuid),
-      key, name, img, status, statusLabel, description, changes, duration, repeatSave, ignoreImmunity, flags, replace, title, saveText, note
+      sourceItemUuid: sourceItem?.uuid,
+      targetUuids: usableTargets.map(token => token.actor.uuid),
+      key,
+      name,
+      img,
+      status,
+      statusLabel,
+      description,
+      changes,
+      duration,
+      repeatSave,
+      ignoreImmunity,
+      flags,
+      replace,
+      title,
+      saveText,
+      note
     });
     return result.status === "success";
   }
@@ -133,8 +140,12 @@ export async function applyTargetEffect({
     const actor = token.actor;
     const statuses = Array.isArray(status) ? status : status ? [status] : [];
     const immunities = actor.system?.traits?.ci?.value;
-    if (!ignoreImmunity && statuses.some(condition => immunities?.has?.(condition) || immunities?.includes?.(condition))) {
-      failed.push(token); continue;
+    if (
+      !ignoreImmunity &&
+      statuses.some(condition => immunities?.has?.(condition) || immunities?.includes?.(condition))
+    ) {
+      failed.push(token);
+      continue;
     }
     try {
       const data = targetEffectData({
@@ -151,9 +162,10 @@ export async function applyTargetEffect({
         flags
       });
       const existing = replace
-        ? actor.effects?.find(effect =>
-            targetEffectFlag(effect, FLAGS.TARGET_EFFECT) === key
-            && targetEffectFlag(effect, FLAGS.TARGET_SOURCE) === sourceActor?.uuid
+        ? actor.effects?.find(
+            effect =>
+              targetEffectFlag(effect, FLAGS.TARGET_EFFECT) === key &&
+              targetEffectFlag(effect, FLAGS.TARGET_SOURCE) === sourceActor?.uuid
           )
         : null;
       if (existing) await existing.update(data);
@@ -178,12 +190,14 @@ export async function applyTargetEffect({
         : note
     });
   }
-  if (failed.length && !applied.length) notify("Состояние не наложено: проверьте иммунитеты и права на актёров цели.", "warn");
+  if (failed.length && !applied.length)
+    notify("Состояние не наложено: проверьте иммунитеты и права на актёров цели.", "warn");
   return applied.length > 0;
 }
 
 registerGmRequest("target-effects", async (sourceActor, data, { requesterId }) => {
-  if (data.ignoreImmunity && !game.users.get(requesterId)?.isGM) throw Error("Игнорирование иммунитета требует подтверждения GM.");
+  if (data.ignoreImmunity && !game.users.get(requesterId)?.isGM)
+    throw Error("Игнорирование иммунитета требует подтверждения GM.");
   const targets = [];
   for (const uuid of data.targetUuids) {
     const actor = await fromUuid(uuid);

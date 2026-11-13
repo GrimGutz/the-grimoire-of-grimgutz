@@ -9,7 +9,9 @@ export function commitCalculatedDamage(token, item, parts) {
   item.damageDetails ??= {};
   item.damageDetails[selector] = parts;
   item.damageDetail = parts;
-  let damage = 0, healing = 0, temporary = 0;
+  let damage = 0,
+    healing = 0,
+    temporary = 0;
   for (const part of parts) {
     if (part.type === "temphp") temporary += Number(part.value ?? 0);
     else if (part.type === "healing") healing += Number(part.value ?? 0);
@@ -19,10 +21,18 @@ export function commitCalculatedDamage(token, item, parts) {
   const total = damage + healing;
   const rounded = total < 0 ? Math.ceil(total) : Math.floor(total);
   const hp = token.actor.system.attributes.hp;
-  const oldHP = Number(hp.value ?? 0), oldTempHP = Number(hp.temp ?? 0);
+  const oldHP = Number(hp.value ?? 0),
+    oldTempHP = Number(hp.temp ?? 0);
   const absorbed = rounded > 0 ? Math.min(oldTempHP, rounded) : 0;
-  const hpDamage = Math.min(oldHP, Math.max(-Number(hp.damage ?? (hp.max - oldHP) ?? 0), rounded - absorbed));
-  Object.assign(item, { oldHP, oldTempHP, hpDamage, newHP: oldHP - hpDamage,
-    newTempHP: Math.floor(Math.max(0, oldTempHP - absorbed, temporary)), totalDamage: damage, healingAdjustedTotalDamage: rounded });
+  const hpDamage = Math.min(oldHP, Math.max(-Number(hp.damage ?? hp.max - oldHP ?? 0), rounded - absorbed));
+  Object.assign(item, {
+    oldHP,
+    oldTempHP,
+    hpDamage,
+    newHP: oldHP - hpDamage,
+    newTempHP: Math.floor(Math.max(0, oldTempHP - absorbed, temporary)),
+    totalDamage: damage,
+    healingAdjustedTotalDamage: rounded
+  });
   item.tempDamage = oldTempHP - item.newTempHP;
 }

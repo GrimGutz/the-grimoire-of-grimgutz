@@ -12,33 +12,50 @@ const flag = document => document?.getFlag?.(MODULE_ID, "automationLedger");
 async function journal() {
   const existing = [...(game.journal ?? [])].find(flag);
   if (existing) return existing;
-  if (!journalPromise) journalPromise = JournalEntry.create({ name: "Гримуар: журнал автоматизации (GM)",
-    ownership: { default: 0 }, flags: { [MODULE_ID]: { schemaVersion: 1, automationLedger: true, events: [] } } })
-    .finally(() => { journalPromise = null; });
+  if (!journalPromise)
+    journalPromise = JournalEntry.create({
+      name: "Гримуар: журнал автоматизации (GM)",
+      ownership: { default: 0 },
+      flags: { [MODULE_ID]: { schemaVersion: 1, automationLedger: true, events: [] } }
+    }).finally(() => {
+      journalPromise = null;
+    });
   return journalPromise;
 }
 
 export function createEventLedger({ read, write, authority = isGmAuthority }) {
   let chain = Promise.resolve();
   const serial = operation => {
-    const next = chain.catch(() => {}).then(() => authority() ? operation() : { status: "forbidden" });
-    chain = next; return next;
+    const next = chain.catch(() => {}).then(() => (authority() ? operation() : { status: "forbidden" }));
+    chain = next;
+    return next;
   };
   const save = async records => {
     const completed = records.filter(event => ["completed", "skipped", "cancelled"].includes(event.state)).slice(-500);
-    await write([...records.filter(event => !["completed", "skipped", "cancelled"].includes(event.state)), ...completed]);
+    await write([
+      ...records.filter(event => !["completed", "skipped", "cancelled"].includes(event.state)),
+      ...completed
+    ]);
   };
   async function execute(record, operation) {
     // Native Midi can invoke another automation event while resolving this one.
     // Serialize reservations/writes, never hold the ledger lock across a roll.
     try {
       const result = await operation(record);
-      record.state = result === undefined || result?.status === "pending" || result?.status === "needs-review"
-        ? "needs-review" : result === false || result?.aborted ? "cancelled" : "completed";
+      record.state =
+        result === undefined || result?.status === "pending" || result?.status === "needs-review"
+          ? "needs-review"
+          : result === false || result?.aborted
+            ? "cancelled"
+            : "completed";
       record.result = { status: record.state };
-    } catch (error) { record.state = "needs-review"; record.error = error.message; }
+    } catch (error) {
+      record.state = "needs-review";
+      record.error = error.message;
+    }
     await serial(async () => {
-      const records = await read(), current = records.find(event => event.id === record.id);
+      const records = await read(),
+        current = records.find(event => event.id === record.id);
       if (current) Object.assign(current, record);
       await save(records);
     });
@@ -47,56 +64,87 @@ export function createEventLedger({ read, write, authority = isGmAuthority }) {
   return {
     run(record, operation, { queued = false } = {}) {
       return serial(async () => {
-        const records = await read(), previous = records.find(event => event.id === record.id);
+        const records = await read(),
+          previous = records.find(event => event.id === record.id);
         if (previous) return { status: previous.state, eventId: previous.id };
         const entry = { ...structuredClone(record), state: queued ? "queued" : "running" };
         records.push(entry);
-        if (queued) { await save(records); return { status: "queued", eventId: entry.id }; }
+        if (queued) {
+          await save(records);
+          return { status: "queued", eventId: entry.id };
+        }
         await save(records);
         return { execute: entry };
-      }).then(result => result.execute ? execute(result.execute, operation) : result);
+      }).then(result => (result.execute ? execute(result.execute, operation) : result));
     },
     resolve(id, decision, operation) {
       return serial(async () => {
         if (!["apply", "skip"].includes(decision)) throw Error("Неверное решение очереди.");
-        const records = await read(), record = records.find(event => event.id === id);
+        const records = await read(),
+          record = records.find(event => event.id === id);
         if (!record) throw Error("Событие не найдено.");
         if (record.state !== "queued") return { status: record.state, eventId: id };
-        if (decision === "skip") { record.state = "skipped"; await save(records); return { status: "skipped", eventId: id }; }
-        record.state = "running"; await save(records);
+        if (decision === "skip") {
+          record.state = "skipped";
+          await save(records);
+          return { status: "skipped", eventId: id };
+        }
+        record.state = "running";
+        await save(records);
         return { execute: record };
-      }).then(result => result.execute ? execute(result.execute, operation) : result);
+      }).then(result => (result.execute ? execute(result.execute, operation) : result));
     },
-    async list() { return structuredClone(await read()); }
+    async list() {
+      return structuredClone(await read());
+    }
   };
 }
 
 const ledger = createEventLedger({
   read: async () => structuredClone((await journal()).getFlag(MODULE_ID, "events") ?? []),
-  write: async records => { await (await journal()).setFlag(MODULE_ID, "events", records); }
+  write: async records => {
+    await (await journal()).setFlag(MODULE_ID, "events", records);
+  }
 });
 
-export function registerAutomationEvent(kind, resolver) { resolvers.set(kind, resolver); }
+export function registerAutomationEvent(kind, resolver) {
+  resolvers.set(kind, resolver);
+}
 export async function listAutomationEvents() {
   if (!game.user?.isGM) return [];
   const existing = [...(game.journal ?? [])].find(flag);
   // Diagnostics must not create the journal.
-  return structuredClone(existing?.getFlag(MODULE_ID, "events") ?? []).map(event => event.state === "running" && event.sessionId !== sessionId
-    ? {...event, state: "needs-review", error: event.error ?? "Выполнение прервано перезагрузкой или сменой GM; автоматического повтора нет."} : event);
+  return structuredClone(existing?.getFlag(MODULE_ID, "events") ?? []).map(event =>
+    event.state === "running" && event.sessionId !== sessionId
+      ? {
+          ...event,
+          state: "needs-review",
+          error: event.error ?? "Выполнение прервано перезагрузкой или сменой GM; автоматического повтора нет."
+        }
+      : event
+  );
 }
 export async function runAutomationEvent(record, operation, options) {
   if (!enabled() || !isGmAuthority()) return { status: "forbidden" };
   if (!record.id || !record.kind || !record.sceneId) throw Error("Неполное событие автоматизации.");
-  const result = await ledger.run({ version: 1, createdAt: Number(game.time?.worldTime ?? 0), sessionId, ...record }, operation, options);
-  if (result.status === "queued") notify("Срабатывание сохранено в панели Гримуара. GM должен открыть его сцену и подтвердить результат.", "warn");
+  const result = await ledger.run(
+    { version: 1, createdAt: Number(game.time?.worldTime ?? 0), sessionId, ...record },
+    operation,
+    options
+  );
+  if (result.status === "queued")
+    notify("Срабатывание сохранено в панели Гримуара. GM должен открыть его сцену и подтвердить результат.", "warn");
   return result;
 }
 export async function resolvePendingAutomation(id, decision) {
-  if (!isGmAuthority() || !game.user?.isGM || !enabled()) throw Error("Очередью управляет только активный GM при включённой автоматизации.");
+  if (!isGmAuthority() || !game.user?.isGM || !enabled())
+    throw Error("Очередью управляет только активный GM при включённой автоматизации.");
   const record = (await listAutomationEvents()).find(event => event.id === id);
   if (!record) throw Error("Событие не найдено.");
-  if (record.version != null && record.version !== 1) throw Error("Версия события не поддерживается; требуется ручная проверка.");
-  if (decision === "apply" && (!canvas?.ready || canvas.scene?.id !== record.sceneId)) throw Error("Сначала откройте сцену события.");
+  if (record.version != null && record.version !== 1)
+    throw Error("Версия события не поддерживается; требуется ручная проверка.");
+  if (decision === "apply" && (!canvas?.ready || canvas.scene?.id !== record.sceneId))
+    throw Error("Сначала откройте сцену события.");
   return ledger.resolve(id, decision, entry => {
     const resolve = resolvers.get(entry.kind);
     if (!resolve) throw Error("Нет обработчика события; требуется ручная проверка.");

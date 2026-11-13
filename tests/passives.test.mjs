@@ -1,20 +1,39 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { flaggedPassiveEffectData, guardPassiveChanges, syncFlaggedPassiveEffects } from "../scripts/automation/effects/passive-helpers.mjs";
+import {
+  flaggedPassiveEffectData,
+  guardPassiveChanges,
+  syncFlaggedPassiveEffects
+} from "../scripts/automation/effects/passive-helpers.mjs";
 
 test("passive sync removes duplicate bonuses, updates origin and clears deleted features", async () => {
-  const module = "module", flag = "passive";
+  const module = "module",
+    flag = "passive";
   let feature = { name: "Speed", uuid: "Actor.one.Item.new", img: "icon" };
-  const data = () => flaggedPassiveEffectData(module, flag, { key: "speed", feature,
-    changes: [{ key: "system.attributes.movement.walk", type: "add", value: "10" }] });
-  const actor = { uuid: "Actor.one", effects: [],
-    async createEmbeddedDocuments(type, entries) { this.effects.push(...entries.map((entry, i) => ({ ...entry, id: `effect${i}` }))); },
-    async deleteEmbeddedDocuments(type, ids) { this.effects = this.effects.filter(effect => !ids.includes(effect.id)); },
+  const data = () =>
+    flaggedPassiveEffectData(module, flag, {
+      key: "speed",
+      feature,
+      changes: [{ key: "system.attributes.movement.walk", type: "add", value: "10" }]
+    });
+  const actor = {
+    uuid: "Actor.one",
+    effects: [],
+    async createEmbeddedDocuments(type, entries) {
+      this.effects.push(...entries.map((entry, i) => ({ ...entry, id: `effect${i}` })));
+    },
+    async deleteEmbeddedDocuments(type, ids) {
+      this.effects = this.effects.filter(effect => !ids.includes(effect.id));
+    },
     async updateEmbeddedDocuments(type, entries) {
-      for (const entry of entries) Object.assign(this.effects.find(effect => effect.id === entry._id), entry);
+      for (const entry of entries)
+        Object.assign(
+          this.effects.find(effect => effect.id === entry._id),
+          entry
+        );
     }
   };
-  const definitions = () => feature ? [data()] : [];
+  const definitions = () => (feature ? [data()] : []);
   const locks = new Set();
   await syncFlaggedPassiveEffects(actor, locks, module, flag, definitions);
   actor.effects.push({ ...structuredClone(actor.effects[0]), id: "duplicate" });
@@ -31,13 +50,35 @@ test("passive sync removes duplicate bonuses, updates origin and clears deleted 
 
 test("native DataModel defaults do not cause passive update loops", async () => {
   let writes = 0;
-  const native = data => ({ ...structuredClone(data), system: { extraDefault: 0, ...data.system },
-    id: "effect", getFlag(module, key) { return this.flags?.[module]?.[key]; },
-    toObject() { return { ...data, system: this.system }; }, clone(patch) { return native({ ...data, ...patch }); } });
-  const actor = { uuid: "Actor.native", effects: [],
-    async createEmbeddedDocuments(type, data) { const docs = data.map(native); this.effects.push(...docs); return docs; },
-    async updateEmbeddedDocuments() { writes++; } };
-  const definition = () => [flaggedPassiveEffectData("module", "passive", { key: "speed", feature: { name: "Speed" }, changes: [] })];
+  const native = data => ({
+    ...structuredClone(data),
+    system: { extraDefault: 0, ...data.system },
+    id: "effect",
+    getFlag(module, key) {
+      return this.flags?.[module]?.[key];
+    },
+    toObject() {
+      return { ...data, system: this.system };
+    },
+    clone(patch) {
+      return native({ ...data, ...patch });
+    }
+  });
+  const actor = {
+    uuid: "Actor.native",
+    effects: [],
+    async createEmbeddedDocuments(type, data) {
+      const docs = data.map(native);
+      this.effects.push(...docs);
+      return docs;
+    },
+    async updateEmbeddedDocuments() {
+      writes++;
+    }
+  };
+  const definition = () => [
+    flaggedPassiveEffectData("module", "passive", { key: "speed", feature: { name: "Speed" }, changes: [] })
+  ];
   const locks = new Set();
   await syncFlaggedPassiveEffects(actor, locks, "module", "passive", definition);
   await syncFlaggedPassiveEffects(actor, locks, "module", "passive", definition);
@@ -45,8 +86,11 @@ test("native DataModel defaults do not cause passive update loops", async () => 
 });
 
 test("manual passive edits and deliberate disabling survive synchronization", () => {
-  const original = flaggedPassiveEffectData("module", "passive", { key: "speed", feature: { name: "Speed" },
-    changes: [{ key: "speed", type: "add", value: "10" }] });
+  const original = flaggedPassiveEffectData("module", "passive", {
+    key: "speed",
+    feature: { name: "Speed" },
+    changes: [{ key: "speed", type: "add", value: "10" }]
+  });
   const current = guardPassiveChanges(null, original, "module");
   current.disabled = true;
   current.name = "My custom label";

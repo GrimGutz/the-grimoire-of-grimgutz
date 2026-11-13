@@ -1,55 +1,433 @@
-import {MODULE_ID} from "../shared/constants.mjs";
-import {GOD_ICON,godWrathDice,godAnnihilationDamage} from "../shared/god-definitions.mjs";
-import {godState,patchGod,godLevel,godDC,godAlignment,godHas,godDomain} from "./god.mjs";
-import {godGm,godExpense,useGodCost,godTargets,godPulse,applyGodHealing} from "./god-use.mjs";
-import {askOwner,confirmOwner} from "../shared/owner-prompts.mjs";
-import {applyNativeOnce} from "../shared/native-applications.mjs";
-import {areaActivityData} from "../shared/area-definitions.mjs";
-import {useAreaActivity} from "../shared/area-activities.mjs";
-import {temporaryEffectTiming} from "../effects/temporary-effects.mjs";
-import {feetToSceneUnits,tokenSceneDistance} from "../shared/spatial.mjs";
-export function godHorizontalFeet(source,target,scene=source.parent){const flat=t=>{const d=t.document??t;return {...Object.fromEntries(["uuid","id","x","y","width","height"].map(k=>[k,d[k]])),elevation:0};};const point=flat(source),size=Number(scene.grid.size);point.x+=Number(point.width??1)*size/2;point.y+=Number(point.height??1)*size/2;point.width=0;point.height=0;return tokenSceneDistance(point,flat(target),scene)/feetToSceneUnits(1,scene);}
-async function clearGodTemplates(workflow){for(const uuid of workflow.grimgutzAreaResult?.templateUuids??[])await (await fromUuid(uuid))?.delete();}
-export async function useGodArea(actor,activity,source,requestId,{operation,points,spec,after=async()=>true}={}){
-  const data=areaActivityData(activity.toObject(),{...spec,dc:String(godDC(actor)),native:true,templateSeconds:null});Object.assign(data,godExpense(activity,{points}));data.flags={[MODULE_ID]:{godResolved:true,action:"",godCastId:requestId,area:{...spec,dc:String(godDC(actor)),native:true,templateSeconds:null}}};
-  const clone=activity.item.clone({system:{activities:{[activity.id]:data}}},{keepId:true});return applyNativeOnce(actor,{requestId,action:`god-${operation}`,activityUuid:activity.uuid},()=>useAreaActivity(clone.system.activities.get(activity.id),{reportOutcome:true,message:source.hidden?{rollMode:"gmroll"}:{}}),async workflow=>{if(!workflow.grimgutzAreaResult)return {status:"needs-review"};try{return await after(workflow);}finally{await clearGodTemplates(workflow);}});
+import { MODULE_ID } from "../shared/constants.mjs";
+import { GOD_ICON, godWrathDice, godAnnihilationDamage } from "../shared/god-definitions.mjs";
+import { godState, patchGod, godLevel, godDC, godAlignment, godHas, godDomain } from "./god.mjs";
+import { godGm, godExpense, useGodCost, godTargets, godPulse, applyGodHealing } from "./god-use.mjs";
+import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
+import { applyNativeOnce } from "../shared/native-applications.mjs";
+import { areaActivityData } from "../shared/area-definitions.mjs";
+import { useAreaActivity } from "../shared/area-activities.mjs";
+import { temporaryEffectTiming } from "../effects/temporary-effects.mjs";
+import { feetToSceneUnits, tokenSceneDistance } from "../shared/spatial.mjs";
+export function godHorizontalFeet(source, target, scene = source.parent) {
+  const flat = t => {
+    const d = t.document ?? t;
+    return { ...Object.fromEntries(["uuid", "id", "x", "y", "width", "height"].map(k => [k, d[k]])), elevation: 0 };
+  };
+  const point = flat(source),
+    size = Number(scene.grid.size);
+  point.x += (Number(point.width ?? 1) * size) / 2;
+  point.y += (Number(point.height ?? 1) * size) / 2;
+  point.width = 0;
+  point.height = 0;
+  return tokenSceneDistance(point, flat(target), scene) / feetToSceneUnits(1, scene);
 }
-export const godWrath=(actor,activity,source,requestId)=>useGodArea(actor,activity,source,requestId,{operation:"wrath",points:30,spec:{shape:"cone",size:30,origin:"self",excludeSelf:true,save:"con",damage:[{formula:`${godWrathDice(godLevel(actor))}d8`,type:"force"}],onSave:"half"}});
-export async function planGodHealing(actor,source,budget){const targets=await godTargets(actor,source,1000000,"Видимые получатели распределённого лечения",{self:true,max:100});if(!targets?.length)return null;if(!await confirmOwner(godGm(actor),"Видимые получатели","Все выбранные существа видимы? Болезни и конкретные снимаемые состояния GM подтвердит отдельно; полное лечение не снимает все эффекты молча."))return null;
-  const plan=[];let remaining=budget;for(const t of targets){const n=await askOwner(actor,{kind:"number",title:`${t.name??t.actor.name}: хитов из оставшихся ${remaining}`,min:0,max:remaining,defaultValue:Math.min(remaining,Math.max(0,Number(t.actor.system.attributes.hp.max)-Number(t.actor.system.attributes.hp.value)))});if(!Number.isInteger(n)||n<0||n>remaining)return null;plan.push({targetUuid:t.uuid,amount:n});remaining-=n;}return plan;
+async function clearGodTemplates(workflow) {
+  for (const uuid of workflow.grimgutzAreaResult?.templateUuids ?? []) await (await fromUuid(uuid))?.delete();
 }
-async function applyPlan(actor,plan){for(const p of plan){const t=await fromUuid(p.targetUuid);if(!t?.actor)throw Error("Получатель лечения недоступен; частичный результат требует проверки.");await applyGodHealing(actor,t.actor,p.amount);}return true;}
-export async function godRestoration(actor,activity,source,requestId){if(godAlignment(actor)==="good"){const plan=await planGodHealing(actor,source,700);if(!plan)return false;return applyNativeOnce(actor,{requestId,action:"god-restoration",activityUuid:activity.uuid},()=>useGodCost(activity,{points:40}),()=>applyPlan(actor,plan));}
-  if(godAlignment(actor)!=="evil")throw Error("Выберите Доброе/Злое проявление.");godExpense(activity,{points:40});if(!await confirmOwner(godGm(actor),"Пожирание: видимая точка","GM подтверждает видимость выбранной точки; дальность не выдумывается? Лечение будет доступно только после подтверждённого окончательного урона."))return false;
-  const old=godState(actor).devour;if(old&&!old.closed)throw Error("Сначала распределите либо явно пропустите лечение предыдущего Пожирания.");
-  // The receipt context must exist before Midi can apply the first target packet.
-  await patchGod(actor,{devour:{requestId,sourceItemUuid:activity.item.uuid,confirmed:{},distributed:0,closed:false,completed:false}});
-  const result=await useGodArea(actor,activity,source,requestId,{operation:"devour",points:40,spec:{shape:"sphere",size:20,origin:"point",save:"con",damage:[{formula:"12d6",type:"force"}],onSave:"half"},after:async()=>{const s=godState(actor).devour;await patchGod(actor,{devour:{...s,completed:true}});return true;}});
-  if(result.status==="cancelled"&&godState(actor).devour?.requestId===requestId)await patchGod(actor,{devour:{...godState(actor).devour,closed:true,cancelled:true}});return result;
+export async function useGodArea(
+  actor,
+  activity,
+  source,
+  requestId,
+  { operation, points, spec, after = async () => true } = {}
+) {
+  const data = areaActivityData(activity.toObject(), {
+    ...spec,
+    dc: String(godDC(actor)),
+    native: true,
+    templateSeconds: null
+  });
+  Object.assign(data, godExpense(activity, { points }));
+  data.flags = {
+    [MODULE_ID]: {
+      godResolved: true,
+      action: "",
+      godCastId: requestId,
+      area: { ...spec, dc: String(godDC(actor)), native: true, templateSeconds: null }
+    }
+  };
+  const clone = activity.item.clone({ system: { activities: { [activity.id]: data } } }, { keepId: true });
+  return applyNativeOnce(
+    actor,
+    { requestId, action: `god-${operation}`, activityUuid: activity.uuid },
+    () =>
+      useAreaActivity(clone.system.activities.get(activity.id), {
+        reportOutcome: true,
+        message: source.hidden ? { rollMode: "gmroll" } : {}
+      }),
+    async workflow => {
+      if (!workflow.grimgutzAreaResult) return { status: "needs-review" };
+      try {
+        return await after(workflow);
+      } finally {
+        await clearGodTemplates(workflow);
+      }
+    }
+  );
 }
-export const godDevourBudget=actor=>Math.max(0,Object.values(godState(actor).devour?.confirmed??{}).reduce((n,p)=>n+Number(p.amount??0),0)-Number(godState(actor).devour?.distributed??0));
-export async function godDevourHealing(actor,activity,source,requestId){let cast=godState(actor).devour;if(!cast||cast.closed)throw Error("Нет Пожирания для распределения.");
-  if(!cast.completed){const decision=await askOwner(godGm(actor),{title:"GM: исход Пожирания требует проверки",choices:[["reviewed","Применение проверено — использовать только подтверждённые квитанции урона"],["close","Явно завершить без лечения; ресурсы не возвращать"]]});if(decision==="close"){await patchGod(actor,{devour:{...cast,closed:true,reviewed:true}});return true;}if(decision!=="reviewed")return false;cast={...cast,completed:true,reviewed:true};await patchGod(actor,{devour:cast});}
-  const mode=await askOwner(actor,{title:`Пожирание: подтверждено ${godDevourBudget(actor)} лечения`,choices:[["heal","Распределить подтверждённое"],["skip","Завершить без оставшегося лечения"]]});if(mode==="skip"){await patchGod(actor,{devour:{...cast,closed:true}});return true;}if(mode!=="heal")return false;
-  const budget=godDevourBudget(actor);if(!budget)throw Error("Применений окончательного урона ещё не подтверждено.");const plan=await planGodHealing(actor,source,budget);if(!plan)return false;const used=plan.reduce((n,p)=>n+p.amount,0);
-  return applyNativeOnce(actor,{requestId,action:"god-devour-healing",activityUuid:activity.uuid},async()=>true,async()=>{const current=godState(actor).devour;if(current?.requestId!==cast.requestId||godDevourBudget(actor)<used)return {status:"needs-review"};await patchGod(actor,{devour:{...current,distributed:Number(current.distributed)+used,closed:false}});return applyPlan(actor,plan);});
-}
-export async function endGodDomain(actor){const d=godState(actor).domain;if(!d)return false;await patchGod(actor,{domain:null});for(const uuid of [d.effectUuid,d.concentrationUuid]){const e=await fromUuid(uuid);if(e?.parent?.uuid===actor.uuid)await e.delete();}return true;}
-export async function godDomainRecipients(actor,source){const d=godDomain(actor);if(!d||d.sourceTokenUuid!==source.uuid)throw Error("На этом токене нет действующего Домена.");const targets=await godTargets(actor,source,1000000,"Выбранные получатели Домена (радиус проверяется отдельно)",{max:100,self:true,min:0});if(!targets)return false;await patchGod(actor,{domain:{...d,targetUuids:targets.map(t=>t.uuid)}});return true;}
-export async function activateGodDomain(actor,activity,source,requestId){if(godDomain(actor))throw Error("Домен уже действует.");const targets=await godTargets(actor,source,1000000,"Выбранные получатели Домена",{max:100,self:true});if(!targets?.length)return false;if(!godAlignment(actor))throw Error("Сначала выберите мировоззрение.");
-  return applyNativeOnce(actor,{requestId,action:"god-domain",activityUuid:activity.uuid},()=>useGodCost(activity,{points:100}),async()=>{await endGodDomain(actor);const timing=temporaryEffectTiming({seconds:60,actor,expiry:"updateWorldTime"}),concentration=await actor.beginConcentrating(activity,{...timing,flags:{[MODULE_ID]:{godDomainConcentration:true}}});if(!concentration)throw Error("Концентрация не создана.");
-    const [e]=await actor.createEmbeddedDocuments("ActiveEffect",[{name:"Домен Божества",img:GOD_ICON,type:"base",transfer:false,disabled:false,statuses:[],...timing,flags:{[MODULE_ID]:{godDomain:true},dae:{expiryMode:"delete"}},system:{changes:[]}}]);await patchGod(actor,{domain:{sourceTokenUuid:source.uuid,sceneId:source.parent.id,targetUuids:targets.map(t=>t.uuid),effectUuid:e.uuid,concentrationUuid:concentration.uuid,requestId}});return true;});
-}
-export async function godJudgment(actor,activity,source,requestId){if(godAlignment(actor)==="evil"){
-    if(!await confirmOwner(godGm(actor),"Аннигиляция: все существа, включая источник","Радиус до 300 футов, высота не ограничена. 800 силового в первом кольце, далее половина каждые 30 футов; источник не исключён PDF. Повреждение строений ×4 и полное уничтожение убитых ведёт GM. Продолжить?"))return false;
-    const frozen={x:source.x,y:source.y,width:source.width,height:source.height,parent:source.parent,elevation:0};return useGodArea(actor,activity,source,requestId,{operation:"annihilation",points:220,spec:{shape:"cylinder",size:300,origin:"self",excludeSelf:false,save:"con",damage:[],onSave:"none"},after:async workflow=>{if(!(workflow.saves instanceof Set)||!(workflow.failedSaves instanceof Set))return {status:"needs-review"};const groups=new Map();
-      for(const t of [...workflow.targets??[]]){const doc=t.document??t,base=godAnnihilationDamage(godHorizontalFeet(frozen,doc,source.parent)),saved=[...workflow.saves].some(s=>(s.document?.uuid??s.uuid)===doc.uuid),amount=saved?Math.floor(base/2):base;if(!amount)continue;const list=groups.get(amount)??[];list.push(doc);groups.set(amount,list);}
-      for(const [amount,targets]of groups){const result=await godPulse(source,activity.item,targets,{damage:[{formula:String(amount),type:"force"}],requestId:`${requestId}:ring:${amount}`});if(result?.status==="needs-review")return result;}return true;}});
+export const godWrath = (actor, activity, source, requestId) =>
+  useGodArea(actor, activity, source, requestId, {
+    operation: "wrath",
+    points: 30,
+    spec: {
+      shape: "cone",
+      size: 30,
+      origin: "self",
+      excludeSelf: true,
+      save: "con",
+      damage: [{ formula: `${godWrathDice(godLevel(actor))}d8`, type: "force" }],
+      onSave: "half"
+    }
+  });
+export async function planGodHealing(actor, source, budget) {
+  const targets = await godTargets(actor, source, 1000000, "Видимые получатели распределённого лечения", {
+    self: true,
+    max: 100
+  });
+  if (!targets?.length) return null;
+  if (
+    !(await confirmOwner(
+      godGm(actor),
+      "Видимые получатели",
+      "Все выбранные существа видимы? Болезни и конкретные снимаемые состояния GM подтвердит отдельно; полное лечение не снимает все эффекты молча."
+    ))
+  )
+    return null;
+  const plan = [];
+  let remaining = budget;
+  for (const t of targets) {
+    const n = await askOwner(actor, {
+      kind: "number",
+      title: `${t.name ?? t.actor.name}: хитов из оставшихся ${remaining}`,
+      min: 0,
+      max: remaining,
+      defaultValue: Math.min(
+        remaining,
+        Math.max(0, Number(t.actor.system.attributes.hp.max) - Number(t.actor.system.attributes.hp.value))
+      )
+    });
+    if (!Number.isInteger(n) || n < 0 || n > remaining) return null;
+    plan.push({ targetUuid: t.uuid, amount: n });
+    remaining -= n;
   }
-  if(godAlignment(actor)!=="good")throw Error("Выберите Доброе/Злое проявление.");const targets=await godTargets(godGm(actor),source,100,"GM: действительно Злые существа для Суда",{max:100,self:true});if(!targets?.length||!await confirmOwner(godGm(actor),"Суд: мировоззрение и УС","Выбранные существа действительно Злые? Для каждой цели с УС 5 и ниже уничтожение потребует отдельного подтверждения; оно не определяется по имени или принадлежности к стороне."))return false;
-  return applyNativeOnce(actor,{requestId,action:"god-judgment",activityUuid:activity.uuid},()=>useGodCost(activity,{points:180}),async()=>{const survivors=[];
-    for(const t of targets){const cr=t.actor.system.details?.cr,low=cr!==null&&cr!==undefined&&Number.isFinite(Number(cr))&&Number(cr)<=5;if(low&&await confirmOwner(godGm(actor),"Суд: уничтожение",`${t.name??t.actor.name}: подтверждены УС ${cr} и мгновенное уничтожение? Документ/инвентарь не будет удалён.`)){await t.actor.update({"system.attributes.hp.value":0});await t.actor.setFlag(MODULE_ID,"godDestroyed",{sourceActorUuid:actor.uuid,requestId});}else survivors.push(t);}
-    if(!survivors.length)return true;const result=await godPulse(source,activity.item,survivors,{save:"wis",requestId});if(result.status!=="success")return {status:"needs-review"};
-    for(const t of survivors)if(result.failedSaves.includes(t.uuid)){
-      await t.actor.createEmbeddedDocuments("ActiveEffect",[{name:"Суд: обращение в бегство",img:GOD_ICON,type:"base",transfer:false,disabled:false,statuses:[],...temporaryEffectTiming({seconds:60,actor:t.actor,expiry:"updateWorldTime"}),flags:{[MODULE_ID]:{godJudgment:{sourceActorUuid:actor.uuid,sourceTokenUuid:source.uuid,targetTokenUuid:t.uuid,itemUuid:activity.item.uuid,dc:godDC(actor)}},dae:{expiryMode:"delete"}},system:{changes:[{key:"flags.midi-qol.actions.reactionsMax",type:"override",value:"0",phase:"initial",priority:20}]}}]);}return true;});
+  return plan;
+}
+async function applyPlan(actor, plan) {
+  for (const p of plan) {
+    const t = await fromUuid(p.targetUuid);
+    if (!t?.actor) throw Error("Получатель лечения недоступен; частичный результат требует проверки.");
+    await applyGodHealing(actor, t.actor, p.amount);
+  }
+  return true;
+}
+export async function godRestoration(actor, activity, source, requestId) {
+  if (godAlignment(actor) === "good") {
+    const plan = await planGodHealing(actor, source, 700);
+    if (!plan) return false;
+    return applyNativeOnce(
+      actor,
+      { requestId, action: "god-restoration", activityUuid: activity.uuid },
+      () => useGodCost(activity, { points: 40 }),
+      () => applyPlan(actor, plan)
+    );
+  }
+  if (godAlignment(actor) !== "evil") throw Error("Выберите Доброе/Злое проявление.");
+  godExpense(activity, { points: 40 });
+  if (
+    !(await confirmOwner(
+      godGm(actor),
+      "Пожирание: видимая точка",
+      "GM подтверждает видимость выбранной точки; дальность не выдумывается? Лечение будет доступно только после подтверждённого окончательного урона."
+    ))
+  )
+    return false;
+  const old = godState(actor).devour;
+  if (old && !old.closed) throw Error("Сначала распределите либо явно пропустите лечение предыдущего Пожирания.");
+  // The receipt context must exist before Midi can apply the first target packet.
+  await patchGod(actor, {
+    devour: {
+      requestId,
+      sourceItemUuid: activity.item.uuid,
+      confirmed: {},
+      distributed: 0,
+      closed: false,
+      completed: false
+    }
+  });
+  const result = await useGodArea(actor, activity, source, requestId, {
+    operation: "devour",
+    points: 40,
+    spec: {
+      shape: "sphere",
+      size: 20,
+      origin: "point",
+      save: "con",
+      damage: [{ formula: "12d6", type: "force" }],
+      onSave: "half"
+    },
+    after: async () => {
+      const s = godState(actor).devour;
+      await patchGod(actor, { devour: { ...s, completed: true } });
+      return true;
+    }
+  });
+  if (result.status === "cancelled" && godState(actor).devour?.requestId === requestId)
+    await patchGod(actor, { devour: { ...godState(actor).devour, closed: true, cancelled: true } });
+  return result;
+}
+export const godDevourBudget = actor =>
+  Math.max(
+    0,
+    Object.values(godState(actor).devour?.confirmed ?? {}).reduce((n, p) => n + Number(p.amount ?? 0), 0) -
+      Number(godState(actor).devour?.distributed ?? 0)
+  );
+export async function godDevourHealing(actor, activity, source, requestId) {
+  let cast = godState(actor).devour;
+  if (!cast || cast.closed) throw Error("Нет Пожирания для распределения.");
+  if (!cast.completed) {
+    const decision = await askOwner(godGm(actor), {
+      title: "GM: исход Пожирания требует проверки",
+      choices: [
+        ["reviewed", "Применение проверено — использовать только подтверждённые квитанции урона"],
+        ["close", "Явно завершить без лечения; ресурсы не возвращать"]
+      ]
+    });
+    if (decision === "close") {
+      await patchGod(actor, { devour: { ...cast, closed: true, reviewed: true } });
+      return true;
+    }
+    if (decision !== "reviewed") return false;
+    cast = { ...cast, completed: true, reviewed: true };
+    await patchGod(actor, { devour: cast });
+  }
+  const mode = await askOwner(actor, {
+    title: `Пожирание: подтверждено ${godDevourBudget(actor)} лечения`,
+    choices: [
+      ["heal", "Распределить подтверждённое"],
+      ["skip", "Завершить без оставшегося лечения"]
+    ]
+  });
+  if (mode === "skip") {
+    await patchGod(actor, { devour: { ...cast, closed: true } });
+    return true;
+  }
+  if (mode !== "heal") return false;
+  const budget = godDevourBudget(actor);
+  if (!budget) throw Error("Применений окончательного урона ещё не подтверждено.");
+  const plan = await planGodHealing(actor, source, budget);
+  if (!plan) return false;
+  const used = plan.reduce((n, p) => n + p.amount, 0);
+  return applyNativeOnce(
+    actor,
+    { requestId, action: "god-devour-healing", activityUuid: activity.uuid },
+    async () => true,
+    async () => {
+      const current = godState(actor).devour;
+      if (current?.requestId !== cast.requestId || godDevourBudget(actor) < used) return { status: "needs-review" };
+      await patchGod(actor, { devour: { ...current, distributed: Number(current.distributed) + used, closed: false } });
+      return applyPlan(actor, plan);
+    }
+  );
+}
+export async function endGodDomain(actor) {
+  const d = godState(actor).domain;
+  if (!d) return false;
+  await patchGod(actor, { domain: null });
+  for (const uuid of [d.effectUuid, d.concentrationUuid]) {
+    const e = await fromUuid(uuid);
+    if (e?.parent?.uuid === actor.uuid) await e.delete();
+  }
+  return true;
+}
+export async function godDomainRecipients(actor, source) {
+  const d = godDomain(actor);
+  if (!d || d.sourceTokenUuid !== source.uuid) throw Error("На этом токене нет действующего Домена.");
+  const targets = await godTargets(
+    actor,
+    source,
+    1000000,
+    "Выбранные получатели Домена (радиус проверяется отдельно)",
+    { max: 100, self: true, min: 0 }
+  );
+  if (!targets) return false;
+  await patchGod(actor, { domain: { ...d, targetUuids: targets.map(t => t.uuid) } });
+  return true;
+}
+export async function activateGodDomain(actor, activity, source, requestId) {
+  if (godDomain(actor)) throw Error("Домен уже действует.");
+  const targets = await godTargets(actor, source, 1000000, "Выбранные получатели Домена", { max: 100, self: true });
+  if (!targets?.length) return false;
+  if (!godAlignment(actor)) throw Error("Сначала выберите мировоззрение.");
+  return applyNativeOnce(
+    actor,
+    { requestId, action: "god-domain", activityUuid: activity.uuid },
+    () => useGodCost(activity, { points: 100 }),
+    async () => {
+      await endGodDomain(actor);
+      const timing = temporaryEffectTiming({ seconds: 60, actor, expiry: "updateWorldTime" }),
+        concentration = await actor.beginConcentrating(activity, {
+          ...timing,
+          flags: { [MODULE_ID]: { godDomainConcentration: true } }
+        });
+      if (!concentration) throw Error("Концентрация не создана.");
+      const [e] = await actor.createEmbeddedDocuments("ActiveEffect", [
+        {
+          name: "Домен Божества",
+          img: GOD_ICON,
+          type: "base",
+          transfer: false,
+          disabled: false,
+          statuses: [],
+          ...timing,
+          flags: { [MODULE_ID]: { godDomain: true }, dae: { expiryMode: "delete" } },
+          system: { changes: [] }
+        }
+      ]);
+      await patchGod(actor, {
+        domain: {
+          sourceTokenUuid: source.uuid,
+          sceneId: source.parent.id,
+          targetUuids: targets.map(t => t.uuid),
+          effectUuid: e.uuid,
+          concentrationUuid: concentration.uuid,
+          requestId
+        }
+      });
+      return true;
+    }
+  );
+}
+export async function godJudgment(actor, activity, source, requestId) {
+  if (godAlignment(actor) === "evil") {
+    if (
+      !(await confirmOwner(
+        godGm(actor),
+        "Аннигиляция: все существа, включая источник",
+        "Радиус до 300 футов, высота не ограничена. 800 силового в первом кольце, далее половина каждые 30 футов; источник не исключён PDF. Повреждение строений ×4 и полное уничтожение убитых ведёт GM. Продолжить?"
+      ))
+    )
+      return false;
+    const frozen = {
+      x: source.x,
+      y: source.y,
+      width: source.width,
+      height: source.height,
+      parent: source.parent,
+      elevation: 0
+    };
+    return useGodArea(actor, activity, source, requestId, {
+      operation: "annihilation",
+      points: 220,
+      spec: {
+        shape: "cylinder",
+        size: 300,
+        origin: "self",
+        excludeSelf: false,
+        save: "con",
+        damage: [],
+        onSave: "none"
+      },
+      after: async workflow => {
+        if (!(workflow.saves instanceof Set) || !(workflow.failedSaves instanceof Set))
+          return { status: "needs-review" };
+        const groups = new Map();
+        for (const t of [...(workflow.targets ?? [])]) {
+          const doc = t.document ?? t,
+            base = godAnnihilationDamage(godHorizontalFeet(frozen, doc, source.parent)),
+            saved = [...workflow.saves].some(s => (s.document?.uuid ?? s.uuid) === doc.uuid),
+            amount = saved ? Math.floor(base / 2) : base;
+          if (!amount) continue;
+          const list = groups.get(amount) ?? [];
+          list.push(doc);
+          groups.set(amount, list);
+        }
+        for (const [amount, targets] of groups) {
+          const result = await godPulse(source, activity.item, targets, {
+            damage: [{ formula: String(amount), type: "force" }],
+            requestId: `${requestId}:ring:${amount}`
+          });
+          if (result?.status === "needs-review") return result;
+        }
+        return true;
+      }
+    });
+  }
+  if (godAlignment(actor) !== "good") throw Error("Выберите Доброе/Злое проявление.");
+  const targets = await godTargets(godGm(actor), source, 100, "GM: действительно Злые существа для Суда", {
+    max: 100,
+    self: true
+  });
+  if (
+    !targets?.length ||
+    !(await confirmOwner(
+      godGm(actor),
+      "Суд: мировоззрение и УС",
+      "Выбранные существа действительно Злые? Для каждой цели с УС 5 и ниже уничтожение потребует отдельного подтверждения; оно не определяется по имени или принадлежности к стороне."
+    ))
+  )
+    return false;
+  return applyNativeOnce(
+    actor,
+    { requestId, action: "god-judgment", activityUuid: activity.uuid },
+    () => useGodCost(activity, { points: 180 }),
+    async () => {
+      const survivors = [];
+      for (const t of targets) {
+        const cr = t.actor.system.details?.cr,
+          low = cr !== null && cr !== undefined && Number.isFinite(Number(cr)) && Number(cr) <= 5;
+        if (
+          low &&
+          (await confirmOwner(
+            godGm(actor),
+            "Суд: уничтожение",
+            `${t.name ?? t.actor.name}: подтверждены УС ${cr} и мгновенное уничтожение? Документ/инвентарь не будет удалён.`
+          ))
+        ) {
+          await t.actor.update({ "system.attributes.hp.value": 0 });
+          await t.actor.setFlag(MODULE_ID, "godDestroyed", { sourceActorUuid: actor.uuid, requestId });
+        } else survivors.push(t);
+      }
+      if (!survivors.length) return true;
+      const result = await godPulse(source, activity.item, survivors, { save: "wis", requestId });
+      if (result.status !== "success") return { status: "needs-review" };
+      for (const t of survivors)
+        if (result.failedSaves.includes(t.uuid)) {
+          await t.actor.createEmbeddedDocuments("ActiveEffect", [
+            {
+              name: "Суд: обращение в бегство",
+              img: GOD_ICON,
+              type: "base",
+              transfer: false,
+              disabled: false,
+              statuses: [],
+              ...temporaryEffectTiming({ seconds: 60, actor: t.actor, expiry: "updateWorldTime" }),
+              flags: {
+                [MODULE_ID]: {
+                  godJudgment: {
+                    sourceActorUuid: actor.uuid,
+                    sourceTokenUuid: source.uuid,
+                    targetTokenUuid: t.uuid,
+                    itemUuid: activity.item.uuid,
+                    dc: godDC(actor)
+                  }
+                },
+                dae: { expiryMode: "delete" }
+              },
+              system: {
+                changes: [
+                  {
+                    key: "flags.midi-qol.actions.reactionsMax",
+                    type: "override",
+                    value: "0",
+                    phase: "initial",
+                    priority: 20
+                  }
+                ]
+              }
+            }
+          ]);
+        }
+      return true;
+    }
+  );
 }

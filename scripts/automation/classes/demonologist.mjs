@@ -56,16 +56,16 @@ export function demonologistLevel(actor) {
 function hasArcanaOrReligion(actor) {
   const arcana = actor?.system?.skills?.arc;
   const religion = actor?.system?.skills?.rel;
-  return Number(arcana?.value ?? arcana?.proficient ?? 0) > 0
-    || Number(religion?.value ?? religion?.proficient ?? 0) > 0;
+  return (
+    Number(arcana?.value ?? arcana?.proficient ?? 0) > 0 || Number(religion?.value ?? religion?.proficient ?? 0) > 0
+  );
 }
 
 function searchableSpellText(item) {
-  return [
-    item?.name,
-    item?.system?.identifier,
-    item?.system?.description?.value
-  ].filter(Boolean).join(" ").toLocaleLowerCase("ru");
+  return [item?.name, item?.system?.identifier, item?.system?.description?.value]
+    .filter(Boolean)
+    .join(" ")
+    .toLocaleLowerCase("ru");
 }
 
 function isPreparedOrAlwaysAvailableSpell(item) {
@@ -197,7 +197,10 @@ export async function activateDemonicVitality(actor) {
   if (current) await current.update(data);
   else await actor.createEmbeddedDocuments("ActiveEffect", [data]);
   await ensureDemonicVitalityTempHp(actor);
-  await chat(actor, `<p><strong>${actor.name}: Демоническая живучесть.</strong> Эффект активен 1 минуту. В начале каждого вашего хода временные хиты становятся минимум 10. Существо в пределах 5 футов, которое совершает по вам рукопашную атаку, получает 3к10 огненного урона; сопротивление огню игнорируется.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Демоническая живучесть.</strong> Эффект активен 1 минуту. В начале каждого вашего хода временные хиты становятся минимум 10. Существо в пределах 5 футов, которое совершает по вам рукопашную атаку, получает 3к10 огненного урона; сопротивление огню игнорируется.</p>`
+  );
   return true;
 }
 
@@ -207,7 +210,10 @@ export async function beginDemonologistTurn(actor) {
 }
 
 async function showDemonCharm(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Очарование демонов.</strong> Ваши <em>Очарование личности</em> и <em>Очарование монстра</em> действуют на демонов, даже если у них есть иммунитет к подобным попыткам подчинения. Подтвердите тип цели и заклинание с Мастером.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Очарование демонов.</strong> Ваши <em>Очарование личности</em> и <em>Очарование монстра</em> действуют на демонов, даже если у них есть иммунитет к подобным попыткам подчинения. Подтвердите тип цели и заклинание с Мастером.</p>`
+  );
   return true;
 }
 
@@ -224,37 +230,58 @@ export async function summonDemonologistInfernalFamiliar(actor) {
 }
 
 async function showInfernalFamiliar(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Инфернальный фамильяр.</strong> Вы получаете квазита-фамильяра. Если фамильяр уже был, квазит пожирает его и занимает его место. Создание/замена актёра выполняется вручную.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Инфернальный фамильяр.</strong> Вы получаете квазита-фамильяра. Если фамильяр уже был, квазит пожирает его и занимает его место. Создание/замена актёра выполняется вручную.</p>`
+  );
   return true;
 }
 
 async function useMasterSummoner(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Мастер призыва.</strong> Следующее подходящее заклинание призыва демонов можно наложить без траты ячейки. Конкретное заклинание и призванные существа выбираются отдельно.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Мастер призыва.</strong> Следующее подходящее заклинание призыва демонов можно наложить без траты ячейки. Конкретное заклинание и призванные существа выбираются отдельно.</p>`
+  );
   return true;
 }
 
 async function castProtection(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Защита от добра и зла.</strong> Вы накладываете <em>Защиту от добра и зла</em> без траты ячейки и без компонентов.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Защита от добра и зла.</strong> Вы накладываете <em>Защиту от добра и зла</em> без траты ячейки и без компонентов.</p>`
+  );
   return true;
 }
 
 async function castSpiritGuardians(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Духовные стражи.</strong> Вы накладываете <em>Духовных стражей</em> без траты ячейки и без компонентов. Стражи выглядят как бесы или младшие демоны и наносят некротический урон.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Духовные стражи.</strong> Вы накладываете <em>Духовных стражей</em> без траты ячейки и без компонентов. Стражи выглядят как бесы или младшие демоны и наносят некротический урон.</p>`
+  );
   return true;
 }
 
 async function castDetectThoughts(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Обнаружение мыслей.</strong> Вы накладываете <em>Обнаружение мыслей</em> без траты ячейки и без компонентов.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Обнаружение мыслей.</strong> Вы накладываете <em>Обнаружение мыслей</em> без траты ячейки и без компонентов.</p>`
+  );
   return true;
 }
 
 async function useDoubleSummon(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Удвоенный призыв.</strong> При применении подходящего заклинания призыва демонов призовите вдвое больше существ, чем обычно.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Удвоенный призыв.</strong> При применении подходящего заклинания призыва демонов призовите вдвое больше существ, чем обычно.</p>`
+  );
   return true;
 }
 
 async function showDomination(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Доминация.</strong> Вы можете использовать <em>Подчинение личности</em> на демонов, игнорируя их сопротивления и иммунитеты к таким эффектам очарования. Подтвердите тип цели и заклинание с Мастером.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Доминация.</strong> Вы можете использовать <em>Подчинение личности</em> на демонов, игнорируя их сопротивления и иммунитеты к таким эффектам очарования. Подтвердите тип цели и заклинание с Мастером.</p>`
+  );
   return true;
 }
 

@@ -29,7 +29,7 @@ function hasReligionProficiency(actor) {
 function hasLawfulAlignment(actor) {
   const alignmentData = actor?.system?.details?.alignment;
   const alignment = String(
-    typeof alignmentData === "object" ? alignmentData?.value ?? alignmentData?.label ?? "" : alignmentData ?? ""
+    typeof alignmentData === "object" ? (alignmentData?.value ?? alignmentData?.label ?? "") : (alignmentData ?? "")
   ).toLocaleLowerCase("ru");
   return alignment.includes("lawful") || alignment.includes("законн");
 }

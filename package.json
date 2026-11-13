@@ -10,9 +10,17 @@
     "coverage": "node tools/automation-coverage.mjs",
     "test": "node tools/test.mjs",
     "verify": "npm run test && npm run validate",
-    "check": "npm run test && npm run build && npm run validate"
+    "check": "npm run test && npm run build && npm run validate",
+    "format": "prettier --write \"scripts/**/*.mjs\" \"src/**/*.mjs\" \"tools/**/*.mjs\" \"tests/**/*.mjs\"",
+    "format:check": "prettier --check \"scripts/**/*.mjs\" \"src/**/*.mjs\" \"tools/**/*.mjs\" \"tests/**/*.mjs\""
   },
   "devDependencies": {
-    "classic-level": "3.0.0"
+    "@eslint/js": "10.0.1",
+    "classic-level": "3.0.0",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "prettier": "3.10.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2"
   }
 }

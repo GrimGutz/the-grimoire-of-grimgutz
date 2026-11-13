@@ -15,8 +15,12 @@ const OWNERSHIP = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS ?? {
 const ownerOperations = new Map();
 const recipes = new Map();
 
-export function registerSummonRecipe(source, recipe) { recipes.set(source, recipe); }
-export function summonRequestResult(requestId) { return gmRequestResult(requestId); }
+export function registerSummonRecipe(source, recipe) {
+  recipes.set(source, recipe);
+}
+export function summonRequestResult(requestId) {
+  return gmRequestResult(requestId);
+}
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -27,18 +31,20 @@ function escapeHtml(value) {
 }
 
 function abilityData(values = {}) {
-  return Object.fromEntries(["str", "dex", "con", "int", "wis", "cha"].map(ability => [
-    ability,
-    {
-      value: Number(values[ability] ?? 10),
-      proficient: 0,
-      bonuses: {
-        check: "",
-        save: ""
-      },
-      max: null
-    }
-  ]));
+  return Object.fromEntries(
+    ["str", "dex", "con", "int", "wis", "cha"].map(ability => [
+      ability,
+      {
+        value: Number(values[ability] ?? 10),
+        proficient: 0,
+        bonuses: {
+          check: "",
+          save: ""
+        },
+        max: null
+      }
+    ])
+  );
 }
 
 function defaultSkills() {
@@ -62,22 +68,24 @@ function defaultSkills() {
     ste: "dex",
     sur: "wis"
   };
-  return Object.fromEntries(Object.entries(skills).map(([key, ability]) => [
-    key,
-    {
-      value: 0,
-      ability,
-      bonuses: {
-        check: "",
-        passive: ""
-      },
-      roll: {
-        min: null,
-        max: null,
-        mode: 0
+  return Object.fromEntries(
+    Object.entries(skills).map(([key, ability]) => [
+      key,
+      {
+        value: 0,
+        ability,
+        bonuses: {
+          check: "",
+          passive: ""
+        },
+        roll: {
+          min: null,
+          max: null,
+          mode: 0
+        }
       }
-    }
-  ]));
+    ])
+  );
 }
 
 function defaultDamageTrait(overrides = {}) {
@@ -121,13 +129,17 @@ function sensesData(senses = {}) {
 }
 
 function spellsData() {
-  return Object.fromEntries(["spell0", "spell1", "spell2", "spell3", "spell4", "spell5", "spell6", "spell7", "spell8", "spell9", "pact"].map(key => [
-    key,
-    {
-      value: 0,
-      override: null
-    }
-  ]));
+  return Object.fromEntries(
+    ["spell0", "spell1", "spell2", "spell3", "spell4", "spell5", "spell6", "spell7", "spell8", "spell9", "pact"].map(
+      key => [
+        key,
+        {
+          value: 0,
+          override: null
+        }
+      ]
+    )
+  );
 }
 
 function safeRollFormula(value) {
@@ -161,43 +173,50 @@ function ownershipFor(owner, requestedBy) {
 function featureItems(summon) {
   return (summon.features ?? []).map(feature => {
     const activities = summonActivities(feature.activities ?? []);
-    return ({
-    name: feature.name,
-    type: "feat",
-    img: feature.img ?? summon.img,
-    system: {
-      description: {
-        value: feature.description ?? "",
-        chat: ""
+    return {
+      name: feature.name,
+      type: "feat",
+      img: feature.img ?? summon.img,
+      system: {
+        description: {
+          value: feature.description ?? "",
+          chat: ""
+        },
+        source: {
+          custom: "The Grimoire of GrimGutz: summoned creature",
+          book: "TGoGG",
+          page: "",
+          license: "",
+          revision: 1,
+          rules: "2014"
+        },
+        uses: {
+          max: "",
+          spent: 0,
+          recovery: []
+        },
+        type: {
+          value: "monster",
+          subtype: ""
+        },
+        prerequisites: {
+          level: null
+        },
+        properties: [],
+        requirements: "",
+        activities,
+        advancement: [],
+        identifier: "",
+        enchant: {}
       },
-      source: {
-        custom: "The Grimoire of GrimGutz: summoned creature",
-        book: "TGoGG",
-        page: "",
-        license: "",
-        revision: 1,
-        rules: "2014"
-      },
-      uses: {
-        max: "",
-        spent: 0,
-        recovery: []
-      },
-      type: {
-        value: "monster",
-        subtype: ""
-      },
-      prerequisites: {
-        level: null
-      },
-      properties: [],
-      requirements: "",
-      activities,
-      advancement: [],
-      identifier: "",
-      enchant: {}
-    }, flags: { [MODULE_ID]: { managedSummonFeature: feature.key ?? feature.name, managedActivities: summonActivitySignature(activities) } }
-  }); });
+      flags: {
+        [MODULE_ID]: {
+          managedSummonFeature: feature.key ?? feature.name,
+          managedActivities: summonActivitySignature(activities)
+        }
+      }
+    };
+  });
 }
 
 function actorSystem(summon) {
@@ -301,8 +320,17 @@ function actorSystem(summon) {
       sp: 0,
       cp: 0
     },
-    skills: Object.fromEntries(Object.entries(defaultSkills()).map(([key,value]) => [key, {...value, ...(summon.skills?.[key] ?? {}),
-      bonuses: {...value.bonuses, ...summon.skills?.[key]?.bonuses}, roll: {...value.roll, ...summon.skills?.[key]?.roll} }])),
+    skills: Object.fromEntries(
+      Object.entries(defaultSkills()).map(([key, value]) => [
+        key,
+        {
+          ...value,
+          ...(summon.skills?.[key] ?? {}),
+          bonuses: { ...value.bonuses, ...summon.skills?.[key]?.bonuses },
+          roll: { ...value.roll, ...summon.skills?.[key]?.roll }
+        }
+      ])
+    ),
     spells: spellsData(),
     bonuses: {
       mwak: {
@@ -395,11 +423,19 @@ function actorData(owner, summon, requestedBy) {
     name: summon.name,
     type: "npc",
     img: summon.img,
-    items: [...featureItems(summon), ...(summon.extraItems ?? []).map(item => {
-      const data = foundry.utils.deepClone(item); delete data._stats;
-      if (!summon.preserveEmbedded) { delete data._id; data.flags = {}; data.effects = []; }
-      return data;
-    })],
+    items: [
+      ...featureItems(summon),
+      ...(summon.extraItems ?? []).map(item => {
+        const data = foundry.utils.deepClone(item);
+        delete data._stats;
+        if (!summon.preserveEmbedded) {
+          delete data._id;
+          data.flags = {};
+          data.effects = [];
+        }
+        return data;
+      })
+    ],
     effects: summon.effects ?? [],
     ownership: ownershipFor(owner, requestedBy),
     flags: {
@@ -411,12 +447,14 @@ function actorData(owner, summon, requestedBy) {
         summonFamily: summon.uniqueGroup ?? summon.source ?? summon.kind,
         summonTemplate: summon,
         summonManaged: managedValues(summon),
-        summonLifecycle: summon.lifecycle ? {
-          ...summon.lifecycle,
-          createdAt: game.time?.worldTime ?? 0,
-          expiresAt: (game.time?.worldTime ?? 0) + Number(summon.lifecycle.seconds ?? 0),
-          controlled: true
-        } : null
+        summonLifecycle: summon.lifecycle
+          ? {
+              ...summon.lifecycle,
+              createdAt: game.time?.worldTime ?? 0,
+              expiresAt: (game.time?.worldTime ?? 0) + Number(summon.lifecycle.seconds ?? 0),
+              controlled: true
+            }
+          : null
       }
     },
     // Opt-in native NPC recipes retain their real skills, saves, spell slots
@@ -427,13 +465,16 @@ function actorData(owner, summon, requestedBy) {
 }
 
 function summonedActor(owner, summon) {
-  return game.actors?.find(actor => (
-    actor.getFlag(MODULE_ID, "summoned") === true
-    && actor.getFlag(MODULE_ID, "summonedBy") === owner.uuid
-    && (actor.getFlag(MODULE_ID, "summonFamily") === (summon.uniqueGroup ?? summon.source ?? summon.kind)
-      || actor.getFlag(MODULE_ID, "summonKind") === summon.kind
-      || (!actor.getFlag(MODULE_ID, "summonFamily") && summon.source && actor.getFlag(MODULE_ID, "summonSource") === summon.source))
-  ));
+  return game.actors?.find(
+    actor =>
+      actor.getFlag(MODULE_ID, "summoned") === true &&
+      actor.getFlag(MODULE_ID, "summonedBy") === owner.uuid &&
+      (actor.getFlag(MODULE_ID, "summonFamily") === (summon.uniqueGroup ?? summon.source ?? summon.kind) ||
+        actor.getFlag(MODULE_ID, "summonKind") === summon.kind ||
+        (!actor.getFlag(MODULE_ID, "summonFamily") &&
+          summon.source &&
+          actor.getFlag(MODULE_ID, "summonSource") === summon.source))
+  );
 }
 
 function firstTokenDocument(actor) {
@@ -442,12 +483,18 @@ function firstTokenDocument(actor) {
   return token?.document ?? token ?? null;
 }
 
-function sceneTokens(scene) { return [...(scene?.tokens ?? [])]; }
+function sceneTokens(scene) {
+  return [...(scene?.tokens ?? [])];
+}
 
 function ownerTokenDocument(owner, scene, sourceTokenId) {
-  return scene?.tokens?.get?.(sourceTokenId)
-    ?? sceneTokens(scene).find(token => token.actor?.uuid === owner.uuid || token.actorId === owner.id)
-    ?? (canvas?.scene === scene ? canvas?.tokens?.controlled?.find(token => token.actor?.uuid === owner.uuid)?.document : null);
+  return (
+    scene?.tokens?.get?.(sourceTokenId) ??
+    sceneTokens(scene).find(token => token.actor?.uuid === owner.uuid || token.actorId === owner.id) ??
+    (canvas?.scene === scene
+      ? canvas?.tokens?.controlled?.find(token => token.actor?.uuid === owner.uuid)?.document
+      : null)
+  );
 }
 
 function tokenPosition(owner, scene, sourceTokenId, index = 0) {
@@ -456,7 +503,7 @@ function tokenPosition(owner, scene, sourceTokenId, index = 0) {
   if (!token) return { x: 0, y: 0 };
   const width = Math.max(1, Number(token.width ?? 1));
   return {
-    x: Number(token.x ?? 0) + (width * grid),
+    x: Number(token.x ?? 0) + width * grid,
     y: Number(token.y ?? 0) + index * grid
   };
 }
@@ -472,13 +519,17 @@ async function createToken(actor, owner, summon, scene, sourceTokenId, index) {
   if (placement && (placement.sceneId !== scene.id || !Number.isFinite(placement.x) || !Number.isFinite(placement.y)))
     throw new Error("Некорректное место размещения призыва.");
   const position = placement ?? tokenPosition(owner, scene, sourceTokenId, index);
-  const tokenData = foundry.utils.mergeObject(token, {
-    actorId: actor.id,
-    actorLink: summon.unique === true,
-    x: position.x,
-    y: position.y,
-    disposition: Number(ownerToken?.disposition ?? 1)
-  }, { inplace: false });
+  const tokenData = foundry.utils.mergeObject(
+    token,
+    {
+      actorId: actor.id,
+      actorLink: summon.unique === true,
+      x: position.x,
+      y: position.y,
+      disposition: Number(ownerToken?.disposition ?? 1)
+    },
+    { inplace: false }
+  );
   const created = await scene.createEmbeddedDocuments("Token", [tokenData]);
   if (!created[0]) throw new Error("Не удалось создать токен призыва.");
   return created[0];
@@ -496,9 +547,15 @@ async function announceSummon(owner, actor, summon, token) {
 
 function managedValues(summon) {
   const system = actorSystem(summon);
-  const values = { name: summon.name, img: summon.img, "system.attributes.ac.flat": system.attributes.ac.flat,
-    "system.attributes.hp.max": system.attributes.hp.max, "system.attributes.hp.formula": system.attributes.hp.formula };
-  for (const [key, value] of Object.entries(system.attributes.movement)) values[`system.attributes.movement.${key}`] = value;
+  const values = {
+    name: summon.name,
+    img: summon.img,
+    "system.attributes.ac.flat": system.attributes.ac.flat,
+    "system.attributes.hp.max": system.attributes.hp.max,
+    "system.attributes.hp.formula": system.attributes.hp.formula
+  };
+  for (const [key, value] of Object.entries(system.attributes.movement))
+    values[`system.attributes.movement.${key}`] = value;
   for (const [key, value] of Object.entries(system.abilities)) values[`system.abilities.${key}.value`] = value.value;
   return values;
 }
@@ -506,17 +563,24 @@ function managedValues(summon) {
 export async function updateManagedSummon(actor, summon) {
   const previous = actor.getFlag(MODULE_ID, "summonManaged");
   if (!previous) return false; // Old or ambiguous actors are reported, never silently overwritten.
-  const desired = managedValues(summon), update = {};
+  const desired = managedValues(summon),
+    update = {};
   for (const [key, value] of Object.entries(desired)) {
     const current = foundry.utils.getProperty(actor, key);
-    if (JSON.stringify(current) === JSON.stringify(previous[key]) && JSON.stringify(current) !== JSON.stringify(value)) update[key] = value;
+    if (JSON.stringify(current) === JSON.stringify(previous[key]) && JSON.stringify(current) !== JSON.stringify(value))
+      update[key] = value;
   }
   if (update["system.attributes.hp.max"] !== undefined) {
     const hp = actor.system.attributes.hp;
-    update["system.attributes.hp.value"] = hp.value <= 0 ? 0 : Math.max(0, update["system.attributes.hp.max"] - Math.max(0, hp.max - hp.value));
+    update["system.attributes.hp.value"] =
+      hp.value <= 0 ? 0 : Math.max(0, update["system.attributes.hp.max"] - Math.max(0, hp.max - hp.value));
   }
-  if (!Object.keys(update).length && actor.getFlag(MODULE_ID, "summonKind") === summon.kind
-    && JSON.stringify(actor.getFlag(MODULE_ID, "summonTemplate")) === JSON.stringify(summon)) return false;
+  if (
+    !Object.keys(update).length &&
+    actor.getFlag(MODULE_ID, "summonKind") === summon.kind &&
+    JSON.stringify(actor.getFlag(MODULE_ID, "summonTemplate")) === JSON.stringify(summon)
+  )
+    return false;
   update[`flags.${MODULE_ID}.summonManaged`] = desired;
   update[`flags.${MODULE_ID}.summonTemplate`] = summon;
   update[`flags.${MODULE_ID}.summonKind`] = summon.kind;
@@ -524,13 +588,24 @@ export async function updateManagedSummon(actor, summon) {
   // Only refresh activities created by this module, retaining manual item edits.
   for (const feature of summon.features ?? []) {
     if (!feature.activities?.length) continue;
-    const item = actor.items?.find?.(entry => entry.getFlag?.(MODULE_ID, "managedSummonFeature") === (feature.key ?? feature.name));
+    const item = actor.items?.find?.(
+      entry => entry.getFlag?.(MODULE_ID, "managedSummonFeature") === (feature.key ?? feature.name)
+    );
     if (!item) continue;
     const previousActivities = item.getFlag?.(MODULE_ID, "managedActivities");
-    const current = Object.fromEntries([...(item.system?.activities?.values?.() ?? [])].map(activity => [activity.id, activity.toObject()]));
-    if (previousActivities && summonActivitySignature(current) === previousActivities && summonActivitySignature(summonActivities(feature.activities)) !== previousActivities) {
+    const current = Object.fromEntries(
+      [...(item.system?.activities?.values?.() ?? [])].map(activity => [activity.id, activity.toObject()])
+    );
+    if (
+      previousActivities &&
+      summonActivitySignature(current) === previousActivities &&
+      summonActivitySignature(summonActivities(feature.activities)) !== previousActivities
+    ) {
       const activities = summonActivities(feature.activities);
-      await item.update({ "system.activities": activities, [`flags.${MODULE_ID}.managedActivities`]: summonActivitySignature(activities) });
+      await item.update({
+        "system.activities": activities,
+        [`flags.${MODULE_ID}.managedActivities`]: summonActivitySignature(activities)
+      });
     }
   }
   return true;
@@ -549,13 +624,20 @@ function serializeOwner(owner, task) {
   const previous = ownerOperations.get(owner.uuid) ?? Promise.resolve();
   const operation = previous.catch(() => {}).then(task);
   ownerOperations.set(owner.uuid, operation);
-  void operation.finally(() => { if (ownerOperations.get(owner.uuid) === operation) ownerOperations.delete(owner.uuid); }).catch(() => {});
+  void operation
+    .finally(() => {
+      if (ownerOperations.get(owner.uuid) === operation) ownerOperations.delete(owner.uuid);
+    })
+    .catch(() => {});
   return operation;
 }
 
 async function storeRequest(owner, requestId, result) {
   if (!owner.setFlag) return;
-  const records = { ...(owner.getFlag(MODULE_ID, "summonRequests") ?? {}), [requestId]: { ...result, updatedAt: game.time?.worldTime ?? 0 } };
+  const records = {
+    ...(owner.getFlag(MODULE_ID, "summonRequests") ?? {}),
+    [requestId]: { ...result, updatedAt: game.time?.worldTime ?? 0 }
+  };
   for (const key of Object.keys(records).slice(0, Math.max(0, Object.keys(records).length - 100))) delete records[key];
   await owner.setFlag(MODULE_ID, "summonRequests", records);
 }
@@ -570,18 +652,28 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
   // three-creature cap for every other recipe instead of splitting the group
   // and losing transactional rollback when the fourth reflection fails.
   const maximumGroup = summons.every(summon => summon.kind === "hag-reflection") ? 4 : 3;
-  if (!summons.length || summons.length > maximumGroup || summons.some(summon => !summon.kind)) throw Error("Неверная группа призывов.");
-  const scene = data.sceneId ? game.scenes?.get?.(data.sceneId) ?? (canvas?.scene?.id === data.sceneId ? canvas.scene : null) : null;
+  if (!summons.length || summons.length > maximumGroup || summons.some(summon => !summon.kind))
+    throw Error("Неверная группа призывов.");
+  const scene = data.sceneId
+    ? (game.scenes?.get?.(data.sceneId) ?? (canvas?.scene?.id === data.sceneId ? canvas.scene : null))
+    : null;
   if (data.sceneId && !scene) throw Error("Сцена призыва не найдена.");
   if (data.requireScene && !scene) throw Error("Для призыва нужна сцена.");
-  const actors = [], tokens = [], newActors = [], newTokens = [];
-  const newOwnerEffects = [], restoredOwnerEffects = [];
-  let resourceItem, charged = 0, concentrationEffect;
+  const actors = [],
+    tokens = [],
+    newActors = [],
+    newTokens = [];
+  const newOwnerEffects = [],
+    restoredOwnerEffects = [];
+  let resourceItem,
+    charged = 0,
+    concentrationEffect;
   await storeRequest(owner, requestId, { status: "pending" });
   try {
     if (data.resource?.itemUuid) {
       resourceItem = await fromUuid(data.resource.itemUuid);
-      if (!resourceItem || resourceItem.parent?.uuid !== owner.uuid) throw Error("Ресурс призыва не принадлежит владельцу.");
+      if (!resourceItem || resourceItem.parent?.uuid !== owner.uuid)
+        throw Error("Ресурс призыва не принадлежит владельцу.");
       const cost = Number(data.resource.cost ?? summons.length);
       if (!Number.isInteger(cost) || cost < 1) throw Error("Неверный расход призыва.");
       const uses = itemUses(resourceItem);
@@ -602,11 +694,13 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
         if (!actor) throw Error(`Actor.create returned no document for summon kind "${summon.kind}".`);
         newActors.push(actor);
       } else await updateManagedSummon(actor, summon);
-      if (summon.requireAlive && Number(actor.system?.attributes?.hp?.value) <= 0) throw Error("Союзник уничтожен. Восстановление или срок повторного призыва требует подтверждения Мастера.");
+      if (summon.requireAlive && Number(actor.system?.attributes?.hp?.value) <= 0)
+        throw Error("Союзник уничтожен. Восстановление или срок повторного призыва требует подтверждения Мастера.");
       const existed = sceneTokens(scene).some(token => token.actorId === actor.id);
       const token = await createToken(actor, owner, summon, scene, data.sourceTokenId, index);
       if (token && !existed) newTokens.push({ scene, id: token.id ?? token._id });
-      actors.push(actor); if (token) tokens.push(token);
+      actors.push(actor);
+      if (token) tokens.push(token);
     }
     const concentration = summons.find(summon => summon.lifecycle?.concentration === "hostile");
     if (concentration) {
@@ -615,7 +709,8 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
       const current = [...(owner.concentration?.effects ?? [])];
       if (current.length >= Number(owner.system?.attributes?.concentration?.limit ?? 1)) {
         const approved = concentration.lifecycle.replaceConcentration ?? [];
-        if (current.some(effect => !approved.includes(effect.uuid))) throw Error("Новая концентрация требует подтверждения завершения предыдущей.");
+        if (current.some(effect => !approved.includes(effect.uuid)))
+          throw Error("Новая концентрация требует подтверждения завершения предыдущей.");
         for (const effect of current) {
           const ended = await owner.endConcentration(effect);
           if (!ended?.length) throw Error("Текущую концентрацию не удалось завершить.");
@@ -627,12 +722,18 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
         flags: { [MODULE_ID]: { summonConcentration: requestId }, dae: { expiryMode: "delete" } }
       });
       if (!concentrationEffect) throw Error("Концентрация не создана.");
-      for (const actor of actors) await actor.update({ [`flags.${MODULE_ID}.summonLifecycle.concentrationEffectUuid`]: concentrationEffect.uuid });
+      for (const actor of actors)
+        await actor.update({
+          [`flags.${MODULE_ID}.summonLifecycle.concentrationEffectUuid`]: concentrationEffect.uuid
+        });
     }
     for (const data of summons.flatMap(summon => summon.ownerEffects ?? [])) {
       if (!data.flags?.[MODULE_ID]) throw Error("Неизвестный эффект владельца призыва.");
-      const current = [...(owner.effects ?? [])].find(effect => effect.origin === data.origin
-        && Object.entries(data.flags[MODULE_ID]).every(([key, value]) => effect.getFlag?.(MODULE_ID, key) === value));
+      const current = [...(owner.effects ?? [])].find(
+        effect =>
+          effect.origin === data.origin &&
+          Object.entries(data.flags[MODULE_ID]).every(([key, value]) => effect.getFlag?.(MODULE_ID, key) === value)
+      );
       if (current) {
         restoredOwnerEffects.push({ effect: current, data: current.toObject() });
         await current.update(data, { [MODULE_ID]: { reactivate: true } });
@@ -642,48 +743,101 @@ async function performSummonGroup(owner, data, { requesterId, requestId }) {
         newOwnerEffects.push(...created);
       }
     }
-    const result = { status: "success", actorUuids: actors.map(actor => actor.uuid ?? `Actor.${actor.id}`), tokenUuids: tokens.map(token => token.uuid ?? token.id), requestId };
+    const result = {
+      status: "success",
+      actorUuids: actors.map(actor => actor.uuid ?? `Actor.${actor.id}`),
+      tokenUuids: tokens.map(token => token.uuid ?? token.id),
+      requestId
+    };
     await storeRequest(owner, requestId, result);
     for (const [index, actor] of actors.entries()) {
-      try { await announceSummon(owner, actor, summons[index], tokens[index]); }
-      catch (error) { console.warn(`${MODULE_ID} | Summon announcement failed`, error); }
+      try {
+        await announceSummon(owner, actor, summons[index], tokens[index]);
+      } catch (error) {
+        console.warn(`${MODULE_ID} | Summon announcement failed`, error);
+      }
     }
     return result;
   } catch (error) {
     const rollbackErrors = [];
-    for (const effect of newOwnerEffects) try { await effect.delete(); } catch (failure) { rollbackErrors.push(failure.message); }
-    for (const snapshot of restoredOwnerEffects) try { await snapshot.effect.update(snapshot.data); } catch (failure) { rollbackErrors.push(failure.message); }
+    for (const effect of newOwnerEffects)
+      try {
+        await effect.delete();
+      } catch (failure) {
+        rollbackErrors.push(failure.message);
+      }
+    for (const snapshot of restoredOwnerEffects)
+      try {
+        await snapshot.effect.update(snapshot.data);
+      } catch (failure) {
+        rollbackErrors.push(failure.message);
+      }
     if (concentrationEffect) {
-      try { await concentrationEffect.delete(); } catch (failure) { rollbackErrors.push(failure.message); }
+      try {
+        await concentrationEffect.delete();
+      } catch (failure) {
+        rollbackErrors.push(failure.message);
+      }
     }
     for (const { scene, id } of newTokens) {
-      try { await scene.deleteEmbeddedDocuments("Token", [id]); } catch (failure) { rollbackErrors.push(failure.message); }
+      try {
+        await scene.deleteEmbeddedDocuments("Token", [id]);
+      } catch (failure) {
+        rollbackErrors.push(failure.message);
+      }
     }
     for (const actor of newActors) {
-      try { await actor.delete(); } catch (failure) { rollbackErrors.push(failure.message); }
+      try {
+        await actor.delete();
+      } catch (failure) {
+        rollbackErrors.push(failure.message);
+      }
     }
     // Refund only after a confirmed rollback. Never infer this from a client timeout.
     if (!rollbackErrors.length && charged) {
-      try { await resourceItem.update({ "system.uses.spent": Math.max(0, itemUses(resourceItem).spent - charged) }); }
-      catch (failure) { rollbackErrors.push(`Расход не возвращён: ${failure.message}`); }
+      try {
+        await resourceItem.update({ "system.uses.spent": Math.max(0, itemUses(resourceItem).spent - charged) });
+      } catch (failure) {
+        rollbackErrors.push(`Расход не возвращён: ${failure.message}`);
+      }
     }
-    const result = { status: rollbackErrors.length ? "needs-review" : "failed", error: error.message, rollbackErrors, requestId };
+    const result = {
+      status: rollbackErrors.length ? "needs-review" : "failed",
+      error: error.message,
+      rollbackErrors,
+      requestId
+    };
     await storeRequest(owner, requestId, result);
     return result;
   }
 }
 
-registerGmRequest(SOCKET_TYPE, (owner, data, context) => serializeOwner(owner, () => performSummonGroup(owner, data, context)));
-registerGmRequest("inspect-summon-request", async (owner, data) => owner.getFlag?.(MODULE_ID, "summonRequests")?.[data.requestId] ?? { status: "pending", requestId: data.requestId });
+registerGmRequest(SOCKET_TYPE, (owner, data, context) =>
+  serializeOwner(owner, () => performSummonGroup(owner, data, context))
+);
+registerGmRequest(
+  "inspect-summon-request",
+  async (owner, data) =>
+    owner.getFlag?.(MODULE_ID, "summonRequests")?.[data.requestId] ?? { status: "pending", requestId: data.requestId }
+);
 
 export async function createSummonedGroup(owner, summons, options = {}) {
   if (!owner || !summons?.length) return { status: "failed", error: "Нет владельца или существ." };
   const scene = options.scene ?? canvas?.scene;
-  const result = await requestGm(SOCKET_TYPE, owner, {
-    summons, sceneId: options.sceneId ?? scene?.id ?? null, sourceTokenId: options.sourceTokenId ?? ownerTokenDocument(owner, scene)?.id ?? null,
-    resource: options.resource ?? null, requireScene: options.requireScene === true
-  }, options);
-  if (result.status === "failed" || result.status === "needs-review") notify(result.error ?? "Призыв не выполнен.", "warn");
+  const result = await requestGm(
+    SOCKET_TYPE,
+    owner,
+    {
+      summons,
+      sceneId: options.sceneId ?? scene?.id ?? null,
+      sourceTokenId: options.sourceTokenId ?? ownerTokenDocument(owner, scene)?.id ?? null,
+      resource: options.resource ?? null,
+      requireScene: options.requireScene === true
+    },
+    options
+  );
+  if (result.status === "failed" || result.status === "needs-review")
+    notify(result.error ?? "Призыв не выполнен.", "warn");
   return result;
 }
 
@@ -691,12 +845,19 @@ export async function createSummonedCreature(owner, summon, options = {}) {
   const result = await createSummonedGroup(owner, [summon], options);
   if (result.status === "pending") {
     const error = new Error(`Результат призыва ${result.requestId} ещё неизвестен.`);
-    error.name = "SummonPendingError"; error.requestId = result.requestId;
+    error.name = "SummonPendingError";
+    error.requestId = result.requestId;
     throw error;
   }
   if (result.status !== "success") return false;
   const uuid = result.actorUuids[0];
-  return game.actors?.get?.(uuid.split(".").at(-1)) ?? game.actors?.find(actor => (actor.uuid ?? `Actor.${actor.id}`) === uuid) ?? await fromUuid(uuid);
+  return (
+    game.actors?.get?.(uuid.split(".").at(-1)) ??
+    game.actors?.find(actor => (actor.uuid ?? `Actor.${actor.id}`) === uuid) ??
+    (await fromUuid(uuid))
+  );
 }
 
-export function installSummonSocket() { installGmRequests(); }
+export function installSummonSocket() {
+  installGmRequests();
+}

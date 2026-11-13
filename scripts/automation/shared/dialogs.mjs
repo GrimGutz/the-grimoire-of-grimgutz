@@ -25,9 +25,7 @@ function normalizeChoice(choice) {
 }
 
 function normalizedChoices(choices) {
-  return (choices ?? [])
-    .map(normalizeChoice)
-    .filter(choice => choice.value !== undefined && choice.value !== null);
+  return (choices ?? []).map(normalizeChoice).filter(choice => choice.value !== undefined && choice.value !== null);
 }
 
 function optionHtml(choice, selectedValue) {
@@ -62,7 +60,8 @@ export async function choiceDialog({
     notify(`${title ?? "Выбор"}: нет доступных вариантов.`, "warn");
     return null;
   }
-  const selectedValue = defaultValue ?? list.find(choice => choice.selected)?.value ?? list.find(choice => !choice.disabled)?.value;
+  const selectedValue =
+    defaultValue ?? list.find(choice => choice.selected)?.value ?? list.find(choice => !choice.disabled)?.value;
   const options = list.map(choice => optionHtml(choice, selectedValue)).join("");
   return foundry.applications.api.DialogV2.wait({
     window: { title: title ?? "Выбор" },
@@ -82,7 +81,8 @@ export async function choiceDialog({
         label: confirmLabel,
         icon: confirmIcon,
         default: true,
-        callback: (_event, _button, dialog) => dialog.element.querySelector(`select[name="${selectName}"]`)?.value ?? null
+        callback: (_event, _button, dialog) =>
+          dialog.element.querySelector(`select[name="${selectName}"]`)?.value ?? null
       },
       {
         action: "cancel",
@@ -171,18 +171,20 @@ export async function multiChoiceDialog({
     return null;
   }
   const selectedSet = new Set((selected ?? []).map(String));
-  const rows = list.map(choice => {
-    const value = String(choice.value);
-    const checked = selectedSet.has(value) || choice.selected ? " checked" : "";
-    const disabled = choice.disabled ? " disabled" : "";
-    const hintText = choice.hint ? `<span class="notes">${escapeHtml(choice.hint)}</span>` : "";
-    return `
+  const rows = list
+    .map(choice => {
+      const value = String(choice.value);
+      const checked = selectedSet.has(value) || choice.selected ? " checked" : "";
+      const disabled = choice.disabled ? " disabled" : "";
+      const hintText = choice.hint ? `<span class="notes">${escapeHtml(choice.hint)}</span>` : "";
+      return `
       <label class="checkbox">
         <input type="checkbox" name="${escapeHtml(inputName)}" value="${escapeHtml(value)}"${checked}${disabled}>
         ${escapeHtml(choice.label)} ${hintText}
       </label>
     `;
-  }).join("");
+    })
+    .join("");
   const limitText = max ? `Выберите от ${min} до ${max}.` : min > 0 ? `Выберите минимум ${min}.` : "";
   const result = await foundry.applications.api.DialogV2.wait({
     window: { title: title ?? "Выбор" },
@@ -200,8 +202,8 @@ export async function multiChoiceDialog({
         label: confirmLabel,
         icon: confirmIcon,
         default: true,
-        callback: (_event, _button, dialog) => [...dialog.element.querySelectorAll(`input[name="${inputName}"]:checked`)]
-          .map(input => input.value)
+        callback: (_event, _button, dialog) =>
+          [...dialog.element.querySelectorAll(`input[name="${inputName}"]:checked`)].map(input => input.value)
       },
       {
         action: "cancel",
@@ -239,10 +241,14 @@ export async function selectFormDialog({
     notify(`${title ?? "Выбор"}: нет доступных полей.`, "warn");
     return null;
   }
-  const content = safeFields.map(field => {
-    const choices = normalizedChoices(field.choices);
-    const selected = field.defaultValue ?? choices.find(choice => choice.selected)?.value ?? choices.find(choice => !choice.disabled)?.value;
-    return `
+  const content = safeFields
+    .map(field => {
+      const choices = normalizedChoices(field.choices);
+      const selected =
+        field.defaultValue ??
+        choices.find(choice => choice.selected)?.value ??
+        choices.find(choice => !choice.disabled)?.value;
+      return `
       <div class="form-group">
         <label>${escapeHtml(field.label ?? field.name)}</label>
         <div class="form-fields">
@@ -252,7 +258,8 @@ export async function selectFormDialog({
         </div>
       </div>
     `;
-  }).join("");
+    })
+    .join("");
   return foundry.applications.api.DialogV2.wait({
     window: { title: title ?? "Выбор" },
     position: { width },
@@ -266,10 +273,13 @@ export async function selectFormDialog({
         label: confirmLabel,
         icon: confirmIcon,
         default: true,
-        callback: (_event, _button, dialog) => Object.fromEntries(safeFields.map(field => [
-          field.name,
-          dialog.element.querySelector(`select[name="${field.name}"]`)?.value ?? null
-        ]))
+        callback: (_event, _button, dialog) =>
+          Object.fromEntries(
+            safeFields.map(field => [
+              field.name,
+              dialog.element.querySelector(`select[name="${field.name}"]`)?.value ?? null
+            ])
+          )
       },
       {
         action: "cancel",

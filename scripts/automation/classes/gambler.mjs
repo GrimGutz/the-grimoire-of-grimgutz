@@ -1,11 +1,5 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
-import {
-  automationData,
-  findFeature,
-  isAutomationAuthority,
-  itemIdentifier,
-  notify
-} from "../shared/helpers.mjs";
+import { automationData, findFeature, isAutomationAuthority, itemIdentifier, notify } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 
@@ -41,7 +35,10 @@ export function validateGamblerPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "gambler") return true;
   const failures = gamblerPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Харроуер». Не выполнено: ${failures.join(", ")}. Сюжетное обучение картам подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Харроуер». Не выполнено: ${failures.join(", ")}. Сюжетное обучение картам подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -155,9 +152,7 @@ function cardEffectData({ actor, feature, card, flag, namePrefix }) {
 }
 
 async function createCardEffect(actor, { feature, card, flag, namePrefix }) {
-  await actor.createEmbeddedDocuments("ActiveEffect", [
-    cardEffectData({ actor, feature, card, flag, namePrefix })
-  ]);
+  await actor.createEmbeddedDocuments("ActiveEffect", [cardEffectData({ actor, feature, card, flag, namePrefix })]);
 }
 
 async function rollDamage(actor, formula, flavor) {
@@ -185,27 +180,47 @@ export async function playGamblerCard(actor, card, source = "Колода Аст
   const label = `${source}: ${definition.name}`;
   switch (card) {
     case 1:
-      await rollDamage(actor, definition.formula, `${label}: 4к8 колющего урона цели и враждебным существам в пределах 5 футов`);
+      await rollDamage(
+        actor,
+        definition.formula,
+        `${label}: 4к8 колющего урона цели и враждебным существам в пределах 5 футов`
+      );
       break;
     case 2:
-      await chat(actor, `<p><strong>${label}.</strong> Цель заключена в 5-футовую клетку зелёной силы на 1 минуту или пока клетка не разрушена. КД клетки 15, хиты 25.</p>`);
+      await chat(
+        actor,
+        `<p><strong>${label}.</strong> Цель заключена в 5-футовую клетку зелёной силы на 1 минуту или пока клетка не разрушена. КД клетки 15, хиты 25.</p>`
+      );
       break;
     case 3:
       await rollDamage(actor, definition.formula, `${label}: 5к4 урона силой`);
-      await chat(actor, `<p><strong>${label}.</strong> Харроуер получает дополнительное бонусное действие в этом ходу.</p>`);
+      await chat(
+        actor,
+        `<p><strong>${label}.</strong> Харроуер получает дополнительное бонусное действие в этом ходу.</p>`
+      );
       break;
     case 4:
-      await rollDamage(actor, definition.formula, `${label}: 2к10 рубящего урона. Если дальнобойная атака заклинанием была критической, удвойте кости урона по правилам критического попадания.`);
+      await rollDamage(
+        actor,
+        definition.formula,
+        `${label}: 2к10 рубящего урона. Если дальнобойная атака заклинанием была критической, удвойте кости урона по правилам критического попадания.`
+      );
       break;
     case 5:
       await rollDamage(actor, definition.formula, `${label}: 5к4 урона силой`);
-      await chat(actor, `<p><strong>${label}.</strong> Восстановите недостающий классовый ресурс. Если восстанавливается ячейка заклинания, за каждую выпавшую 4 ячейка может быть на один уровень выше.</p>`);
+      await chat(
+        actor,
+        `<p><strong>${label}.</strong> Восстановите недостающий классовый ресурс. Если восстанавливается ячейка заклинания, за каждую выпавшую 4 ячейка может быть на один уровень выше.</p>`
+      );
       break;
     case 6: {
       const roll = await rollDamage(actor, definition.formula, `${label}: 2к6 колющего урона`);
       const jumps = roll.dice?.some(die => die.results?.some(result => Number(result.result ?? 0) === 6));
       if (jumps) {
-        await chat(actor, `<p><strong>${label}.</strong> На кости выпала 6: карта перескакивает на другого врага в пределах 10 футов.</p>`);
+        await chat(
+          actor,
+          `<p><strong>${label}.</strong> На кости выпала 6: карта перескакивает на другого врага в пределах 10 футов.</p>`
+        );
       }
       break;
     }
@@ -219,7 +234,10 @@ export async function drawAstralCard(actor) {
     return false;
   }
   if (heldCardEffect(actor)) {
-    notify(`${actor.name}: у вас уже есть удержанная карта. Используйте или сбросьте её перед новым вытягиванием.`, "warn");
+    notify(
+      `${actor.name}: у вас уже есть удержанная карта. Используйте или сбросьте её перед новым вытягиванием.`,
+      "warn"
+    );
     return false;
   }
   const feature = findFeature(actor, "astral-deck");
@@ -283,7 +301,10 @@ export async function rollRoguesAreLucky(actor) {
     speaker: ChatMessage.getSpeaker({ actor }),
     flavor: "Плутам везёт: бросок Харроуера против броска Мастера"
   });
-  await chat(actor, `<p><strong>Плутам везёт.</strong> Мастер бросает к100. Если результат Харроуера выше, он подсматривает верхнюю карту колоды; порядок этой карты до использования отслеживает Мастер.</p>`);
+  await chat(
+    actor,
+    `<p><strong>Плутам везёт.</strong> Мастер бросает к100. Если результат Харроуера выше, он подсматривает верхнюю карту колоды; порядок этой карты до использования отслеживает Мастер.</p>`
+  );
   return true;
 }
 
@@ -342,27 +363,32 @@ export async function acesBeat(actor) {
   const exhaustion = Number(actor.system?.attributes?.exhaustion ?? 0);
   await actor.update({ "system.attributes.exhaustion": exhaustion + 1 });
   const feature = findFeature(actor, "aces-beat");
-  await actor.createEmbeddedDocuments("ActiveEffect", [{
-    name: "Тузы бьют: перезарядка 24 часа",
-    img: feature?.img ?? "icons/svg/card-joker.svg",
-    origin: feature?.uuid ?? null,
-    transfer: false,
-    disabled: false,
-    showIcon: 1,
-    statuses: [],
-    duration: {
-      seconds: 86400,
-      startTime: game.time?.worldTime ?? 0
-    },
-    flags: {
-      [MODULE_ID]: {
-        [FLAGS.GAMBLER_ACES_COOLDOWN_EFFECT]: true
+  await actor.createEmbeddedDocuments("ActiveEffect", [
+    {
+      name: "Тузы бьют: перезарядка 24 часа",
+      img: feature?.img ?? "icons/svg/card-joker.svg",
+      origin: feature?.uuid ?? null,
+      transfer: false,
+      disabled: false,
+      showIcon: 1,
+      statuses: [],
+      duration: {
+        seconds: 86400,
+        startTime: game.time?.worldTime ?? 0
+      },
+      flags: {
+        [MODULE_ID]: {
+          [FLAGS.GAMBLER_ACES_COOLDOWN_EFFECT]: true
+        }
+      },
+      system: {
+        changes: []
       }
-    },
-    system: {
-      changes: []
     }
-  }]);
-  await chat(actor, `<p><strong>${actor.name}: Тузы бьют.</strong> Карта сожжена. Выполните телепортацию как заклинанием <em>Телепортация</em>. Истощение увеличено на 1; способность недоступна 24 часа.</p>`);
+  ]);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Тузы бьют.</strong> Карта сожжена. Выполните телепортацию как заклинанием <em>Телепортация</em>. Истощение увеличено на 1; способность недоступна 24 часа.</p>`
+  );
   return true;
 }

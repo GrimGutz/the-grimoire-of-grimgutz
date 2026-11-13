@@ -1,13 +1,102 @@
-import {MODULE_ID} from "../shared/constants.mjs";
-import {HALFDRAGON_ANCESTRIES} from "../shared/halfdragon-definitions.mjs";
-import {findFeature} from "../shared/helpers.mjs";
-import {askOwner,confirmOwner} from "../shared/owner-prompts.mjs";
-import {hdState,hdRules,hdPatch,hdAncestry,hdWorn,syncHalfdragon} from "./halfdragon.mjs";
-import {hdGm} from "./halfdragon-use.mjs";
-export async function chooseHalfdragonAncestry(actor){if(hdAncestry(actor)&&!await confirmOwner(hdGm(actor),"Изменить происхождение Дракона","GM подтверждает исправление происхождения, а не бесплатную смену стихии в бою?"))return false;const family=await askOwner(actor,{title:"Драконье семейство",choices:[["chromatic","Хроматический"],["metallic","Металлический"],["gem","Драгоценный"]]});if(!["chromatic","metallic","gem"].includes(family))return false;const id=await askOwner(actor,{title:"Разновидность дракона",choices:HALFDRAGON_ANCESTRIES.filter(r=>r.family===family).map(r=>[r.id,`${r.name}: ${r.damageType}`])});if(!HALFDRAGON_ANCESTRIES.some(r=>r.id===id&&r.family===family))return false;await hdPatch(actor,{ancestry:id});await syncHalfdragon(actor);return true;}
-export async function configureHalfdragon(actor){const gm=hdGm(actor),state=hdRules(actor),choices=[["manual","Вручную: переопределение GM"],["lr","После продолжительного отдыха"],["sr","После короткого или продолжительного отдыха"]];const breath=await askOwner(gm,{title:"GM: восстановление пула Дыхания",choices,defaultValue:state.breathRecovery??"sr"});if(!["manual","lr","sr"].includes(breath))return false;const roar=await askOwner(gm,{title:"GM: восстановление Драконьего Крика",choices,defaultValue:state.roarRecovery??"sr"});if(!["manual","lr","sr"].includes(roar))return false;
-  const hp=await askOwner(gm,{title:"GM: правило HP Оживлённого Дыхания",choices:[["roll","Сумма результатов потраченных костей"],["count","Количество потраченных костей"]],defaultValue:state.livingHpMode});if(!["roll","count"].includes(hp))return false;
-  const duration=await askOwner(gm,{title:"GM: общий срок телекинетической хватки",choices:[["none","До успешного повторного STR/отпускания, без таймера"],["minute","Согласованное правило: одна минута"]],defaultValue:state.graspSeconds?"minute":"none"});if(!["none","minute"].includes(duration))return false;
-  await hdPatch(actor,{breathRecovery:breath,roarRecovery:roar,livingHpMode:hp,graspSeconds:duration==="minute"?60:0});for(const [id,period] of [["breath",breath],["roar",roar]]){const item=findFeature(actor,`halfdragon-${id}`);if(item)await item.update({"system.uses.recovery":period==="manual"?[]:[{period,type:"recoverAll"}]});}return true;
+import { MODULE_ID } from "../shared/constants.mjs";
+import { HALFDRAGON_ANCESTRIES } from "../shared/halfdragon-definitions.mjs";
+import { findFeature } from "../shared/helpers.mjs";
+import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
+import { hdState, hdRules, hdPatch, hdAncestry, hdWorn, syncHalfdragon } from "./halfdragon.mjs";
+import { hdGm } from "./halfdragon-use.mjs";
+export async function chooseHalfdragonAncestry(actor) {
+  if (
+    hdAncestry(actor) &&
+    !(await confirmOwner(
+      hdGm(actor),
+      "Изменить происхождение Дракона",
+      "GM подтверждает исправление происхождения, а не бесплатную смену стихии в бою?"
+    ))
+  )
+    return false;
+  const family = await askOwner(actor, {
+    title: "Драконье семейство",
+    choices: [
+      ["chromatic", "Хроматический"],
+      ["metallic", "Металлический"],
+      ["gem", "Драгоценный"]
+    ]
+  });
+  if (!["chromatic", "metallic", "gem"].includes(family)) return false;
+  const id = await askOwner(actor, {
+    title: "Разновидность дракона",
+    choices: HALFDRAGON_ANCESTRIES.filter(r => r.family === family).map(r => [r.id, `${r.name}: ${r.damageType}`])
+  });
+  if (!HALFDRAGON_ANCESTRIES.some(r => r.id === id && r.family === family)) return false;
+  await hdPatch(actor, { ancestry: id });
+  await syncHalfdragon(actor);
+  return true;
 }
-export async function adaptHalfdragonGear(actor){const worn=hdWorn(actor),ids=await askOwner(hdGm(actor),{kind:"checkbox",title:"GM: какая надетая экипировка приспособлена для крыльев?",min:0,max:worn.length,choices:worn.map(i=>[i.uuid,i.name])});if(!ids)return false;for(const item of worn)await item.setFlag(MODULE_ID,"halfdragonWingAdapted",ids.includes(item.uuid));await syncHalfdragon(actor);return true;}
+export async function configureHalfdragon(actor) {
+  const gm = hdGm(actor),
+    state = hdRules(actor),
+    choices = [
+      ["manual", "Вручную: переопределение GM"],
+      ["lr", "После продолжительного отдыха"],
+      ["sr", "После короткого или продолжительного отдыха"]
+    ];
+  const breath = await askOwner(gm, {
+    title: "GM: восстановление пула Дыхания",
+    choices,
+    defaultValue: state.breathRecovery ?? "sr"
+  });
+  if (!["manual", "lr", "sr"].includes(breath)) return false;
+  const roar = await askOwner(gm, {
+    title: "GM: восстановление Драконьего Крика",
+    choices,
+    defaultValue: state.roarRecovery ?? "sr"
+  });
+  if (!["manual", "lr", "sr"].includes(roar)) return false;
+  const hp = await askOwner(gm, {
+    title: "GM: правило HP Оживлённого Дыхания",
+    choices: [
+      ["roll", "Сумма результатов потраченных костей"],
+      ["count", "Количество потраченных костей"]
+    ],
+    defaultValue: state.livingHpMode
+  });
+  if (!["roll", "count"].includes(hp)) return false;
+  const duration = await askOwner(gm, {
+    title: "GM: общий срок телекинетической хватки",
+    choices: [
+      ["none", "До успешного повторного STR/отпускания, без таймера"],
+      ["minute", "Согласованное правило: одна минута"]
+    ],
+    defaultValue: state.graspSeconds ? "minute" : "none"
+  });
+  if (!["none", "minute"].includes(duration)) return false;
+  await hdPatch(actor, {
+    breathRecovery: breath,
+    roarRecovery: roar,
+    livingHpMode: hp,
+    graspSeconds: duration === "minute" ? 60 : 0
+  });
+  for (const [id, period] of [
+    ["breath", breath],
+    ["roar", roar]
+  ]) {
+    const item = findFeature(actor, `halfdragon-${id}`);
+    if (item)
+      await item.update({ "system.uses.recovery": period === "manual" ? [] : [{ period, type: "recoverAll" }] });
+  }
+  return true;
+}
+export async function adaptHalfdragonGear(actor) {
+  const worn = hdWorn(actor),
+    ids = await askOwner(hdGm(actor), {
+      kind: "checkbox",
+      title: "GM: какая надетая экипировка приспособлена для крыльев?",
+      min: 0,
+      max: worn.length,
+      choices: worn.map(i => [i.uuid, i.name])
+    });
+  if (!ids) return false;
+  for (const item of worn) await item.setFlag(MODULE_ID, "halfdragonWingAdapted", ids.includes(item.uuid));
+  await syncHalfdragon(actor);
+  return true;
+}

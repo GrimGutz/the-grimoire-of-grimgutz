@@ -1,39 +1,257 @@
-import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,findFeature,itemUses} from "../shared/helpers.mjs";
-import {askOwner,confirmOwner} from "../shared/owner-prompts.mjs";
-import {applyNativeOnce,nativeApplicationReply} from "../shared/native-applications.mjs";
-import {registerGmRequest,requestGm,isGmAuthority} from "../shared/gm-requests.mjs";
-import {serialMutation} from "../shared/transactions.mjs";
-import {onPrepareDamage} from "../shared/damage-events.mjs";
-import {calculatedDamage,commitCalculatedDamage} from "../midi/damage-packet.mjs";
-import {hagHas,hagState,patchHag} from "./hag.mjs";
-import {hagGm,useHagCost} from "./hag-use.mjs";
-import {activeHagCurses,hagCurseData,addHagJinx} from "./hag-curses.mjs";
-export const hagMagical=workflow=>workflow?.item?.type==="spell"||workflow?.activity?.midiProperties?.magicEffect===true||workflow?.item?.system?.properties?.has?.("mgc")||workflow?.item?.system?.properties?.includes?.("mgc");
-onPrepareDamage(async({actor,activity,data,target})=>{if(!enabled())return null;const context={},origin=hagState(actor).pulseOrigins?.[data.auraEventKey];if(origin?.hagCurseDamage)context.hagCurseDamage=true;
-  const green=Math.max(0,...activeHagCurses(actor).map(hagCurseData).filter(c=>c.types.includes("green")).map(c=>c.tier));
-  if(green&&data.damageType){const key=data.workflowId??data.key;context.hagGreenReduction=await serialMutation(`hag-green:${actor.uuid}`,async()=>{const old=hagState(actor).damageRolls??{};if(Number.isFinite(old[key]))return old[key];const roll=await new Roll(`1d4 + ${green}`).evaluate();await roll.toMessage({speaker:ChatMessage.getSpeaker({actor}),flavor:"Зелёное проклятие: уменьшение броска урона"});const value=Number(roll.total);await patchHag(actor,{damageRolls:Object.fromEntries([...Object.entries(old),[key,value]].slice(-64))});return value;});}
-  if(activity.type==="attack"&&!data.automatic&&hagHas(actor,"hex")&&itemUses(findFeature(actor,"hag-hex")).remaining>0){const key=`hag-hex-hit:${data.workflowId}:${target.uuid}`,pool=findFeature(actor,"hag-hex"),use=[...pool.system.activities.values()][0];
+import { MODULE_ID } from "../shared/constants.mjs";
+import { enabled, findFeature, itemUses } from "../shared/helpers.mjs";
+import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
+import { applyNativeOnce, nativeApplicationReply } from "../shared/native-applications.mjs";
+import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
+import { serialMutation } from "../shared/transactions.mjs";
+import { onPrepareDamage } from "../shared/damage-events.mjs";
+import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
+import { hagHas, hagState, patchHag } from "./hag.mjs";
+import { hagGm, useHagCost } from "./hag-use.mjs";
+import { activeHagCurses, hagCurseData, addHagJinx } from "./hag-curses.mjs";
+export const hagMagical = workflow =>
+  workflow?.item?.type === "spell" ||
+  workflow?.activity?.midiProperties?.magicEffect === true ||
+  workflow?.item?.system?.properties?.has?.("mgc") ||
+  workflow?.item?.system?.properties?.includes?.("mgc");
+onPrepareDamage(async ({ actor, activity, data, target }) => {
+  if (!enabled()) return null;
+  const context = {},
+    origin = hagState(actor).pulseOrigins?.[data.auraEventKey];
+  if (origin?.hagCurseDamage) context.hagCurseDamage = true;
+  const green = Math.max(
+    0,
+    ...activeHagCurses(actor)
+      .map(hagCurseData)
+      .filter(c => c.types.includes("green"))
+      .map(c => c.tier)
+  );
+  if (green && data.damageType) {
+    const key = data.workflowId ?? data.key;
+    context.hagGreenReduction = await serialMutation(`hag-green:${actor.uuid}`, async () => {
+      const old = hagState(actor).damageRolls ?? {};
+      if (Number.isFinite(old[key])) return old[key];
+      const roll = await new Roll(`1d4 + ${green}`).evaluate();
+      await roll.toMessage({
+        speaker: ChatMessage.getSpeaker({ actor }),
+        flavor: "Зелёное проклятие: уменьшение броска урона"
+      });
+      const value = Number(roll.total);
+      await patchHag(actor, { damageRolls: Object.fromEntries([...Object.entries(old), [key, value]].slice(-64)) });
+      return value;
+    });
+  }
+  if (
+    activity.type === "attack" &&
+    !data.automatic &&
+    hagHas(actor, "hex") &&
+    itemUses(findFeature(actor, "hag-hex")).remaining > 0
+  ) {
+    const key = `hag-hex-hit:${data.workflowId}:${target.uuid}`,
+      pool = findFeature(actor, "hag-hex"),
+      use = [...pool.system.activities.values()][0];
     // The reservation is per confirmed hit packet: no repeat prompt/spend on the same callback.
-    const result=await applyNativeOnce(actor,{requestId:key,action:"hag-hex-hit",activityUuid:activity.uuid},async()=>{if(!await confirmOwner(actor,"Наговор: попадание","Потратить одну кость проклятия и добавить к6 к урону этого попадания?"))return false;return useHagCost(use,{cost:1,activation:"special"});},async()=>{const roll=await new Roll("1d6").evaluate();await actor.setFlag(MODULE_ID,"hagHexHits",Object.fromEntries([...Object.entries(actor.getFlag(MODULE_ID,"hagHexHits")??{}),[key,Number(roll.total)]].slice(-100)));return true;});
-    const value=actor.getFlag(MODULE_ID,"hagHexHits")?.[key];if(result.status==="success"&&Number.isFinite(value))return {bonuses:[{value,name:"Наговор"}],context};
-  }return Object.keys(context).length?{context}:null;
+    const result = await applyNativeOnce(
+      actor,
+      { requestId: key, action: "hag-hex-hit", activityUuid: activity.uuid },
+      async () => {
+        if (
+          !(await confirmOwner(
+            actor,
+            "Наговор: попадание",
+            "Потратить одну кость проклятия и добавить к6 к урону этого попадания?"
+          ))
+        )
+          return false;
+        return useHagCost(use, { cost: 1, activation: "special" });
+      },
+      async () => {
+        const roll = await new Roll("1d6").evaluate();
+        await actor.setFlag(
+          MODULE_ID,
+          "hagHexHits",
+          Object.fromEntries(
+            [...Object.entries(actor.getFlag(MODULE_ID, "hagHexHits") ?? {}), [key, Number(roll.total)]].slice(-100)
+          )
+        );
+        return true;
+      }
+    );
+    const value = actor.getFlag(MODULE_ID, "hagHexHits")?.[key];
+    if (result.status === "success" && Number.isFinite(value))
+      return { bonuses: [{ value, name: "Наговор" }], context };
+  }
+  return Object.keys(context).length ? { context } : null;
 });
-export function applyHagDamage(token,{workflow,damageItem}){if(!enabled()||workflow?.aborted||!token?.actor||(damageItem.damageSelector??"combinedDamage")!=="combinedDamage")return;
-  const selector=damageItem.damageSelector??"combinedDamage",options=structuredClone(damageItem.damageDetails?.calcDamageOptions?.[selector]??damageItem.calcDamageOptions??{invertHealing:true}),amount=options[MODULE_ID]?.damageEvent?.hagGreenReduction;
-  const raw=damageItem.damageDetails?.[`raw${selector}`]??damageItem.rawDamageDetail,call=workflow.activity?.flags?.[MODULE_ID]?.hagCall===true,broom=workflow.activity?.flags?.[MODULE_ID]?.hagBroomExplosion===true;
-  if(raw&&(amount>0&&!damageItem.grimgutzHagGreen||call&&!damageItem.grimgutzHagCall||broom&&!damageItem.grimgutzHagBroom)&&token.actor.calculateDamage){const fresh=structuredClone(raw);if(amount>0&&!damageItem.grimgutzHagGreen){let left=amount;for(const p of fresh)if(Number(p.value)>0&&!["healing","temphp","maximum","midi-none"].includes(p.type)){const n=Math.min(left,Number(p.value));p.value-=n;left-=n;}}
-    if(broom)for(const p of fresh)p.properties=new Set([...(p.properties??[]),"mgc"]);
-    if(call&&options.ignore!==true){options.ignore??={};for(const k of ["resistance","immunity"])options.ignore[k]=true;}
-    const parts=token.actor.calculateDamage(fresh,options);for(const p of parts){const ignored=options.ignore===true||options.ignore?.resistance===true||options.ignore?.resistance?.has?.(p.type)||options.ignore?.resistance?.includes?.(p.type);if(ignored){p.active??={};p.active[MODULE_ID]={...p.active[MODULE_ID],ignoreResistance:true};}}
-    damageItem.rawDamageDetail=fresh;damageItem.damageDetails??={};damageItem.damageDetails[`raw${selector}`]=fresh;damageItem.calcDamageOptions=options;damageItem.damageDetails.calcDamageOptions??={};damageItem.damageDetails.calcDamageOptions[selector]=options;commitCalculatedDamage(token,damageItem,parts);if(amount>0)damageItem.grimgutzHagGreen=true;if(call)damageItem.grimgutzHagCall=true;if(broom)damageItem.grimgutzHagBroom=true;
+export function applyHagDamage(token, { workflow, damageItem }) {
+  if (
+    !enabled() ||
+    workflow?.aborted ||
+    !token?.actor ||
+    (damageItem.damageSelector ?? "combinedDamage") !== "combinedDamage"
+  )
+    return;
+  const selector = damageItem.damageSelector ?? "combinedDamage",
+    options = structuredClone(
+      damageItem.damageDetails?.calcDamageOptions?.[selector] ?? damageItem.calcDamageOptions ?? { invertHealing: true }
+    ),
+    amount = options[MODULE_ID]?.damageEvent?.hagGreenReduction;
+  const raw = damageItem.damageDetails?.[`raw${selector}`] ?? damageItem.rawDamageDetail,
+    call = workflow.activity?.flags?.[MODULE_ID]?.hagCall === true,
+    broom = workflow.activity?.flags?.[MODULE_ID]?.hagBroomExplosion === true;
+  if (
+    raw &&
+    ((amount > 0 && !damageItem.grimgutzHagGreen) ||
+      (call && !damageItem.grimgutzHagCall) ||
+      (broom && !damageItem.grimgutzHagBroom)) &&
+    token.actor.calculateDamage
+  ) {
+    const fresh = structuredClone(raw);
+    if (amount > 0 && !damageItem.grimgutzHagGreen) {
+      let left = amount;
+      for (const p of fresh)
+        if (Number(p.value) > 0 && !["healing", "temphp", "maximum", "midi-none"].includes(p.type)) {
+          const n = Math.min(left, Number(p.value));
+          p.value -= n;
+          left -= n;
+        }
+    }
+    if (broom) for (const p of fresh) p.properties = new Set([...(p.properties ?? []), "mgc"]);
+    if (call && options.ignore !== true) {
+      options.ignore ??= {};
+      for (const k of ["resistance", "immunity"]) options.ignore[k] = true;
+    }
+    const parts = token.actor.calculateDamage(fresh, options);
+    for (const p of parts) {
+      const ignored =
+        options.ignore === true ||
+        options.ignore?.resistance === true ||
+        options.ignore?.resistance?.has?.(p.type) ||
+        options.ignore?.resistance?.includes?.(p.type);
+      if (ignored) {
+        p.active ??= {};
+        p.active[MODULE_ID] = { ...p.active[MODULE_ID], ignoreResistance: true };
+      }
+    }
+    damageItem.rawDamageDetail = fresh;
+    damageItem.damageDetails ??= {};
+    damageItem.damageDetails[`raw${selector}`] = fresh;
+    damageItem.calcDamageOptions = options;
+    damageItem.damageDetails.calcDamageOptions ??= {};
+    damageItem.damageDetails.calcDamageOptions[selector] = options;
+    commitCalculatedDamage(token, damageItem, parts);
+    if (amount > 0) damageItem.grimgutzHagGreen = true;
+    if (call) damageItem.grimgutzHagCall = true;
+    if (broom) damageItem.grimgutzHagBroom = true;
   }
 }
-export function applyHagDefense(token,{workflow,damageItem}){if(!enabled()||workflow?.aborted||!hagHas(token?.actor,"body")||workflow?.activity?.type!=="attack"||hagMagical(workflow)||Number(workflow.item?.system?.magicalBonus??0)>0||workflow.activity?.midiProperties?.magicdam===true||damageItem.grimgutzHagDefense)return;
-  if((damageItem.damageSelector??"combinedDamage")!=="combinedDamage")return;const parts=calculatedDamage(damageItem);for(const p of parts)if(["bludgeoning","piercing","slashing"].includes(p.type)&&Number(p.value)>0&&!p.properties?.has?.("mgc")&&!p.properties?.includes?.("mgc")&&!p.active?.immunity&&!p.active?.resistance&&!Object.values(p.active??{}).some(v=>v?.resistance||v?.ignoreResistance)){p.value=Math.floor(Number(p.value)/2);p.active??={};p.active[MODULE_ID]={...p.active[MODULE_ID],resistance:true};}commitCalculatedDamage(token,damageItem,parts);damageItem.grimgutzHagDefense=true;
+export function applyHagDefense(token, { workflow, damageItem }) {
+  if (
+    !enabled() ||
+    workflow?.aborted ||
+    !hagHas(token?.actor, "body") ||
+    workflow?.activity?.type !== "attack" ||
+    hagMagical(workflow) ||
+    Number(workflow.item?.system?.magicalBonus ?? 0) > 0 ||
+    workflow.activity?.midiProperties?.magicdam === true ||
+    damageItem.grimgutzHagDefense
+  )
+    return;
+  if ((damageItem.damageSelector ?? "combinedDamage") !== "combinedDamage") return;
+  const parts = calculatedDamage(damageItem);
+  for (const p of parts)
+    if (
+      ["bludgeoning", "piercing", "slashing"].includes(p.type) &&
+      Number(p.value) > 0 &&
+      !p.properties?.has?.("mgc") &&
+      !p.properties?.includes?.("mgc") &&
+      !p.active?.immunity &&
+      !p.active?.resistance &&
+      !Object.values(p.active ?? {}).some(v => v?.resistance || v?.ignoreResistance)
+    ) {
+      p.value = Math.floor(Number(p.value) / 2);
+      p.active ??= {};
+      p.active[MODULE_ID] = { ...p.active[MODULE_ID], resistance: true };
+    }
+  commitCalculatedDamage(token, damageItem, parts);
+  damageItem.grimgutzHagDefense = true;
 }
-registerGmRequest("hag-jinx",(actor,data,{requestId})=>serialMutation(`hag-jinx:${actor.uuid}`,async()=>{const activity=await fromUuid(data.activityUuid),source=await fromUuid(data.sourceUuid),target=await fromUuid(data.targetUuid);if(!enabled()||!isGmAuthority()||!hagHas(actor,"jinx")||activity?.actor?.uuid!==actor.uuid||activity.item.type!=="spell"||Number(activity.item.system.level)<1||source?.actor?.uuid!==actor.uuid||target?.parent?.id!==source.parent.id||itemUses(findFeature(actor,"hag-hex")).remaining<1)return false;
-  const old=nativeApplicationReply(actor,requestId);if(old)return old;const pool=findFeature(actor,"hag-hex"),use=[...pool.system.activities.values()][0];
-  return applyNativeOnce(actor,{requestId,action:"hag-jinx",activityUuid:activity.uuid},async()=>{if(!await confirmOwner(actor,"Сглаженные Заклинания","Эта цель провалила спасбросок от вашего заклинания 1+ уровня. Потратить кость проклятия?"))return false;const kind=await askOwner(actor,{title:"Дополнительный эффект",choices:[["vulnerability","Уязвимость"],["madness","Безумие"],["paralysis","Паралич"]]});if(!["vulnerability","madness","paralysis"].includes(kind))return false;const type=kind==="vulnerability"?await askOwner(actor,{title:"Тип уязвимости",choices:Object.keys(CONFIG.DND5E.damageTypes).map(k=>[k,k])}):null;if(kind==="vulnerability"&&!Object.hasOwn(CONFIG.DND5E.damageTypes,type))return false;data.choice={kind,type};return useHagCost(use,{cost:1,activation:"special"});},async()=>{await addHagJinx(source,target,findFeature(actor,"hag-jinx"),data.choice.kind,data.choice.type);return true;});
-}));
-export async function offerHagJinx(workflow){if(!enabled()||workflow?.aborted||workflow.item?.type!=="spell"||Number(workflow.item.system.level)<1||!hagHas(workflow.actor,"jinx"))return;for(const t of workflow.failedSaves??[]){const sourceUuid=workflow.tokenUuid??workflow.token?.document?.uuid??workflow.token?.uuid;await requestGm("hag-jinx",workflow.actor,{activityUuid:workflow.activity.uuid,sourceUuid,targetUuid:t.document?.uuid??t.uuid},{requestId:`hag-jinx:${workflow.id}:${t.document?.uuid??t.uuid}`,timeoutMs:180000});}}
+registerGmRequest("hag-jinx", (actor, data, { requestId }) =>
+  serialMutation(`hag-jinx:${actor.uuid}`, async () => {
+    const activity = await fromUuid(data.activityUuid),
+      source = await fromUuid(data.sourceUuid),
+      target = await fromUuid(data.targetUuid);
+    if (
+      !enabled() ||
+      !isGmAuthority() ||
+      !hagHas(actor, "jinx") ||
+      activity?.actor?.uuid !== actor.uuid ||
+      activity.item.type !== "spell" ||
+      Number(activity.item.system.level) < 1 ||
+      source?.actor?.uuid !== actor.uuid ||
+      target?.parent?.id !== source.parent.id ||
+      itemUses(findFeature(actor, "hag-hex")).remaining < 1
+    )
+      return false;
+    const old = nativeApplicationReply(actor, requestId);
+    if (old) return old;
+    const pool = findFeature(actor, "hag-hex"),
+      use = [...pool.system.activities.values()][0];
+    return applyNativeOnce(
+      actor,
+      { requestId, action: "hag-jinx", activityUuid: activity.uuid },
+      async () => {
+        if (
+          !(await confirmOwner(
+            actor,
+            "Сглаженные Заклинания",
+            "Эта цель провалила спасбросок от вашего заклинания 1+ уровня. Потратить кость проклятия?"
+          ))
+        )
+          return false;
+        const kind = await askOwner(actor, {
+          title: "Дополнительный эффект",
+          choices: [
+            ["vulnerability", "Уязвимость"],
+            ["madness", "Безумие"],
+            ["paralysis", "Паралич"]
+          ]
+        });
+        if (!["vulnerability", "madness", "paralysis"].includes(kind)) return false;
+        const type =
+          kind === "vulnerability"
+            ? await askOwner(actor, {
+                title: "Тип уязвимости",
+                choices: Object.keys(CONFIG.DND5E.damageTypes).map(k => [k, k])
+              })
+            : null;
+        if (kind === "vulnerability" && !Object.hasOwn(CONFIG.DND5E.damageTypes, type)) return false;
+        data.choice = { kind, type };
+        return useHagCost(use, { cost: 1, activation: "special" });
+      },
+      async () => {
+        await addHagJinx(source, target, findFeature(actor, "hag-jinx"), data.choice.kind, data.choice.type);
+        return true;
+      }
+    );
+  })
+);
+export async function offerHagJinx(workflow) {
+  if (
+    !enabled() ||
+    workflow?.aborted ||
+    workflow.item?.type !== "spell" ||
+    Number(workflow.item.system.level) < 1 ||
+    !hagHas(workflow.actor, "jinx")
+  )
+    return;
+  for (const t of workflow.failedSaves ?? []) {
+    const sourceUuid = workflow.tokenUuid ?? workflow.token?.document?.uuid ?? workflow.token?.uuid;
+    await requestGm(
+      "hag-jinx",
+      workflow.actor,
+      { activityUuid: workflow.activity.uuid, sourceUuid, targetUuid: t.document?.uuid ?? t.uuid },
+      { requestId: `hag-jinx:${workflow.id}:${t.document?.uuid ?? t.uuid}`, timeoutMs: 180000 }
+    );
+  }
+}

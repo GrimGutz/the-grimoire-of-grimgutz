@@ -17,15 +17,19 @@ import {
 
 export function createPrerequisiteValidators({ canUseStyle, massiveWeapons }) {
   function hasGreatWeaponMaster(actor) {
-    return actor?.items?.some(item => {
-      const identifier = itemIdentifier(item).replaceAll("_", "-");
-      const name = String(item.name ?? "").toLowerCase();
-      return identifier === "great-weapon-master"
-        || name.includes("great weapon master")
-        || name.includes("мастер большого оружия")
-        || name.includes("мастер тяжёлого оружия")
-        || name.includes("мастер тяжелого оружия");
-    }) ?? false;
+    return (
+      actor?.items?.some(item => {
+        const identifier = itemIdentifier(item).replaceAll("_", "-");
+        const name = String(item.name ?? "").toLowerCase();
+        return (
+          identifier === "great-weapon-master" ||
+          name.includes("great weapon master") ||
+          name.includes("мастер большого оружия") ||
+          name.includes("мастер тяжёлого оружия") ||
+          name.includes("мастер тяжелого оружия")
+        );
+      }) ?? false
+    );
   }
 
   function actorSizeAtLeastMedium(actor) {
@@ -84,12 +88,12 @@ export function createPrerequisiteValidators({ canUseStyle, massiveWeapons }) {
 
     const alignmentData = actor?.system?.details?.alignment;
     const alignment = String(
-      typeof alignmentData === "object" ? alignmentData?.value ?? alignmentData?.label ?? "" : alignmentData ?? ""
+      typeof alignmentData === "object" ? (alignmentData?.value ?? alignmentData?.label ?? "") : (alignmentData ?? "")
     ).toLocaleLowerCase("ru");
     if (
-      alignment.includes("lawful good")
-      || alignment.includes("законно-добр")
-      || alignment.includes("законный добр")
+      alignment.includes("lawful good") ||
+      alignment.includes("законно-добр") ||
+      alignment.includes("законный добр")
     ) {
       failures.push("мировоззрение не законно-доброе");
     }
@@ -98,18 +102,15 @@ export function createPrerequisiteValidators({ canUseStyle, massiveWeapons }) {
 
   function hasNaturePath(actor) {
     if (druidClass(actor) || rangerClass(actor)) return true;
-    return actor?.items?.some(item => {
-      if (!["class", "subclass"].includes(item.type)) return false;
-      const text = `${itemIdentifier(item)} ${item.name ?? ""}`.toLocaleLowerCase("ru");
-      return [
-        "green-heart",
-        "green heart",
-        "зелёного сердца",
-        "зеленого сердца",
-        "nature",
-        "природ"
-      ].some(fragment => text.includes(fragment));
-    }) ?? false;
+    return (
+      actor?.items?.some(item => {
+        if (!["class", "subclass"].includes(item.type)) return false;
+        const text = `${itemIdentifier(item)} ${item.name ?? ""}`.toLocaleLowerCase("ru");
+        return ["green-heart", "green heart", "зелёного сердца", "зеленого сердца", "nature", "природ"].some(fragment =>
+          text.includes(fragment)
+        );
+      }) ?? false
+    );
   }
 
   function forestLordPrerequisiteFailures(actor) {
@@ -164,7 +165,10 @@ export function createPrerequisiteValidators({ canUseStyle, massiveWeapons }) {
 
     const failures = leaderPrerequisiteFailures(actor);
     if (failures.length) {
-      notify(`Нельзя добавить класс «Лидер». Не выполнено: ${failures.join(", ")}. Сюжетное требование командования проверяет Мастер.`, "error");
+      notify(
+        `Нельзя добавить класс «Лидер». Не выполнено: ${failures.join(", ")}. Сюжетное требование командования проверяет Мастер.`,
+        "error"
+      );
       return false;
     }
     return true;
@@ -177,7 +181,10 @@ export function createPrerequisiteValidators({ canUseStyle, massiveWeapons }) {
 
     const failures = deathKnightPrerequisiteFailures(actor);
     if (failures.length) {
-      notify(`Нельзя добавить класс «Рыцарь смерти». Не выполнено: ${failures.join(", ")}. Нарушение клятвы и смерть подтверждает Мастер.`, "error");
+      notify(
+        `Нельзя добавить класс «Рыцарь смерти». Не выполнено: ${failures.join(", ")}. Нарушение клятвы и смерть подтверждает Мастер.`,
+        "error"
+      );
       return false;
     }
     return true;
@@ -190,7 +197,10 @@ export function createPrerequisiteValidators({ canUseStyle, massiveWeapons }) {
 
     const failures = hereticPrerequisiteFailures(actor);
     if (failures.length) {
-      notify(`Нельзя добавить класс «Еретик». Не выполнено: ${failures.join(", ")}. Наличие магической порчи подтверждает Мастер.`, "error");
+      notify(
+        `Нельзя добавить класс «Еретик». Не выполнено: ${failures.join(", ")}. Наличие магической порчи подтверждает Мастер.`,
+        "error"
+      );
       return false;
     }
     return true;
@@ -203,7 +213,10 @@ export function createPrerequisiteValidators({ canUseStyle, massiveWeapons }) {
 
     const failures = forestLordPrerequisiteFailures(actor);
     if (failures.length) {
-      notify(`Нельзя добавить класс «Лесной владыка». Не выполнено: ${failures.join(", ")}. Благословение трента или дриады подтверждает Мастер.`, "error");
+      notify(
+        `Нельзя добавить класс «Лесной владыка». Не выполнено: ${failures.join(", ")}. Благословение трента или дриады подтверждает Мастер.`,
+        "error"
+      );
       return false;
     }
     return true;
@@ -215,7 +228,10 @@ export function createPrerequisiteValidators({ canUseStyle, massiveWeapons }) {
     if (!actor || item.type !== "class" || itemIdentifier(item) !== "aberrant") return true;
     const failures = aberrantPrerequisiteFailures(actor);
     if (failures.length) {
-      notify(`Нельзя добавить класс «Абберант». Не выполнено: ${failures.join(", ")}. Компоненты и завершение ритуала подтверждает Мастер.`, "error");
+      notify(
+        `Нельзя добавить класс «Абберант». Не выполнено: ${failures.join(", ")}. Компоненты и завершение ритуала подтверждает Мастер.`,
+        "error"
+      );
       return false;
     }
     return true;
@@ -379,7 +395,9 @@ export function createPrerequisiteValidators({ canUseStyle, massiveWeapons }) {
     if (!actor || data.technique !== true) return true;
     if (options?.isAdvancement) return true;
 
-    const level = Number(actor?.items?.find(entry => entry.type === "class" && itemIdentifier(entry) === "crusher")?.system?.levels ?? 0);
+    const level = Number(
+      actor?.items?.find(entry => entry.type === "class" && itemIdentifier(entry) === "crusher")?.system?.levels ?? 0
+    );
     if (!level) {
       notify(`Техника «${item.name}» требует класс «Сокрушитель».`, "error");
       return false;

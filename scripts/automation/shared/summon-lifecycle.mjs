@@ -1,22 +1,28 @@
 import { MODULE_ID } from "./constants.mjs";
 import { isGmAuthority, registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
-import {useNativeUtility} from "./native-actions.mjs";
-import {findFeature} from "./helpers.mjs";
-import {classLevel} from "./selectors.mjs";
+import { useNativeUtility } from "./native-actions.mjs";
+import { findFeature } from "./helpers.mjs";
+import { classLevel } from "./selectors.mjs";
 
 const operationQueue = new Map();
 let synchronizationRequested = false;
 export function summonConcentrationActivity(activity, seconds = 600) {
   if (activity?.duration?.concentration) return activity;
   if (!activity?.clone) throw Error("Активность не поддерживает концентрацию.");
-  return activity.clone({ duration: { concentration: true, value: String(seconds), units: "second", override: true } }, { parent: activity.item });
+  return activity.clone(
+    { duration: { concentration: true, value: String(seconds), units: "second", override: true } },
+    { parent: activity.item }
+  );
 }
-function flag(actor, key) { return actor.getFlag?.(MODULE_ID, key) ?? actor.flags?.[MODULE_ID]?.[key]; }
+function flag(actor, key) {
+  return actor.getFlag?.(MODULE_ID, key) ?? actor.flags?.[MODULE_ID]?.[key];
+}
 function summonTokens(actor) {
   const tokens = [];
   for (const scene of game.scenes ?? []) {
-    for (const token of scene.tokens ?? []) if (token.actorId === actor.id || token.actor?.uuid === actor.uuid) tokens.push({ scene, token });
+    for (const token of scene.tokens ?? [])
+      if (token.actorId === actor.id || token.actor?.uuid === actor.uuid) tokens.push({ scene, token });
   }
   return tokens;
 }
@@ -32,13 +38,28 @@ async function setControl(actor, controlled) {
   if (!lifecycle || lifecycle.controlled === controlled) return;
   const owner = await fromUuid(flag(actor, "summonedBy"));
   const savedOwnership = lifecycle.savedOwnership ?? { ...actor.ownership };
-  const ownership = controlled ? savedOwnership : Object.fromEntries(Object.entries(actor.ownership ?? {}).map(([key, level]) => [key,
-    key !== "default" && game.users?.get?.(key)?.isGM !== true && Number(level) >= 3 ? 2 : level]));
-  await actor.update({ ownership, [`flags.${MODULE_ID}.summonLifecycle`]: { ...lifecycle, controlled, savedOwnership } });
+  const ownership = controlled
+    ? savedOwnership
+    : Object.fromEntries(
+        Object.entries(actor.ownership ?? {}).map(([key, level]) => [
+          key,
+          key !== "default" && game.users?.get?.(key)?.isGM !== true && Number(level) >= 3 ? 2 : level
+        ])
+      );
+  await actor.update({
+    ownership,
+    [`flags.${MODULE_ID}.summonLifecycle`]: { ...lifecycle, controlled, savedOwnership }
+  });
   for (const { scene, token } of summonTokens(actor)) {
-    const friendly = [...(scene.tokens ?? [])].find(t => t.actor?.uuid === owner?.uuid || t.actorId === owner?.id)?.disposition ?? 1;
-    await scene.updateEmbeddedDocuments("Token", [{ _id: token.id, disposition: controlled ? friendly : -1,
-      [`delta.flags.${MODULE_ID}.summonLifecycle.controlled`]: controlled }]);
+    const friendly =
+      [...(scene.tokens ?? [])].find(t => t.actor?.uuid === owner?.uuid || t.actorId === owner?.id)?.disposition ?? 1;
+    await scene.updateEmbeddedDocuments("Token", [
+      {
+        _id: token.id,
+        disposition: controlled ? friendly : -1,
+        [`delta.flags.${MODULE_ID}.summonLifecycle.controlled`]: controlled
+      }
+    ]);
   }
 }
 
@@ -46,17 +67,22 @@ export async function synchronizeSummonLifecycle() {
   if (!isGmAuthority()) return;
   for (const actor of [...(game.actors ?? [])]) {
     try {
-    const lifecycle = flag(actor, "summonLifecycle");
-    if (!lifecycle) continue;
-    const expiry = Number(lifecycle.expiresAt);
-    const dead = Number(actor.system?.attributes?.hp?.value) <= 0
-      || summonTokens(actor).some(({ token }) => Number(token.actor?.system?.attributes?.hp?.value) <= 0);
-    const expired = Number(lifecycle.seconds) > 0 && Number.isFinite(expiry) && Number(game.time?.worldTime ?? 0) >= expiry;
-    if (dead || expired) { await dismissSummonActor(actor); continue; }
-    if (lifecycle.concentrationEffectUuid && lifecycle.controlled !== false) {
-      const effect = await fromUuid(lifecycle.concentrationEffectUuid);
-      if (!isEffectActive(effect)) await setControl(actor, false);
-    }
+      const lifecycle = flag(actor, "summonLifecycle");
+      if (!lifecycle) continue;
+      const expiry = Number(lifecycle.expiresAt);
+      const dead =
+        Number(actor.system?.attributes?.hp?.value) <= 0 ||
+        summonTokens(actor).some(({ token }) => Number(token.actor?.system?.attributes?.hp?.value) <= 0);
+      const expired =
+        Number(lifecycle.seconds) > 0 && Number.isFinite(expiry) && Number(game.time?.worldTime ?? 0) >= expiry;
+      if (dead || expired) {
+        await dismissSummonActor(actor);
+        continue;
+      }
+      if (lifecycle.concentrationEffectUuid && lifecycle.controlled !== false) {
+        const effect = await fromUuid(lifecycle.concentrationEffectUuid);
+        if (!isEffectActive(effect)) await setControl(actor, false);
+      }
     } catch (error) {
       console.error(`${MODULE_ID} | Summon lifecycle failed for ${actor.uuid}`, error);
     }
@@ -72,20 +98,31 @@ function scheduleLifecycle() {
       synchronizationRequested = false;
       await synchronizeSummonLifecycle();
     } while (synchronizationRequested);
-  })().catch(error => console.error(`${MODULE_ID} | Summon lifecycle failed`, error))
-    .finally(() => { operationQueue.delete("sync"); if (synchronizationRequested) scheduleLifecycle(); });
+  })()
+    .catch(error => console.error(`${MODULE_ID} | Summon lifecycle failed`, error))
+    .finally(() => {
+      operationQueue.delete("sync");
+      if (synchronizationRequested) scheduleLifecycle();
+    });
   operationQueue.set("sync", operation);
 }
 
 registerGmRequest("manage-summons", async (owner, data) => {
-  const owned = [...(game.actors ?? [])].filter(actor => flag(actor, "summonedBy") === owner.uuid
-    && (!data.actorUuids?.length || data.actorUuids.includes(actor.uuid))
-    && (!data.source || flag(actor, "summonSource") === data.source));
+  const owned = [...(game.actors ?? [])].filter(
+    actor =>
+      flag(actor, "summonedBy") === owner.uuid &&
+      (!data.actorUuids?.length || data.actorUuids.includes(actor.uuid)) &&
+      (!data.source || flag(actor, "summonSource") === data.source)
+  );
   if (data.action === "dismiss") {
     for (const actor of owned) await dismissSummonActor(actor);
     if (data.removeOwnerEffect) {
       const effects = [...(owner.effects ?? [])].filter(effect => effect.getFlag?.(MODULE_ID, data.removeOwnerEffect));
-      if (effects.length) await owner.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
+      if (effects.length)
+        await owner.deleteEmbeddedDocuments(
+          "ActiveEffect",
+          effects.map(effect => effect.id)
+        );
     }
   } else if (data.action === "regain") {
     const dc = Number(data.dc);
@@ -101,21 +138,36 @@ registerGmRequest("manage-summons", async (owner, data) => {
     if (data.activityUuid) {
       const action = await fromUuid(data.activityUuid);
       if (action?.actor?.uuid !== owner.uuid) return false;
-      const result = await useNativeUtility(action, {dataPatch: {activation: {type: classLevel(owner, "ritualist") >= 2 && findFeature(owner, "mind-body-and-soul") ? "bonus" : "action", value: 1, override: true},
-        consumption: {targets: [], spellSlot: false, scaling: {allowed: false, max: ""}}}});
-      if (result === false || result?.aborted) return false; if (!result) return {status: "needs-review"};
+      const result = await useNativeUtility(action, {
+        dataPatch: {
+          activation: {
+            type: classLevel(owner, "ritualist") >= 2 && findFeature(owner, "mind-body-and-soul") ? "bonus" : "action",
+            value: 1,
+            override: true
+          },
+          consumption: { targets: [], spellSlot: false, scaling: { allowed: false, max: "" } }
+        }
+      });
+      if (result === false || result?.aborted) return false;
+      if (!result) return { status: "needs-review" };
     }
     const rolls = await owner.rollConcentration({ target: dc }, { configure: false });
-    if (!rolls?.length || Number(rolls[0].total) < dc) return { status: "failed", error: "Проверка восстановления контроля не пройдена." };
+    if (!rolls?.length || Number(rolls[0].total) < dc)
+      return { status: "failed", error: "Проверка восстановления контроля не пройдена." };
     if (lost.length) {
       // The owner may start another concentration while their roll is open.
       // Do not overwrite it; the action was genuinely attempted and stays spent.
       if ((owner.concentration?.effects?.size ?? 0) >= Number(owner.system?.attributes?.concentration?.limit ?? 1)) {
         throw Error("Сначала завершите другую концентрацию, чтобы вернуть контроль духов.");
       }
-      const remaining = Math.max(1, Math.min(...lost.map(actor => flag(actor, "summonLifecycle").expiresAt - game.time.worldTime)));
-      const effect = await owner.beginConcentrating(summonConcentrationActivity(activity, remaining), { duration: { value: remaining, units: "seconds", expiry: "updateWorldTime" },
-        flags: { [MODULE_ID]: { summonConcentration: true }, dae: { expiryMode: "delete" } } });
+      const remaining = Math.max(
+        1,
+        Math.min(...lost.map(actor => flag(actor, "summonLifecycle").expiresAt - game.time.worldTime))
+      );
+      const effect = await owner.beginConcentrating(summonConcentrationActivity(activity, remaining), {
+        duration: { value: remaining, units: "seconds", expiry: "updateWorldTime" },
+        flags: { [MODULE_ID]: { summonConcentration: true }, dae: { expiryMode: "delete" } }
+      });
       if (!effect) throw Error("Концентрация не создана.");
       for (const actor of lost) {
         await actor.update({ [`flags.${MODULE_ID}.summonLifecycle.concentrationEffectUuid`]: effect.uuid });
@@ -126,7 +178,9 @@ registerGmRequest("manage-summons", async (owner, data) => {
   return { status: "success", actorUuids: owned.map(actor => actor.uuid) };
 });
 
-export function manageSummons(owner, data) { return requestGm("manage-summons", owner, data); }
+export function manageSummons(owner, data) {
+  return requestGm("manage-summons", owner, data);
+}
 export function installSummonLifecycleHooks() {
   Hooks.once("ready", scheduleLifecycle);
   Hooks.on("updateWorldTime", scheduleLifecycle);
@@ -138,6 +192,7 @@ export function installSummonLifecycleHooks() {
   Hooks.on("updateActiveEffect", scheduleLifecycle);
   Hooks.on("dnd5e.rollConcentration", (rolls, { subject }) => {
     const dc = Number(rolls?.[0]?.options?.target);
-    if (isGmAuthority() && Number.isFinite(dc) && subject?.setFlag) void subject.setFlag(MODULE_ID, "lastConcentrationDC", dc);
+    if (isGmAuthority() && Number.isFinite(dc) && subject?.setFlag)
+      void subject.setFlag(MODULE_ID, "lastConcentrationDC", dc);
   });
 }

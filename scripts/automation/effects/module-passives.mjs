@@ -1,13 +1,17 @@
 import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
 import { automationData, isAutomationAuthority, itemIdentifier } from "../shared/helpers.mjs";
-import { guardPassiveChanges, normalizedPassiveSignature, passiveEffectSignature, recordPassiveSnapshots } from "./passive-helpers.mjs";
+import {
+  guardPassiveChanges,
+  normalizedPassiveSignature,
+  passiveEffectSignature,
+  recordPassiveSnapshots
+} from "./passive-helpers.mjs";
 
 const passiveEffectSyncs = new Set();
 let migrationSourcesPromise;
 
 function passiveSource(effect) {
-  return effect?.getFlag?.(MODULE_ID, FLAGS.PASSIVE_SOURCE)
-    ?? effect?.flags?.[MODULE_ID]?.[FLAGS.PASSIVE_SOURCE];
+  return effect?.getFlag?.(MODULE_ID, FLAGS.PASSIVE_SOURCE) ?? effect?.flags?.[MODULE_ID]?.[FLAGS.PASSIVE_SOURCE];
 }
 
 export async function moduleItemSources() {
@@ -15,10 +19,13 @@ export async function moduleItemSources() {
     const sourceDocuments = [];
     for (const packName of ["classes", "subclasses", "features", "transformations", "spells", "equipment"]) {
       const pack = game.packs.get(`${MODULE_ID}.${packName}`);
-      if (pack) sourceDocuments.push(...await pack.getDocuments());
+      if (pack) sourceDocuments.push(...(await pack.getDocuments()));
     }
     return new Map(sourceDocuments.map(item => [itemIdentifier(item), item]));
-  })().catch(error => { migrationSourcesPromise = undefined; throw error; });
+  })().catch(error => {
+    migrationSourcesPromise = undefined;
+    throw error;
+  });
   return migrationSourcesPromise;
 }
 
@@ -77,9 +84,7 @@ export async function syncModulePassiveEffects(actor) {
       if (automationData(item).spiritVesselFeature === true) continue;
       if (automationData(item).oracleFeature === true) continue;
       const source = sources.get(itemIdentifier(item));
-      const sourceEffects = source && isLikelyModuleItem(item, source)
-        ? [...(source.effects ?? [])]
-        : [];
+      const sourceEffects = source && isLikelyModuleItem(item, source) ? [...(source.effects ?? [])] : [];
       const ownedEffects = [...(item.effects ?? [])];
       const effects = ownedEffects.some(effect => effect.getFlag(MODULE_ID, "passiveEffect") === true)
         ? ownedEffects
@@ -110,8 +115,11 @@ export async function syncModulePassiveEffects(actor) {
         creates.push(guarded);
         continue;
       }
-      if (guarded && (passiveEffectSignature(current) !== normalizedPassiveSignature(current, guarded)
-        || !current.flags?.[MODULE_ID]?.managedPassiveChanges)) {
+      if (
+        guarded &&
+        (passiveEffectSignature(current) !== normalizedPassiveSignature(current, guarded) ||
+          !current.flags?.[MODULE_ID]?.managedPassiveChanges)
+      ) {
         updates.push({ _id: current.id, ...guarded });
       }
       existing.delete(key);
@@ -120,7 +128,8 @@ export async function syncModulePassiveEffects(actor) {
     deletes.push(...[...existing.values()].map(effect => effect.id));
     if (deletes.length) await actor.deleteEmbeddedDocuments("ActiveEffect", deletes);
     if (updates.length) await actor.updateEmbeddedDocuments("ActiveEffect", updates);
-    if (creates.length) await recordPassiveSnapshots(actor, await actor.createEmbeddedDocuments("ActiveEffect", creates), MODULE_ID);
+    if (creates.length)
+      await recordPassiveSnapshots(actor, await actor.createEmbeddedDocuments("ActiveEffect", creates), MODULE_ID);
   } finally {
     passiveEffectSyncs.delete(actor.uuid);
   }

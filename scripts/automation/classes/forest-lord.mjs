@@ -10,16 +10,8 @@ import {
 import { abilityMod } from "../shared/dnd5e.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
-import {
-  druidClass,
-  forestLordClass,
-  forestLordLevel,
-  rangerClass
-} from "../shared/selectors.mjs";
-import {
-  flaggedPassiveEffectData,
-  syncFlaggedPassiveEffects
-} from "../effects/passive-helpers.mjs";
+import { druidClass, forestLordClass, forestLordLevel, rangerClass } from "../shared/selectors.mjs";
+import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const forestPassiveSyncs = new Set();
 const natureMagicSyncs = new Set();
@@ -33,11 +25,13 @@ export function forestBaseClassIdentifier(actor) {
   const stored = actor?.getFlag(MODULE_ID, FLAGS.FOREST_BASE_CLASS);
   if (candidates.some(cls => itemIdentifier(cls) === stored)) return stored;
   if (candidates.length === 1) return itemIdentifier(candidates[0]);
-  return candidates
-    .slice()
-    .sort((left, right) => Number(right.system.levels ?? 0) - Number(left.system.levels ?? 0))
-    .map(itemIdentifier)
-    .at(0) ?? null;
+  return (
+    candidates
+      .slice()
+      .sort((left, right) => Number(right.system.levels ?? 0) - Number(left.system.levels ?? 0))
+      .map(itemIdentifier)
+      .at(0) ?? null
+  );
 }
 
 export async function chooseForestBaseClass(actor) {
@@ -76,14 +70,10 @@ export async function chooseForestBaseClass(actor) {
 export async function rollForestUnarmedDamage(actor) {
   if (!actor || !hasFeature(actor, "oak-strength")) return false;
   const denomination = forestLordLevel(actor) >= 5 ? 8 : 6;
-  const roll = await new CONFIG.Dice.DamageRoll(
-    `1d${denomination} + @abilities.str.mod`,
-    actor.getRollData(),
-    {
-      type: "bludgeoning",
-      flavor: "Сила дуба"
-    }
-  ).evaluate();
+  const roll = await new CONFIG.Dice.DamageRoll(`1d${denomination} + @abilities.str.mod`, actor.getRollData(), {
+    type: "bludgeoning",
+    flavor: "Сила дуба"
+  }).evaluate();
   await roll.toMessage({
     speaker: ChatMessage.getSpeaker({ actor }),
     flavor: "Сила дуба: безоружный удар"
@@ -92,7 +82,9 @@ export async function rollForestUnarmedDamage(actor) {
 }
 
 export function forestRootEffect(actor, { activeOnly = true } = {}) {
-  return actor?.effects?.find(effect => effect.getFlag(MODULE_ID, FLAGS.FOREST_ROOT_EFFECT) && (!activeOnly || isEffectActive(effect)));
+  return actor?.effects?.find(
+    effect => effect.getFlag(MODULE_ID, FLAGS.FOREST_ROOT_EFFECT) && (!activeOnly || isEffectActive(effect))
+  );
 }
 
 function darkGuardEffect(actor) {
@@ -107,42 +99,44 @@ function hasShieldProficiency(actor) {
 }
 
 function usesShield(actor) {
-  return actor?.items?.some(item => (
-    item.type === "equipment"
-      && item.system?.type?.value === "shield"
-      && item.system?.equipped === true
-  )) ?? false;
+  return (
+    actor?.items?.some(
+      item => item.type === "equipment" && item.system?.type?.value === "shield" && item.system?.equipped === true
+    ) ?? false
+  );
 }
 
 export async function syncDarkGuard(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
   const current = darkGuardEffect(actor);
-  const active = hasFeature(actor, "distortion-dark-guard")
-    && hasShieldProficiency(actor)
-    && !usesShield(actor);
+  const active = hasFeature(actor, "distortion-dark-guard") && hasShieldProficiency(actor) && !usesShield(actor);
   if (active && !current) {
-    await actor.createEmbeddedDocuments("ActiveEffect", [{
-      name: "Тёмная стража",
-      img: "icons/magic/defensive/shield-barrier-glowing-triangle-purple.webp",
-      origin: findFeature(actor, "distortion-dark-guard")?.uuid,
-      transfer: false,
-      disabled: false,
-      showIcon: 1,
-      flags: {
-        [MODULE_ID]: {
-          [FLAGS.DARK_GUARD_EFFECT]: true
+    await actor.createEmbeddedDocuments("ActiveEffect", [
+      {
+        name: "Тёмная стража",
+        img: "icons/magic/defensive/shield-barrier-glowing-triangle-purple.webp",
+        origin: findFeature(actor, "distortion-dark-guard")?.uuid,
+        transfer: false,
+        disabled: false,
+        showIcon: 1,
+        flags: {
+          [MODULE_ID]: {
+            [FLAGS.DARK_GUARD_EFFECT]: true
+          }
+        },
+        system: {
+          changes: [
+            {
+              key: "system.attributes.ac.bonus",
+              type: "add",
+              value: "1",
+              phase: "final",
+              priority: 20
+            }
+          ]
         }
-      },
-      system: {
-        changes: [{
-          key: "system.attributes.ac.bonus",
-          type: "add",
-          value: "1",
-          phase: "final",
-          priority: 20
-        }]
       }
-    }]);
+    ]);
   } else if (!active && current) {
     await current.delete();
   }
@@ -153,63 +147,73 @@ function forestPassiveDefinitions(actor) {
 
   const barkskin = findFeature(actor, "forest-barkskin");
   if (barkskin) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.FOREST_PASSIVE, {
-      key: "forest-barkskin",
-      feature: barkskin,
-      name: "Коракожа",
-      img: barkskin.img,
-      changes: [{
-        key: "system.attributes.ac.bonus",
-        type: "add",
-        value: Math.max(1, abilityMod(actor, "con")),
-        phase: "initial",
-        priority: 20
-      }]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.FOREST_PASSIVE, {
+        key: "forest-barkskin",
+        feature: barkskin,
+        name: "Коракожа",
+        img: barkskin.img,
+        changes: [
+          {
+            key: "system.attributes.ac.bonus",
+            type: "add",
+            value: Math.max(1, abilityMod(actor, "con")),
+            phase: "initial",
+            priority: 20
+          }
+        ]
+      })
+    );
   }
 
   const oakHeart = findFeature(actor, "oak-heart");
   if (oakHeart) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.FOREST_PASSIVE, {
-      key: "oak-heart",
-      feature: oakHeart,
-      name: "Сердце дуба",
-      img: oakHeart.img,
-      changes: [
-        { key: "system.details.type.value", type: "override", value: "plant", phase: "initial", priority: 100 },
-        ...["piercing", "bludgeoning", "radiant", "poison"].map(value => ({
-          key: "system.traits.dr.value",
-          type: "custom",
-          value,
-          phase: "initial",
-          priority: 20
-        })),
-        ...["fire", "slashing"].map(value => ({
-          key: "system.traits.dv.value",
-          type: "custom",
-          value,
-          phase: "initial",
-          priority: 50
-        }))
-      ]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.FOREST_PASSIVE, {
+        key: "oak-heart",
+        feature: oakHeart,
+        name: "Сердце дуба",
+        img: oakHeart.img,
+        changes: [
+          { key: "system.details.type.value", type: "override", value: "plant", phase: "initial", priority: 100 },
+          ...["piercing", "bludgeoning", "radiant", "poison"].map(value => ({
+            key: "system.traits.dr.value",
+            type: "custom",
+            value,
+            phase: "initial",
+            priority: 20
+          })),
+          ...["fire", "slashing"].map(value => ({
+            key: "system.traits.dv.value",
+            type: "custom",
+            value,
+            phase: "initial",
+            priority: 50
+          }))
+        ]
+      })
+    );
   }
 
   const forestMight = findFeature(actor, "forest-might");
   if (forestMight) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.FOREST_PASSIVE, {
-      key: "forest-might",
-      feature: forestMight,
-      name: "Лесная мощь",
-      img: forestMight.img,
-      changes: [{
-        key: "system.attributes.exhaustion",
-        type: "add",
-        value: -2,
-        phase: "initial",
-        priority: 20
-      }]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.FOREST_PASSIVE, {
+        key: "forest-might",
+        feature: forestMight,
+        name: "Лесная мощь",
+        img: forestMight.img,
+        changes: [
+          {
+            key: "system.attributes.exhaustion",
+            type: "add",
+            value: -2,
+            phase: "initial",
+            priority: 20
+          }
+        ]
+      })
+    );
   }
 
   return definitions;
@@ -217,7 +221,13 @@ function forestPassiveDefinitions(actor) {
 
 export async function syncForestPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  return syncFlaggedPassiveEffects(actor, forestPassiveSyncs, MODULE_ID, FLAGS.FOREST_PASSIVE, forestPassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    forestPassiveSyncs,
+    MODULE_ID,
+    FLAGS.FOREST_PASSIVE,
+    forestPassiveDefinitions
+  );
 }
 
 export async function takeRoot(actor) {
@@ -318,10 +328,7 @@ export async function syncNatureMagic(actor, { notifyResult = false } = {}) {
       } else if (stored) {
         updates.push({
           _id: druid.id,
-          "system.spellcasting.preparation.formula": druid.getFlag(
-            MODULE_ID,
-            FLAGS.FOREST_ORIGINAL_PREPARATION
-          ) ?? "",
+          "system.spellcasting.preparation.formula": druid.getFlag(MODULE_ID, FLAGS.FOREST_ORIGINAL_PREPARATION) ?? "",
           [`flags.${MODULE_ID}.-=${FLAGS.FOREST_ORIGINAL_PREPARATION}`]: null
         });
       }
@@ -329,9 +336,11 @@ export async function syncNatureMagic(actor, { notifyResult = false } = {}) {
 
     if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
     if (notifyResult) {
-      notify(active
-        ? `${actor.name}: «Магия природы» синхронизирована с ${selected === "druid" ? "Друидом" : "Следопытом"}.`
-        : `${actor.name}: исходная формула природной магии восстановлена.`);
+      notify(
+        active
+          ? `${actor.name}: «Магия природы» синхронизирована с ${selected === "druid" ? "Друидом" : "Следопытом"}.`
+          : `${actor.name}: исходная формула природной магии восстановлена.`
+      );
     }
   } finally {
     natureMagicSyncs.delete(actor.uuid);
@@ -375,10 +384,11 @@ export async function endForestTurn(actor, combat) {
   if (!marker) return;
   const previous = combat.previous ?? {};
   if (
-    marker.combat !== combat.id
-    || Number(marker.round) !== Number(previous.round)
-    || Number(marker.turn) !== Number(previous.turn)
-  ) return;
+    marker.combat !== combat.id ||
+    Number(marker.round) !== Number(previous.round) ||
+    Number(marker.turn) !== Number(previous.turn)
+  )
+    return;
   await actor.unsetFlag(MODULE_ID, FLAGS.FOREST_ROOT_FIRE_BLOCK);
   await actor.unsetFlag(MODULE_ID, FLAGS.FOREST_ROOT_CLEAR_AT_TURN);
 }
@@ -396,9 +406,7 @@ export async function clearForestCombatState(actor) {
 export async function markForestRootFireDamage(token, { damageItem }, { automationEnabled = true } = {}) {
   const actor = token?.actor;
   if (!automationEnabled || !actor || !forestRootEffect(actor)) return;
-  const calculatedDamage = damageItem?.damageDetails?.combinedDamage
-    ?? damageItem?.damageDetail
-    ?? [];
+  const calculatedDamage = damageItem?.damageDetails?.combinedDamage ?? damageItem?.damageDetail ?? [];
   const tookFireDamage = calculatedDamage.some(
     detail => detail.type === "fire" && Number(detail.value ?? detail.damage ?? 0) > 0
   );

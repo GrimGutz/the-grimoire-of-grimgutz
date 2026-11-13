@@ -5,26 +5,20 @@ import {
   useHollowCharges,
   validateHollowActivityUse
 } from "./hollow.mjs";
-import {
-  syncMurderspawnPassiveEffects,
-  syncMurderspawnTransformation
-} from "./murderspawn.mjs";
-import {syncArkane} from "./arkane.mjs";
-import {syncAutomaton} from "./automaton.mjs";
-import {syncBroodmother} from "./broodmother.mjs";
-import {syncChimera} from "./chimera.mjs";
-import {syncDeathknight} from "./deathknight.mjs";
-import {syncDullahan} from "./dullahan.mjs";
-import {syncFactory} from "./factory-passives.mjs";
-import {syncGod} from "./god.mjs";
-import {syncIllithid} from "./illithid.mjs";
-import {syncHalfdragon} from "./halfdragon.mjs";
-import {syncHag} from "./hag.mjs";
+import { syncMurderspawnPassiveEffects, syncMurderspawnTransformation } from "./murderspawn.mjs";
+import { syncArkane } from "./arkane.mjs";
+import { syncAutomaton } from "./automaton.mjs";
+import { syncBroodmother } from "./broodmother.mjs";
+import { syncChimera } from "./chimera.mjs";
+import { syncDeathknight } from "./deathknight.mjs";
+import { syncDullahan } from "./dullahan.mjs";
+import { syncFactory } from "./factory-passives.mjs";
+import { syncGod } from "./god.mjs";
+import { syncIllithid } from "./illithid.mjs";
+import { syncHalfdragon } from "./halfdragon.mjs";
+import { syncHag } from "./hag.mjs";
 
-export const TRANSFORMATION_ACTIONS = new Set([
-  "gain-hollow-charge",
-  "use-hollow-charges"
-]);
+export const TRANSFORMATION_ACTIONS = new Set(["gain-hollow-charge", "use-hollow-charges"]);
 
 export {
   gainHollowCharge,

@@ -12,10 +12,7 @@ import {
 import { abilityMod } from "../shared/dnd5e.mjs";
 import { choiceDialog, numberDialog } from "../shared/dialogs.mjs";
 import { hereticClass } from "../shared/selectors.mjs";
-import {
-  flaggedPassiveEffectData,
-  syncFlaggedPassiveEffects
-} from "../effects/passive-helpers.mjs";
+import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const hereticPassiveSyncs = new Set();
 
@@ -144,7 +141,9 @@ export async function useOccultPoints(actor, activity) {
   await gift.update({ "system.uses.spent": before.spent + cost });
   await rollOccultFormula(actor, activity, cost);
   const message = automationData(activity).occultMessage;
-  notify(`${actor.name}: потрачено ${cost} очк. оккультизма, осталось ${before.remaining - cost}.${message ? ` ${message}` : ""}`);
+  notify(
+    `${actor.name}: потрачено ${cost} очк. оккультизма, осталось ${before.remaining - cost}.${message ? ` ${message}` : ""}`
+  );
   return true;
 }
 
@@ -212,7 +211,13 @@ function hereticPassiveDefinitions(actor) {
 
 export async function syncHereticPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  return syncFlaggedPassiveEffects(actor, hereticPassiveSyncs, MODULE_ID, FLAGS.HERETIC_PASSIVE, hereticPassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    hereticPassiveSyncs,
+    MODULE_ID,
+    FLAGS.HERETIC_PASSIVE,
+    hereticPassiveDefinitions
+  );
 }
 
 export async function restoreDefiledHeart(actor, result, { automationEnabled = true } = {}) {

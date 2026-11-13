@@ -1,11 +1,5 @@
 import { MODULE_ID, SETTINGS } from "../shared/constants.mjs";
-import {
-  automationData,
-  findFeature,
-  isAutomationAuthority,
-  itemIdentifier,
-  notify
-} from "../shared/helpers.mjs";
+import { automationData, findFeature, isAutomationAuthority, itemIdentifier, notify } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
 
 const guardianSyncs = new Set();
@@ -19,16 +13,18 @@ export function guardianLevel(actor) {
 }
 
 function hasExtraAttack(actor) {
-  return actor?.items?.some(item => {
-    const identifier = itemIdentifier(item).replaceAll("_", "-");
-    const name = String(item.name ?? "").toLocaleLowerCase("ru");
-    return (
-      identifier === "extra-attack"
-      || identifier.endsWith("-extra-attack")
-      || name.includes("extra attack")
-      || name.includes("дополнительная атака")
-    );
-  }) ?? false;
+  return (
+    actor?.items?.some(item => {
+      const identifier = itemIdentifier(item).replaceAll("_", "-");
+      const name = String(item.name ?? "").toLocaleLowerCase("ru");
+      return (
+        identifier === "extra-attack" ||
+        identifier.endsWith("-extra-attack") ||
+        name.includes("extra attack") ||
+        name.includes("дополнительная атака")
+      );
+    }) ?? false
+  );
 }
 
 function hasShieldProficiency(actor) {

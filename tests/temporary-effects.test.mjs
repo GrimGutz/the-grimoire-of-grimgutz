@@ -8,7 +8,7 @@ import {
   prepareModuleTemporaryEffectExpiry,
   temporaryEffectTiming
 } from "../scripts/automation/effects/temporary-effects.mjs";
-import {combatTurnSnapshot} from "../scripts/automation/shared/combat-flow.mjs";
+import { combatTurnSnapshot } from "../scripts/automation/shared/combat-flow.mjs";
 
 function setProperty(object, path, value) {
   const keys = path.split(".");
@@ -21,25 +21,52 @@ function setProperty(object, path, value) {
 beforeEach(() => {
   globalThis.foundry = { utils: { setProperty } };
   globalThis.game = {
-    time: { worldTime: 120 }, combat: null,
+    time: { worldTime: 120 },
+    combat: null,
     modules: new Map([["dae", { active: true }]]),
-    users: { activeGM: { isSelf: true } }, actors: [], scenes: []
+    users: { activeGM: { isSelf: true } },
+    actors: [],
+    scenes: []
   };
-  globalThis.CONFIG = { ActiveEffect: {
-    expiryEvents: { updateWorldTime: "elapsed" },
-    documentClass: { getEffectStart: () => ({ time: game.time.worldTime, combat: null, combatant: null, round: null, turn: null, initiative: null }) }
-  } };
+  globalThis.CONFIG = {
+    ActiveEffect: {
+      expiryEvents: { updateWorldTime: "elapsed" },
+      documentClass: {
+        getEffectStart: () => ({
+          time: game.time.worldTime,
+          combat: null,
+          combatant: null,
+          round: null,
+          turn: null,
+          initiative: null
+        })
+      }
+    }
+  };
 });
 
-function effect({ value = 60, units = "seconds", expired = false, expiry = "updateWorldTime", flags = { [MODULE_ID]: { temporary: true } } } = {}) {
+function effect({
+  value = 60,
+  units = "seconds",
+  expired = false,
+  expiry = "updateWorldTime",
+  flags = { [MODULE_ID]: { temporary: true } }
+} = {}) {
   return {
-    id: "effect1", disabled: false, transfer: false,
+    id: "effect1",
+    disabled: false,
+    transfer: false,
     _source: { flags, start: { time: 0 }, duration: { value, units, expired, expiry } },
-    updateSource(update) { this.createdUpdate = update; },
+    updateSource(update) {
+      this.createdUpdate = update;
+    },
     updateDuration() {
       const raw = this._source.duration;
-      return { ...raw, remaining: raw.value === null ? Infinity : raw.value - game.time.worldTime,
-        secondsRemaining: raw.value === null ? Infinity : raw.value - game.time.worldTime };
+      return {
+        ...raw,
+        remaining: raw.value === null ? Infinity : raw.value - game.time.worldTime,
+        secondsRemaining: raw.value === null ? Infinity : raw.value - game.time.worldTime
+      };
     }
   };
 }
@@ -68,7 +95,10 @@ test("saving unchanged duration fields in a form does not restart the clock", ()
 });
 
 test("an explicit activation start or changed duration restarts a running effect", () => {
-  for (const update of [{ start: { time: 120 }, duration: { value: 60, units: "seconds" } }, { "duration.value": 90 }]) {
+  for (const update of [
+    { start: { time: 120 }, duration: { value: 60, units: "seconds" } },
+    { "duration.value": 90 }
+  ]) {
     prepareModuleTemporaryEffectExpiry(effect(), update);
     assert.equal(update.start.time, 120);
   }
@@ -121,8 +151,12 @@ test("cleanup covers synthetic actors, deduplicates linked actors and keeps perm
   const calls = [];
   const world = { uuid: "Actor.world", effects: [effect({ value: null })] };
   const synthetic = {
-    uuid: "Scene.one.Token.two.Actor.actor", effects: [effect(), effect({ value: null })],
-    async deleteEmbeddedDocuments(type, ids) { calls.push({ type, ids }); this.effects = this.effects.filter(e => !ids.includes(e.id)); }
+    uuid: "Scene.one.Token.two.Actor.actor",
+    effects: [effect(), effect({ value: null })],
+    async deleteEmbeddedDocuments(type, ids) {
+      calls.push({ type, ids });
+      this.effects = this.effects.filter(e => !ids.includes(e.id));
+    }
   };
   synthetic.effects[1].id = "passive";
   game.actors = [world];
@@ -137,7 +171,15 @@ test("cleanup respects a turn-end event and only writes on the active GM", async
   const doc = effect({ value: 0, units: "turns", expiry: "turnEnd" });
   doc.isExpiryEvent = event => event === "turnEnd";
   let calls = 0;
-  game.actors = [{ uuid: "Actor.one", effects: [doc], async deleteEmbeddedDocuments() { calls++; } }];
+  game.actors = [
+    {
+      uuid: "Actor.one",
+      effects: [doc],
+      async deleteEmbeddedDocuments() {
+        calls++;
+      }
+    }
+  ];
   await deleteExpiredModuleTemporaryEffects("turnStart");
   assert.equal(calls, 0);
   await deleteExpiredModuleTemporaryEffects("turnEnd");
@@ -148,22 +190,44 @@ test("cleanup respects a turn-end event and only writes on the active GM", async
 });
 
 test("new effect timing selects an actor's scene-unlinked encounter instead of another battle", () => {
-  const actor = {uuid: "Actor.one"};
-  const own = {id: "own", started: true, turns: [{actor}]};
-  game.combat = {id: "other", started: true, turns: []}; game.combats = [own];
-  CONFIG.ActiveEffect.documentClass.getEffectStart = combat => ({combat: combat?.id ?? null});
-  assert.equal(temporaryEffectTiming({rounds: 1, actor}).start.combat, "own");
+  const actor = { uuid: "Actor.one" };
+  const own = { id: "own", started: true, turns: [{ actor }] };
+  game.combat = { id: "other", started: true, turns: [] };
+  game.combats = [own];
+  CONFIG.ActiveEffect.documentClass.getEffectStart = combat => ({ combat: combat?.id ?? null });
+  assert.equal(temporaryEffectTiming({ rounds: 1, actor }).start.combat, "own");
 });
 
 test("queued turn expiry uses the frozen ending participant and round after combat advances", async () => {
-  const actor = {uuid: "Actor.one"}, currentActor = {uuid: "Actor.two"};
-  const combat = {id: "own", started: true, round: 3, turn: 1, previous: {round: 3, turn: 0}, turns: [{actor}], combatant: {actor: currentActor}};
+  const actor = { uuid: "Actor.one" },
+    currentActor = { uuid: "Actor.two" };
+  const combat = {
+    id: "own",
+    started: true,
+    round: 3,
+    turn: 1,
+    previous: { round: 3, turn: 0 },
+    turns: [{ actor }],
+    combatant: { actor: currentActor }
+  };
   const turnSnapshot = combatTurnSnapshot(combat);
-  const doc = effect({value: 0, units: "turns", expiry: "turnEnd"}); doc.parent = actor;
-  let durationRound, deleted = 0;
-  doc.updateDuration = context => {durationRound = context.round; return {remaining: 0};};
-  actor.effects = [doc]; actor.deleteEmbeddedDocuments = async () => {deleted++;}; game.actors = [actor];
-  combat.round = 9; combat.previous = {round: 9, turn: 2}; combat.combatant = {actor: {uuid: "third"}};
-  await deleteExpiredModuleTemporaryEffects("turnEnd", {combat, turnSnapshot});
-  assert.equal(deleted, 1); assert.equal(durationRound, 3);
+  const doc = effect({ value: 0, units: "turns", expiry: "turnEnd" });
+  doc.parent = actor;
+  let durationRound,
+    deleted = 0;
+  doc.updateDuration = context => {
+    durationRound = context.round;
+    return { remaining: 0 };
+  };
+  actor.effects = [doc];
+  actor.deleteEmbeddedDocuments = async () => {
+    deleted++;
+  };
+  game.actors = [actor];
+  combat.round = 9;
+  combat.previous = { round: 9, turn: 2 };
+  combat.combatant = { actor: { uuid: "third" } };
+  await deleteExpiredModuleTemporaryEffects("turnEnd", { combat, turnSnapshot });
+  assert.equal(deleted, 1);
+  assert.equal(durationRound, 3);
 });

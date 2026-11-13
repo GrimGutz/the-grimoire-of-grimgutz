@@ -1,17 +1,8 @@
 import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
-import {
-  findFeature,
-  hasFeature,
-  isAutomationAuthority,
-  itemIdentifier,
-  notify
-} from "../shared/helpers.mjs";
+import { findFeature, hasFeature, isAutomationAuthority, itemIdentifier, notify } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
 import { choiceDialog, multiChoiceDialog } from "../shared/dialogs.mjs";
-import {
-  schoolOfSteelLevel,
-  schoolOfSteelSubclass
-} from "../shared/selectors.mjs";
+import { schoolOfSteelLevel, schoolOfSteelSubclass } from "../shared/selectors.mjs";
 
 export const SCHOOL_OF_STEEL_ACTIONS = new Set([
   "school-steel-choose-weapons",
@@ -61,10 +52,12 @@ function animateObjectsSpell(actor) {
     if (item.type !== "spell") return false;
     const identifier = itemIdentifier(item);
     const name = String(item.name ?? "").toLocaleLowerCase("ru");
-    return identifier === "animate-objects"
-      || name.includes("animate objects")
-      || name.includes("оживление предметов")
-      || name.includes("оживление вещей");
+    return (
+      identifier === "animate-objects" ||
+      name.includes("animate objects") ||
+      name.includes("оживление предметов") ||
+      name.includes("оживление вещей")
+    );
   });
 }
 
@@ -142,9 +135,10 @@ export async function chooseSchoolSteelWeapons(actor) {
 
   const limit = schoolSteelWeaponLimit(actor);
   const current = new Set(schoolSteelWeaponIds(actor));
-  const selectedIds = limit <= 1
-    ? await chooseSingleSchoolSteelWeapon(actor, weapons, current)
-    : await chooseMultipleSchoolSteelWeapons(actor, weapons, current, limit);
+  const selectedIds =
+    limit <= 1
+      ? await chooseSingleSchoolSteelWeapon(actor, weapons, current)
+      : await chooseMultipleSchoolSteelWeapons(actor, weapons, current, limit);
   const uniqueIds = [...new Set(selectedIds)].filter(id => actor.items.get(id)?.type === "weapon");
   if (!uniqueIds.length) return false;
   if (uniqueIds.length > limit) {
@@ -153,7 +147,10 @@ export async function chooseSchoolSteelWeapons(actor) {
   }
 
   await actor.setFlag(MODULE_ID, FLAGS.SCHOOL_STEEL_WEAPONS, uniqueIds);
-  const names = uniqueIds.map(id => actor.items.get(id)?.name).filter(Boolean).join(", ");
+  const names = uniqueIds
+    .map(id => actor.items.get(id)?.name)
+    .filter(Boolean)
+    .join(", ");
   notify(`${actor.name}: зачарованное оружие Школы стали — ${names}.`);
   return true;
 }
@@ -161,7 +158,9 @@ export async function chooseSchoolSteelWeapons(actor) {
 export function reportSchoolSteelBonusAttack(actor) {
   const names = schoolSteelWeaponNames(actor);
   if (!names.length) return;
-  notify(`${actor.name}: бонусная атака Боевой тренировки должна быть совершена одним из зачарованных оружий: ${names.join(", ")}.`);
+  notify(
+    `${actor.name}: бонусная атака Боевой тренировки должна быть совершена одним из зачарованных оружий: ${names.join(", ")}.`
+  );
 }
 export function isSchoolOfSteelAction(action) {
   return SCHOOL_OF_STEEL_ACTIONS.has(action);

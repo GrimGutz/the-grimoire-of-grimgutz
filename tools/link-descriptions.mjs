@@ -352,7 +352,38 @@ function buildTargets(packs) {
         // Short technique names such as "Натиск"/"Стойкость" also occur as
         // ordinary words or unrelated rules. Outside this class require an
         // explicit authored UUID instead of inventing a cross-class reference.
-        scope: document.flags?.[MODULE_ID]?.transformation === "illithid" ? "illithid" : document.flags?.[MODULE_ID]?.transformation === "halfdragon" ? "halfdragon" : document.flags?.[MODULE_ID]?.transformation === "hag" ? "hag" : document.flags?.[MODULE_ID]?.transformation === "god" ? "god" : document.flags?.[MODULE_ID]?.transformation === "factory" ? "factory" : document.flags?.[MODULE_ID]?.transformation === "dullahan" ? "dullahan" : document.flags?.[MODULE_ID]?.flagellantFeature ? "flagellant" : document.flags?.[MODULE_ID]?.doomedFeature ? "doomed" : document.flags?.[MODULE_ID]?.nightmareFeature ? "nightmare" : document.flags?.[MODULE_ID]?.empathFeature || document.flags?.[MODULE_ID]?.empathSpell ? "empath" : document.flags?.[MODULE_ID]?.transformation === "arkane" ? "arkane" : document.flags?.[MODULE_ID]?.transformation === "automaton" ? "automaton" : document.flags?.[MODULE_ID]?.transformation === "broodmother" ? "broodmother" : document.flags?.[MODULE_ID]?.transformation === "chimera" ? "chimera" : document.flags?.[MODULE_ID]?.transformation === "deathknight" ? "deathknight" : null,
+        scope:
+          document.flags?.[MODULE_ID]?.transformation === "illithid"
+            ? "illithid"
+            : document.flags?.[MODULE_ID]?.transformation === "halfdragon"
+              ? "halfdragon"
+              : document.flags?.[MODULE_ID]?.transformation === "hag"
+                ? "hag"
+                : document.flags?.[MODULE_ID]?.transformation === "god"
+                  ? "god"
+                  : document.flags?.[MODULE_ID]?.transformation === "factory"
+                    ? "factory"
+                    : document.flags?.[MODULE_ID]?.transformation === "dullahan"
+                      ? "dullahan"
+                      : document.flags?.[MODULE_ID]?.flagellantFeature
+                        ? "flagellant"
+                        : document.flags?.[MODULE_ID]?.doomedFeature
+                          ? "doomed"
+                          : document.flags?.[MODULE_ID]?.nightmareFeature
+                            ? "nightmare"
+                            : document.flags?.[MODULE_ID]?.empathFeature || document.flags?.[MODULE_ID]?.empathSpell
+                              ? "empath"
+                              : document.flags?.[MODULE_ID]?.transformation === "arkane"
+                                ? "arkane"
+                                : document.flags?.[MODULE_ID]?.transformation === "automaton"
+                                  ? "automaton"
+                                  : document.flags?.[MODULE_ID]?.transformation === "broodmother"
+                                    ? "broodmother"
+                                    : document.flags?.[MODULE_ID]?.transformation === "chimera"
+                                      ? "chimera"
+                                      : document.flags?.[MODULE_ID]?.transformation === "deathknight"
+                                        ? "deathknight"
+                                        : null,
         aliases: [document.name, ...(INTERNAL_ALIASES[identifier] ?? [])]
       });
     }
@@ -390,8 +421,7 @@ function linkText(text, targets, currentDocumentId) {
 
 function linkHtml(html, targets, currentDocumentId) {
   const protectedPhrases = [];
-  const protectedPattern = UNLINKED_PHRASES
-    .sort((left, right) => right.length - left.length)
+  const protectedPattern = UNLINKED_PHRASES.sort((left, right) => right.length - left.length)
     .map(escapeRegExp)
     .join("|");
   const masked = String(html).replace(new RegExp(protectedPattern, "giu"), match => {
@@ -417,17 +447,41 @@ export function linkDocumentDescriptions(packs) {
     for (const document of pack.documents) {
       const current = document.system?.description?.value;
       if (!current) continue;
-      const ownFlagellant = document.flags?.[MODULE_ID]?.flagellantFeature || document.flags?.[MODULE_ID]?.prestigeClass === "flagellant";
-      const ownDoomed = document.flags?.[MODULE_ID]?.doomedFeature || document.flags?.[MODULE_ID]?.prestigeClass === "doomed";
-      const ownNightmare = document.flags?.[MODULE_ID]?.nightmareFeature || document.flags?.[MODULE_ID]?.prestigeClass === "nightmare";
-      const ownEmpath = document.flags?.[MODULE_ID]?.empathFeature || document.flags?.[MODULE_ID]?.empathSpell || document.flags?.[MODULE_ID]?.prestigeClass === "empath";
+      const ownFlagellant =
+        document.flags?.[MODULE_ID]?.flagellantFeature || document.flags?.[MODULE_ID]?.prestigeClass === "flagellant";
+      const ownDoomed =
+        document.flags?.[MODULE_ID]?.doomedFeature || document.flags?.[MODULE_ID]?.prestigeClass === "doomed";
+      const ownNightmare =
+        document.flags?.[MODULE_ID]?.nightmareFeature || document.flags?.[MODULE_ID]?.prestigeClass === "nightmare";
+      const ownEmpath =
+        document.flags?.[MODULE_ID]?.empathFeature ||
+        document.flags?.[MODULE_ID]?.empathSpell ||
+        document.flags?.[MODULE_ID]?.prestigeClass === "empath";
       const ownArkane = document.flags?.[MODULE_ID]?.transformation === "arkane";
       const ownAutomaton = document.flags?.[MODULE_ID]?.transformation === "automaton";
       const ownDeathknight = document.flags?.[MODULE_ID]?.transformation === "deathknight";
       const ownDullahan = document.flags?.[MODULE_ID]?.transformation === "dullahan";
       const ownChimera = document.flags?.[MODULE_ID]?.transformation === "chimera";
       const ownBroodmother = document.flags?.[MODULE_ID]?.transformation === "broodmother";
-      const scopedTargets = targets.filter(target => !target.scope || target.scope === "flagellant" && ownFlagellant || target.scope === "doomed" && ownDoomed || target.scope === "nightmare" && ownNightmare || target.scope === "empath" && ownEmpath || target.scope === "arkane" && ownArkane || target.scope === "automaton" && ownAutomaton || target.scope === "broodmother" && ownBroodmother || target.scope === "chimera" && ownChimera || target.scope === "deathknight" && ownDeathknight || target.scope === "dullahan" && ownDullahan || target.scope === "factory" && document.flags?.[MODULE_ID]?.transformation === "factory" || target.scope === "god" && document.flags?.[MODULE_ID]?.transformation === "god" || target.scope === "hag" && document.flags?.[MODULE_ID]?.transformation === "hag" || target.scope === "halfdragon" && document.flags?.[MODULE_ID]?.transformation === "halfdragon" || target.scope === "illithid" && document.flags?.[MODULE_ID]?.transformation === "illithid");
+      const scopedTargets = targets.filter(
+        target =>
+          !target.scope ||
+          (target.scope === "flagellant" && ownFlagellant) ||
+          (target.scope === "doomed" && ownDoomed) ||
+          (target.scope === "nightmare" && ownNightmare) ||
+          (target.scope === "empath" && ownEmpath) ||
+          (target.scope === "arkane" && ownArkane) ||
+          (target.scope === "automaton" && ownAutomaton) ||
+          (target.scope === "broodmother" && ownBroodmother) ||
+          (target.scope === "chimera" && ownChimera) ||
+          (target.scope === "deathknight" && ownDeathknight) ||
+          (target.scope === "dullahan" && ownDullahan) ||
+          (target.scope === "factory" && document.flags?.[MODULE_ID]?.transformation === "factory") ||
+          (target.scope === "god" && document.flags?.[MODULE_ID]?.transformation === "god") ||
+          (target.scope === "hag" && document.flags?.[MODULE_ID]?.transformation === "hag") ||
+          (target.scope === "halfdragon" && document.flags?.[MODULE_ID]?.transformation === "halfdragon") ||
+          (target.scope === "illithid" && document.flags?.[MODULE_ID]?.transformation === "illithid")
+      );
       const linked = linkHtml(current, scopedTargets, document._id);
       linksAdded += (linked.match(/@UUID\[/g)?.length ?? 0) - (current.match(/@UUID\[/g)?.length ?? 0);
       document.system.description.value = linked;

@@ -14,7 +14,9 @@ import { syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const hollowPassiveSyncs = new Set();
 const chargeListeners = new Set();
-export function onHollowChargeUse(handler) { chargeListeners.add(handler); }
+export function onHollowChargeUse(handler) {
+  chargeListeners.add(handler);
+}
 export async function afterHollowChargeUse(actor, activity) {
   for (const handler of chargeListeners) await handler(actor, activity);
 }
@@ -141,7 +143,9 @@ export async function useHollowCharges(actor, activity) {
   await feature.update({ "system.uses.spent": before.spent + cost });
   await rollHollowFormula(actor, activity, cost);
   const message = data.hollowMessage;
-  notify(`${actor.name}: потрачено ${cost} Зарядов Анти-Магии, осталось ${before.remaining - cost}.${message ? ` ${message}` : ""}`);
+  notify(
+    `${actor.name}: потрачено ${cost} Зарядов Анти-Магии, осталось ${before.remaining - cost}.${message ? ` ${message}` : ""}`
+  );
   await afterHollowChargeUse(actor, activity);
   return true;
 }
@@ -180,7 +184,14 @@ export async function syncHollowTransformation(actor) {
   }
 }
 
-function hollowPassiveEffectData({ key, feature, name = feature?.name, img = feature?.img, changes = [], description = "" }) {
+function hollowPassiveEffectData({
+  key,
+  feature,
+  name = feature?.name,
+  img = feature?.img,
+  changes = [],
+  description = ""
+}) {
   return {
     name,
     img,
@@ -240,49 +251,61 @@ function hollowPassiveDefinitions(actor) {
         priority: 20
       });
     }
-    definitions.push(hollowPassiveEffectData({
-      key: "negative-body",
-      feature: negativeBody,
-      changes,
-      description: "Телосложение +2 и Мудрость +1, но каждая характеристика повышается этим эффектом максимум до 16."
-    }));
+    definitions.push(
+      hollowPassiveEffectData({
+        key: "negative-body",
+        feature: negativeBody,
+        changes,
+        description: "Телосложение +2 и Мудрость +1, но каждая характеристика повышается этим эффектом максимум до 16."
+      })
+    );
   }
 
   const maskingAura = findFeature(actor, "masking-aura");
   if (maskingAura) {
-    definitions.push(hollowPassiveEffectData({
-      key: "masking-aura",
-      feature: maskingAura,
-      description: `Существа в пределах 10 футов не обнаруживаются магическими средствами. Союзники в ауре получают бонус к спасброскам, равный модификатору Телосложения владельца (${abilityMod(actor, "con")}).`
-    }));
+    definitions.push(
+      hollowPassiveEffectData({
+        key: "masking-aura",
+        feature: maskingAura,
+        description: `Существа в пределах 10 футов не обнаруживаются магическими средствами. Союзники в ауре получают бонус к спасброскам, равный модификатору Телосложения владельца (${abilityMod(actor, "con")}).`
+      })
+    );
   }
 
   const negativeGaze = findFeature(actor, "negative-gaze");
   if (negativeGaze) {
-    definitions.push(hollowPassiveEffectData({
-      key: "negative-gaze",
-      feature: negativeGaze,
-      description: "Владелец постоянно находится под эффектом обнаружения магии и может использовать определение по изменённым правилам способности."
-    }));
+    definitions.push(
+      hollowPassiveEffectData({
+        key: "negative-gaze",
+        feature: negativeGaze,
+        description:
+          "Владелец постоянно находится под эффектом обнаружения магии и может использовать определение по изменённым правилам способности."
+      })
+    );
   }
 
   const fortifiedSoul = findFeature(actor, "fortified-soul");
   if (fortifiedSoul) {
-    definitions.push(hollowPassiveEffectData({
-      key: "fortified-soul",
-      feature: fortifiedSoul,
-      changes: [],
-      description: "Сопротивление урону от заклинаний: Midi-QOL определяет источник и уменьшает урон, не складывая это сопротивление с уже применённым сопротивлением типу урона."
-    }));
+    definitions.push(
+      hollowPassiveEffectData({
+        key: "fortified-soul",
+        feature: fortifiedSoul,
+        changes: [],
+        description:
+          "Сопротивление урону от заклинаний: Midi-QOL определяет источник и уменьшает урон, не складывая это сопротивление с уже применённым сопротивлением типу урона."
+      })
+    );
   }
 
   const woundInMagic = findFeature(actor, "wound-in-magic");
   if (woundInMagic) {
-    definitions.push(hollowPassiveEffectData({
-      key: "wound-in-magic",
-      feature: woundInMagic,
-      description: "Враг в 10 футах, накладывающий заклинание, бросает d20; при 9 или ниже заклинание не срабатывает."
-    }));
+    definitions.push(
+      hollowPassiveEffectData({
+        key: "wound-in-magic",
+        feature: woundInMagic,
+        description: "Враг в 10 футах, накладывающий заклинание, бросает d20; при 9 или ниже заклинание не срабатывает."
+      })
+    );
   }
 
   return definitions;
@@ -290,5 +313,11 @@ function hollowPassiveDefinitions(actor) {
 
 export async function syncHollowPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  return syncFlaggedPassiveEffects(actor, hollowPassiveSyncs, MODULE_ID, FLAGS.HOLLOW_PASSIVE, hollowPassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    hollowPassiveSyncs,
+    MODULE_ID,
+    FLAGS.HOLLOW_PASSIVE,
+    hollowPassiveDefinitions
+  );
 }

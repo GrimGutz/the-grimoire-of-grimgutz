@@ -7,9 +7,10 @@ export function addSaveAdvantage(details, key, label, abilities = null) {
     details.modifierTracker?.advantage?.add?.(key, label);
     details.tracker?.advantage?.add?.(key, label);
   }
-  for (const [id, choice] of Object.entries(details.advantageByChoice ?? {})) if (eligible(id)) {
-    choice.hasAdvantage = true;
-    choice.advantage = true;
-    choice.tracker?.advantage?.add?.(key, label);
-  }
+  for (const [id, choice] of Object.entries(details.advantageByChoice ?? {}))
+    if (eligible(id)) {
+      choice.hasAdvantage = true;
+      choice.advantage = true;
+      choice.tracker?.advantage?.add?.(key, label);
+    }
 }

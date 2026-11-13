@@ -1,9 +1,14 @@
 export const HAG_ICON = "icons/magic/unholy/hand-claw-fog-green.webp";
-export const HAG_TYPES = [["scarlet", "Алая"], ["night", "Ночная"], ["green", "Зелёная"], ["sea", "Морская"]];
+export const HAG_TYPES = [
+  ["scarlet", "Алая"],
+  ["night", "Ночная"],
+  ["green", "Зелёная"],
+  ["sea", "Морская"]
+];
 export const HAG_FEATURES = [
   ["curse", "Проклятие", 1, 43, ["curse", "remove-curse", "rules"]],
   ["form", "Форма Ведьмы", 1, 43, ["type"]],
-  ["bond", "Межплановая Связь", 1, 44, ["home"] , true],
+  ["bond", "Межплановая Связь", 1, 44, ["home"], true],
   ["double", "Двойное Проклятие", 2, 44, ["curses"]],
   ["body", "Зачарованное Тело", 2, 44],
   ["alchemy", "Алхимическое Колдовство", 2, 44, [], false, "spellcasting"],
@@ -19,8 +24,18 @@ export const HAG_FEATURES = [
   ["broom", "Оживлённая Метла", 4, 46, ["broom", "dismiss-broom"]],
   ["grandmother", "Проклятие Бабушки", 4, 46],
   ["call", "Зов Ковена", 4, 46, ["call"], true]
-].map(([id, name, level, page, operations = [], flaw = false, requires = null]) => ({id, key: `hag-${id}`, name, level, page, operations, flaw, requires, img: HAG_ICON}));
-export {unlockedTier as hagUnlockedTier} from "./transformation-core.mjs";
+].map(([id, name, level, page, operations = [], flaw = false, requires = null]) => ({
+  id,
+  key: `hag-${id}`,
+  name,
+  level,
+  page,
+  operations,
+  flaw,
+  requires,
+  img: HAG_ICON
+}));
+export { unlockedTier as hagUnlockedTier } from "./transformation-core.mjs";
 // Explicit user rulings for omissions/ambiguities in the PDF.
-export const HAG_RULE_DEFAULTS = Object.freeze({curseMode:"all",scarletDamageType:"source",hexRecovery:"lr"});
-export const HAG_HEX_RECOVERY = [{period:"lr",type:"recoverAll"}];
+export const HAG_RULE_DEFAULTS = Object.freeze({ curseMode: "all", scarletDamageType: "source", hexRecovery: "lr" });
+export const HAG_HEX_RECOVERY = [{ period: "lr", type: "recoverAll" }];

@@ -10,10 +10,7 @@ import {
 } from "../shared/helpers.mjs";
 import { abilityMod, clamp } from "../shared/dnd5e.mjs";
 import { selectFormDialog, slotLevelDialog } from "../shared/dialogs.mjs";
-import {
-  flaggedPassiveEffectData,
-  syncFlaggedPassiveEffects
-} from "../effects/passive-helpers.mjs";
+import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 
 const oracleSyncs = new Set();
 const oraclePassiveSyncs = new Set();
@@ -78,7 +75,9 @@ async function rollToChat(actor, formula, flavor) {
 }
 
 function classLevel(actor, identifier) {
-  return Number(actor?.items?.find(item => item.type === "class" && itemIdentifier(item) === identifier)?.system?.levels ?? 0);
+  return Number(
+    actor?.items?.find(item => item.type === "class" && itemIdentifier(item) === identifier)?.system?.levels ?? 0
+  );
 }
 
 export function oracleClass(actor) {
@@ -107,19 +106,23 @@ function oracleSaveDC(actor) {
 }
 
 function hasHighDivinationSpell(actor) {
-  return actor?.items?.some(item => {
-    if (item.type !== "spell") return false;
-    if (Number(item.system?.level ?? 0) < 6) return false;
-    const school = String(item.system?.school?.value ?? item.system?.school ?? "").toLowerCase();
-    const name = String(item.name ?? "").toLowerCase();
-    const description = String(item.system?.description?.value ?? "").toLowerCase();
-    return school === "div"
-      || school.includes("divination")
-      || school.includes("прориц")
-      || name.includes("прориц")
-      || description.includes("школы прорицания")
-      || description.includes("divination");
-  }) ?? false;
+  return (
+    actor?.items?.some(item => {
+      if (item.type !== "spell") return false;
+      if (Number(item.system?.level ?? 0) < 6) return false;
+      const school = String(item.system?.school?.value ?? item.system?.school ?? "").toLowerCase();
+      const name = String(item.name ?? "").toLowerCase();
+      const description = String(item.system?.description?.value ?? "").toLowerCase();
+      return (
+        school === "div" ||
+        school.includes("divination") ||
+        school.includes("прориц") ||
+        name.includes("прориц") ||
+        description.includes("школы прорицания") ||
+        description.includes("divination")
+      );
+    }) ?? false
+  );
 }
 
 export function oraclePrerequisiteFailures(actor) {
@@ -137,7 +140,10 @@ export function validateOraclePrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "oracle") return true;
   const failures = oraclePrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Оракул». Не выполнено: ${failures.join(", ")}. Значимое пророчество подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Оракул». Не выполнено: ${failures.join(", ")}. Значимое пророчество подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -238,7 +244,10 @@ async function setOracleDissonance(actor, value, { notifyResult = true } = {}) {
   if (notifyResult) {
     notify(`${actor.name}: Диссонанс ${next}/${maximum}.`);
     if (maximum && next >= maximum) {
-      await chat(actor, `<p><strong>${actor.name}: Диссонанс достиг максимума.</strong> Вы не можете использовать «Воздействие на судьбы», пока не уменьшите Диссонанс. Получите уровень истощения; он снимается только уменьшением Диссонанса.</p>`);
+      await chat(
+        actor,
+        `<p><strong>${actor.name}: Диссонанс достиг максимума.</strong> Вы не можете использовать «Воздействие на судьбы», пока не уменьшите Диссонанс. Получите уровень истощения; он снимается только уменьшением Диссонанса.</p>`
+      );
     }
   }
   return next;
@@ -249,19 +258,27 @@ function oraclePassiveDefinitions(actor) {
   if (oracleLevel(actor) < 5) return definitions;
   const feature = findFeature(actor, "sense-fate");
   if (!feature) return definitions;
-  definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.ORACLE_PASSIVE, {
-    key: "sense-fate-truesight",
-    feature,
-    name: "Чувство судьбы: истинное зрение",
-    img: feature.img,
-    changes: [change("system.attributes.senses.ranges.truesight", "upgrade", "30", "final")]
-  }));
+  definitions.push(
+    flaggedPassiveEffectData(MODULE_ID, FLAGS.ORACLE_PASSIVE, {
+      key: "sense-fate-truesight",
+      feature,
+      name: "Чувство судьбы: истинное зрение",
+      img: feature.img,
+      changes: [change("system.attributes.senses.ranges.truesight", "upgrade", "30", "final")]
+    })
+  );
   return definitions;
 }
 
 export async function syncOraclePassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  return syncFlaggedPassiveEffects(actor, oraclePassiveSyncs, MODULE_ID, FLAGS.ORACLE_PASSIVE, oraclePassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    oraclePassiveSyncs,
+    MODULE_ID,
+    FLAGS.ORACLE_PASSIVE,
+    oraclePassiveDefinitions
+  );
 }
 
 export async function syncOracleResources(actor, { notifyResult = false } = {}) {
@@ -308,7 +325,7 @@ async function addActivityDissonance(actor, activity) {
 }
 
 async function useInfluence(actor, activity, content) {
-  if (!await spendInfluenceUse(actor)) return false;
+  if (!(await spendInfluenceUse(actor))) return false;
   await addActivityDissonance(actor, activity);
   await chat(actor, content);
   return true;
@@ -323,17 +340,19 @@ function influenceBalanceText(actor, type) {
 
 async function handleFateMiss(actor, activity) {
   const cost = activityDissonanceCost(activity);
-  const text = cost > 0
-    ? `Вы накладываете помеху на проверку, спасбросок или атаку цели и принимаете <strong>${cost}</strong> Диссонанс вместо Баланса судьбы.`
-    : `Вы накладываете помеху на проверку, спасбросок или атаку цели. ${influenceBalanceText(actor, "miss")}`;
+  const text =
+    cost > 0
+      ? `Вы накладываете помеху на проверку, спасбросок или атаку цели и принимаете <strong>${cost}</strong> Диссонанс вместо Баланса судьбы.`
+      : `Вы накладываете помеху на проверку, спасбросок или атаку цели. ${influenceBalanceText(actor, "miss")}`;
   return useInfluence(actor, activity, `<p><strong>${actor.name}: Промах.</strong> ${text}</p>`);
 }
 
 async function handleMysteriousGuidance(actor, activity) {
   const cost = activityDissonanceCost(activity);
-  const text = cost > 0
-    ? `Вы даёте цели преимущество и принимаете <strong>${cost}</strong> Диссонанс вместо Баланса судьбы.`
-    : `Вы даёте цели преимущество. ${influenceBalanceText(actor, "guidance")}`;
+  const text =
+    cost > 0
+      ? `Вы даёте цели преимущество и принимаете <strong>${cost}</strong> Диссонанс вместо Баланса судьбы.`
+      : `Вы даёте цели преимущество. ${influenceBalanceText(actor, "guidance")}`;
   return useInfluence(actor, activity, `<p><strong>${actor.name}: Загадочное руководство.</strong> ${text}</p>`);
 }
 
@@ -342,23 +361,26 @@ async function chooseBalancingRitual(actor) {
   return selectFormDialog({
     title: "Балансирующий ритуал Оракула",
     width: 520,
-    fields: [{
-      name: "points",
-      label: "Сколько Диссонанса снять",
-      choices: Array.from({ length: current }, (_entry, index) => {
-        const value = index + 1;
-        return [value, String(value)];
-      })
-    }, {
-      name: "cost",
-      label: "Цена ритуала",
-      choices: [
-    ["doomed-thread", "2к10 психического урона за пункт"],
-    ["hp-maximum", "−3 текущих и максимальных хита за пункт до длительного отдыха"],
-    ["sensory", "слепота или глухота на 2 часа за пункт"],
-    ["vulnerability", "уязвимость к дробящему/колющему/рубящему на 2 часа за пункт"]
-      ]
-    }]
+    fields: [
+      {
+        name: "points",
+        label: "Сколько Диссонанса снять",
+        choices: Array.from({ length: current }, (_entry, index) => {
+          const value = index + 1;
+          return [value, String(value)];
+        })
+      },
+      {
+        name: "cost",
+        label: "Цена ритуала",
+        choices: [
+          ["doomed-thread", "2к10 психического урона за пункт"],
+          ["hp-maximum", "−3 текущих и максимальных хита за пункт до длительного отдыха"],
+          ["sensory", "слепота или глухота на 2 часа за пункт"],
+          ["vulnerability", "уязвимость к дробящему/колющему/рубящему на 2 часа за пункт"]
+        ]
+      }
+    ]
   });
 }
 
@@ -373,28 +395,42 @@ async function handleBalancingRitual(actor) {
   const points = clamp(selected.points, 1, current);
   await setOracleDissonance(actor, current - points);
   if (selected.cost === "doomed-thread") {
-    await rollToChat(actor, `${points * 2}d10`, `Балансирующий ритуал: психический урон за снятие ${points} Диссонанса`);
+    await rollToChat(
+      actor,
+      `${points * 2}d10`,
+      `Балансирующий ритуал: психический урон за снятие ${points} Диссонанса`
+    );
   }
-  const suffix = selected.cost === "hp-maximum"
-    ? `Потеряйте <strong>${points * 3}</strong> текущих и максимальных хитов до длительного отдыха.`
-    : selected.cost === "sensory"
-      ? `Получите слепоту или глухоту на <strong>${points * 2}</strong> часа.`
-      : selected.cost === "vulnerability"
-        ? `Получите уязвимость к дробящему, колющему или рубящему урону на <strong>${points * 2}</strong> часа.`
-        : `Получите психический урон по броску выше.`;
-  await chat(actor, `<p><strong>${actor.name}: Балансирующий ритуал.</strong> Снято ${points} Диссонанса. ${suffix}</p>`);
+  const suffix =
+    selected.cost === "hp-maximum"
+      ? `Потеряйте <strong>${points * 3}</strong> текущих и максимальных хитов до длительного отдыха.`
+      : selected.cost === "sensory"
+        ? `Получите слепоту или глухоту на <strong>${points * 2}</strong> часа.`
+        : selected.cost === "vulnerability"
+          ? `Получите уязвимость к дробящему, колющему или рубящему урону на <strong>${points * 2}</strong> часа.`
+          : `Получите психический урон по броску выше.`;
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Балансирующий ритуал.</strong> Снято ${points} Диссонанса. ${suffix}</p>`
+  );
   return true;
 }
 
 async function handleFreeScrying(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Наблюдение.</strong> Вы используете <em>Наблюдение</em> без траты ячейки заклинания. Компоненты не требуются.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Наблюдение.</strong> Вы используете <em>Наблюдение</em> без траты ячейки заклинания. Компоненты не требуются.</p>`
+  );
   return true;
 }
 
 async function handleReadThreads(actor, activity) {
-  if (!await spendInfluenceUse(actor)) return false;
+  if (!(await spendInfluenceUse(actor))) return false;
   await rollToChat(actor, "4d8", "Читать нити: Баланс судьбы, психический урон");
-  await chat(actor, `<p><strong>${actor.name}: Читать нити.</strong> Для <em>Наблюдения</em> спасбросок Мудрости цели увеличивается на уровень Оракула (${oracleLevel(actor)}). Для другого Прорицания шанс провала уменьшается на 25%. Если заклинание всё же провалилось, вместо 4к8 примените 8к8 психического урона.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Читать нити.</strong> Для <em>Наблюдения</em> спасбросок Мудрости цели увеличивается на уровень Оракула (${oracleLevel(actor)}). Для другого Прорицания шанс провала уменьшается на 25%. Если заклинание всё же провалилось, вместо 4к8 примените 8к8 психического урона.</p>`
+  );
   return true;
 }
 
@@ -407,7 +443,10 @@ async function handleRemoveDissonanceBySlot(actor) {
   const current = oracleDissonance(actor);
   const removed = Math.min(current, Math.floor(slot / 3));
   await setOracleDissonance(actor, current - removed);
-  await chat(actor, `<p><strong>${actor.name}: Переплетение связей.</strong> Потратьте ячейку ${slot}-го круга вручную. Снято ${removed} Диссонанса.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Переплетение связей.</strong> Потратьте ячейку ${slot}-го круга вручную. Снято ${removed} Диссонанса.</p>`
+  );
   return true;
 }
 
@@ -421,40 +460,54 @@ async function handleRestoreSlotByDissonance(actor) {
   const before = oracleDissonance(actor);
   const after = await setOracleDissonance(actor, before + gained);
   const maxed = after >= oracleMaxDissonance(actor);
-  await chat(actor, `<p><strong>${actor.name}: Переплетение связей.</strong> Восстановите ячейку ${slot}-го круга вручную и получите ${gained} Диссонанса. ${maxed ? "Так как Диссонанс достиг максимума, совершите спасбросок Мудрости СЛ 22; при провале вы ошеломлены до начала следующего хода." : ""}</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Переплетение связей.</strong> Восстановите ячейку ${slot}-го круга вручную и получите ${gained} Диссонанса. ${maxed ? "Так как Диссонанс достиг максимума, совершите спасбросок Мудрости СЛ 22; при провале вы ошеломлены до начала следующего хода." : ""}</p>`
+  );
   return true;
 }
 
 async function handleDanger(actor, activity) {
-  if (!await spendInfluenceUse(actor)) return false;
+  if (!(await spendInfluenceUse(actor))) return false;
   const balance = oracleFateBalance(actor);
   await rollToChat(actor, `${balance}d6`, "Опасность: Баланс судьбы, дополнительный исходный урон");
-  await chat(actor, `<p><strong>${actor.name}: Опасность.</strong> Получите преимущество на спасбросок Ловкости против ловушки, заклинания или эффекта, если вы не ослеплены, не ошеломлены и не недееспособны. Баланс судьбы увеличивает исходный урон эффекта на ${balance}к6; бросок сделан выше.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Опасность.</strong> Получите преимущество на спасбросок Ловкости против ловушки, заклинания или эффекта, если вы не ослеплены, не ошеломлены и не недееспособны. Баланс судьбы увеличивает исходный урон эффекта на ${balance}к6; бросок сделан выше.</p>`
+  );
   return true;
 }
 
 async function handleAstralProjection(actor) {
-  await chat(actor, `<p><strong>${actor.name}: Проекция в астрал.</strong> Вы используете <em>Проекцию в астрал</em> без траты ячейки и компонентов.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Проекция в астрал.</strong> Вы используете <em>Проекцию в астрал</em> без траты ячейки и компонентов.</p>`
+  );
   return true;
 }
 
 async function handleExchangeFates(actor, activity) {
   const cost = activityDissonanceCost(activity);
-  const text = cost > 0
-    ? `Вы отдаёте все текущие хиты союзнику, падаете до 0 хитов и принимаете <strong>${cost}</strong> Диссонанс вместо Баланса судьбы. Избыток хитов союзник получает как временные хиты.`
-    : `Вы отдаёте все текущие хиты союзнику, падаете до 0 хитов, а избыток становится временными хитами союзника. Баланс судьбы: автоматически провалите один спасбросок от смерти и получите помеху на следующие спасброски от смерти в количестве ${oracleFateBalance(actor)}.`;
+  const text =
+    cost > 0
+      ? `Вы отдаёте все текущие хиты союзнику, падаете до 0 хитов и принимаете <strong>${cost}</strong> Диссонанс вместо Баланса судьбы. Избыток хитов союзник получает как временные хиты.`
+      : `Вы отдаёте все текущие хиты союзнику, падаете до 0 хитов, а избыток становится временными хитами союзника. Баланс судьбы: автоматически провалите один спасбросок от смерти и получите помеху на следующие спасброски от смерти в количестве ${oracleFateBalance(actor)}.`;
   return useInfluence(actor, activity, `<p><strong>${actor.name}: Обменяться судьбами.</strong> ${text}</p>`);
 }
 
 async function handleFateScissors(actor, activity) {
-  if (!await spendInfluenceUse(actor)) return false;
+  if (!(await spendInfluenceUse(actor))) return false;
   await addActivityDissonance(actor, activity);
   const roll = await rollToChat(actor, "10d10", "Ножницы судьбы: психический урон");
   const cost = activityDissonanceCost(activity);
-  const balance = cost > 0
-    ? "Баланс судьбы отменён ценой 3 Диссонанса."
-    : "Баланс судьбы: ваш максимум хитов уменьшается на половину нанесённого урона до длительного отдыха. Если цель погибла, максимум уменьшается на количество хитов цели перед смертью.";
-  await chat(actor, `<p><strong>${actor.name}: Ножницы судьбы.</strong> Цель совершает спасбросок Мудрости против СЛ <strong>${oracleSaveDC(actor)}</strong> или получает ${roll.total} психического урона. Если урон снижает хиты цели до 0, она немедленно умирает. ${balance}</p>`);
+  const balance =
+    cost > 0
+      ? "Баланс судьбы отменён ценой 3 Диссонанса."
+      : "Баланс судьбы: ваш максимум хитов уменьшается на половину нанесённого урона до длительного отдыха. Если цель погибла, максимум уменьшается на количество хитов цели перед смертью.";
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Ножницы судьбы.</strong> Цель совершает спасбросок Мудрости против СЛ <strong>${oracleSaveDC(actor)}</strong> или получает ${roll.total} психического урона. Если урон снижает хиты цели до 0, она немедленно умирает. ${balance}</p>`
+  );
   return true;
 }
 
@@ -533,12 +586,14 @@ export function validateOracleActivityUse(actor, activity, action) {
     return false;
   }
 
-  if ([
-    "oracle-free-scrying",
-    "oracle-remove-dissonance-slot",
-    "oracle-restore-slot-dissonance",
-    "oracle-astral-projection"
-  ].includes(action)) {
+  if (
+    [
+      "oracle-free-scrying",
+      "oracle-remove-dissonance-slot",
+      "oracle-restore-slot-dissonance",
+      "oracle-astral-projection"
+    ].includes(action)
+  ) {
     const uses = itemUses(activityItem(activity));
     if (uses.maximum > 0 && uses.remaining <= 0) {
       notify(`${actor.name}: нет доступных использований этой особенности.`, "warn");

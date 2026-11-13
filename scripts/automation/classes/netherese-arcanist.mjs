@@ -1,12 +1,5 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
-import {
-  activityItem,
-  automationData,
-  findFeature,
-  itemIdentifier,
-  itemUses,
-  notify
-} from "../shared/helpers.mjs";
+import { activityItem, automationData, findFeature, itemIdentifier, itemUses, notify } from "../shared/helpers.mjs";
 
 export function nethereseArcanistClass(actor) {
   return actor?.items?.find(item => item.type === "class" && itemIdentifier(item) === "netherese-arcanist");
@@ -17,7 +10,9 @@ export function nethereseArcanistLevel(actor) {
 }
 
 function classLevel(actor, identifier) {
-  return Number(actor?.items?.find(item => item.type === "class" && itemIdentifier(item) === identifier)?.system?.levels ?? 0);
+  return Number(
+    actor?.items?.find(item => item.type === "class" && itemIdentifier(item) === identifier)?.system?.levels ?? 0
+  );
 }
 
 function hasArcanaProficiency(actor) {
@@ -43,7 +38,10 @@ export function validateNethereseArcanistPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "netherese-arcanist") return true;
   const failures = nethereseArcanistPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Нетерильский арканист». Не выполнено: ${failures.join(", ")}. Происхождение гримуара и связь с Нетерилом подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Нетерильский арканист». Не выполнено: ${failures.join(", ")}. Происхождение гримуара и связь с Нетерилом подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -99,7 +97,10 @@ export function validateNethereseArcanistActivityUse(actor, activity, action) {
       return false;
     }
   }
-  if (["teleport-in-mini-mythal", "overload-mini-mythal"].includes(action) && !effectByFlag(actor, FLAGS.NETHERIL_MINI_MYTHAL_EFFECT)) {
+  if (
+    ["teleport-in-mini-mythal", "overload-mini-mythal"].includes(action) &&
+    !effectByFlag(actor, FLAGS.NETHERIL_MINI_MYTHAL_EFFECT)
+  ) {
     notify(`${actor.name}: сначала создайте мини-мифаль.`, "warn");
     return false;
   }
@@ -108,7 +109,10 @@ export function validateNethereseArcanistActivityUse(actor, activity, action) {
 
 export async function showScholarArcanist(actor) {
   if (!actor || !nethereseArcanistClass(actor)) return false;
-  await chat(actor, `<p><strong>${actor.name}: Учёный арканист.</strong> При броске инициативы можно использовать Интеллект вместо Ловкости. Если История уже была владением до получения класса, переведите её в экспертность вручную.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Учёный арканист.</strong> При броске инициативы можно использовать Интеллект вместо Ловкости. Если История уже была владением до получения класса, переведите её в экспертность вручную.</p>`
+  );
   return true;
 }
 
@@ -147,7 +151,10 @@ export async function activateMiniMythal(actor) {
 
 export async function teleportInMiniMythal(actor) {
   if (!actor || !nethereseArcanistClass(actor)) return false;
-  await chat(actor, `<p><strong>${actor.name}: Мини-мифаль.</strong> Бонусным действием можно телепортировать одно существо внутри мифаля в другую точку внутри него. Несогласное существо совершает спасбросок Харизмы против СЛ ${spellSaveDC(actor)}.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Мини-мифаль.</strong> Бонусным действием можно телепортировать одно существо внутри мифаля в другую точку внутри него. Несогласное существо совершает спасбросок Харизмы против СЛ ${spellSaveDC(actor)}.</p>`
+  );
   return true;
 }
 
@@ -175,7 +182,10 @@ export async function overloadMiniMythal(actor) {
 
 export async function useAncientKnowledge(actor) {
   if (!actor || !nethereseArcanistClass(actor)) return false;
-  await chat(actor, `<p><strong>${actor.name}: Древнее знание.</strong> Выберите одно заклинание 5-го круга или ниже из списка любого класса. Оно считается для вас заклинанием волшебника до момента наложения, затем исчезает из сознания.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: Древнее знание.</strong> Выберите одно заклинание 5-го круга или ниже из списка любого класса. Оно считается для вас заклинанием волшебника до момента наложения, затем исчезает из сознания.</p>`
+  );
   return true;
 }
 
@@ -205,6 +215,9 @@ export async function castNethereseGreatSpell(actor, activity) {
   const current = effectByFlag(actor, FLAGS.NETHERIL_WEAVE_SEVERED_EFFECT);
   if (current) await current.update(data);
   else await actor.createEmbeddedDocuments("ActiveEffect", [data]);
-  await chat(actor, `<p><strong>${actor.name}: ${spellName}.</strong> Великое заклинание произнесено. Примените 4 уровня истощения, запрет на произнесение заклинаний и 10-дневный отрыв от Плетения. Ограничения чудесных предметов, Клона, воскресения и мифаллара подтверждает Мастер.</p>`);
+  await chat(
+    actor,
+    `<p><strong>${actor.name}: ${spellName}.</strong> Великое заклинание произнесено. Примените 4 уровня истощения, запрет на произнесение заклинаний и 10-дневный отрыв от Плетения. Ограничения чудесных предметов, Клона, воскресения и мифаллара подтверждает Мастер.</p>`
+  );
   return true;
 }

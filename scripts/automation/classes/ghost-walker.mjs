@@ -8,10 +8,7 @@ import {
   itemUses,
   notify
 } from "../shared/helpers.mjs";
-import {
-  flaggedPassiveEffectData,
-  syncFlaggedPassiveEffects
-} from "../effects/passive-helpers.mjs";
+import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 import { createSummonedCreature } from "../shared/summons.mjs";
 import { ghostWalkerSpiritSummon } from "../shared/summon-templates.mjs";
 
@@ -49,7 +46,10 @@ export function validateGhostWalkerPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "ghost-walker") return true;
   const failures = ghostWalkerPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Призрачный Странник». Не выполнено: ${failures.join(", ")}. Событие встречи со смертью подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Призрачный Странник». Не выполнено: ${failures.join(", ")}. Событие встречи со смертью подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -210,7 +210,8 @@ export async function summonUnfinishedBusinessSpirit(actor, activity, { consumed
   const feature = activity?.item ?? activity?.parent ?? findFeature(actor, "unfinished-business");
   if (!feature) return false;
   return createSummonedCreature(actor, ghostWalkerSpiritSummon(actor, selectedTargetActor()), {
-    requireScene: true, resource: { itemUuid: feature.uuid, cost: 1, consumed }
+    requireScene: true,
+    resource: { itemUuid: feature.uuid, cost: 1, consumed }
   });
 }
 
@@ -221,17 +222,21 @@ function ghostWalkerPassiveDefinitions(actor) {
   const ghostStep = findFeature(actor, "ghost-step");
   const walk = Number(actor?.system?.attributes?.movement?.walk ?? 0);
   if (ghostStep && Number.isFinite(walk) && walk > 0) {
-    definitions.push(flaggedPassiveEffectData(MODULE_ID, FLAGS.GHOST_WALKER_PASSIVE, {
-      key: "ghost-step",
-      feature: ghostStep,
-      changes: [{
-        key: "system.attributes.movement.fly",
-        type: "upgrade",
-        value: String(walk),
-        phase: "final",
-        priority: 20
-      }]
-    }));
+    definitions.push(
+      flaggedPassiveEffectData(MODULE_ID, FLAGS.GHOST_WALKER_PASSIVE, {
+        key: "ghost-step",
+        feature: ghostStep,
+        changes: [
+          {
+            key: "system.attributes.movement.fly",
+            type: "upgrade",
+            value: String(walk),
+            phase: "final",
+            priority: 20
+          }
+        ]
+      })
+    );
   }
 
   return definitions;
@@ -239,5 +244,11 @@ function ghostWalkerPassiveDefinitions(actor) {
 
 export async function syncGhostWalkerPassiveEffects(actor) {
   if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  return syncFlaggedPassiveEffects(actor, ghostWalkerPassiveSyncs, MODULE_ID, FLAGS.GHOST_WALKER_PASSIVE, ghostWalkerPassiveDefinitions);
+  return syncFlaggedPassiveEffects(
+    actor,
+    ghostWalkerPassiveSyncs,
+    MODULE_ID,
+    FLAGS.GHOST_WALKER_PASSIVE,
+    ghostWalkerPassiveDefinitions
+  );
 }

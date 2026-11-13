@@ -1,8 +1,4 @@
-import {
-  MODULE_ID,
-  initializeOwnedActors,
-  registerAutomation
-} from "./automation.mjs";
+import { MODULE_ID, initializeOwnedActors, registerAutomation } from "./automation.mjs";
 
 Hooks.once("init", () => {
   const module = game.modules.get(MODULE_ID);

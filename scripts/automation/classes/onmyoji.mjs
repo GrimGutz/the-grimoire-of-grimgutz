@@ -5,7 +5,7 @@ import {
   isAutomationAuthority,
   itemIdentifier,
   itemUses,
-  notify,
+  notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
 import { createSummonedCreature } from "../shared/summons.mjs";
@@ -42,7 +42,10 @@ export function validateOnmyojiPrerequisites(item, userId) {
   if (!actor || item.type !== "class" || itemIdentifier(item) !== "onmyoji") return true;
   const failures = onmyojiPrerequisiteFailures(actor);
   if (failures.length) {
-    notify(`Нельзя добавить класс «Онмёджи». Не выполнено: ${failures.join(", ")}. Разговор с Мировым Духом и уничтожение разумной нежити подтверждает Мастер.`, "error");
+    notify(
+      `Нельзя добавить класс «Онмёджи». Не выполнено: ${failures.join(", ")}. Разговор с Мировым Духом и уничтожение разумной нежити подтверждает Мастер.`,
+      "error"
+    );
     return false;
   }
   return true;
@@ -91,7 +94,7 @@ export async function syncOnmyojiResources(actor, { notifyResult = false } = {})
   try {
     const updates = [
       await syncUses(findFeature(actor, "onmyoji-ki"), level),
-      await syncUses(findFeature(actor, "purification-rite"), Math.max(1, abilityMod(actor, "wis"))),
+      await syncUses(findFeature(actor, "purification-rite"), Math.max(1, abilityMod(actor, "wis")))
     ];
     const changed = updates.some(Boolean);
     if (notifyResult && changed) notify(`${actor.name}: ресурсы Онмёджи синхронизированы.`);
@@ -106,7 +109,7 @@ function onmyojiKi(actor) {
   const uses = itemUses(feature);
   return {
     feature,
-    ...uses,
+    ...uses
   };
 }
 
@@ -141,7 +144,7 @@ export async function useOnmyojiKi(actor, activity) {
   const ki = onmyojiKi(actor);
   await ki.feature.update({
     "system.uses.max": String(ki.maximum),
-    "system.uses.spent": ki.spent + cost,
+    "system.uses.spent": ki.spent + cost
   });
 
   const formula = String(data.onmyojiRollFormula ?? "");
@@ -149,7 +152,7 @@ export async function useOnmyojiKi(actor, activity) {
     const roll = await new Roll(formula, actor.getRollData()).evaluate();
     await roll.toMessage({
       speaker: ChatMessage.getSpeaker({ actor }),
-      flavor: `${activity.name}: ${data.onmyojiRollName ?? "Бросок"}`,
+      flavor: `${activity.name}: ${data.onmyojiRollName ?? "Бросок"}`
     });
   }
   notify(`${actor.name}: потрачено ${cost} Ки, осталось ${Math.max(0, ki.remaining - cost)}.`);

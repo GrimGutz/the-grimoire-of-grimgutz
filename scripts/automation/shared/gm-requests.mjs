@@ -8,12 +8,21 @@ const replies = new Map();
 const localRequests = new Map();
 let localGame;
 let installed = false;
-const resultReply = (result, requestId) => result === true ? {status: "success", value: true, requestId}
-  : result === false ? {status: "cancelled", value: false, requestId}
-  : result === undefined ? {status: "needs-review", requestId} : {...result, requestId};
+const resultReply = (result, requestId) =>
+  result === true
+    ? { status: "success", value: true, requestId }
+    : result === false
+      ? { status: "cancelled", value: false, requestId }
+      : result === undefined
+        ? { status: "needs-review", requestId }
+        : { ...result, requestId };
 
-export function registerGmRequest(type, handler) { handlers.set(type, handler); }
-export function gmRequestResult(requestId) { return replies.get(requestId) ?? { requestId, status: "pending" }; }
+export function registerGmRequest(type, handler) {
+  handlers.set(type, handler);
+}
+export function gmRequestResult(requestId) {
+  return replies.get(requestId) ?? { requestId, status: "pending" };
+}
 export function isGmAuthority() {
   return game.users?.activeGM ? game.users.activeGM.id === game.user?.id : game.user?.isGM === true;
 }
@@ -27,7 +36,11 @@ export async function receiveGmRequest(payload, senderUserId) {
     clearTimeout(waiting.timer);
     pending.delete(payload.requestId);
     waiting.resolve(payload.result);
-    if (waiting.timedOut) notify(payload.result.status === "success" ? "Отложенный запрос выполнен." : "Отложенный запрос завершился ошибкой.", payload.result.status === "success" ? "info" : "warn");
+    if (waiting.timedOut)
+      notify(
+        payload.result.status === "success" ? "Отложенный запрос выполнен." : "Отложенный запрос завершился ошибкой.",
+        payload.result.status === "success" ? "info" : "warn"
+      );
     return;
   }
   const handler = handlers.get(payload?.type);
@@ -42,8 +55,12 @@ export async function receiveGmRequest(payload, senderUserId) {
       if (!owner || (!requester.isGM && !owner.testUserPermission?.(requester, "OWNER"))) {
         return { status: "failed", error: "Нет прав на владельца запроса.", requestId: payload.requestId };
       }
-      try { return resultReply(await handler(owner, payload.data, { requesterId: requester.id, requestId: payload.requestId }), payload.requestId); }
-      catch (error) {
+      try {
+        return resultReply(
+          await handler(owner, payload.data, { requesterId: requester.id, requestId: payload.requestId }),
+          payload.requestId
+        );
+      } catch (error) {
         console.error(`${MODULE_ID} | GM request ${payload.type} failed`, error);
         return { status: "failed", error: error.message, requestId: payload.requestId };
       }
@@ -52,14 +69,21 @@ export async function receiveGmRequest(payload, senderUserId) {
     if (completed.size > 200) completed.delete(completed.keys().next().value);
   }
   const result = await response;
-  game.socket.emit(`module.${MODULE_ID}`, { recipientUserId: requester.id, gmId, requestId: payload.requestId, result });
+  game.socket.emit(`module.${MODULE_ID}`, {
+    recipientUserId: requester.id,
+    gmId,
+    requestId: payload.requestId,
+    result
+  });
 }
 
 export function installGmRequests() {
   if (installed || !game.socket) return;
   installed = true;
   game.socket.on(`module.${MODULE_ID}`, (payload, senderUserId) => {
-    void receiveGmRequest(payload, senderUserId).catch(error => console.error(`${MODULE_ID} | GM socket request failed`, error));
+    void receiveGmRequest(payload, senderUserId).catch(error =>
+      console.error(`${MODULE_ID} | GM socket request failed`, error)
+    );
   });
 }
 
@@ -68,11 +92,19 @@ export async function requestGm(type, owner, data, { timeoutMs = 15000, requestI
   const handler = handlers.get(type);
   if (!handler) throw new Error(`Unknown GM request: ${type}`);
   if (isGmAuthority()) {
-    if (localGame !== game) { localRequests.clear(); localGame = game; }
+    if (localGame !== game) {
+      localRequests.clear();
+      localGame = game;
+    }
     const key = `${type}:${owner.uuid}:${requestId}`;
     if (!localRequests.has(key)) {
-      const operation = Promise.resolve().then(() => handler(owner, data, {requesterId: game.user.id, requestId}))
-        .then(result => { const reply = resultReply(result, requestId); replies.set(requestId, reply); return reply; });
+      const operation = Promise.resolve()
+        .then(() => handler(owner, data, { requesterId: game.user.id, requestId }))
+        .then(result => {
+          const reply = resultReply(result, requestId);
+          replies.set(requestId, reply);
+          return reply;
+        });
       localRequests.set(key, operation);
       // Share concurrent callbacks only. Completed requests must still run
       // their document/receipt validation (e.g. a changed damage card).
@@ -90,7 +122,10 @@ export async function requestGm(type, owner, data, { timeoutMs = 15000, requestI
       const result = { status: "pending", requestId };
       replies.set(requestId, result);
       resolve(result);
-      notify(`Запрос ${requestId} ещё не подтверждён. Расход не возвращён автоматически; результат можно проверить через диагностику.`, "warn");
+      notify(
+        `Запрос ${requestId} ещё не подтверждён. Расход не возвращён автоматически; результат можно проверить через диагностику.`,
+        "warn"
+      );
     }, timeoutMs);
     pending.set(requestId, waiting);
     game.socket.emit(`module.${MODULE_ID}`, { type, requestId, ownerUuid: owner.uuid, userId: game.user.id, data });

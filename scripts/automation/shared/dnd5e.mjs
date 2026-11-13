@@ -3,11 +3,7 @@ export function abilityMod(actor, ability) {
 }
 
 export function baseAbilityValue(actor, ability) {
-  return Number(
-    actor?._source?.system?.abilities?.[ability]?.value
-    ?? actor?.system?.abilities?.[ability]?.value
-    ?? 0
-  );
+  return Number(actor?._source?.system?.abilities?.[ability]?.value ?? actor?.system?.abilities?.[ability]?.value ?? 0);
 }
 
 export function strengthValue(actor) {

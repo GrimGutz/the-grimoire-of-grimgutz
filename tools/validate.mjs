@@ -91,7 +91,8 @@ try {
 if (documentCounts.classes !== 36) errors.push(`Expected 36 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
 if (documentCounts.features !== 888) errors.push(`Expected 888 features, got ${documentCounts.features ?? 0}`);
-if (documentCounts.transformations !== 13) errors.push(`Expected 13 transformations, got ${documentCounts.transformations ?? 0}`);
+if (documentCounts.transformations !== 13)
+  errors.push(`Expected 13 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 21) errors.push(`Expected 21 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
 if (documentCounts.bestiary !== 30) errors.push(`Expected 30 bestiary actors, got ${documentCounts.bestiary ?? 0}`);
@@ -124,13 +125,15 @@ function iconExists(iconPath) {
 for (const { pack, document } of allDocuments.values()) {
   if (!iconExists(document.img)) errors.push(`Missing icon for ${pack}/${document.name}: ${document.img}`);
   for (const effect of document.effects ?? []) {
-    if (!iconExists(effect.img)) errors.push(`Missing effect icon for ${pack}/${document.name}/${effect.name}: ${effect.img}`);
+    if (!iconExists(effect.img))
+      errors.push(`Missing effect icon for ${pack}/${document.name}/${effect.name}: ${effect.img}`);
   }
 }
 for (const { pack, document } of embeddedIconDocuments) {
   if (!iconExists(document.img)) errors.push(`Missing embedded icon for ${pack}/${document.name}: ${document.img}`);
   for (const effect of document.effects ?? []) {
-    if (!iconExists(effect.img)) errors.push(`Missing embedded effect icon for ${pack}/${document.name}/${effect.name}: ${effect.img}`);
+    if (!iconExists(effect.img))
+      errors.push(`Missing embedded effect icon for ${pack}/${document.name}/${effect.name}: ${effect.img}`);
   }
 }
 
@@ -214,9 +217,7 @@ for (const document of classDocuments) {
     errors.push(`Class ${document.system?.identifier ?? document.name} must use an icon, not character art: ${icon}`);
   }
 }
-const classesByIdentifier = new Map(
-  classDocuments.map(document => [document.system.identifier, document])
-);
+const classesByIdentifier = new Map(classDocuments.map(document => [document.system.identifier, document]));
 const crusherClass = classesByIdentifier.get("crusher");
 const leaderClass = classesByIdentifier.get("leader");
 const deathKnightClass = classesByIdentifier.get("death-knight");
@@ -246,9 +247,7 @@ const spiritVesselClass = classesByIdentifier.get("spirit-vessel");
 const oracleClass = classesByIdentifier.get("oracle");
 const demonologistClass = classesByIdentifier.get("demonologist");
 const sanguinistClass = classesByIdentifier.get("sanguinist");
-const subclassesByIdentifier = new Map(
-  subclassDocuments.map(document => [document.system.identifier, document])
-);
+const subclassesByIdentifier = new Map(subclassDocuments.map(document => [document.system.identifier, document]));
 const schoolOfSteelSubclass = subclassDocuments.find(document => document.system.identifier === "school-of-steel");
 if (!crusherClass) {
   errors.push("Crusher class document is missing");
@@ -422,10 +421,11 @@ if (!crusaderClass) {
     }
   }
   const armorTrait = crusaderClass.system.advancement.some(
-    advancement => advancement.type === "Trait"
-      && advancement.configuration?.grants?.includes("armor:lgt")
-      && advancement.configuration?.grants?.includes("armor:med")
-      && advancement.configuration?.grants?.includes("armor:shl")
+    advancement =>
+      advancement.type === "Trait" &&
+      advancement.configuration?.grants?.includes("armor:lgt") &&
+      advancement.configuration?.grants?.includes("armor:med") &&
+      advancement.configuration?.grants?.includes("armor:shl")
   );
   if (!armorTrait) errors.push("Crusader armor and shield proficiencies are missing");
 }
@@ -807,7 +807,9 @@ if (!spiritVesselClass) {
     errors.push("Spirit Vessel class automation flag is missing");
   }
   for (const identifier of ["known-spells", "pact-slots", "pact-slot-level"]) {
-    if (!spiritVesselClass.system.advancement.some(advancement => advancement.configuration?.identifier === identifier)) {
+    if (
+      !spiritVesselClass.system.advancement.some(advancement => advancement.configuration?.identifier === identifier)
+    ) {
       errors.push(`Spirit Vessel scale is missing: ${identifier}`);
     }
   }
@@ -816,9 +818,10 @@ if (!spiritVesselClass) {
   );
   if (!subclassAdvancement) errors.push("Spirit Vessel subclass advancement is missing");
   const saveTrait = spiritVesselClass.system.advancement.some(
-    advancement => advancement.type === "Trait"
-      && advancement.configuration?.grants?.includes("saves:int")
-      && advancement.configuration?.grants?.includes("saves:cha")
+    advancement =>
+      advancement.type === "Trait" &&
+      advancement.configuration?.grants?.includes("saves:int") &&
+      advancement.configuration?.grants?.includes("saves:cha")
   );
   if (!saveTrait) errors.push("Spirit Vessel Intelligence and Charisma save proficiencies are missing");
 }
@@ -848,7 +851,10 @@ if (!oracleClass) {
   );
   if (!weaverTools) errors.push("Oracle must grant weaver's tools");
   const perception = oracleClass.system.advancement.some(
-    advancement => advancement.type === "Trait" && advancement.level === 4 && advancement.configuration?.grants?.includes("skills:prc")
+    advancement =>
+      advancement.type === "Trait" &&
+      advancement.level === 4 &&
+      advancement.configuration?.grants?.includes("skills:prc")
   );
   if (!perception) errors.push("Oracle must grant Perception at level 4");
   const level4Asi = oracleClass.system.advancement.some(
@@ -878,16 +884,18 @@ if (!demonologistClass) {
   );
   if (!charismaSave) errors.push("Demonologist must grant Charisma saving throw proficiency");
   const skillChoice = demonologistClass.system.advancement.some(
-    advancement => advancement.type === "Trait"
-      && advancement.configuration?.choices?.some(choice =>
-        choice.count === 1
-        && choice.pool?.includes("skills:dec")
-        && choice.pool?.includes("skills:itm")
+    advancement =>
+      advancement.type === "Trait" &&
+      advancement.configuration?.choices?.some(
+        choice => choice.count === 1 && choice.pool?.includes("skills:dec") && choice.pool?.includes("skills:itm")
       )
   );
   if (!skillChoice) errors.push("Demonologist must choose Deception or Intimidation");
   const abyssal = demonologistClass.system.advancement.some(
-    advancement => advancement.type === "Trait" && advancement.level === 2 && advancement.configuration?.grants?.includes("languages:abyssal")
+    advancement =>
+      advancement.type === "Trait" &&
+      advancement.level === 2 &&
+      advancement.configuration?.grants?.includes("languages:abyssal")
   );
   if (!abyssal) errors.push("Demonologist must grant Abyssal at level 2");
   const level4Asi = demonologistClass.system.advancement.some(
@@ -910,32 +918,42 @@ if (!sanguinistClass) {
     errors.push("Sanguinist class automation flag is missing");
   }
   const skillChoice = sanguinistClass.system.advancement.some(
-    advancement => advancement.type === "Trait"
-      && advancement.configuration?.choices?.some(choice =>
-        choice.count === 1
-        && choice.pool?.includes("skills:arc")
-        && choice.pool?.includes("skills:itm")
-        && choice.pool?.includes("skills:med")
-        && choice.pool?.includes("skills:nat")
-        && choice.pool?.includes("skills:rel")
+    advancement =>
+      advancement.type === "Trait" &&
+      advancement.configuration?.choices?.some(
+        choice =>
+          choice.count === 1 &&
+          choice.pool?.includes("skills:arc") &&
+          choice.pool?.includes("skills:itm") &&
+          choice.pool?.includes("skills:med") &&
+          choice.pool?.includes("skills:nat") &&
+          choice.pool?.includes("skills:rel")
       )
   );
   if (!skillChoice) errors.push("Sanguinist must choose one listed skill");
-  for (const identifier of ["blood-magic-uses", "known-blood-spells", "spell-slots-1", "spell-slots-2", "spell-slots-3"]) {
+  for (const identifier of [
+    "blood-magic-uses",
+    "known-blood-spells",
+    "spell-slots-1",
+    "spell-slots-2",
+    "spell-slots-3"
+  ]) {
     if (!sanguinistClass.system.advancement.some(advancement => advancement.configuration?.identifier === identifier)) {
       errors.push(`Sanguinist scale is missing: ${identifier}`);
     }
   }
   const compatibilityChoice = sanguinistClass.system.advancement.some(
-    advancement => advancement.type === "ItemChoice"
-      && advancement.configuration?.choices?.[3]?.count === 1
-      && advancement.configuration?.pool?.length === 2
+    advancement =>
+      advancement.type === "ItemChoice" &&
+      advancement.configuration?.choices?.[3]?.count === 1 &&
+      advancement.configuration?.pool?.length === 2
   );
   if (!compatibilityChoice) errors.push("Sanguinist level 3 blood compatibility choice is missing");
   const masteryChoice = sanguinistClass.system.advancement.some(
-    advancement => advancement.type === "ItemChoice"
-      && advancement.configuration?.choices?.[5]?.count === 2
-      && advancement.configuration?.pool?.length === 8
+    advancement =>
+      advancement.type === "ItemChoice" &&
+      advancement.configuration?.choices?.[5]?.count === 2 &&
+      advancement.configuration?.pool?.length === 8
   );
   if (!masteryChoice) errors.push("Sanguinist level 5 crimson mastery choice is missing");
   const level4Asi = sanguinistClass.system.advancement.some(
@@ -953,7 +971,9 @@ if (!schoolOfSteelSubclass) {
   if (schoolOfSteelSubclass.flags?.[manifest.id]?.wizardSubclass !== "school-of-steel") {
     errors.push("School of Steel subclass automation flag is missing");
   }
-  const advancementLevels = new Set((schoolOfSteelSubclass.system.advancement ?? []).map(advancement => advancement.level));
+  const advancementLevels = new Set(
+    (schoolOfSteelSubclass.system.advancement ?? []).map(advancement => advancement.level)
+  );
   for (const level of [2, 6, 10, 14]) {
     if (!advancementLevels.has(level)) errors.push(`School of Steel advancement level is missing: ${level}`);
   }
@@ -967,20 +987,17 @@ if (!schoolOfSteelSubclass) {
   if (!signatureChoice || signatureChoice.configuration?.pool?.length !== 3) {
     errors.push("School of Steel must provide 3 signature technique choices at level 14");
   }
-  const grantsAnimateObjects = JSON.stringify(schoolOfSteelSubclass.system.advancement ?? [])
-    .includes("Compendium.dnd5e.spells.Item.ATo0Eb63TDtnu6iA");
+  const grantsAnimateObjects = JSON.stringify(schoolOfSteelSubclass.system.advancement ?? []).includes(
+    "Compendium.dnd5e.spells.Item.ATo0Eb63TDtnu6iA"
+  );
   if (!grantsAnimateObjects) errors.push("School of Steel must grant Animate Objects at level 10");
 }
 
 const featureIds = new Set(
-  [...allDocuments.values()]
-    .filter(entry => entry.pack === "features")
-    .map(entry => entry.document._id)
+  [...allDocuments.values()].filter(entry => entry.pack === "features").map(entry => entry.document._id)
 );
 const itemUuids = new Set(
-  [...allDocuments.values()].map(
-    entry => `Compendium.${manifest.id}.${entry.pack}.Item.${entry.document._id}`
-  )
+  [...allDocuments.values()].map(entry => `Compendium.${manifest.id}.${entry.pack}.Item.${entry.document._id}`)
 );
 
 for (const { document } of allDocuments.values()) {
@@ -1011,9 +1028,7 @@ for (const { document } of allDocuments.values()) {
 const featureDocuments = [...allDocuments.values()]
   .filter(entry => entry.pack === "features")
   .map(entry => entry.document);
-const featuresByIdentifier = new Map(
-  featureDocuments.map(document => [document.system.identifier, document])
-);
+const featuresByIdentifier = new Map(featureDocuments.map(document => [document.system.identifier, document]));
 const transformationDocuments = [...allDocuments.values()]
   .filter(entry => entry.pack === "transformations")
   .map(entry => entry.document);
@@ -1021,15 +1036,44 @@ const transformationsByIdentifier = new Map(
   transformationDocuments.map(document => [document.system.identifier, document])
 );
 const allItemDocuments = [...allDocuments.values()].map(entry => entry.document);
-const allItemsByIdentifier = new Map(
-  allItemDocuments.map(document => [document.system.identifier, document])
-);
+const allItemsByIdentifier = new Map(allItemDocuments.map(document => [document.system.identifier, document]));
 const transformationIdentifiers = new Set(transformationDocuments.map(document => document.system.identifier));
-for (const identifier of ["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation", "dullahan-transformation", "factory-transformation", "god-transformation", "hag-transformation", "halfdragon-transformation", "illithid-transformation"]) {
-  if (!transformationIdentifiers.has(identifier)) errors.push(`Main transformation card is missing from transformations pack: ${identifier}`);
+for (const identifier of [
+  "murderspawn-transformation",
+  "hollow-transformation",
+  "arkane-transformation",
+  "automaton-transformation",
+  "broodmother-transformation",
+  "chimera-transformation",
+  "deathknight-transformation",
+  "dullahan-transformation",
+  "factory-transformation",
+  "god-transformation",
+  "hag-transformation",
+  "halfdragon-transformation",
+  "illithid-transformation"
+]) {
+  if (!transformationIdentifiers.has(identifier))
+    errors.push(`Main transformation card is missing from transformations pack: ${identifier}`);
 }
 for (const document of transformationDocuments) {
-  if (!["murderspawn-transformation", "hollow-transformation", "arkane-transformation", "automaton-transformation", "broodmother-transformation", "chimera-transformation", "deathknight-transformation", "dullahan-transformation", "factory-transformation", "god-transformation", "hag-transformation", "halfdragon-transformation", "illithid-transformation"].includes(document.system.identifier)) {
+  if (
+    ![
+      "murderspawn-transformation",
+      "hollow-transformation",
+      "arkane-transformation",
+      "automaton-transformation",
+      "broodmother-transformation",
+      "chimera-transformation",
+      "deathknight-transformation",
+      "dullahan-transformation",
+      "factory-transformation",
+      "god-transformation",
+      "hag-transformation",
+      "halfdragon-transformation",
+      "illithid-transformation"
+    ].includes(document.system.identifier)
+  ) {
     errors.push(`Transformations pack must contain only main transformation cards, got: ${document.system.identifier}`);
   }
 }
@@ -1105,13 +1149,7 @@ const soulEaterFeatureDocuments = featureDocuments.filter(
 if (soulEaterFeatureDocuments.length !== 5) {
   errors.push(`Expected 5 Soul Eater features, got ${soulEaterFeatureDocuments.length}`);
 }
-for (const identifier of [
-  "soul-rend",
-  "soul-absorption",
-  "soul-exchange",
-  "soul-shard",
-  "soul-power"
-]) {
+for (const identifier of ["soul-rend", "soul-absorption", "soul-exchange", "soul-shard", "soul-power"]) {
   const document = featuresByIdentifier.get(identifier);
   if (!document) {
     errors.push(`Missing Soul Eater feature: ${identifier}`);
@@ -1403,13 +1441,7 @@ const gamblerFeatureDocuments = featureDocuments.filter(
 if (gamblerFeatureDocuments.length !== 5) {
   errors.push(`Expected 5 Gambler features, got ${gamblerFeatureDocuments.length}`);
 }
-for (const identifier of [
-  "astral-deck",
-  "deal-them",
-  "rogues-are-lucky",
-  "up-the-sleeve",
-  "aces-beat"
-]) {
+for (const identifier of ["astral-deck", "deal-them", "rogues-are-lucky", "up-the-sleeve", "aces-beat"]) {
   const document = featuresByIdentifier.get(identifier);
   if (!document) {
     errors.push(`Missing Gambler feature: ${identifier}`);
@@ -1484,8 +1516,9 @@ for (const identifier of [
   }
 }
 const bloodMagic = featuresByIdentifier.get("blood-magic");
-const bloodMagicActions = Object.values(bloodMagic?.system?.activities ?? {})
-  .filter(activity => activity.flags?.[manifest.id]?.action === "apply-blood-magic-cost");
+const bloodMagicActions = Object.values(bloodMagic?.system?.activities ?? {}).filter(
+  activity => activity.flags?.[manifest.id]?.action === "apply-blood-magic-cost"
+);
 if (bloodMagicActions.length !== 5) {
   errors.push(`Blood Magic must provide 5 blood cost activities, got ${bloodMagicActions.length}`);
 }
@@ -1494,9 +1527,11 @@ if (!sanguineFortitude?.effects?.some(effect => effect.flags?.[manifest.id]?.pas
   errors.push("Blood Mage Sanguine Fortitude passive effect is missing");
 }
 const sacrifice = featuresByIdentifier.get("blood-mage-sacrifice");
-if (!Object.values(sacrifice?.system?.activities ?? {}).some(
-  activity => activity.flags?.[manifest.id]?.action === "roll-blood-mage-sacrifice"
-)) {
+if (
+  !Object.values(sacrifice?.system?.activities ?? {}).some(
+    activity => activity.flags?.[manifest.id]?.action === "roll-blood-mage-sacrifice"
+  )
+) {
   errors.push("Blood Mage Sacrifice action is missing");
 }
 const onmyojiFeatureDocuments = featureDocuments.filter(
@@ -1544,14 +1579,17 @@ if (onmyojiSpiritFeatureDocuments.length !== 10) {
   errors.push(`Expected 10 Onmyoji World Spirit features, got ${onmyojiSpiritFeatureDocuments.length}`);
 }
 const onmyojiKi = featuresByIdentifier.get("onmyoji-ki");
-if (!Object.values(onmyojiKi?.system?.activities ?? {}).some(
-  activity => activity.flags?.[manifest.id]?.action === "sync-onmyoji-resources"
-)) {
+if (
+  !Object.values(onmyojiKi?.system?.activities ?? {}).some(
+    activity => activity.flags?.[manifest.id]?.action === "sync-onmyoji-resources"
+  )
+) {
   errors.push("Onmyoji Ki sync action is missing");
 }
 for (const document of onmyojiSpiritFeatureDocuments) {
-  const actions = Object.values(document.system?.activities ?? {})
-    .map(activity => activity.flags?.[manifest.id]?.action);
+  const actions = Object.values(document.system?.activities ?? {}).map(
+    activity => activity.flags?.[manifest.id]?.action
+  );
   const kiActions = actions.filter(action => action === "use-onmyoji-ki");
   if (kiActions.length !== 2) {
     errors.push(`Onmyoji spirit ${document.system.identifier} must provide minor and great Ki activities`);
@@ -1602,12 +1640,16 @@ for (const action of [
 }
 const ritualPointActions = bindingRitualActions.filter(action => action === "summon-ritualist-spirits");
 if (ritualPointActions.length !== 1) {
-  errors.push(`Binding Ritual must provide 1 dialog-based ritual spirit summon activity, got ${ritualPointActions.length}`);
+  errors.push(
+    `Binding Ritual must provide 1 dialog-based ritual spirit summon activity, got ${ritualPointActions.length}`
+  );
 }
 const spiritChannel = featuresByIdentifier.get("spirit-channel");
-if (!Object.values(spiritChannel?.system?.activities ?? {}).some(
-  activity => activity.flags?.[manifest.id]?.action === "show-ritualist-spirit-channel"
-)) {
+if (
+  !Object.values(spiritChannel?.system?.activities ?? {}).some(
+    activity => activity.flags?.[manifest.id]?.action === "show-ritualist-spirit-channel"
+  )
+) {
   errors.push("Ritualist Spirit Channel summary action is missing");
 }
 const darkWarriorFeatureDocuments = featureDocuments.filter(
@@ -1690,9 +1732,11 @@ if (!devilSight?.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEff
   errors.push("Devil Worshipper Devil Sight passive effect is missing");
 }
 const devilAbility = featuresByIdentifier.get("devil-spellcasting-ability");
-if (!Object.values(devilAbility?.system?.activities ?? {}).some(
-  activity => activity.flags?.[manifest.id]?.action === "choose-devil-worshipper-ability"
-)) {
+if (
+  !Object.values(devilAbility?.system?.activities ?? {}).some(
+    activity => activity.flags?.[manifest.id]?.action === "choose-devil-worshipper-ability"
+  )
+) {
   errors.push("Devil Worshipper ability choice action is missing");
 }
 const devilGlaive = featuresByIdentifier.get("devilish-glaive");
@@ -1841,8 +1885,8 @@ for (const identifier of [
     errors.push(`Demonologist automation description is missing: ${identifier}`);
   }
 }
-const demonicResistanceChanges = featuresByIdentifier.get("demonic-resistance")
-  ?.effects?.flatMap(effect => effect.system?.changes ?? []) ?? [];
+const demonicResistanceChanges =
+  featuresByIdentifier.get("demonic-resistance")?.effects?.flatMap(effect => effect.system?.changes ?? []) ?? [];
 for (const [path, value] of [
   ["system.traits.dr.value", "fire"],
   ["system.traits.dr.value", "acid"],
@@ -1853,12 +1897,16 @@ for (const [path, value] of [
     errors.push(`Demonic Resistance passive change is missing: ${path} ${value}`);
   }
 }
-const demonicMindChanges = featuresByIdentifier.get("demonic-mind")
-  ?.effects?.flatMap(effect => effect.system?.changes ?? []) ?? [];
+const demonicMindChanges =
+  featuresByIdentifier.get("demonic-mind")?.effects?.flatMap(effect => effect.system?.changes ?? []) ?? [];
 if (!demonicMindChanges.some(change => change.key === "system.traits.dr.value" && change.value === "psychic")) {
   errors.push("Demonic Mind must add psychic resistance");
 }
-if (!demonicMindChanges.some(change => change.key === "system.attributes.senses.ranges.telepathy" && change.value === "60")) {
+if (
+  !demonicMindChanges.some(
+    change => change.key === "system.attributes.senses.ranges.telepathy" && change.value === "60"
+  )
+) {
   errors.push("Demonic Mind must add 60 ft telepathy");
 }
 const sanguinistFeatureDocuments = featureDocuments.filter(
@@ -1929,13 +1977,12 @@ for (const [identifier, [specialization, featureIdentifier]] of expectedKeeperSu
   if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
     errors.push(`Keeper subclass automation description is missing: ${identifier}`);
   }
-  const expectedUuid = featureDocument
-    ? `Compendium.${manifest.id}.features.Item.${featureDocument._id}`
-    : "";
-  const grantsFeature = (document.system.advancement ?? []).some(advancement =>
-    advancement.type === "ItemGrant"
-      && advancement.level === 1
-      && advancement.configuration?.items?.some(item => item.uuid === expectedUuid)
+  const expectedUuid = featureDocument ? `Compendium.${manifest.id}.features.Item.${featureDocument._id}` : "";
+  const grantsFeature = (document.system.advancement ?? []).some(
+    advancement =>
+      advancement.type === "ItemGrant" &&
+      advancement.level === 1 &&
+      advancement.configuration?.items?.some(item => item.uuid === expectedUuid)
   );
   if (!expectedUuid || !grantsFeature) {
     errors.push(`Keeper subclass ${identifier} must grant feature ${featureIdentifier} at level 1`);
@@ -1952,7 +1999,9 @@ const expectedSpiritVesselSubclasses = new Map([
   ["spirit-vessel-fiend", ["fiend", "spirit-fiend"]],
   ["spirit-vessel-undead", ["undead", "spirit-undead"]]
 ]);
-const spiritVesselSubclassDocuments = subclassDocuments.filter(document => document.system.classIdentifier === "spirit-vessel");
+const spiritVesselSubclassDocuments = subclassDocuments.filter(
+  document => document.system.classIdentifier === "spirit-vessel"
+);
 if (spiritVesselSubclassDocuments.length !== 9) {
   errors.push(`Expected 9 Spirit Vessel subclasses, got ${spiritVesselSubclassDocuments.length}`);
 }
@@ -1972,13 +2021,12 @@ for (const [identifier, [spirit, featureIdentifier]] of expectedSpiritVesselSubc
   if (!document.system.description?.value?.includes("Автоматизация Foundry:")) {
     errors.push(`Spirit Vessel subclass automation description is missing: ${identifier}`);
   }
-  const expectedUuid = featureDocument
-    ? `Compendium.${manifest.id}.features.Item.${featureDocument._id}`
-    : "";
-  const grantsFeature = (document.system.advancement ?? []).some(advancement =>
-    advancement.type === "ItemGrant"
-      && advancement.level === 1
-      && advancement.configuration?.items?.some(item => item.uuid === expectedUuid)
+  const expectedUuid = featureDocument ? `Compendium.${manifest.id}.features.Item.${featureDocument._id}` : "";
+  const grantsFeature = (document.system.advancement ?? []).some(
+    advancement =>
+      advancement.type === "ItemGrant" &&
+      advancement.level === 1 &&
+      advancement.configuration?.items?.some(item => item.uuid === expectedUuid)
   );
   if (!expectedUuid || !grantsFeature) {
     errors.push(`Spirit Vessel subclass ${identifier} must grant feature ${featureIdentifier} at level 1`);
@@ -2058,7 +2106,9 @@ if (!murderspawnMain) {
   }
   const advancementJson = JSON.stringify(murderspawnMain.system.advancement ?? []);
   if (advancementJson.includes(`${manifest.id}.transformations.Item`)) {
-    errors.push("Murderspawn main advancement must grant features from the features/equipment packs, not transformations");
+    errors.push(
+      "Murderspawn main advancement must grant features from the features/equipment packs, not transformations"
+    );
   }
 }
 for (const document of murderspawnFeatureDocuments) {
@@ -2076,14 +2126,22 @@ for (const document of murderspawnFeatureDocuments) {
 }
 const deathRun = featuresByIdentifier.get("death-run");
 const primalReflexes = featuresByIdentifier.get("primal-reflexes");
-if (!deathRun?.effects?.some(effect => effect.system?.changes?.some(change =>
-  change.key === "system.attributes.movement.walk" && change.phase === "final" && change.value === "10"
-))) {
+if (
+  !deathRun?.effects?.some(effect =>
+    effect.system?.changes?.some(
+      change => change.key === "system.attributes.movement.walk" && change.phase === "final" && change.value === "10"
+    )
+  )
+) {
   errors.push("Death Run must add +10 walk speed in final phase");
 }
-if (!primalReflexes?.effects?.some(effect => effect.system?.changes?.some(change =>
-  change.key === "system.attributes.init.bonus" && change.phase === "final" && change.value === "10"
-))) {
+if (
+  !primalReflexes?.effects?.some(effect =>
+    effect.system?.changes?.some(
+      change => change.key === "system.attributes.init.bonus" && change.phase === "final" && change.value === "10"
+    )
+  )
+) {
   errors.push("Primal Reflexes must add +10 initiative in final phase");
 }
 
@@ -2101,7 +2159,8 @@ for (const document of featureDocuments) {
   }
 }
 for (const [hook, handler] of MIDI_QOL_HOOKS) {
-  if (typeof getMidiHookHandlers()[handler] !== "function") errors.push(`Missing registered Midi-QOL handler ${handler} for ${hook}`);
+  if (typeof getMidiHookHandlers()[handler] !== "function")
+    errors.push(`Missing registered Midi-QOL handler ${handler} for ${hook}`);
 }
 for (const token of [
   "syncMurderspawnPassiveEffects",
@@ -2176,11 +2235,15 @@ for (const document of hollowFeatureDocuments) {
 
 const negativeBody = featuresByIdentifier.get("negative-body");
 const fortifiedSoul = featuresByIdentifier.get("fortified-soul");
-if (!negativeBody?.effects?.some(effect => {
-  const changes = effect.system?.changes ?? [];
-  return changes.some(change => change.key === "system.abilities.con.value" && change.value === "2")
-    && changes.some(change => change.key === "system.abilities.wis.value" && change.value === "1");
-})) {
+if (
+  !negativeBody?.effects?.some(effect => {
+    const changes = effect.system?.changes ?? [];
+    return (
+      changes.some(change => change.key === "system.abilities.con.value" && change.value === "2") &&
+      changes.some(change => change.key === "system.abilities.wis.value" && change.value === "1")
+    );
+  })
+) {
   errors.push("Negative Body must include CON +2 and WIS +1 passive changes");
 }
 if (!fortifiedSoul?.effects?.some(effect => effect.flags?.[manifest.id]?.passiveEffect === true)) {
@@ -2411,7 +2474,8 @@ for (const token of [
   "NETHERIL_MINI_MYTHAL_EFFECT",
   "NETHERIL_WEAVE_SEVERED_EFFECT"
 ]) {
-  if (!automationSource.includes(token)) errors.push(`Netherese Arcanist runtime automation is missing token: ${token}`);
+  if (!automationSource.includes(token))
+    errors.push(`Netherese Arcanist runtime automation is missing token: ${token}`);
 }
 for (const token of [
   "oracleClass",
@@ -2480,9 +2544,11 @@ for (const action of ["school-steel-choose-weapons", "school-steel-bonus-attack"
   if (!steelBattleActions.includes(action)) errors.push(`Missing School of Steel battle training action: ${action}`);
 }
 const steelMetalist = featuresByIdentifier.get("steel-metalist");
-if (!steelMetalist?.effects?.some(effect => effect.system?.changes?.some(change =>
-  change.key === "system.traits.armorProf.value" && change.value === "hvy"
-))) {
+if (
+  !steelMetalist?.effects?.some(effect =>
+    effect.system?.changes?.some(change => change.key === "system.traits.armorProf.value" && change.value === "hvy")
+  )
+) {
   errors.push("Metalist must include heavy armor proficiency passive effect");
 }
 for (const token of [
@@ -2560,14 +2626,14 @@ for (const document of featureDocuments) {
       errors.push(`Passive effect marker is missing: ${document.system.identifier}/${effect.name}`);
     }
     if (effect.transfer !== false) {
-      errors.push(`Module passive effect must be materialized on the actor: ${document.system.identifier}/${effect.name}`);
+      errors.push(
+        `Module passive effect must be materialized on the actor: ${document.system.identifier}/${effect.name}`
+      );
     }
   }
 }
 
-const spellDocuments = [...allDocuments.values()]
-  .filter(entry => entry.pack === "spells")
-  .map(entry => entry.document);
+const spellDocuments = [...allDocuments.values()].filter(entry => entry.pack === "spells").map(entry => entry.document);
 const treeHealing = spellDocuments.find(document => document.system.identifier === "tree-healing");
 if (!treeHealing) {
   errors.push("Tree Healing spell is missing");
@@ -2582,7 +2648,9 @@ if (!treeHealing) {
     errors.push("Tree Healing automation flag is missing");
   }
 }
-const witchBladeSpellDocuments = spellDocuments.filter(document => document.flags?.[manifest.id]?.witchBladeSpell === true);
+const witchBladeSpellDocuments = spellDocuments.filter(
+  document => document.flags?.[manifest.id]?.witchBladeSpell === true
+);
 if (witchBladeSpellDocuments.length !== 10) {
   errors.push(`Expected 10 Witch Blade spells, got ${witchBladeSpellDocuments.length}`);
 }
@@ -2602,7 +2670,9 @@ for (const identifier of [
     errors.push(`Witch Blade spell is missing: ${identifier}`);
   }
 }
-const bloodMageSpellDocuments = spellDocuments.filter(document => document.flags?.[manifest.id]?.bloodMageSpell === true);
+const bloodMageSpellDocuments = spellDocuments.filter(
+  document => document.flags?.[manifest.id]?.bloodMageSpell === true
+);
 if (bloodMageSpellDocuments.length !== 2) {
   errors.push(`Expected 2 Blood Mage spells, got ${bloodMageSpellDocuments.length}`);
 }
@@ -2620,7 +2690,9 @@ for (const [identifier, level] of [
     errors.push(`Blood Mage spell automation flag is missing: ${identifier}`);
   }
 }
-const nethereseGreatSpellDocuments = spellDocuments.filter(document => document.flags?.[manifest.id]?.nethereseGreatSpell === true);
+const nethereseGreatSpellDocuments = spellDocuments.filter(
+  document => document.flags?.[manifest.id]?.nethereseGreatSpell === true
+);
 if (nethereseGreatSpellDocuments.length !== 7) {
   errors.push(`Expected 7 Netherese Arcanist great spells, got ${nethereseGreatSpellDocuments.length}`);
 }
@@ -2638,7 +2710,8 @@ for (const identifier of [
     errors.push(`Netherese Arcanist great spell is missing: ${identifier}`);
     continue;
   }
-  if (document.system.level !== 9) errors.push(`Netherese Arcanist great spell ${identifier} must be stored as level 9 for dnd5e compatibility`);
+  if (document.system.level !== 9)
+    errors.push(`Netherese Arcanist great spell ${identifier} must be stored as level 9 for dnd5e compatibility`);
   if (document.flags?.[manifest.id]?.nethereseGreatSpell !== true) {
     errors.push(`Netherese Arcanist great spell automation flag is missing: ${identifier}`);
   }
@@ -2704,284 +2777,292 @@ if (witchBladeFeatureDocuments.filter(document => document.flags?.[manifest.id]?
 }
 
 const expectedClassFeatureLinks = new Map([
-  ["crusher", [
-    "great-weapon-style",
-    "giant-killer",
-    "crusher-techniques",
-    "momentum",
-    "steel-will",
-    "steel-giant"
-  ]],
-  ["leader", [
-    "leader-command-stratagems",
-    "moment-of-glory",
-    "glimpse-of-genius",
-    "leadership-expertise",
-    "perfect-coordination",
-    "leader-presence"
-  ]],
-  ["death-knight", [
-    "mystical-power",
-    "undead-nature",
-    "death-knight-magic-resistance",
-    "strong-undead",
-    "battle-undead",
-    "death-knight-extra-attack"
-  ]],
-  ["heretic", [
-    "occult-gifts",
-    "marked-by-corruption",
-    "vile-powers",
-    "forbidden-talent",
-    "distorted-body"
-  ]],
-  ["forest-lord", [
-    "tree-kindred",
-    "nature-magic",
-    "nature-sense",
-    "forest-barkskin",
-    "oak-strength",
-    "spruce-growth",
-    "oak-heart",
-    "forest-might",
-    "take-root"
-  ]],
-  ["aberrant", [
-    "deadly-precision",
-    "monster-reflexes",
-    "arcane-sense",
-    "toxic-blood",
-    "vigorous-nature",
-    "final-changes"
-  ]],
-  ["witch-blade", [
-    "witch-blade-spellcasting",
-    "witch-hunter",
-    "dead-zone",
-    "witch-blade-seal",
-    "great-design",
-    "immaterial-whirlwind"
-  ]],
-  ["guardian", [
-    "guardian-calling",
-    "guardian-mark",
-    "protection-specialization",
-    "endure-pain",
-    "powerful-retribution",
-    "steadfastness",
-    "powerful-retribution-improved",
-    "guardian-unyielding"
-  ]],
-  ["crusader", [
-    "crusader-miracles",
-    "crusader-rage",
-    "crusader-aegis",
-    "divine-devotion",
-    "consecration",
-    "condemnation"
-  ]],
-  ["fey-warrior", [
-    "fey-transformation",
-    "fey-warrior-cantrips",
-    "call-of-feywild",
-    "charming-defense",
-    "chimeric-weapon",
-    "permanent-manifestation",
-    "fey-magic",
-    "fey-skin"
-  ]],
-  ["ghost-walker", [
-    "touched-by-death",
-    "spirit-form",
-    "possession",
-    "ghost-step",
-    "otherworldly-presence",
-    "drain-soul",
-    "kindred-spirit",
-    "unfinished-business"
-  ]],
-  ["blinker", [
-    "inner-blink",
-    "turnaround-blink",
-    "sideways-shift",
-    "blinking-step",
-    "improved-technique",
-    "blinking-wrist",
-    "outer-blink",
-    "shift-sense",
-    "disappearance",
-    "miraculous-homecoming"
-  ]],
-  ["fallen-priest", [
-    "fallen-priest-heretic",
-    "fallen-priest-spellcasting",
-    "fallen-priest-turn-undead",
-    "divine-resistance",
-    "absorb-power",
-    "divine-copying",
-    "arcane-copying"
-  ]],
-  ["plague-doctor", [
-    "plague-sneak-attack",
-    "disease-carrier",
-    "ragged-armor",
-    "touch-of-disease",
-    "smart-infection",
-    "infect-wounds",
-    "disease-form"
-  ]],
-  ["insect-lord", [
-    "chitinous-carapace",
-    "insect-familiar",
-    "insect-natural-weapons",
-    "blood-drain",
-    "crawling-armor",
-    "spew-insects",
-    "swarm-mind",
-    "crawling-eye"
-  ]],
-  ["gambler", [
-    "astral-deck",
-    "deal-them",
-    "rogues-are-lucky",
-    "up-the-sleeve",
-    "aces-beat"
-  ]],
-  ["keeper", [
-    "keeper-ward-and-warded",
-    "keeper-ally-talents",
-    "strategy-and-synergy",
-    "united-and-protected",
-    "rest-and-recovery",
-    "might-and-magic"
-  ]],
-  ["blood-mage", [
-    "blood-mage-spellcasting",
-    "blood-magic",
-    "flesh-canvas",
-    "feast-of-the-fallen",
-    "blood-transfer",
-    "sanguine-fortitude",
-    "blood-mage-sacrifice",
-    "blood-thrall",
-    "maleficar",
-    "sanguine-strength"
-  ]],
-  ["onmyoji", [
-    "onmyoji-ki",
-    "shikigami-talisman",
-    "purification-rite",
-    "shikigami-ghost-hunter",
-    "spirit-place",
-    "spirit-alcohol",
-    "spirit-book",
-    "spirit-fire",
-    "spirit-food",
-    "spirit-mountain",
-    "spirit-steel",
-    "spirit-water",
-    "spirit-wood",
-    "spirit-wealth",
-    "spirit-wind"
-  ]],
-  ["ritualist", [
-    "binding-ritual",
-    "spirit-sight",
-    "mind-body-and-soul",
-    "protective-ritual",
-    "spirit-channel",
-    "ethereal-wanderer"
-  ]],
-  ["dark-warrior", [
-    "black-magic-oil",
-    "black-magic-elixir",
-    "improved-black-oil",
-    "improved-black-elixir",
-    "dark-resistance",
-    "blackening-weapon"
-  ]],
-  ["devil-worshipper", [
-    "devil-spellcasting-ability",
-    "hellfire",
-    "imp-familiar",
-    "devil-sight",
-    "dark-luck",
-    "quiet-whisper",
-    "empowered-charms",
-    "hellfire-fury",
-    "devilish-glaive",
-    "aura-of-devastated-souls"
-  ]],
-  ["netherese-arcanist", [
-    "scholar-arcanist",
-    "netherese-grimoire",
-    "mini-mythal",
-    "ancient-knowledge",
-    "great-spells"
-  ]],
-  ["spirit-vessel", [
-    "halved-ego",
-    "pact-magic-spirit-vessel",
-    "spirit-type",
-    "concentrated-strike",
-    "spirit-ability-improvement",
-    "flow-state",
-    "metaphysical-incarnation"
-  ]],
-  ["oracle", [
-    "influence-fates",
-    "oracle-first-secret",
-    "weaving-connections",
-    "sense-fate",
-    "oracle-great-secret"
-  ]],
-  ["demonologist", [
-    "demon-charm",
-    "infernal-familiar",
-    "master-summoner",
-    "dark-knowledge",
-    "demonic-resistance",
-    "demonic-vitality",
-    "demonic-mind",
-    "double-summon",
-    "domination"
-  ]],
-  ["sanguinist", [
-    "sanguinist-blood-magic",
-    "hematurgy",
-    "sanguinist-spellcasting",
-    "student-of-blood",
-    "sanguine-power",
-    "vital-restoration",
-    "blood-compatibility",
-    "ritual-sacrifice",
-    "crimson-mastery"
-  ]]
+  ["crusher", ["great-weapon-style", "giant-killer", "crusher-techniques", "momentum", "steel-will", "steel-giant"]],
+  [
+    "leader",
+    [
+      "leader-command-stratagems",
+      "moment-of-glory",
+      "glimpse-of-genius",
+      "leadership-expertise",
+      "perfect-coordination",
+      "leader-presence"
+    ]
+  ],
+  [
+    "death-knight",
+    [
+      "mystical-power",
+      "undead-nature",
+      "death-knight-magic-resistance",
+      "strong-undead",
+      "battle-undead",
+      "death-knight-extra-attack"
+    ]
+  ],
+  ["heretic", ["occult-gifts", "marked-by-corruption", "vile-powers", "forbidden-talent", "distorted-body"]],
+  [
+    "forest-lord",
+    [
+      "tree-kindred",
+      "nature-magic",
+      "nature-sense",
+      "forest-barkskin",
+      "oak-strength",
+      "spruce-growth",
+      "oak-heart",
+      "forest-might",
+      "take-root"
+    ]
+  ],
+  [
+    "aberrant",
+    ["deadly-precision", "monster-reflexes", "arcane-sense", "toxic-blood", "vigorous-nature", "final-changes"]
+  ],
+  [
+    "witch-blade",
+    [
+      "witch-blade-spellcasting",
+      "witch-hunter",
+      "dead-zone",
+      "witch-blade-seal",
+      "great-design",
+      "immaterial-whirlwind"
+    ]
+  ],
+  [
+    "guardian",
+    [
+      "guardian-calling",
+      "guardian-mark",
+      "protection-specialization",
+      "endure-pain",
+      "powerful-retribution",
+      "steadfastness",
+      "powerful-retribution-improved",
+      "guardian-unyielding"
+    ]
+  ],
+  [
+    "crusader",
+    ["crusader-miracles", "crusader-rage", "crusader-aegis", "divine-devotion", "consecration", "condemnation"]
+  ],
+  [
+    "fey-warrior",
+    [
+      "fey-transformation",
+      "fey-warrior-cantrips",
+      "call-of-feywild",
+      "charming-defense",
+      "chimeric-weapon",
+      "permanent-manifestation",
+      "fey-magic",
+      "fey-skin"
+    ]
+  ],
+  [
+    "ghost-walker",
+    [
+      "touched-by-death",
+      "spirit-form",
+      "possession",
+      "ghost-step",
+      "otherworldly-presence",
+      "drain-soul",
+      "kindred-spirit",
+      "unfinished-business"
+    ]
+  ],
+  [
+    "blinker",
+    [
+      "inner-blink",
+      "turnaround-blink",
+      "sideways-shift",
+      "blinking-step",
+      "improved-technique",
+      "blinking-wrist",
+      "outer-blink",
+      "shift-sense",
+      "disappearance",
+      "miraculous-homecoming"
+    ]
+  ],
+  [
+    "fallen-priest",
+    [
+      "fallen-priest-heretic",
+      "fallen-priest-spellcasting",
+      "fallen-priest-turn-undead",
+      "divine-resistance",
+      "absorb-power",
+      "divine-copying",
+      "arcane-copying"
+    ]
+  ],
+  [
+    "plague-doctor",
+    [
+      "plague-sneak-attack",
+      "disease-carrier",
+      "ragged-armor",
+      "touch-of-disease",
+      "smart-infection",
+      "infect-wounds",
+      "disease-form"
+    ]
+  ],
+  [
+    "insect-lord",
+    [
+      "chitinous-carapace",
+      "insect-familiar",
+      "insect-natural-weapons",
+      "blood-drain",
+      "crawling-armor",
+      "spew-insects",
+      "swarm-mind",
+      "crawling-eye"
+    ]
+  ],
+  ["gambler", ["astral-deck", "deal-them", "rogues-are-lucky", "up-the-sleeve", "aces-beat"]],
+  [
+    "keeper",
+    [
+      "keeper-ward-and-warded",
+      "keeper-ally-talents",
+      "strategy-and-synergy",
+      "united-and-protected",
+      "rest-and-recovery",
+      "might-and-magic"
+    ]
+  ],
+  [
+    "blood-mage",
+    [
+      "blood-mage-spellcasting",
+      "blood-magic",
+      "flesh-canvas",
+      "feast-of-the-fallen",
+      "blood-transfer",
+      "sanguine-fortitude",
+      "blood-mage-sacrifice",
+      "blood-thrall",
+      "maleficar",
+      "sanguine-strength"
+    ]
+  ],
+  [
+    "onmyoji",
+    [
+      "onmyoji-ki",
+      "shikigami-talisman",
+      "purification-rite",
+      "shikigami-ghost-hunter",
+      "spirit-place",
+      "spirit-alcohol",
+      "spirit-book",
+      "spirit-fire",
+      "spirit-food",
+      "spirit-mountain",
+      "spirit-steel",
+      "spirit-water",
+      "spirit-wood",
+      "spirit-wealth",
+      "spirit-wind"
+    ]
+  ],
+  [
+    "ritualist",
+    ["binding-ritual", "spirit-sight", "mind-body-and-soul", "protective-ritual", "spirit-channel", "ethereal-wanderer"]
+  ],
+  [
+    "dark-warrior",
+    [
+      "black-magic-oil",
+      "black-magic-elixir",
+      "improved-black-oil",
+      "improved-black-elixir",
+      "dark-resistance",
+      "blackening-weapon"
+    ]
+  ],
+  [
+    "devil-worshipper",
+    [
+      "devil-spellcasting-ability",
+      "hellfire",
+      "imp-familiar",
+      "devil-sight",
+      "dark-luck",
+      "quiet-whisper",
+      "empowered-charms",
+      "hellfire-fury",
+      "devilish-glaive",
+      "aura-of-devastated-souls"
+    ]
+  ],
+  [
+    "netherese-arcanist",
+    ["scholar-arcanist", "netherese-grimoire", "mini-mythal", "ancient-knowledge", "great-spells"]
+  ],
+  [
+    "spirit-vessel",
+    [
+      "halved-ego",
+      "pact-magic-spirit-vessel",
+      "spirit-type",
+      "concentrated-strike",
+      "spirit-ability-improvement",
+      "flow-state",
+      "metaphysical-incarnation"
+    ]
+  ],
+  ["oracle", ["influence-fates", "oracle-first-secret", "weaving-connections", "sense-fate", "oracle-great-secret"]],
+  [
+    "demonologist",
+    [
+      "demon-charm",
+      "infernal-familiar",
+      "master-summoner",
+      "dark-knowledge",
+      "demonic-resistance",
+      "demonic-vitality",
+      "demonic-mind",
+      "double-summon",
+      "domination"
+    ]
+  ],
+  [
+    "sanguinist",
+    [
+      "sanguinist-blood-magic",
+      "hematurgy",
+      "sanguinist-spellcasting",
+      "student-of-blood",
+      "sanguine-power",
+      "vital-restoration",
+      "blood-compatibility",
+      "ritual-sacrifice",
+      "crimson-mastery"
+    ]
+  ]
 ]);
 for (const [classIdentifier, featureIdentifiers] of expectedClassFeatureLinks) {
   const classDocument = classesByIdentifier.get(classIdentifier);
   const description = classDocument?.system.description?.value ?? "";
   for (const featureIdentifier of featureIdentifiers) {
     const featureDocument = featuresByIdentifier.get(featureIdentifier);
-    const expectedUuid = featureDocument
-      ? `@UUID[Compendium.${manifest.id}.features.Item.${featureDocument._id}]`
-      : "";
+    const expectedUuid = featureDocument ? `@UUID[Compendium.${manifest.id}.features.Item.${featureDocument._id}]` : "";
     if (!expectedUuid || !description.includes(expectedUuid)) {
       errors.push(`Class ${classIdentifier} is missing description link to ${featureIdentifier}`);
     }
   }
 }
 const keeperClassDescription = keeperClass?.system.description?.value ?? "";
-for (const identifier of [
-  "keeper-golem-maker",
-  "keeper-myth-seeker",
-  "keeper-spirit-medium",
-  "keeper-wild-tamer"
-]) {
+for (const identifier of ["keeper-golem-maker", "keeper-myth-seeker", "keeper-spirit-medium", "keeper-wild-tamer"]) {
   const document = subclassesByIdentifier.get(identifier);
-  const expectedUuid = document
-    ? `@UUID[Compendium.${manifest.id}.subclasses.Item.${document._id}]`
-    : "";
+  const expectedUuid = document ? `@UUID[Compendium.${manifest.id}.subclasses.Item.${document._id}]` : "";
   if (!expectedUuid || !keeperClassDescription.includes(expectedUuid)) {
     errors.push(`Keeper class is missing description link to subclass ${identifier}`);
   }
@@ -2999,9 +3080,7 @@ for (const identifier of [
   "spirit-vessel-undead"
 ]) {
   const document = subclassesByIdentifier.get(identifier);
-  const expectedUuid = document
-    ? `@UUID[Compendium.${manifest.id}.subclasses.Item.${document._id}]`
-    : "";
+  const expectedUuid = document ? `@UUID[Compendium.${manifest.id}.subclasses.Item.${document._id}]` : "";
   if (!expectedUuid || !spiritVesselClassDescription.includes(expectedUuid)) {
     errors.push(`Spirit Vessel class is missing description link to subclass ${identifier}`);
   }
@@ -3009,9 +3088,7 @@ for (const identifier of [
 const bloodMageClassDescription = bloodMageClass?.system.description?.value ?? "";
 for (const identifier of ["blood-transfer-spell", "blood-thrall-spell"]) {
   const document = spellDocuments.find(document => document.system.identifier === identifier);
-  const expectedUuid = document
-    ? `@UUID[Compendium.${manifest.id}.spells.Item.${document._id}]`
-    : "";
+  const expectedUuid = document ? `@UUID[Compendium.${manifest.id}.spells.Item.${document._id}]` : "";
   if (!expectedUuid || !bloodMageClassDescription.includes(expectedUuid)) {
     errors.push(`Blood Mage class is missing description link to spell ${identifier}`);
   }
@@ -3027,9 +3104,7 @@ for (const identifier of [
   "beast-of-a-thousand-legs"
 ]) {
   const document = spellDocuments.find(document => document.system.identifier === identifier);
-  const expectedUuid = document
-    ? `@UUID[Compendium.${manifest.id}.spells.Item.${document._id}]`
-    : "";
+  const expectedUuid = document ? `@UUID[Compendium.${manifest.id}.spells.Item.${document._id}]` : "";
   if (!expectedUuid || !nethereseArcanistClassDescription.includes(expectedUuid)) {
     errors.push(`Netherese Arcanist class is missing description link to spell ${identifier}`);
   }
@@ -3124,27 +3199,41 @@ const requiredActions = new Map([
 ]);
 for (const [identifier, action] of requiredActions) {
   const document = featuresByIdentifier.get(identifier);
-  const actions = Object.values(document?.system?.activities ?? {})
-    .map(activity => activity.flags?.[manifest.id]?.action);
+  const actions = Object.values(document?.system?.activities ?? {}).map(
+    activity => activity.flags?.[manifest.id]?.action
+  );
   if (!actions.includes(action)) errors.push(`Missing activity action ${action} on ${identifier}`);
 }
 const insectBloodActivities = Object.values(featuresByIdentifier.get("blood-drain")?.system?.activities ?? {});
-for (const [flag, type, dice, sides] of [["insectBite", "attack", 1, 4], ["bloodDrain", "damage", 2, 6]]) {
+for (const [flag, type, dice, sides] of [
+  ["insectBite", "attack", 1, 4],
+  ["bloodDrain", "damage", 2, 6]
+]) {
   const activity = insectBloodActivities.find(activity => activity.flags?.[manifest.id]?.[flag]);
-  if (!activity || activity.type !== type || activity.roll || activity.flags[manifest.id].action
-    || activity.damage?.parts?.[0]?.number !== dice || activity.damage.parts[0].denomination !== sides)
+  if (
+    !activity ||
+    activity.type !== type ||
+    activity.roll ||
+    activity.flags[manifest.id].action ||
+    activity.damage?.parts?.[0]?.number !== dice ||
+    activity.damage.parts[0].denomination !== sides
+  )
     errors.push(`Blood-drain requires native ${flag} activity with typed ${dice}d${sides} damage`);
 }
 
 const occultGift = featuresByIdentifier.get("occult-gifts");
-const occultActions = Object.values(occultGift?.system?.activities ?? {})
-  .map(activity => activity.flags?.[manifest.id]?.action);
+const occultActions = Object.values(occultGift?.system?.activities ?? {}).map(
+  activity => activity.flags?.[manifest.id]?.action
+);
 for (const action of ["choose-occult-ability", "use-occult-points"]) {
   if (!occultActions.includes(action)) errors.push(`Missing activity action ${action} on occult-gifts`);
 }
 
 const oracleRequiredActions = new Map([
-  ["influence-fates", ["sync-oracle-resources", "oracle-fate-miss", "oracle-mysterious-guidance", "oracle-balancing-ritual"]],
+  [
+    "influence-fates",
+    ["sync-oracle-resources", "oracle-fate-miss", "oracle-mysterious-guidance", "oracle-balancing-ritual"]
+  ],
   ["oracle-first-secret", ["oracle-free-scrying", "oracle-read-threads"]],
   ["weaving-connections", ["oracle-remove-dissonance-slot", "oracle-restore-slot-dissonance"]],
   ["sense-fate", ["oracle-danger"]],
@@ -3152,8 +3241,9 @@ const oracleRequiredActions = new Map([
 ]);
 for (const [identifier, expectedActions] of oracleRequiredActions) {
   const document = featuresByIdentifier.get(identifier);
-  const actions = Object.values(document?.system?.activities ?? {})
-    .map(activity => activity.flags?.[manifest.id]?.action);
+  const actions = Object.values(document?.system?.activities ?? {}).map(
+    activity => activity.flags?.[manifest.id]?.action
+  );
   for (const action of expectedActions) {
     if (!actions.includes(action)) errors.push(`Missing Oracle activity action ${action} on ${identifier}`);
   }
@@ -3171,15 +3261,19 @@ const demonologistRequiredActions = new Map([
 ]);
 for (const [identifier, expectedActions] of demonologistRequiredActions) {
   const document = featuresByIdentifier.get(identifier);
-  const actions = Object.values(document?.system?.activities ?? {})
-    .map(activity => activity.flags?.[manifest.id]?.action);
+  const actions = Object.values(document?.system?.activities ?? {}).map(
+    activity => activity.flags?.[manifest.id]?.action
+  );
   for (const action of expectedActions) {
     if (!actions.includes(action)) errors.push(`Missing Demonologist activity action ${action} on ${identifier}`);
   }
 }
 
 const sanguinistRequiredActions = new Map([
-  ["sanguinist-blood-magic", ["sync-sanguinist-resources", "gain-sanguinist-blood-point", "spend-sanguinist-blood-points"]],
+  [
+    "sanguinist-blood-magic",
+    ["sync-sanguinist-resources", "gain-sanguinist-blood-point", "spend-sanguinist-blood-points"]
+  ],
   ["hematurgy", ["use-hematurgy"]],
   ["sanguinist-spellcasting", ["show-sanguinist-spellcasting"]],
   ["student-of-blood", ["cast-blood-reading", "mark-sanguinist-blood-spell"]],
@@ -3200,8 +3294,9 @@ const sanguinistRequiredActions = new Map([
 ]);
 for (const [identifier, expectedActions] of sanguinistRequiredActions) {
   const document = featuresByIdentifier.get(identifier);
-  const actions = Object.values(document?.system?.activities ?? {})
-    .map(activity => activity.flags?.[manifest.id]?.action);
+  const actions = Object.values(document?.system?.activities ?? {}).map(
+    activity => activity.flags?.[manifest.id]?.action
+  );
   for (const action of expectedActions) {
     if (!actions.includes(action)) errors.push(`Missing Sanguinist activity action ${action} on ${identifier}`);
   }
@@ -3214,8 +3309,9 @@ const forestRequiredActions = new Map([
 ]);
 for (const [identifier, expectedActions] of forestRequiredActions) {
   const document = featuresByIdentifier.get(identifier);
-  const actions = Object.values(document?.system?.activities ?? {})
-    .map(activity => activity.flags?.[manifest.id]?.action);
+  const actions = Object.values(document?.system?.activities ?? {}).map(
+    activity => activity.flags?.[manifest.id]?.action
+  );
   for (const action of expectedActions) {
     if (!actions.includes(action)) errors.push(`Missing activity action ${action} on ${identifier}`);
   }
@@ -3227,8 +3323,9 @@ const aberrantRequiredActions = new Map([
 ]);
 for (const [identifier, action] of aberrantRequiredActions) {
   const document = featuresByIdentifier.get(identifier);
-  const actions = Object.values(document?.system?.activities ?? {})
-    .map(activity => activity.flags?.[manifest.id]?.action);
+  const actions = Object.values(document?.system?.activities ?? {}).map(
+    activity => activity.flags?.[manifest.id]?.action
+  );
   if (!actions.includes(action)) errors.push(`Missing activity action ${action} on ${identifier}`);
 }
 
@@ -3243,8 +3340,9 @@ const witchBladeRequiredActions = new Map([
 ]);
 for (const [identifier, action] of witchBladeRequiredActions) {
   const document = featuresByIdentifier.get(identifier);
-  const actions = Object.values(document?.system?.activities ?? {})
-    .map(activity => activity.flags?.[manifest.id]?.action);
+  const actions = Object.values(document?.system?.activities ?? {}).map(
+    activity => activity.flags?.[manifest.id]?.action
+  );
   if (!actions.includes(action)) errors.push(`Missing activity action ${action} on ${identifier}`);
 }
 
@@ -3252,7 +3350,9 @@ const equipmentDocuments = [...allDocuments.values()]
   .filter(entry => entry.pack === "equipment")
   .map(entry => entry.document);
 const massiveWeapons = equipmentDocuments.filter(document => document.flags?.[manifest.id]?.massiveWeapon === true);
-const murderspawnWeapons = equipmentDocuments.filter(document => document.flags?.[manifest.id]?.murderspawnWeapon === true);
+const murderspawnWeapons = equipmentDocuments.filter(
+  document => document.flags?.[manifest.id]?.murderspawnWeapon === true
+);
 if (massiveWeapons.length !== 5) errors.push(`Expected 5 massive weapons, got ${massiveWeapons.length}`);
 if (murderspawnWeapons.length !== 3) errors.push(`Expected 3 Murderspawn weapons, got ${murderspawnWeapons.length}`);
 
@@ -3275,186 +3375,525 @@ for (const document of murderspawnWeapons) {
 }
 
 const master = classDocuments.find(document => document.system.identifier === "master");
-const masterFeatures = [...allDocuments.values()].filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.masterFeature).map(entry => entry.document);
+const masterFeatures = [...allDocuments.values()]
+  .filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.masterFeature)
+  .map(entry => entry.document);
 if (!master || master.system.hitDice !== "d8") errors.push("Master class with d8 hit die is missing");
 if (masterFeatures.length !== 53) errors.push(`Expected 53 Master features/techniques, got ${masterFeatures.length}`);
-if (masterFeatures.filter(document => document.flags[manifest.id].masterTechnique).length !== 41) errors.push("Expected 41 Master techniques");
+if (masterFeatures.filter(document => document.flags[manifest.id].masterTechnique).length !== 41)
+  errors.push("Expected 41 Master techniques");
 for (const document of masterFeatures) {
-  if (!document.system.description.value.includes("Автоматизация Foundry:")) errors.push(`Master automation description is missing: ${document.name}`);
+  if (!document.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Master automation description is missing: ${document.name}`);
 }
 for (const path of ["blade", "archer", "arcana"]) {
   const subclass = subclassDocuments.find(document => document.system.identifier === `master-${path}`);
-  if (!subclass || subclass.system.classIdentifier !== "master" || subclass.flags?.[manifest.id]?.masterSubclass !== path) errors.push(`Invalid Master path: ${path}`);
+  if (
+    !subclass ||
+    subclass.system.classIdentifier !== "master" ||
+    subclass.flags?.[manifest.id]?.masterSubclass !== path
+  )
+    errors.push(`Invalid Master path: ${path}`);
 }
 
 const hunter = classDocuments.find(document => document.system.identifier === "bounty-hunter");
-const hunterFeatures = [...allDocuments.values()].filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.hunterFeature).map(entry => entry.document);
+const hunterFeatures = [...allDocuments.values()]
+  .filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.hunterFeature)
+  .map(entry => entry.document);
 if (!hunter || hunter.system.hitDice !== "d10") errors.push("Bounty Hunter class with d10 hit die is missing");
 if (hunterFeatures.length !== 52) errors.push(`Expected 52 Bounty Hunter cards, got ${hunterFeatures.length}`);
-if (hunterFeatures.filter(document => document.flags[manifest.id].hunterTrophy).length !== 42) errors.push("Expected 42 Bounty Hunter trophies");
+if (hunterFeatures.filter(document => document.flags[manifest.id].hunterTrophy).length !== 42)
+  errors.push("Expected 42 Bounty Hunter trophies");
 const hunterGrants = hunter?.system.advancement?.filter(advancement => advancement.type === "ItemGrant") ?? [];
-if (JSON.stringify(hunterGrants.map(advancement => advancement.level)) !== "[1,2,3,4,5]"
-  || hunterGrants.reduce((n, advancement) => n + advancement.configuration.items.length, 0) !== 10) errors.push("Bounty Hunter feature grants must cover ten core features at levels 1–5");
-if (hunter?.system.advancement?.some(advancement => advancement.type === "ItemChoice")) errors.push("Physical Hunter trophies must not be granted freely by ItemChoice");
+if (
+  JSON.stringify(hunterGrants.map(advancement => advancement.level)) !== "[1,2,3,4,5]" ||
+  hunterGrants.reduce((n, advancement) => n + advancement.configuration.items.length, 0) !== 10
+)
+  errors.push("Bounty Hunter feature grants must cover ten core features at levels 1–5");
+if (hunter?.system.advancement?.some(advancement => advancement.type === "ItemChoice"))
+  errors.push("Physical Hunter trophies must not be granted freely by ItemChoice");
 for (const document of hunterFeatures) {
-  if (!document.system.description.value.includes("Автоматизация Foundry:")) errors.push(`Hunter automation description is missing: ${document.name}`);
-  if (document.effects.length) errors.push(`Hunter cards must not supply unselected or empty passive effects: ${document.name}`);
+  if (!document.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Hunter automation description is missing: ${document.name}`);
+  if (document.effects.length)
+    errors.push(`Hunter cards must not supply unselected or empty passive effects: ${document.name}`);
 }
-if (hunterFeatures.find(document => document.system.identifier === "hunter-trophies")?.system.uses.max !== "4") errors.push("Hunter initial shared pool must have four uses");
+if (hunterFeatures.find(document => document.system.identifier === "hunter-trophies")?.system.uses.max !== "4")
+  errors.push("Hunter initial shared pool must have four uses");
 
 const jester = classDocuments.find(document => document.system.identifier === "jester");
-const jesterFeatures = [...allDocuments.values()].filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.jesterFeature).map(entry => entry.document);
+const jesterFeatures = [...allDocuments.values()]
+  .filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.jesterFeature)
+  .map(entry => entry.document);
 if (!jester || jester.system.hitDice !== "d8") errors.push("Jester class with d8 hit die is missing");
 if (jesterFeatures.length !== 10) errors.push(`Expected 10 Jester features, got ${jesterFeatures.length}`);
 const jesterGrants = jester?.system.advancement?.filter(advancement => advancement.type === "ItemGrant") ?? [];
-if (JSON.stringify(jesterGrants.map(advancement => advancement.level)) !== "[1,2,3,4,5]"
-  || jesterGrants.reduce((n, advancement) => n + advancement.configuration.items.length, 0) !== 10) errors.push("Jester must grant ten features across levels 1–5");
+if (
+  JSON.stringify(jesterGrants.map(advancement => advancement.level)) !== "[1,2,3,4,5]" ||
+  jesterGrants.reduce((n, advancement) => n + advancement.configuration.items.length, 0) !== 10
+)
+  errors.push("Jester must grant ten features across levels 1–5");
 const chaos = jesterFeatures.find(document => document.system.identifier === "jester-chaos");
-if (chaos?.system.uses.max !== "3" || chaos.system.uses.spent !== 3 || chaos.system.uses.recovery.length) errors.push("Jester chaos must start empty without rest recovery");
+if (chaos?.system.uses.max !== "3" || chaos.system.uses.spent !== 3 || chaos.system.uses.recovery.length)
+  errors.push("Jester chaos must start empty without rest recovery");
 const finale = jesterFeatures.find(document => document.system.identifier === "jester-finale");
-if (finale?.system.uses.max !== "1" || !finale.system.uses.recovery.some(recovery => recovery.period === "sr")) errors.push("Jester Finale must have one short-rest use");
+if (finale?.system.uses.max !== "1" || !finale.system.uses.recovery.some(recovery => recovery.period === "sr"))
+  errors.push("Jester Finale must have one short-rest use");
 for (const document of jesterFeatures) {
   if (document.effects.length) errors.push(`Jester must not grant empty/unconditional roll passives: ${document.name}`);
-  if (!document.system.description.value.includes("Автоматизация Foundry:")) errors.push(`Jester automation description is missing: ${document.name}`);
+  if (!document.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Jester automation description is missing: ${document.name}`);
 }
 
 const flagellant = classDocuments.find(document => document.system.identifier === "flagellant");
-const flagellantFeatures = [...allDocuments.values()].filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.flagellantFeature).map(entry => entry.document);
-if (!flagellant || flagellant.system.hitDice !== "d10" || flagellant.system.spellcasting.progression !== "none") errors.push("Flagellant class with d10 and no spell progression is missing");
-if (flagellantFeatures.length !== 13) errors.push(`Expected 13 Flagellant feature/rule cards, got ${flagellantFeatures.length}`);
+const flagellantFeatures = [...allDocuments.values()]
+  .filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.flagellantFeature)
+  .map(entry => entry.document);
+if (!flagellant || flagellant.system.hitDice !== "d10" || flagellant.system.spellcasting.progression !== "none")
+  errors.push("Flagellant class with d10 and no spell progression is missing");
+if (flagellantFeatures.length !== 13)
+  errors.push(`Expected 13 Flagellant feature/rule cards, got ${flagellantFeatures.length}`);
 const flagellantGrants = flagellant?.system.advancement?.filter(advancement => advancement.type === "ItemGrant") ?? [];
-if (JSON.stringify(flagellantGrants.map(advancement => advancement.level)) !== "[1,2,3,4,5]"
-  || flagellantGrants.reduce((n, advancement) => n + advancement.configuration.items.length, 0) !== 13) errors.push("Flagellant must grant all features and three techniques at their source levels");
-const painScale = flagellant?.system.advancement?.find(advancement => advancement.type === "ScaleValue" && advancement.configuration.identifier === "pain-die");
-if (JSON.stringify(Object.values(painScale?.configuration.scale ?? {}).map(value => value.faces)) !== "[4,6,8,10,12]") errors.push("Flagellant pain die must scale d4/d6/d8/d10/d12");
+if (
+  JSON.stringify(flagellantGrants.map(advancement => advancement.level)) !== "[1,2,3,4,5]" ||
+  flagellantGrants.reduce((n, advancement) => n + advancement.configuration.items.length, 0) !== 13
+)
+  errors.push("Flagellant must grant all features and three techniques at their source levels");
+const painScale = flagellant?.system.advancement?.find(
+  advancement => advancement.type === "ScaleValue" && advancement.configuration.identifier === "pain-die"
+);
+if (JSON.stringify(Object.values(painScale?.configuration.scale ?? {}).map(value => value.faces)) !== "[4,6,8,10,12]")
+  errors.push("Flagellant pain die must scale d4/d6/d8/d10/d12");
 for (const document of flagellantFeatures) {
-  if (document.effects.length) errors.push(`Flagellant must not grant unconditional or empty passive templates: ${document.name}`);
-  if (!document.system.description.value.includes("Автоматизация Foundry:")) errors.push(`Flagellant automation description is missing: ${document.name}`);
+  if (document.effects.length)
+    errors.push(`Flagellant must not grant unconditional or empty passive templates: ${document.name}`);
+  if (!document.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Flagellant automation description is missing: ${document.name}`);
 }
 
-const doomed=classDocuments.find(document=>document.system.identifier==="doomed");
-const doomedFeatures=[...allDocuments.values()].filter(entry=>entry.pack==="features"&&entry.document.flags?.[manifest.id]?.doomedFeature).map(entry=>entry.document);
-if(!doomed||doomed.system.hitDice!=="d8"||doomed.system.spellcasting.progression!=="none")errors.push("Doomed class with d8 and no spell progression is missing");
-if(doomedFeatures.length!==32||doomedFeatures.filter(document=>document.flags[manifest.id].doomedCurse).length!==23)errors.push("Doomed needs nine features and 23 curses");
-const doomedGrants=doomed?.system.advancement?.filter(advancement=>advancement.type==="ItemGrant")??[];
-if(JSON.stringify(doomedGrants.map(advancement=>advancement.level))!=="[1,2,3,4,5]"||doomedGrants.reduce((n,advancement)=>n+advancement.configuration.items.length,0)!==9)errors.push("Doomed must grant only nine core features, not every curse");
-const doomedScale=doomed?.system.advancement?.find(advancement=>advancement.type==="ScaleValue"&&advancement.configuration.identifier==="curse-slots");
-if(JSON.stringify(Object.values(doomedScale?.configuration.scale??{}).map(value=>value.value))!=="[2,4,6,8,10]")errors.push("Doomed slots must scale 2/4/6/8/10");
-for(const document of doomedFeatures){if(document.effects.length)errors.push(`Unselected Doomed curses must not supply passive templates: ${document.name}`);
-  if(!document.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Doomed automation description is missing: ${document.name}`);}
+const doomed = classDocuments.find(document => document.system.identifier === "doomed");
+const doomedFeatures = [...allDocuments.values()]
+  .filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.doomedFeature)
+  .map(entry => entry.document);
+if (!doomed || doomed.system.hitDice !== "d8" || doomed.system.spellcasting.progression !== "none")
+  errors.push("Doomed class with d8 and no spell progression is missing");
+if (
+  doomedFeatures.length !== 32 ||
+  doomedFeatures.filter(document => document.flags[manifest.id].doomedCurse).length !== 23
+)
+  errors.push("Doomed needs nine features and 23 curses");
+const doomedGrants = doomed?.system.advancement?.filter(advancement => advancement.type === "ItemGrant") ?? [];
+if (
+  JSON.stringify(doomedGrants.map(advancement => advancement.level)) !== "[1,2,3,4,5]" ||
+  doomedGrants.reduce((n, advancement) => n + advancement.configuration.items.length, 0) !== 9
+)
+  errors.push("Doomed must grant only nine core features, not every curse");
+const doomedScale = doomed?.system.advancement?.find(
+  advancement => advancement.type === "ScaleValue" && advancement.configuration.identifier === "curse-slots"
+);
+if (JSON.stringify(Object.values(doomedScale?.configuration.scale ?? {}).map(value => value.value)) !== "[2,4,6,8,10]")
+  errors.push("Doomed slots must scale 2/4/6/8/10");
+for (const document of doomedFeatures) {
+  if (document.effects.length)
+    errors.push(`Unselected Doomed curses must not supply passive templates: ${document.name}`);
+  if (!document.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Doomed automation description is missing: ${document.name}`);
+}
 
-const nightmare=classDocuments.find(document=>document.system.identifier==="nightmare");
-const nightmareFeatures=[...allDocuments.values()].filter(entry=>entry.pack==="features"&&entry.document.flags?.[manifest.id]?.nightmareFeature).map(entry=>entry.document);
-if(!nightmare||nightmare.system.hitDice!=="d8"||nightmare.system.spellcasting.progression!=="none")errors.push("Nightmare class with d8 and no spell progression is missing");
-if(nightmareFeatures.length!==22||nightmareFeatures.filter(document=>document.flags[manifest.id].nightmareFear).length!==10||nightmareFeatures.filter(document=>document.flags[manifest.id].nightmareProfile).length!==3)errors.push("Nightmare needs nine features, ten fears and three summon profiles");
-const nightmareGrants=nightmare?.system.advancement?.filter(advancement=>advancement.type==="ItemGrant")??[];
-if(JSON.stringify(nightmareGrants.map(advancement=>advancement.level))!=="[1,2,3,4,5]"||nightmareGrants.reduce((n,advancement)=>n+advancement.configuration.items.length,0)!==9)errors.push("Nightmare must grant only nine core features, not unlearned fears");
-const fearPool=nightmareFeatures.find(document=>document.system.identifier==="nightmare-feeding");
-if(fearPool?.system.uses.max!=="3"||fearPool.system.uses.spent!==1||fearPool.system.uses.recovery.length)errors.push("Nightmare must start with two points, no full native rest recovery");
-for(const document of nightmareFeatures){if(document.effects.length)errors.push(`Nightmare must not grant unconditional manifestations or empty passive templates: ${document.name}`);
-  if(!document.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Nightmare automation description is missing: ${document.name}`);}
+const nightmare = classDocuments.find(document => document.system.identifier === "nightmare");
+const nightmareFeatures = [...allDocuments.values()]
+  .filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.nightmareFeature)
+  .map(entry => entry.document);
+if (!nightmare || nightmare.system.hitDice !== "d8" || nightmare.system.spellcasting.progression !== "none")
+  errors.push("Nightmare class with d8 and no spell progression is missing");
+if (
+  nightmareFeatures.length !== 22 ||
+  nightmareFeatures.filter(document => document.flags[manifest.id].nightmareFear).length !== 10 ||
+  nightmareFeatures.filter(document => document.flags[manifest.id].nightmareProfile).length !== 3
+)
+  errors.push("Nightmare needs nine features, ten fears and three summon profiles");
+const nightmareGrants = nightmare?.system.advancement?.filter(advancement => advancement.type === "ItemGrant") ?? [];
+if (
+  JSON.stringify(nightmareGrants.map(advancement => advancement.level)) !== "[1,2,3,4,5]" ||
+  nightmareGrants.reduce((n, advancement) => n + advancement.configuration.items.length, 0) !== 9
+)
+  errors.push("Nightmare must grant only nine core features, not unlearned fears");
+const fearPool = nightmareFeatures.find(document => document.system.identifier === "nightmare-feeding");
+if (fearPool?.system.uses.max !== "3" || fearPool.system.uses.spent !== 1 || fearPool.system.uses.recovery.length)
+  errors.push("Nightmare must start with two points, no full native rest recovery");
+for (const document of nightmareFeatures) {
+  if (document.effects.length)
+    errors.push(`Nightmare must not grant unconditional manifestations or empty passive templates: ${document.name}`);
+  if (!document.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Nightmare automation description is missing: ${document.name}`);
+}
 
-const empath=classDocuments.find(document=>document.system.identifier==="empath");
-const empathFeatures=[...allDocuments.values()].filter(entry=>entry.pack==="features"&&entry.document.flags?.[manifest.id]?.empathFeature).map(entry=>entry.document);
-if(!empath||empath.system.hitDice!=="d8"||empath.system.spellcasting.progression!=="none"||empathFeatures.length!==9)errors.push("Empath needs d8, no spell progression and nine features");
-const empathGrants=empath?.system.advancement?.filter(a=>a.type==="ItemGrant")??[];
-if(JSON.stringify(empathGrants.slice(0,5).map(a=>a.level))!=="[1,2,3,4,5]"||empathGrants.slice(0,5).reduce((n,a)=>n+a.configuration.items.length,0)!==9||empathGrants[5]?.level!==3)errors.push("Empath must grant nine features and a separate level-three spell");
-for(const document of empathFeatures)if(document.effects.length||!document.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Empath needs explicit automation boundaries, not unconditional effects: ${document.name}`);
-const empathSpell=[...allDocuments.values()].find(entry=>entry.pack==="spells"&&entry.document.flags?.[manifest.id]?.empathSpell)?.document;
-if(!empathSpell||empathSpell.system.level!==4||empathSpell.system.preparation.mode!=="always")errors.push("Empath needs its always-prepared fourth-level spell");
+const empath = classDocuments.find(document => document.system.identifier === "empath");
+const empathFeatures = [...allDocuments.values()]
+  .filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.empathFeature)
+  .map(entry => entry.document);
+if (
+  !empath ||
+  empath.system.hitDice !== "d8" ||
+  empath.system.spellcasting.progression !== "none" ||
+  empathFeatures.length !== 9
+)
+  errors.push("Empath needs d8, no spell progression and nine features");
+const empathGrants = empath?.system.advancement?.filter(a => a.type === "ItemGrant") ?? [];
+if (
+  JSON.stringify(empathGrants.slice(0, 5).map(a => a.level)) !== "[1,2,3,4,5]" ||
+  empathGrants.slice(0, 5).reduce((n, a) => n + a.configuration.items.length, 0) !== 9 ||
+  empathGrants[5]?.level !== 3
+)
+  errors.push("Empath must grant nine features and a separate level-three spell");
+for (const document of empathFeatures)
+  if (document.effects.length || !document.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Empath needs explicit automation boundaries, not unconditional effects: ${document.name}`);
+const empathSpell = [...allDocuments.values()].find(
+  entry => entry.pack === "spells" && entry.document.flags?.[manifest.id]?.empathSpell
+)?.document;
+if (!empathSpell || empathSpell.system.level !== 4 || empathSpell.system.preparation.mode !== "always")
+  errors.push("Empath needs its always-prepared fourth-level spell");
 
-const arkaneRoot=[...allDocuments.values()].filter(entry=>entry.pack==="transformations"&&entry.document.flags?.[manifest.id]?.transformation==="arkane").map(entry=>entry.document);
-const arkaneFeatures=[...allDocuments.values()].filter(entry=>entry.pack==="features"&&entry.document.flags?.[manifest.id]?.arkaneFeature).map(entry=>entry.document);
-if(arkaneRoot.length!==1||arkaneFeatures.length!==18||arkaneFeatures.filter(d=>d.flags[manifest.id].arkaneFlaw).length!==4)errors.push("Presence needs one transformation root, fourteen boons and four flaws");
-if(arkaneRoot[0]?.folder)errors.push("Presence root belongs directly in the transformations pack, not its feature folders");
-const arkaneGrants=arkaneRoot[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],arkaneChoices=arkaneRoot[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
-if(JSON.stringify(arkaneGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(arkaneGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(arkaneChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Presence must use shared transformation progression and cumulative single-boon choices");
-for(const d of arkaneFeatures){if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Presence feature must declare bounded runtime automation: ${d.name}`);
-  if(["arkane-siphon","arkane-storm","arkane-limitless"].includes(d.system.identifier)&&d.system.uses.recovery?.[0]?.period!=="lr")errors.push(`Presence agreed LR recovery missing: ${d.name}`);}
+const arkaneRoot = [...allDocuments.values()]
+  .filter(entry => entry.pack === "transformations" && entry.document.flags?.[manifest.id]?.transformation === "arkane")
+  .map(entry => entry.document);
+const arkaneFeatures = [...allDocuments.values()]
+  .filter(entry => entry.pack === "features" && entry.document.flags?.[manifest.id]?.arkaneFeature)
+  .map(entry => entry.document);
+if (
+  arkaneRoot.length !== 1 ||
+  arkaneFeatures.length !== 18 ||
+  arkaneFeatures.filter(d => d.flags[manifest.id].arkaneFlaw).length !== 4
+)
+  errors.push("Presence needs one transformation root, fourteen boons and four flaws");
+if (arkaneRoot[0]?.folder)
+  errors.push("Presence root belongs directly in the transformations pack, not its feature folders");
+const arkaneGrants = arkaneRoot[0]?.system.advancement.filter(a => a.type === "ItemGrant") ?? [],
+  arkaneChoices = arkaneRoot[0]?.system.advancement.filter(a => a.type === "ItemChoice") ?? [];
+if (
+  JSON.stringify(arkaneGrants.map(a => a.level)) !== "[1,6,11,16]" ||
+  JSON.stringify(arkaneGrants.map(a => a.configuration.items.length)) !== "[3,1,1,1]" ||
+  JSON.stringify(arkaneChoices.map(a => a.configuration.pool.length)) !== "[4,8,12]"
+)
+  errors.push("Presence must use shared transformation progression and cumulative single-boon choices");
+for (const d of arkaneFeatures) {
+  if (d.effects.length || !d.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Presence feature must declare bounded runtime automation: ${d.name}`);
+  if (
+    ["arkane-siphon", "arkane-storm", "arkane-limitless"].includes(d.system.identifier) &&
+    d.system.uses.recovery?.[0]?.period !== "lr"
+  )
+    errors.push(`Presence agreed LR recovery missing: ${d.name}`);
+}
 
-const automatonRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="automaton").map(e=>e.document);
-const automatonFeatures=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.automatonFeature).map(e=>e.document);
-if(automatonRoots.length!==1||automatonFeatures.length!==18||automatonFeatures.filter(d=>d.flags[manifest.id].automatonFlaw).length!==4)errors.push("Automaton needs one root, fourteen boons and four flaws");
-if(automatonRoots[0]?.folder)errors.push("Automaton main card must remain directly in transformations");
-const automatonGrants=automatonRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],automatonChoices=automatonRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
-if(JSON.stringify(automatonGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(automatonGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(automatonChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Automaton must use shared transformation progression and cumulative single-boon choices");
-for(const d of automatonFeatures){if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Automaton feature must describe its bounded runtime automation: ${d.name}`);
-  if(d.system.identifier==="automaton-steel"&&d.system.uses.recovery?.[0]?.period!=="lr")errors.push("Automaton steel reaction needs the agreed LR recovery");}
+const automatonRoots = [...allDocuments.values()]
+  .filter(e => e.pack === "transformations" && e.document.flags?.[manifest.id]?.transformation === "automaton")
+  .map(e => e.document);
+const automatonFeatures = [...allDocuments.values()]
+  .filter(e => e.pack === "features" && e.document.flags?.[manifest.id]?.automatonFeature)
+  .map(e => e.document);
+if (
+  automatonRoots.length !== 1 ||
+  automatonFeatures.length !== 18 ||
+  automatonFeatures.filter(d => d.flags[manifest.id].automatonFlaw).length !== 4
+)
+  errors.push("Automaton needs one root, fourteen boons and four flaws");
+if (automatonRoots[0]?.folder) errors.push("Automaton main card must remain directly in transformations");
+const automatonGrants = automatonRoots[0]?.system.advancement.filter(a => a.type === "ItemGrant") ?? [],
+  automatonChoices = automatonRoots[0]?.system.advancement.filter(a => a.type === "ItemChoice") ?? [];
+if (
+  JSON.stringify(automatonGrants.map(a => a.level)) !== "[1,6,11,16]" ||
+  JSON.stringify(automatonGrants.map(a => a.configuration.items.length)) !== "[3,1,1,1]" ||
+  JSON.stringify(automatonChoices.map(a => a.configuration.pool.length)) !== "[4,8,12]"
+)
+  errors.push("Automaton must use shared transformation progression and cumulative single-boon choices");
+for (const d of automatonFeatures) {
+  if (d.effects.length || !d.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Automaton feature must describe its bounded runtime automation: ${d.name}`);
+  if (d.system.identifier === "automaton-steel" && d.system.uses.recovery?.[0]?.period !== "lr")
+    errors.push("Automaton steel reaction needs the agreed LR recovery");
+}
 
-const broodmotherRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="broodmother").map(e=>e.document);
-const broodmotherFeatures=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.broodmotherFeature).map(e=>e.document);
-if(broodmotherRoots.length!==1||broodmotherFeatures.length!==18||broodmotherFeatures.filter(d=>d.flags[manifest.id].broodmotherFlaw).length!==4)errors.push("Broodmother needs one root, fourteen boons and four flaws");
-if(broodmotherRoots[0]?.folder)errors.push("Broodmother main card must remain directly in transformations");
-const broodmotherGrants=broodmotherRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],broodmotherChoices=broodmotherRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
-if(JSON.stringify(broodmotherGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(broodmotherGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(broodmotherChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Broodmother must use shared transformation progression and cumulative single-boon choices");
-for(const d of broodmotherFeatures){if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Broodmother feature must describe bounded runtime automation: ${d.name}`);}
+const broodmotherRoots = [...allDocuments.values()]
+  .filter(e => e.pack === "transformations" && e.document.flags?.[manifest.id]?.transformation === "broodmother")
+  .map(e => e.document);
+const broodmotherFeatures = [...allDocuments.values()]
+  .filter(e => e.pack === "features" && e.document.flags?.[manifest.id]?.broodmotherFeature)
+  .map(e => e.document);
+if (
+  broodmotherRoots.length !== 1 ||
+  broodmotherFeatures.length !== 18 ||
+  broodmotherFeatures.filter(d => d.flags[manifest.id].broodmotherFlaw).length !== 4
+)
+  errors.push("Broodmother needs one root, fourteen boons and four flaws");
+if (broodmotherRoots[0]?.folder) errors.push("Broodmother main card must remain directly in transformations");
+const broodmotherGrants = broodmotherRoots[0]?.system.advancement.filter(a => a.type === "ItemGrant") ?? [],
+  broodmotherChoices = broodmotherRoots[0]?.system.advancement.filter(a => a.type === "ItemChoice") ?? [];
+if (
+  JSON.stringify(broodmotherGrants.map(a => a.level)) !== "[1,6,11,16]" ||
+  JSON.stringify(broodmotherGrants.map(a => a.configuration.items.length)) !== "[3,1,1,1]" ||
+  JSON.stringify(broodmotherChoices.map(a => a.configuration.pool.length)) !== "[4,8,12]"
+)
+  errors.push("Broodmother must use shared transformation progression and cumulative single-boon choices");
+for (const d of broodmotherFeatures) {
+  if (d.effects.length || !d.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Broodmother feature must describe bounded runtime automation: ${d.name}`);
+}
 
-const chimeraRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="chimera").map(e=>e.document);
-const chimeraCards=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.transformation==="chimera").map(e=>e.document);
-const chimeraMain=chimeraCards.filter(d=>d.flags[manifest.id].chimeraFeature),chimeraOptions=chimeraCards.filter(d=>d.flags[manifest.id].chimeraOption);
-if(chimeraRoots.length!==1||chimeraRoots[0]?.folder||chimeraMain.length!==18||chimeraMain.filter(d=>d.flags[manifest.id].chimeraFlaw).length!==4||chimeraOptions.length!==14)errors.push("Chimera needs one root, fourteen boons, four flaws and fourteen reference options");
-const chimeraGrants=chimeraRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],chimeraChoices=chimeraRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
-if(JSON.stringify(chimeraGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(chimeraGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(chimeraChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Chimera progression must use cumulative single-boon choices");
-for(const d of chimeraCards){if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Chimera must describe bounded runtime automation: ${d.name}`);}
-for(const [id,period] of [["medusa","sr"],["siren","sr"],["mimic","lr"],["kraken","lr"],["share","lr"]])if(chimeraMain.find(d=>d.system.identifier===`chimera-${id}`)?.system.uses.recovery?.[0]?.period!==period)errors.push(`Chimera ${id}: incorrect recovery`);
+const chimeraRoots = [...allDocuments.values()]
+  .filter(e => e.pack === "transformations" && e.document.flags?.[manifest.id]?.transformation === "chimera")
+  .map(e => e.document);
+const chimeraCards = [...allDocuments.values()]
+  .filter(e => e.pack === "features" && e.document.flags?.[manifest.id]?.transformation === "chimera")
+  .map(e => e.document);
+const chimeraMain = chimeraCards.filter(d => d.flags[manifest.id].chimeraFeature),
+  chimeraOptions = chimeraCards.filter(d => d.flags[manifest.id].chimeraOption);
+if (
+  chimeraRoots.length !== 1 ||
+  chimeraRoots[0]?.folder ||
+  chimeraMain.length !== 18 ||
+  chimeraMain.filter(d => d.flags[manifest.id].chimeraFlaw).length !== 4 ||
+  chimeraOptions.length !== 14
+)
+  errors.push("Chimera needs one root, fourteen boons, four flaws and fourteen reference options");
+const chimeraGrants = chimeraRoots[0]?.system.advancement.filter(a => a.type === "ItemGrant") ?? [],
+  chimeraChoices = chimeraRoots[0]?.system.advancement.filter(a => a.type === "ItemChoice") ?? [];
+if (
+  JSON.stringify(chimeraGrants.map(a => a.level)) !== "[1,6,11,16]" ||
+  JSON.stringify(chimeraGrants.map(a => a.configuration.items.length)) !== "[3,1,1,1]" ||
+  JSON.stringify(chimeraChoices.map(a => a.configuration.pool.length)) !== "[4,8,12]"
+)
+  errors.push("Chimera progression must use cumulative single-boon choices");
+for (const d of chimeraCards) {
+  if (d.effects.length || !d.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Chimera must describe bounded runtime automation: ${d.name}`);
+}
+for (const [id, period] of [
+  ["medusa", "sr"],
+  ["siren", "sr"],
+  ["mimic", "lr"],
+  ["kraken", "lr"],
+  ["share", "lr"]
+])
+  if (chimeraMain.find(d => d.system.identifier === `chimera-${id}`)?.system.uses.recovery?.[0]?.period !== period)
+    errors.push(`Chimera ${id}: incorrect recovery`);
 
-const dkRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="deathknight").map(e=>e.document);
-const dkCards=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.transformation==="deathknight").map(e=>e.document),dkMain=dkCards.filter(d=>d.flags[manifest.id].deathknightFeature),dkOptions=dkCards.filter(d=>d.flags[manifest.id].deathknightOption);
-if(dkRoots.length!==1||dkRoots[0]?.folder||dkMain.length!==18||dkMain.filter(d=>d.flags[manifest.id].deathknightFlaw).length!==4||dkOptions.length!==5)errors.push("Death knight transformation needs a separate root, fourteen boons, four flaws and five skeleton references");
-const dkGrants=dkRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],dkChoices=dkRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
-if(JSON.stringify(dkGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(dkGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(dkChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Death knight transformation must use cumulative single-boon choices");
-for(const d of dkCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Death knight card must describe bounded runtime automation: ${d.name}`);
-for(const [id,period] of [["smog","sr"],["crucible","lr"],["fireball","lr"],["annihilate","lr"]])if(dkMain.find(d=>d.system.identifier===`deathknight-${id}`)?.system.uses.recovery?.[0]?.period!==period)errors.push(`Death knight ${id}: incorrect recovery`);
+const dkRoots = [...allDocuments.values()]
+  .filter(e => e.pack === "transformations" && e.document.flags?.[manifest.id]?.transformation === "deathknight")
+  .map(e => e.document);
+const dkCards = [...allDocuments.values()]
+    .filter(e => e.pack === "features" && e.document.flags?.[manifest.id]?.transformation === "deathknight")
+    .map(e => e.document),
+  dkMain = dkCards.filter(d => d.flags[manifest.id].deathknightFeature),
+  dkOptions = dkCards.filter(d => d.flags[manifest.id].deathknightOption);
+if (
+  dkRoots.length !== 1 ||
+  dkRoots[0]?.folder ||
+  dkMain.length !== 18 ||
+  dkMain.filter(d => d.flags[manifest.id].deathknightFlaw).length !== 4 ||
+  dkOptions.length !== 5
+)
+  errors.push(
+    "Death knight transformation needs a separate root, fourteen boons, four flaws and five skeleton references"
+  );
+const dkGrants = dkRoots[0]?.system.advancement.filter(a => a.type === "ItemGrant") ?? [],
+  dkChoices = dkRoots[0]?.system.advancement.filter(a => a.type === "ItemChoice") ?? [];
+if (
+  JSON.stringify(dkGrants.map(a => a.level)) !== "[1,6,11,16]" ||
+  JSON.stringify(dkGrants.map(a => a.configuration.items.length)) !== "[3,1,1,1]" ||
+  JSON.stringify(dkChoices.map(a => a.configuration.pool.length)) !== "[4,8,12]"
+)
+  errors.push("Death knight transformation must use cumulative single-boon choices");
+for (const d of dkCards)
+  if (d.effects.length || !d.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Death knight card must describe bounded runtime automation: ${d.name}`);
+for (const [id, period] of [
+  ["smog", "sr"],
+  ["crucible", "lr"],
+  ["fireball", "lr"],
+  ["annihilate", "lr"]
+])
+  if (dkMain.find(d => d.system.identifier === `deathknight-${id}`)?.system.uses.recovery?.[0]?.period !== period)
+    errors.push(`Death knight ${id}: incorrect recovery`);
 
-const dullahanRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="dullahan").map(e=>e.document);
-const dullahanCards=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.transformation==="dullahan").map(e=>e.document);
-if(dullahanRoots.length!==1||dullahanRoots[0]?.folder||dullahanCards.length!==18||dullahanCards.filter(d=>d.flags[manifest.id].dullahanFlaw).length!==4)errors.push("Dullahan needs one separate root, fourteen boons and four flaws");
-const dullahanGrants=dullahanRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],dullahanChoices=dullahanRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
-if(JSON.stringify(dullahanGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(dullahanGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(dullahanChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Dullahan progression must use cumulative single-boon choices");
-for(const d of dullahanCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Dullahan must describe bounded runtime automation: ${d.name}`);
-for(const [id,period]of [["heads","lr"],["howl","sr"],["prophecy","lr"],["gaze","lr"],["mists","lr"]])if(dullahanCards.find(d=>d.system.identifier===`dullahan-${id}`)?.system.uses.recovery?.[0]?.period!==period)errors.push(`Dullahan ${id}: incorrect recovery`);
+const dullahanRoots = [...allDocuments.values()]
+  .filter(e => e.pack === "transformations" && e.document.flags?.[manifest.id]?.transformation === "dullahan")
+  .map(e => e.document);
+const dullahanCards = [...allDocuments.values()]
+  .filter(e => e.pack === "features" && e.document.flags?.[manifest.id]?.transformation === "dullahan")
+  .map(e => e.document);
+if (
+  dullahanRoots.length !== 1 ||
+  dullahanRoots[0]?.folder ||
+  dullahanCards.length !== 18 ||
+  dullahanCards.filter(d => d.flags[manifest.id].dullahanFlaw).length !== 4
+)
+  errors.push("Dullahan needs one separate root, fourteen boons and four flaws");
+const dullahanGrants = dullahanRoots[0]?.system.advancement.filter(a => a.type === "ItemGrant") ?? [],
+  dullahanChoices = dullahanRoots[0]?.system.advancement.filter(a => a.type === "ItemChoice") ?? [];
+if (
+  JSON.stringify(dullahanGrants.map(a => a.level)) !== "[1,6,11,16]" ||
+  JSON.stringify(dullahanGrants.map(a => a.configuration.items.length)) !== "[3,1,1,1]" ||
+  JSON.stringify(dullahanChoices.map(a => a.configuration.pool.length)) !== "[4,8,12]"
+)
+  errors.push("Dullahan progression must use cumulative single-boon choices");
+for (const d of dullahanCards)
+  if (d.effects.length || !d.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Dullahan must describe bounded runtime automation: ${d.name}`);
+for (const [id, period] of [
+  ["heads", "lr"],
+  ["howl", "sr"],
+  ["prophecy", "lr"],
+  ["gaze", "lr"],
+  ["mists", "lr"]
+])
+  if (dullahanCards.find(d => d.system.identifier === `dullahan-${id}`)?.system.uses.recovery?.[0]?.period !== period)
+    errors.push(`Dullahan ${id}: incorrect recovery`);
 
-const factoryRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="factory").map(e=>e.document);
-const factoryCards=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.transformation==="factory").map(e=>e.document);
-if(factoryRoots.length!==1||factoryRoots[0]?.folder||factoryCards.length!==77||factoryCards.filter(d=>d.flags[manifest.id].factoryFlaw).length!==4||factoryCards.filter(d=>d.flags[manifest.id].factoryOption).length!==51||factoryCards.filter(d=>d.flags[manifest.id].factoryMaterial).length!==8)errors.push("Factory needs one separate root, 18 main cards, 51 upgrades and eight materials");
-const factoryGrants=factoryRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],factoryChoices=factoryRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
-if(JSON.stringify(factoryGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(factoryGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(factoryChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Factory progression must use cumulative single-boon choices");
-for(const d of factoryCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Factory must describe bounded runtime automation: ${d.name}`);
+const factoryRoots = [...allDocuments.values()]
+  .filter(e => e.pack === "transformations" && e.document.flags?.[manifest.id]?.transformation === "factory")
+  .map(e => e.document);
+const factoryCards = [...allDocuments.values()]
+  .filter(e => e.pack === "features" && e.document.flags?.[manifest.id]?.transformation === "factory")
+  .map(e => e.document);
+if (
+  factoryRoots.length !== 1 ||
+  factoryRoots[0]?.folder ||
+  factoryCards.length !== 77 ||
+  factoryCards.filter(d => d.flags[manifest.id].factoryFlaw).length !== 4 ||
+  factoryCards.filter(d => d.flags[manifest.id].factoryOption).length !== 51 ||
+  factoryCards.filter(d => d.flags[manifest.id].factoryMaterial).length !== 8
+)
+  errors.push("Factory needs one separate root, 18 main cards, 51 upgrades and eight materials");
+const factoryGrants = factoryRoots[0]?.system.advancement.filter(a => a.type === "ItemGrant") ?? [],
+  factoryChoices = factoryRoots[0]?.system.advancement.filter(a => a.type === "ItemChoice") ?? [];
+if (
+  JSON.stringify(factoryGrants.map(a => a.level)) !== "[1,6,11,16]" ||
+  JSON.stringify(factoryGrants.map(a => a.configuration.items.length)) !== "[3,1,1,1]" ||
+  JSON.stringify(factoryChoices.map(a => a.configuration.pool.length)) !== "[4,8,12]"
+)
+  errors.push("Factory progression must use cumulative single-boon choices");
+for (const d of factoryCards)
+  if (d.effects.length || !d.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Factory must describe bounded runtime automation: ${d.name}`);
 
-const godRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="god").map(e=>e.document);
-const godCards=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.transformation==="god").map(e=>e.document);
-if(godRoots.length!==1||godRoots[0]?.folder||godCards.length!==18||godCards.filter(d=>d.flags[manifest.id].godFlaw).length!==4)errors.push("God needs one separate root, fourteen boons and four flaws");
-const godGrants=godRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],godChoices=godRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
-if(JSON.stringify(godGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(godGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(godChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("God progression must use cumulative single-boon choices");
-for(const d of godCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`God must describe bounded runtime automation: ${d.name}`);
-if(godCards.find(d=>d.system.identifier==="god-zeal")?.system.uses.recovery.length)errors.push("God zeal recovers at dawn, not SR/LR");
+const godRoots = [...allDocuments.values()]
+  .filter(e => e.pack === "transformations" && e.document.flags?.[manifest.id]?.transformation === "god")
+  .map(e => e.document);
+const godCards = [...allDocuments.values()]
+  .filter(e => e.pack === "features" && e.document.flags?.[manifest.id]?.transformation === "god")
+  .map(e => e.document);
+if (
+  godRoots.length !== 1 ||
+  godRoots[0]?.folder ||
+  godCards.length !== 18 ||
+  godCards.filter(d => d.flags[manifest.id].godFlaw).length !== 4
+)
+  errors.push("God needs one separate root, fourteen boons and four flaws");
+const godGrants = godRoots[0]?.system.advancement.filter(a => a.type === "ItemGrant") ?? [],
+  godChoices = godRoots[0]?.system.advancement.filter(a => a.type === "ItemChoice") ?? [];
+if (
+  JSON.stringify(godGrants.map(a => a.level)) !== "[1,6,11,16]" ||
+  JSON.stringify(godGrants.map(a => a.configuration.items.length)) !== "[3,1,1,1]" ||
+  JSON.stringify(godChoices.map(a => a.configuration.pool.length)) !== "[4,8,12]"
+)
+  errors.push("God progression must use cumulative single-boon choices");
+for (const d of godCards)
+  if (d.effects.length || !d.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`God must describe bounded runtime automation: ${d.name}`);
+if (godCards.find(d => d.system.identifier === "god-zeal")?.system.uses.recovery.length)
+  errors.push("God zeal recovers at dawn, not SR/LR");
 
-const hagRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="hag").map(e=>e.document);
-const hagCards=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.transformation==="hag").map(e=>e.document);
-if(hagRoots.length!==1||hagRoots[0]?.folder||hagCards.length!==18||hagCards.filter(d=>d.flags[manifest.id].hagFlaw).length!==4)errors.push("Hag needs one separate root, fourteen boons and four flaws");
-const hagGrants=hagRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],hagChoices=hagRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
-if(JSON.stringify(hagGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(hagGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(hagChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Hag progression must use cumulative single-boon choices");
-for(const d of hagCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Hag must describe bounded runtime automation: ${d.name}`);
-if(hagCards.find(d=>d.system.identifier==="hag-curse")?.system.uses.recovery[0]?.period!=="lr")errors.push("Hag curse recovers on long rest");
-if(hagCards.find(d=>d.system.identifier==="hag-hex")?.system.uses.recovery[0]?.period!=="lr")errors.push("Hag hex must use the user-confirmed long-rest recovery");
+const hagRoots = [...allDocuments.values()]
+  .filter(e => e.pack === "transformations" && e.document.flags?.[manifest.id]?.transformation === "hag")
+  .map(e => e.document);
+const hagCards = [...allDocuments.values()]
+  .filter(e => e.pack === "features" && e.document.flags?.[manifest.id]?.transformation === "hag")
+  .map(e => e.document);
+if (
+  hagRoots.length !== 1 ||
+  hagRoots[0]?.folder ||
+  hagCards.length !== 18 ||
+  hagCards.filter(d => d.flags[manifest.id].hagFlaw).length !== 4
+)
+  errors.push("Hag needs one separate root, fourteen boons and four flaws");
+const hagGrants = hagRoots[0]?.system.advancement.filter(a => a.type === "ItemGrant") ?? [],
+  hagChoices = hagRoots[0]?.system.advancement.filter(a => a.type === "ItemChoice") ?? [];
+if (
+  JSON.stringify(hagGrants.map(a => a.level)) !== "[1,6,11,16]" ||
+  JSON.stringify(hagGrants.map(a => a.configuration.items.length)) !== "[3,1,1,1]" ||
+  JSON.stringify(hagChoices.map(a => a.configuration.pool.length)) !== "[4,8,12]"
+)
+  errors.push("Hag progression must use cumulative single-boon choices");
+for (const d of hagCards)
+  if (d.effects.length || !d.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Hag must describe bounded runtime automation: ${d.name}`);
+if (hagCards.find(d => d.system.identifier === "hag-curse")?.system.uses.recovery[0]?.period !== "lr")
+  errors.push("Hag curse recovers on long rest");
+if (hagCards.find(d => d.system.identifier === "hag-hex")?.system.uses.recovery[0]?.period !== "lr")
+  errors.push("Hag hex must use the user-confirmed long-rest recovery");
 
-const hdRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="halfdragon").map(e=>e.document);
-const hdCards=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.transformation==="halfdragon").map(e=>e.document);
-if(hdRoots.length!==1||hdRoots[0]?.folder||hdCards.length!==18||hdCards.filter(d=>d.flags[manifest.id].halfdragonFlaw).length!==4)errors.push("Dragon needs one separate root, fourteen boons and four flaws");
-const hdGrants=hdRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],hdChoices=hdRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
-if(JSON.stringify(hdGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(hdGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(hdChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Dragon progression must use cumulative single-boon choices");
-for(const d of hdCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Dragon must describe bounded runtime automation: ${d.name}`);
-for(const id of ["breath","roar","fundamentum"])if(hdCards.find(d=>d.system.identifier===`halfdragon-${id}`)?.system.uses.recovery[0]?.period!=="sr")errors.push(`Dragon ${id} must recover on short or long rest`);
-for(const id of ["polymorph","guard","descendant"])if(hdCards.find(d=>d.system.identifier===`halfdragon-${id}`)?.system.uses.recovery[0]?.period!=="lr")errors.push(`Dragon ${id} must recover on long rest`);
+const hdRoots = [...allDocuments.values()]
+  .filter(e => e.pack === "transformations" && e.document.flags?.[manifest.id]?.transformation === "halfdragon")
+  .map(e => e.document);
+const hdCards = [...allDocuments.values()]
+  .filter(e => e.pack === "features" && e.document.flags?.[manifest.id]?.transformation === "halfdragon")
+  .map(e => e.document);
+if (
+  hdRoots.length !== 1 ||
+  hdRoots[0]?.folder ||
+  hdCards.length !== 18 ||
+  hdCards.filter(d => d.flags[manifest.id].halfdragonFlaw).length !== 4
+)
+  errors.push("Dragon needs one separate root, fourteen boons and four flaws");
+const hdGrants = hdRoots[0]?.system.advancement.filter(a => a.type === "ItemGrant") ?? [],
+  hdChoices = hdRoots[0]?.system.advancement.filter(a => a.type === "ItemChoice") ?? [];
+if (
+  JSON.stringify(hdGrants.map(a => a.level)) !== "[1,6,11,16]" ||
+  JSON.stringify(hdGrants.map(a => a.configuration.items.length)) !== "[3,1,1,1]" ||
+  JSON.stringify(hdChoices.map(a => a.configuration.pool.length)) !== "[4,8,12]"
+)
+  errors.push("Dragon progression must use cumulative single-boon choices");
+for (const d of hdCards)
+  if (d.effects.length || !d.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Dragon must describe bounded runtime automation: ${d.name}`);
+for (const id of ["breath", "roar", "fundamentum"])
+  if (hdCards.find(d => d.system.identifier === `halfdragon-${id}`)?.system.uses.recovery[0]?.period !== "sr")
+    errors.push(`Dragon ${id} must recover on short or long rest`);
+for (const id of ["polymorph", "guard", "descendant"])
+  if (hdCards.find(d => d.system.identifier === `halfdragon-${id}`)?.system.uses.recovery[0]?.period !== "lr")
+    errors.push(`Dragon ${id} must recover on long rest`);
 
-const ilRoots=[...allDocuments.values()].filter(e=>e.pack==="transformations"&&e.document.flags?.[manifest.id]?.transformation==="illithid").map(e=>e.document);
-const ilCards=[...allDocuments.values()].filter(e=>e.pack==="features"&&e.document.flags?.[manifest.id]?.transformation==="illithid").map(e=>e.document);
-if(ilRoots.length!==1||ilRoots[0]?.folder||ilCards.length!==18||ilCards.filter(d=>d.flags[manifest.id].illithidFlaw).length!==4)errors.push("Illithid needs a separate root, fourteen boons and four flaws");
-const ilGrants=ilRoots[0]?.system.advancement.filter(a=>a.type==="ItemGrant")??[],ilChoices=ilRoots[0]?.system.advancement.filter(a=>a.type==="ItemChoice")??[];
-if(JSON.stringify(ilGrants.map(a=>a.level))!=="[1,6,11,16]"||JSON.stringify(ilGrants.map(a=>a.configuration.items.length))!=="[3,1,1,1]"||JSON.stringify(ilChoices.map(a=>a.configuration.pool.length))!=="[4,8,12]")errors.push("Illithid progression must use cumulative single choices");
-for(const d of ilCards)if(d.effects.length||!d.system.description.value.includes("Автоматизация Foundry:"))errors.push(`Illithid needs honest bounded runtime automation: ${d.name}`);
-for(const id of ["extract","horizon","melody","superiority"])if(ilCards.find(d=>d.system.identifier===`illithid-${id}`)?.system.uses.recovery[0]?.period!=="lr")errors.push(`Illithid ${id} must recover on long rest`);
-if(ilCards.find(d=>d.system.identifier==="illithid-blast")?.system.uses?.recovery?.length)errors.push("Mental Blast must not invent recovery/uses");
+const ilRoots = [...allDocuments.values()]
+  .filter(e => e.pack === "transformations" && e.document.flags?.[manifest.id]?.transformation === "illithid")
+  .map(e => e.document);
+const ilCards = [...allDocuments.values()]
+  .filter(e => e.pack === "features" && e.document.flags?.[manifest.id]?.transformation === "illithid")
+  .map(e => e.document);
+if (
+  ilRoots.length !== 1 ||
+  ilRoots[0]?.folder ||
+  ilCards.length !== 18 ||
+  ilCards.filter(d => d.flags[manifest.id].illithidFlaw).length !== 4
+)
+  errors.push("Illithid needs a separate root, fourteen boons and four flaws");
+const ilGrants = ilRoots[0]?.system.advancement.filter(a => a.type === "ItemGrant") ?? [],
+  ilChoices = ilRoots[0]?.system.advancement.filter(a => a.type === "ItemChoice") ?? [];
+if (
+  JSON.stringify(ilGrants.map(a => a.level)) !== "[1,6,11,16]" ||
+  JSON.stringify(ilGrants.map(a => a.configuration.items.length)) !== "[3,1,1,1]" ||
+  JSON.stringify(ilChoices.map(a => a.configuration.pool.length)) !== "[4,8,12]"
+)
+  errors.push("Illithid progression must use cumulative single choices");
+for (const d of ilCards)
+  if (d.effects.length || !d.system.description.value.includes("Автоматизация Foundry:"))
+    errors.push(`Illithid needs honest bounded runtime automation: ${d.name}`);
+for (const id of ["extract", "horizon", "melody", "superiority"])
+  if (ilCards.find(d => d.system.identifier === `illithid-${id}`)?.system.uses.recovery[0]?.period !== "lr")
+    errors.push(`Illithid ${id} must recover on long rest`);
+if (ilCards.find(d => d.system.identifier === "illithid-blast")?.system.uses?.recovery?.length)
+  errors.push("Mental Blast must not invent recovery/uses");
 
 if (errors.length) {
   console.error("Validation failed:");

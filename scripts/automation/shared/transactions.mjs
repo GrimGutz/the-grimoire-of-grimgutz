@@ -3,6 +3,10 @@ const queues = new Map();
 export function serialMutation(key, operation) {
   const next = (queues.get(key) ?? Promise.resolve()).catch(() => {}).then(operation);
   queues.set(key, next);
-  void next.finally(() => { if (queues.get(key) === next) queues.delete(key); }).catch(() => {});
+  void next
+    .finally(() => {
+      if (queues.get(key) === next) queues.delete(key);
+    })
+    .catch(() => {});
   return next;
 }
