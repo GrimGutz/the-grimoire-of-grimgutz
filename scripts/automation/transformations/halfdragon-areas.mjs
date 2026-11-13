@@ -30,6 +30,7 @@ import {
   hdTurnBenefit,
   hdAvailableHitDice
 } from "./halfdragon-use.mjs";
+import { placeActivityArea } from "../shared/template-placement.mjs";
 
 export async function hdDiceChoice(actor) {
   const max = itemUses(hdPool(actor)).remaining;
@@ -263,17 +264,9 @@ export async function hdCircleTargets(activity, source) {
       };
   const placed = [];
   try {
-    for (const preview of game.system.canvas.AbilityTemplate.fromActivity(a, center)) {
-      let result;
-      try {
-        result = await preview.drawPreview();
-      } catch (e) {
-        if (e) throw e;
-        return null;
-      }
-      if (!result) return null;
-      placed.push(...(Array.isArray(result) ? result.flat(Infinity) : [result]));
-    }
+    const areas = await placeActivityArea(a, { origin: center });
+    if (!areas) return null;
+    placed.push(...areas);
     if (
       !placed.length ||
       canvas.scene?.id !== source.parent.id ||

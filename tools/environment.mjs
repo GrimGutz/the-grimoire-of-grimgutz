@@ -34,12 +34,16 @@ export function installedVersions(manifest, paths) {
       readJson(path.join(paths.data, "systems", id, "system.json"))?.version ?? null
     ])
   );
-  const modules = Object.fromEntries(
-    [...(manifest.relationships?.requires ?? []), ...(manifest.relationships?.recommends ?? [])]
-      .filter(({ type }) => (type ?? "module") === "module")
-      .map(({ id }) => [id, readJson(path.join(paths.data, "modules", id, "module.json"))?.version ?? null])
+  const related = [...(manifest.relationships?.requires ?? []), ...(manifest.relationships?.recommends ?? [])].filter(
+    ({ type }) => (type ?? "module") === "module"
   );
-  return { core, systems, modules };
+  const manifests = Object.fromEntries(
+    related.map(({ id }) => [id, readJson(path.join(paths.data, "modules", id, "module.json"))])
+  );
+  const modules = Object.fromEntries(related.map(({ id }) => [id, manifests[id]?.version ?? null]));
+  // Each related module's own declared system support, e.g. Midi-QOL's dnd5e maximum.
+  const moduleSystems = Object.fromEntries(related.map(({ id }) => [id, manifests[id]?.relationships?.systems ?? []]));
+  return { core, systems, modules, moduleSystems };
 }
 
 function checkRange(label, installed, { minimum, verified, maximum } = {}, report, { requireVerified = false } = {}) {
@@ -73,6 +77,15 @@ export function compatibilityReport(manifest, installed) {
     const version = installed.modules[module.id];
     if (version && module.compatibility?.minimum && compareVersions(version, module.compatibility.minimum) < 0)
       report.warnings.push(`${module.id} ${version} is below the recommended minimum ${module.compatibility.minimum}`);
+    // Foundry will not enable a module whose own system maximum is below the installed system.
+    for (const system of installed.moduleSystems?.[module.id] ?? []) {
+      const systemVersion = installed.systems[system.id],
+        maximum = system.compatibility?.maximum;
+      if (version && systemVersion && maximum && compareVersions(systemVersion, maximum) > 0)
+        report.warnings.push(
+          `${module.id} ${version} supports ${system.id} up to ${maximum}, but ${system.id} ${systemVersion} is installed: Foundry will not enable it, so automation that needs ${module.id} is off`
+        );
+    }
   }
   return report;
 }

@@ -111,3 +111,43 @@ test("every module passive is built on the running layout", async () => {
   );
   assert.equal(changes[0].key, "system.attributes.movement.fly", "definitions are not mutated");
 });
+
+test("death-save bonus detection does not touch the deprecated 6.0 getter", async () => {
+  const { hasDeathSaveBonus } = await import("../scripts/automation/shared/system-paths.mjs");
+  const current = { system: { attributes: { death: { roll: { bonus: "" } } } } };
+  Object.defineProperty(current.system.attributes.death, "bonuses", {
+    get() {
+      throw new Error("deprecated getter read");
+    }
+  });
+  assert.equal(hasDeathSaveBonus(current), true);
+  assert.equal(hasDeathSaveBonus({ system: { attributes: { death: { bonuses: { save: "" } } } } }), true);
+  assert.equal(hasDeathSaveBonus({ system: { attributes: {} } }), false);
+});
+
+test("scene unit conversion uses the dnd5e 6.1 options form and the legacy form before it", async () => {
+  const { feetToSceneUnits } = await import("../scripts/automation/shared/spatial.mjs");
+  const calls = [];
+  globalThis.dnd5e = {
+    utils: {
+      convertLength: (value, from, toOrOptions, options) => {
+        calls.push([toOrOptions, options]);
+        const to = typeof toOrOptions === "string" ? toOrOptions : toOrOptions.to;
+        const converted = to === "m" ? value * 0.3 : value;
+        return typeof toOrOptions === "object" && toOrOptions.legacy === false
+          ? { value: converted, unit: to }
+          : converted;
+      }
+    }
+  };
+  try {
+    runSystem("6.1.0");
+    assert.equal(feetToSceneUnits(30, { grid: { units: "m" } }), 9);
+    assert.deepEqual(calls.at(-1), [{ to: "m", strict: false, legacy: false }, undefined]);
+    runSystem("6.0.6");
+    assert.equal(feetToSceneUnits(30, { grid: { units: "m" } }), 9);
+    assert.deepEqual(calls.at(-1), ["m", { strict: false }]);
+  } finally {
+    delete globalThis.dnd5e;
+  }
+});

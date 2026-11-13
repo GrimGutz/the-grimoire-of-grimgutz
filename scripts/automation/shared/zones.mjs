@@ -5,6 +5,7 @@ import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { summonConcentrationActivity } from "./summon-lifecycle.mjs";
 import { itemUses, notify } from "./helpers.mjs";
 import { inspiringTemporaryHp } from "./leader-presence-definitions.mjs";
+import { sceneZone, sceneZones } from "./scene-zones.mjs";
 
 const zoneOperations = new Map();
 registerGmRequest("create-circle-zone", (owner, data, context) => {
@@ -22,10 +23,8 @@ registerGmRequest("create-circle-zone", (owner, data, context) => {
 async function createZoneLocally(owner, data, { requestId }) {
   const scene = game.scenes?.get?.(data.sceneId);
   if (!scene) throw Error("Сцена зоны не найдена.");
-  const existing = [...(scene.templates ?? [])].find(
-    template => template.getFlag?.(MODULE_ID, "zoneRequestId") === requestId
-  );
-  if (existing) return { status: "success", templateUuid: existing.uuid };
+  const existing = sceneZones(scene).find(zone => zone.getFlag?.(MODULE_ID, "zoneRequestId") === requestId);
+  if (existing) return { status: "success", templateUuid: existing.uuid, templateId: existing.id };
   let resource,
     charged = 0,
     effect,
@@ -57,6 +56,8 @@ async function createZoneLocally(owner, data, { requestId }) {
       definition.flags[MODULE_ID].zoneExpiresAt = Number(game.time?.worldTime ?? 0) + Number(data.seconds);
     [template] = await scene.createEmbeddedDocuments("MeasuredTemplate", [definition]);
     if (!template) throw Error("Шаблон зоны не создан.");
+    // v14 stores the template as a Region and ignores updates sent through the wrapper.
+    template = sceneZone(scene, template.id) ?? template;
     if (activity) {
       if (replacing)
         for (const entry of current) {
@@ -97,7 +98,7 @@ async function createZoneLocally(owner, data, { requestId }) {
 export async function cleanupZoneTemplates() {
   if (!isGmAuthority()) return;
   for (const scene of game.scenes ?? [])
-    for (const template of [...(scene.regions ?? []), ...(scene.templates ?? [])]) {
+    for (const template of sceneZones(scene)) {
       const flags = template.flags?.[MODULE_ID];
       if (!flags?.zoneTemplate) continue;
       try {
@@ -282,8 +283,7 @@ export async function createCircleTemplate({
       return null;
     }
     return (
-      (await fromUuid(result.templateUuid)) ??
-      scene.templates?.get?.(result.templateId) ?? { uuid: result.templateUuid }
+      (await fromUuid(result.templateUuid)) ?? sceneZone(scene, result.templateId) ?? { uuid: result.templateUuid }
     );
   } catch (error) {
     console.warn(`${MODULE_ID} | Failed to create zone template`, error);

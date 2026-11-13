@@ -53,3 +53,17 @@ test("paths can be overridden for other machines", () => {
   assert.equal(paths.data, "/data");
   assert.match(paths.public, /opt.foundry.public$/);
 });
+
+test("a recommended module that does not support the installed system is reported", () => {
+  const report = compatibilityReport(manifest, {
+    core: "14.364",
+    systems: { dnd5e: "6.1.0" },
+    modules: { "midi-qol": "14.0.20" },
+    moduleSystems: { "midi-qol": [{ id: "dnd5e", compatibility: { minimum: "5.3.0", maximum: "5.9.99" } }] }
+  });
+  assert.ok(
+    report.warnings.some(w =>
+      /midi-qol 14\.0\.20 supports dnd5e up to 5\.9\.99, but dnd5e 6\.1\.0 is installed/.test(w)
+    )
+  );
+});

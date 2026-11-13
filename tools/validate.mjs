@@ -52,8 +52,11 @@ try {
   for (const pack of manifest.packs) {
     const sourcePackPath = path.join(root, pack.path);
     const packPath = path.join(temporaryRoot, pack.name);
+    // A running Foundry holds each pack's LOCK file open (EBUSY on Windows);
+    // the copy only needs the data files, and LevelDB recreates its own LOCK.
     await cp(sourcePackPath, packPath, {
-      recursive: true
+      recursive: true,
+      filter: source => path.basename(source) !== "LOCK"
     });
 
     const db = new ClassicLevel(packPath, {

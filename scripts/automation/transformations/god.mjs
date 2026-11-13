@@ -13,7 +13,7 @@ import {
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
 import { feetToSceneUnits } from "../shared/spatial.mjs";
-import { effectKey } from "../shared/system-paths.mjs";
+import { effectKey, hasDeathSaveBonus } from "../shared/system-paths.mjs";
 const godStore = transformationState("godState", "god-state");
 export const godState = godStore.read;
 export const godCharacterLevel = characterLevel;
@@ -82,8 +82,7 @@ export function godPassiveDefinitions(actor) {
         godChange("system.attributes.hp.bonuses.overall", 10 * n),
         godChange(effectKey("system.bonuses.abilities.save"), n)
       ];
-    if (actor.system.attributes.death?.bonuses?.save !== undefined)
-      changes.push(godChange(effectKey("system.attributes.death.bonuses.save"), n));
+    if (hasDeathSaveBonus(actor)) changes.push(godChange(effectKey("system.attributes.death.bonuses.save"), n));
     add("apotheosis", changes);
   }
   if (godHas(actor, "demiscience")) {

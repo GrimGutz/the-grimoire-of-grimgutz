@@ -79,6 +79,12 @@ export function globalSaveBonus(actor) {
   return actor?.system?.rolls?.ability?.save?.bonus ?? actor?.system?.bonuses?.abilities?.save;
 }
 
+/** Whether the actor has a death-save bonus to modify (6.0 `death.roll`, earlier `death.bonuses.save`), without the deprecated getter. */
+export function hasDeathSaveBonus(actor) {
+  const death = actor?.system?.attributes?.death;
+  return Boolean(death?.roll) || death?.bonuses?.save !== undefined;
+}
+
 /** Raw sense range (unchanged type, may be undefined) from either layout. */
 export function senseRange(actor, sense) {
   const senses = actor?.system?.attributes?.senses;

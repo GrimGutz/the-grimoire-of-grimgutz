@@ -14,9 +14,10 @@ import { turnKey } from "../shared/combat-benefits.mjs";
 import { protectiveZoneContains } from "./ritualist-zones.mjs";
 import { dispatchAutomationPulse, useAuraPulse } from "../midi/aura-workflow.mjs";
 import { temporaryEffectTiming } from "../effects/temporary-effects.mjs";
+import { sceneZones } from "../shared/scene-zones.mjs";
+import { placeActivityArea } from "../shared/template-placement.mjs";
 
-export const hunterZones = scene =>
-  [...(scene?.regions ?? []), ...(scene?.templates ?? [])].filter(zone => zone.flags?.[MODULE_ID]?.hunterZone);
+export const hunterZones = scene => sceneZones(scene).filter(zone => zone.flags?.[MODULE_ID]?.hunterZone);
 export function hunterZoneInside(zone, token) {
   return protectiveZoneContains(zone, token, zone.parent);
 }
@@ -252,11 +253,8 @@ export async function useHunterZone(activity) {
       template: { type: "sphere", size: "20", units: "ft", count: "1" }
     };
     const previewItem = activity.item.clone({ system: { activities: { [activity.id]: data } } }, { keepId: true });
-    const previews = game.system.canvas.AbilityTemplate.fromActivity(previewItem.system.activities.get(activity.id));
-    const docs = await previews[0].drawPreview();
-    placed = (Array.isArray(docs) ? docs.flat(Infinity) : [docs]).filter(Boolean)[0];
+    placed = (await placeActivityArea(previewItem.system.activities.get(activity.id)))?.[0];
     if (!placed) return false;
-    placed = canvas.scene.regions?.get?.(placed.id) ?? placed;
     result = await requestGm(
       "hunter-zone",
       actor,

@@ -27,6 +27,7 @@ import {
   prepareDeathknightAttack
 } from "./deathknight-combat.mjs";
 import { prepareDeathknightSpell } from "./deathknight-spells.mjs";
+import { sceneZones } from "../shared/scene-zones.mjs";
 export function deathknightRegeneration(actor) {
   const hp = actor?.system?.attributes?.hp;
   return dkHas(actor, "quick") && Number(hp?.value) > 0 && Number(hp.value) <= Number(hp.effectiveMax ?? hp.max) / 2
@@ -121,7 +122,7 @@ export async function handleDeathknightTurn(combat, changes) {
         sceneId: current.parent.id,
         amount
       });
-    for (const zone of [...(current.parent.regions ?? []), ...(current.parent.templates ?? [])]) {
+    for (const zone of sceneZones(current.parent)) {
       const state = zone.getFlag?.(MODULE_ID, "deathknightSmog");
       if (!state || !protectiveZoneContains(zone, current, current.parent)) continue;
       const until = zone.getFlag?.(MODULE_ID, "zoneExpiresAt");

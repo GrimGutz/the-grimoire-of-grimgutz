@@ -80,3 +80,20 @@ test("only unchanged snapshotted fields receive future rules updates", () => {
   assert.equal(manual.update?.["system.description"], undefined);
   assert.deepEqual(manual.conflicts, [{ field: "system.description", reason: "manual-edit" }]);
 });
+
+test("dnd5e 6 object-keyed advancement storage matches the array form without throwing", () => {
+  const grant = { _id: "grant", type: "ItemGrant", configuration: { items: [] }, value: { added: { a: "x" } } };
+  const hp = { _id: "hp", type: "HitPoints", configuration: {}, value: {} };
+  const asObject = { id: "one", flags: {}, system: { advancement: { hp, grant } } };
+  const asArray = { id: "one", flags: {}, system: { advancement: [grant, hp] } };
+  const plan = ownedItemMigrationPlan(asObject, asArray);
+  assert.equal(
+    plan.conflicts.some(c => c.field === "system.advancement"),
+    false
+  );
+  const changed = { ...asArray, system: { advancement: [grant, { ...hp, configuration: { changed: true } }] } };
+  assert.deepEqual(
+    ownedItemMigrationPlan(asObject, changed).conflicts.filter(c => c.field === "system.advancement"),
+    [{ field: "system.advancement", reason: "advancement-requires-review" }]
+  );
+});

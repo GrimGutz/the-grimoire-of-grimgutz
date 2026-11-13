@@ -13,6 +13,7 @@ import {
   broodmotherCondition,
   broodmotherChooseCondition
 } from "./broodmother-use.mjs";
+import { sameZone, sceneZones, zoneOrigin } from "../shared/scene-zones.mjs";
 
 export function broodmotherAreaData(activity, source, kind) {
   const web = kind === "web",
@@ -54,10 +55,12 @@ export function broodmotherPoolCenter(zone, source) {
       .slice(0, 2);
     return { x: (far[0].x + far[1].x) / 2, y: (far[0].y + far[1].y) / 2 };
   }
-  if (zone.documentName === "MeasuredTemplate" && Number.isFinite(zone.x) && Number.isFinite(zone.y)) {
-    const r = (Number(zone.direction ?? 0) * Math.PI) / 180,
+  // Cones and lines, as a Region shape (Foundry v14) or template fields: 30 ft along the facing.
+  const origin = zoneOrigin(zone);
+  if (origin && ["cone", "line"].includes(origin.type) && Number.isFinite(origin.x) && Number.isFinite(origin.y)) {
+    const r = (origin.direction * Math.PI) / 180,
       d = (feetToSceneUnits(30, source.parent) / distance) * size;
-    return { x: zone.x + Math.cos(r) * d, y: zone.y + Math.sin(r) * d };
+    return { x: origin.x + Math.cos(r) * d, y: origin.y + Math.sin(r) * d };
   }
   return null;
 }
@@ -172,7 +175,7 @@ export async function removeBroodmotherCoating(actor, activity, source, kind, re
   );
 }
 export async function damageBroodmotherWall(actor, source) {
-  const walls = [...(source.parent.regions ?? []), ...(source.parent.templates ?? [])].filter(
+  const walls = sceneZones(source.parent).filter(
     z => z.getFlag?.(MODULE_ID, "broodmotherWall")?.sourceTokenUuid === source.uuid
   );
   const uuid = await askOwner(broodmotherGm(actor), {
@@ -202,7 +205,8 @@ export async function damageBroodmotherWall(actor, source) {
   if (wall.sections.every(hp => hp === 0)) {
     for (const token of source.parent.tokens ?? [])
       for (const e of [...(token.actor?.effects ?? [])])
-        if (e.getFlag?.(MODULE_ID, "broodmotherCondition")?.templateUuids?.includes(zone.uuid)) await e.delete();
+        if (e.getFlag?.(MODULE_ID, "broodmotherCondition")?.templateUuids?.some(uuid => sameZone(uuid, zone)))
+          await e.delete();
     await zone.delete();
   }
   return true;

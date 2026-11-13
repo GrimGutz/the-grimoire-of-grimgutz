@@ -34,7 +34,14 @@ export function ownedItemMigrationPlan(item, source) {
     update = { _id: item.id },
     conflicts = [];
   let effects = null;
-  const advancements = data => (data.system?.advancement ?? []).map(({ value, ...definition }) => definition);
+  // dnd5e 6 stores advancement as an object keyed by id (older data and pack sources use an
+  // array); compare definitions in id order so both shapes fingerprint the same.
+  const advancements = data => {
+    const stored = data.system?.advancement ?? [];
+    return (Array.isArray(stored) ? stored : Object.values(stored))
+      .map(({ value, ...definition }) => definition)
+      .sort((a, b) => String(a._id ?? "").localeCompare(String(b._id ?? "")));
+  };
   const fields = {
     "system.description": [current.system?.description, next.system?.description],
     "system.activities": [current.system?.activities, next.system?.activities],

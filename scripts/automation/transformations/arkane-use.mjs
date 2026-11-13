@@ -3,6 +3,7 @@ import { askOwner, confirmOwner, chooseSceneTokens } from "../shared/owner-promp
 import { arkaneSpellPools, arkaneExactSlots } from "../shared/arkane-definitions.mjs";
 import { inFeet, canReact } from "../shared/combat-benefits.mjs";
 import { useAuraPulse } from "../midi/aura-workflow.mjs";
+import { placeActivityArea } from "../shared/template-placement.mjs";
 export async function previewArkaneCircle(activity, source, radius = 30) {
   const data = activity.toObject();
   data.target = {
@@ -10,11 +11,8 @@ export async function previewArkaneCircle(activity, source, radius = 30) {
     override: true,
     template: { type: "sphere", size: String(radius), units: "ft", count: "1" }
   };
-  const item = activity.item.clone({ system: { activities: { [activity.id]: data } } }, { keepId: true }),
-    previews = game.system.canvas.AbilityTemplate.fromActivity(item.system.activities.get(activity.id));
-  const result = await previews[0].drawPreview();
-  const original = (Array.isArray(result) ? result.flat(Infinity) : [result]).find(Boolean);
-  return original ? (source.parent.regions?.get?.(original.id) ?? original) : null;
+  const item = activity.item.clone({ system: { activities: { [activity.id]: data } } }, { keepId: true });
+  return (await placeActivityArea(item.system.activities.get(activity.id)))?.[0] ?? null;
 }
 export const arkaneGm = actor => ({ uuid: actor.uuid, testUserPermission: user => user.isGM });
 export const arkanePlaceable = token => token.object ?? { actor: token.actor, document: token };

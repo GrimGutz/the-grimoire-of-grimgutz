@@ -10,6 +10,7 @@ import { applyNativeOnce } from "../shared/native-applications.mjs";
 import { hdLevel, hdDC, hdAncestry, hdState, hdPatch, hdPool, hdRules } from "./halfdragon.mjs";
 import { hdGm, useHdCost } from "./halfdragon-use.mjs";
 import { hdDiceChoice } from "./halfdragon-areas.mjs";
+import { placeActivityArea } from "../shared/template-placement.mjs";
 
 export function halfdragonLivingRecipe(actor, hp, placement) {
   const tier = hdLevel(actor),
@@ -97,17 +98,9 @@ export async function chooseLivingPlacement(actor, activity, source) {
       .system.activities.get(activity.id),
     placed = [];
   try {
-    for (const p of game.system.canvas.AbilityTemplate.fromActivity(a)) {
-      let r;
-      try {
-        r = await p.drawPreview();
-      } catch (e) {
-        if (e) throw e;
-        return null;
-      }
-      if (!r) return null;
-      placed.push(...(Array.isArray(r) ? r.flat(Infinity) : [r]));
-    }
+    const areas = await placeActivityArea(a);
+    if (!areas) return null;
+    placed.push(...areas);
     const d = placed[0],
       s = d?.shapes?.[0],
       point = Number.isFinite(d?.x) ? { x: d.x, y: d.y } : s ? { x: s.x, y: s.y } : null;

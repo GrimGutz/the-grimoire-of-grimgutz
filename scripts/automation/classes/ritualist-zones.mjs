@@ -9,6 +9,8 @@ import { areaPlacementAllowed } from "../shared/area-activities.mjs";
 import { tokenOccupiedPoints, feetToSceneUnits } from "../shared/spatial.mjs";
 import { effectKey } from "../shared/system-paths.mjs";
 import { automationActors } from "../shared/actor-index.mjs";
+import { sceneZones } from "../shared/scene-zones.mjs";
+import { placeActivityArea } from "../shared/template-placement.mjs";
 
 const zoneRecipient = (actor, scene) =>
   [...(actor.effects ?? [])].some(
@@ -50,7 +52,7 @@ export function protectiveZoneChanges(friendly, actor) {
 }
 export async function syncProtectiveZones(scene) {
   if (!scene || !enabled() || !isGmAuthority()) return;
-  const zones = [...(scene.regions ?? []), ...(scene.templates ?? [])].filter(
+  const zones = sceneZones(scene).filter(
     zone =>
       zone.flags?.[MODULE_ID]?.protectiveZone &&
       Number(zone.flags[MODULE_ID].zoneExpiresAt) > Number(game.time.worldTime)
@@ -147,7 +149,8 @@ registerGmRequest("ritualist-protective-zone", async (actor, data, { requestId }
         [`flags.${MODULE_ID}.zoneExpiresAt`]: Number(game.time.worldTime) + 600,
         [`flags.${MODULE_ID}.protectiveZone`]: { sourceTokenUuid: source.uuid, itemUuid: activity.item.uuid }
       });
-      await syncProtectiveZones(zone.parent);
+      // Through the shared scheduler: a direct call raced hook-triggered syncs and both created effects.
+      await scheduleProtectiveZones(zone.parent);
       return true;
     }
   );
@@ -155,7 +158,6 @@ registerGmRequest("ritualist-protective-zone", async (actor, data, { requestId }
 const pending = new Set();
 export async function useProtectiveRitual(activity) {
   const actor = activity.actor,
-    scene = canvas.scene,
     source = sourceTokenForActor(actor);
   if (!source || pending.has(actor.uuid)) return false;
   pending.add(actor.uuid);
@@ -169,11 +171,8 @@ export async function useProtectiveRitual(activity) {
       template: { type: "sphere", size: "30", units: "ft", count: "1" }
     };
     const item = activity.item.clone({ system: { activities: { [activity.id]: data } } }, { keepId: true });
-    const previews = game.system.canvas.AbilityTemplate.fromActivity(item.system.activities.get(activity.id));
-    const docs = await previews[0].drawPreview();
-    placed = (Array.isArray(docs) ? docs.flat(Infinity) : [docs]).filter(Boolean)[0];
+    placed = (await placeActivityArea(item.system.activities.get(activity.id)))?.[0];
     if (!placed) return false;
-    placed = scene.regions?.get?.(placed.id) ?? placed;
     result = await requestGm(
       "ritualist-protective-zone",
       actor,
@@ -217,6 +216,8 @@ export function protectiveZoneScheduler(synchronize = syncProtectiveZones) {
     return state.promise;
   };
 }
+/** The single per-scene protective-zone synchronization every caller shares, so two syncs never overlap. */
+export const scheduleProtectiveZones = protectiveZoneScheduler();
 export function installRitualistZoneHooks() {
   const intercept = activity => {
     if (!enabled() || activity?.flags?.[MODULE_ID]?.leaderResolved) return;
@@ -230,7 +231,7 @@ export function installRitualistZoneHooks() {
   };
   Hooks.on("midi-qol.preTargetingV2", ({ workflow }) => intercept(workflow?.activity));
   Hooks.on("dnd5e.preUseActivity", intercept);
-  const schedule = protectiveZoneScheduler();
+  const schedule = scheduleProtectiveZones;
   const sync = scene => {
     void schedule(scene)?.catch(error => console.error(`${MODULE_ID} | Protective zone`, error));
   };

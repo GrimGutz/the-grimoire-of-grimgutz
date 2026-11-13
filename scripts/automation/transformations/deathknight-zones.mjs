@@ -7,6 +7,8 @@ import { useNativeUtility } from "../shared/native-actions.mjs";
 import { areaActivityData } from "../shared/area-definitions.mjs";
 import { useAreaActivity } from "../shared/area-activities.mjs";
 import { temporaryEffectTiming } from "../effects/temporary-effects.mjs";
+import { sceneZones } from "../shared/scene-zones.mjs";
+import { placeActivityArea } from "../shared/template-placement.mjs";
 export async function useDeathknightFireball(actor, activity, source, requestId) {
   if (
     !(await confirmOwner(
@@ -61,16 +63,14 @@ export async function useDeathknightFireball(actor, activity, source, requestId)
 export async function useDeathknightSmog(actor, activity, source, requestId) {
   const data = activity.toObject();
   data.target = { ...data.target, override: true, template: { type: "cube", size: "15", units: "ft", count: "1" } };
-  const clone = activity.item.clone({ system: { activities: { [activity.id]: data } } }, { keepId: true }),
-    previews = game.system.canvas.AbilityTemplate.fromActivity(clone.system.activities.get(activity.id));
-  if (!previews?.length) throw Error("Шаблон квадрата недоступен.");
+  const clone = activity.item.clone({ system: { activities: { [activity.id]: data } } }, { keepId: true });
   let zone,
     kept = false;
   try {
-    const placed = await previews[0].drawPreview();
-    zone = (Array.isArray(placed) ? placed.flat(Infinity) : [placed]).find(Boolean);
+    zone = (
+      await placeActivityArea(clone.system.activities.get(activity.id), { missing: "Шаблон квадрата недоступен." })
+    )?.[0];
     if (!zone) return false;
-    zone = source.parent.regions?.get?.(zone.id) ?? zone;
     if (
       !(await confirmOwner(
         dkGm(actor),
@@ -106,7 +106,7 @@ export async function useDeathknightSmog(actor, activity, source, requestId) {
   }
 }
 export async function endDeathknightSmog(actor, source) {
-  for (const zone of [...(source.parent.regions ?? []), ...(source.parent.templates ?? [])])
+  for (const zone of sceneZones(source.parent))
     if (zone.getFlag?.(MODULE_ID, "deathknightSmog")?.sourceActorUuid === actor.uuid) await zone.delete();
   return true;
 }

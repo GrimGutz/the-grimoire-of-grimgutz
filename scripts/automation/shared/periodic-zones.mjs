@@ -4,6 +4,7 @@ import { isForwardTurn } from "./combat-flow.mjs";
 import { isGmAuthority } from "./gm-requests.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { dispatchAutomationPulse } from "../midi/aura-workflow.mjs";
+import { sceneZones } from "./scene-zones.mjs";
 
 export async function processPeriodicZones(combat, changes, { pulse = dispatchAutomationPulse } = {}) {
   if (!enabled() || !isGmAuthority() || !isForwardTurn(combat, changes)) return;
@@ -20,7 +21,7 @@ export async function processPeriodicZones(combat, changes, { pulse = dispatchAu
     scene.tokens?.get?.(previous?.tokenId) ??
     [...(scene.tokens ?? [])].find(doc => doc.id === previous?.tokenId);
   if (!targetDocument?.actor) return;
-  for (const template of [...(scene.regions ?? []), ...(scene.templates ?? [])]) {
+  for (const template of sceneZones(scene)) {
     const flags = template.flags?.[MODULE_ID],
       spec = flags?.periodicZone;
     if (!spec || (flags.zoneExpiresAt != null && Number(flags.zoneExpiresAt) <= Number(game.time?.worldTime ?? 0)))

@@ -12,8 +12,9 @@ import { protectiveZoneContains } from "../classes/ritualist-zones.mjs";
 import { combatTurnSnapshot, encounterForScene, isForwardTurn } from "../shared/combat-flow.mjs";
 import { runAutomationEvent, registerAutomationEvent } from "../shared/event-ledger.mjs";
 import { useAuraPulse } from "../midi/aura-workflow.mjs";
+import { sceneZones } from "../shared/scene-zones.mjs";
 export const arkaneStormData = zone => zone.flags?.[MODULE_ID]?.arkaneStorm;
-const zones = scene => [...(scene?.regions ?? []), ...(scene?.templates ?? [])].filter(zone => arkaneStormData(zone));
+const zones = scene => sceneZones(scene).filter(zone => arkaneStormData(zone));
 export const arkaneStormCenter = zone =>
   zone.shapes?.[0] ? { x: zone.shapes[0].x, y: zone.shapes[0].y } : { x: zone.x, y: zone.y };
 const turn = snapshot => (snapshot ? `${snapshot.id}:${snapshot.current.round}:${snapshot.current.turn}` : null);

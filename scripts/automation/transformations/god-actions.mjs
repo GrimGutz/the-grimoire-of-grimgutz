@@ -27,6 +27,7 @@ import { applyNativeOnce, nativeApplicationReply } from "../shared/native-applic
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
+import { placeActivityArea } from "../shared/template-placement.mjs";
 async function godTranslocation(actor, activity, source, requestId) {
   const party = await godTargets(actor, source, 20, "Спутники Транслокации: +5 ОР за каждого", { max: 100, min: 0 });
   if (!party) return false;
@@ -51,17 +52,12 @@ async function godTranslocation(actor, activity, source, requestId) {
   if (mode === "scene") {
     const data = activity.toObject();
     data.target = { ...data.target, template: { type: "sphere", size: "5", units: "ft", count: "1" } };
-    const clone = activity.item.clone({ system: { activities: { [activity.id]: data } } }, { keepId: true }),
-      templates = game.system?.canvas?.AbilityTemplate?.fromActivity(clone.system.activities.get(activity.id));
-    if (!templates?.length) throw Error("Нативный выбор точки недоступен.");
-    for (const p of templates) {
-      const placed = await p.drawPreview();
-      if (placed === false || placed == null) {
-        for (const d of previews) await d.delete();
-        return false;
-      }
-      previews.push(...(Array.isArray(placed) ? placed : [placed]));
-    }
+    const clone = activity.item.clone({ system: { activities: { [activity.id]: data } } }, { keepId: true });
+    const areas = await placeActivityArea(clone.system.activities.get(activity.id), {
+      missing: "Нативный выбор точки недоступен."
+    });
+    if (!areas) return false;
+    previews.push(...areas);
     const region = previews[0]?.document ?? previews[0],
       shape = region?.shapes?.[0];
     destination = { x: Number(shape?.x ?? region?.x), y: Number(shape?.y ?? region?.y) };

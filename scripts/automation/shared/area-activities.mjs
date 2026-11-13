@@ -14,6 +14,7 @@ import { choiceDialog, numberDialog } from "./dialogs.mjs";
 import { sourceTokenForActor, applyTemporaryHp } from "./zones.mjs";
 import { feetToSceneUnits } from "./spatial.mjs";
 import { getAreaWorkflowClass } from "../midi/area-workflow.mjs";
+import { placeActivityArea } from "./template-placement.mjs";
 
 let activeUse = null;
 const clone = value => foundry.utils.deepClone(value);
@@ -130,9 +131,6 @@ function cloneAreaActivity(activity, spec, { resolved = false, castId = "" } = {
   return item.system.activities.get(id);
 }
 
-function canonicalTemplate(document, scene) {
-  return scene.regions?.get?.(document.id) ?? document;
-}
 function templateOrigin(document) {
   if (Number.isFinite(document.x)) return { x: document.x, y: document.y };
   const shape = document.shapes?.[0];
@@ -258,24 +256,11 @@ export async function useAreaActivity(
       if (choice !== "replace") return false;
     }
     const previewActivity = cloneAreaActivity(activity, spec, { castId });
-    const factory = game.system?.canvas?.AbilityTemplate;
-    if (!factory) throw Error("Не найден штатный инструмент шаблонов D&D5e.");
-    const previews = factory.fromActivity(previewActivity, { x: source.center.x, y: source.center.y });
-    if (!previews?.length) throw Error("Для способности не задан корректный шаблон области.");
-    for (const preview of previews) {
-      let result;
-      try {
-        result = await preview.drawPreview();
-      } catch (error) {
-        if (error) throw error;
-        return false;
-      }
-      if (!result) return false;
-      for (const original of Array.isArray(result) ? result.flat(Infinity) : [result]) {
-        const doc = canonicalTemplate(original, scene);
-        origins.set(doc.uuid, templateOrigin(original));
-        placed.push(doc);
-      }
+    const areas = await placeActivityArea(previewActivity, { origin: { x: source.center.x, y: source.center.y } });
+    if (!areas) return false;
+    for (const doc of areas) {
+      origins.set(doc.uuid, templateOrigin(doc));
+      placed.push(doc);
     }
     if (canvas.scene?.id !== scene.id)
       throw Error("Сцена изменилась во время размещения; способность отменена без расхода.");

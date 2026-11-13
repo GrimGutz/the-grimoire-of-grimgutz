@@ -7,6 +7,7 @@ import { presenceChoices } from "./leader-presence-definitions.mjs";
 import { isAuraIncapacitated } from "./aura-conditions.mjs";
 import { endInsectBloodDrain } from "../classes/insect-combat.mjs";
 import { manageSummons } from "./summon-lifecycle.mjs";
+import { sceneZones } from "./scene-zones.mjs";
 
 export const canInspectActor = actor =>
   Boolean(actor && (game.user?.isGM || actor.testUserPermission?.(game.user, "OWNER")));
@@ -164,7 +165,7 @@ export async function automationPanelData(actorOrUuid = null, actionHandlers = n
         });
   }
   for (const scene of game.scenes ?? [])
-    for (const doc of [...(scene.regions ?? []), ...(scene.templates ?? [])]) {
+    for (const doc of sceneZones(scene)) {
       const flags = doc.flags?.[MODULE_ID] ?? {},
         sourceUuid = flags.sourceActor ?? flags.periodicZone?.sourceActorUuid;
       const sourceTokenUuid = flags.auraSource ?? flags.periodicZone?.sourceTokenUuid;

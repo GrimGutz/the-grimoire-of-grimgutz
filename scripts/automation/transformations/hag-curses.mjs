@@ -8,7 +8,7 @@ import { temporaryEffectTiming, isEffectActive } from "../effects/temporary-effe
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 import { hagHas, hagCurses, hagLevel, hagDC, hagChange, hagRules } from "./hag.mjs";
 import { hagGm, hagTargets, hagPulse, useHagCost } from "./hag-use.mjs";
-import { effectKey } from "../shared/system-paths.mjs";
+import { effectKey, hasDeathSaveBonus } from "../shared/system-paths.mjs";
 export const hagCurseData = e => e.getFlag?.(MODULE_ID, "hagCurse");
 export const activeHagCurses = actor => [...(actor?.effects ?? [])].filter(e => hagCurseData(e) && isEffectActive(e));
 const hasImmunity = (actor, id) =>
@@ -66,9 +66,11 @@ export async function syncHagCurseModifiers(actor) {
     if (night)
       changes.push(
         hagChange(effectKey("system.bonuses.abilities.save"), `-(1d4 + ${night})`),
-        ...["mwak", "rwak", "msak", "rsak"].map(k => hagChange(`system.bonuses.${k}.attack`, `-(1d4 + ${night})`))
+        ...["mwak", "rwak", "msak", "rsak"].map(k =>
+          hagChange(effectKey(`system.bonuses.${k}.attack`), `-(1d4 + ${night})`)
+        )
       );
-    if (night && actor.system.attributes.death?.bonuses?.save !== undefined)
+    if (night && hasDeathSaveBonus(actor))
       changes.push(hagChange(effectKey("system.attributes.death.bonuses.save"), `-(1d4 + ${night})`));
     if (sea) changes.push(hagChange("system.attributes.ac.bonus", -sea));
     return changes.length

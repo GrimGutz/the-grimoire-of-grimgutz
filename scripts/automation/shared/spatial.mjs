@@ -1,3 +1,4 @@
+import { dnd5eAtLeast } from "./system-paths.mjs";
 export function feetToSceneUnits(feet, scene = canvas?.scene) {
   const units = String(scene?.grid?.units ?? "ft")
     .trim()
@@ -5,7 +6,9 @@ export function feetToSceneUnits(feet, scene = canvas?.scene) {
   const normalized = /^(м|метр)/u.test(units) ? "m" : /^(фт|фут)/u.test(units) ? "ft" : units;
   const convert = globalThis.dnd5e?.utils?.convertLength ?? game?.dnd5e?.utils?.convertLength;
   if (convert && ["ft", "m", "mi", "km", "yd", "in"].includes(normalized))
-    return convert(Number(feet), "ft", normalized, { strict: false });
+    return dnd5eAtLeast("6.1")
+      ? convert(Number(feet), "ft", { to: normalized, strict: false, legacy: false }).value
+      : convert(Number(feet), "ft", normalized, { strict: false });
   const feetPerUnit = { ft: 1, m: 1 / 0.3048, mi: 5280, km: 1000 / 0.3048, yd: 3, in: 1 / 12 };
   return Number(feet) / (feetPerUnit[normalized] ?? 1);
 }
