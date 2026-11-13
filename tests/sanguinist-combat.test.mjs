@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { MODULE_ID, FLAGS } from "../scripts/automation/shared/constants.mjs";
+import { FLAGS } from "../scripts/automation/shared/constants.mjs";
 import { verifiedBloodSpell } from "../scripts/automation/classes/sanguinist-combat.mjs";
 import { processRepeatedSaves } from "../scripts/automation/effects/repeated-saves.mjs";
 

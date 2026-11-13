@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, automationData, automationAction, notify, itemUses, findFeature } from "../shared/helpers.mjs";
-import { HUNTER_TROPHIES, trophyDefinition } from "../shared/bounty-hunter-definitions.mjs";
+import { enabled, automationData, automationAction, notify, itemUses } from "../shared/helpers.mjs";
+import { trophyDefinition } from "../shared/bounty-hunter-definitions.mjs";
 import {
   hunterLevel,
   hunterDC,
@@ -12,16 +12,15 @@ import {
   hunterRestCompleted
 } from "./bounty-hunter.mjs";
 import { askOwner, confirmOwner, chooseSceneTokens } from "../shared/owner-prompts.mjs";
-import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
+import { registerGmRequest, requestGm } from "../shared/gm-requests.mjs";
 import { nativeApplicationReply, applyNativeOnce } from "../shared/native-applications.mjs";
 import { useHunterCost, useHunterNative } from "./bounty-hunter-cost.mjs";
 import { sourceTokenForActor } from "../shared/zones.mjs";
 import { areaDamagePart } from "../shared/area-definitions.mjs";
 import { useAuraPulse } from "../midi/aura-workflow.mjs";
-import { temporaryEffectTiming, isEffectActive } from "../effects/temporary-effects.mjs";
+import { temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { addCombatBenefit, canReact, inFeet, recordModuleReaction } from "../shared/combat-benefits.mjs";
 import { prepareReactionAttack, reactionAttack as nativeReactionAttack } from "../shared/native-actions.mjs";
-import { combatTurnSnapshot, encounterForScene } from "../shared/combat-flow.mjs";
 import { useHunterZone } from "./bounty-hunter-zones.mjs";
 
 // Ability/action costs are native; choices and special prerequisites happen before expense.

@@ -1,7 +1,6 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, automationData, findFeature, notify } from "../shared/helpers.mjs";
+import { enabled, automationData, notify } from "../shared/helpers.mjs";
 import {
-  broodmotherHas,
   broodmotherAvailable,
   broodmotherState,
   broodmotherDC,

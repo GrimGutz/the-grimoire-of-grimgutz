@@ -8,8 +8,7 @@ import {
   flagellantPain,
   flagellantPricePlan,
   flagellantMaximum,
-  flagellantDie,
-  flagellantEnduranceBonus
+  flagellantDie
 } from "../scripts/automation/shared/flagellant-definitions.mjs";
 import { flagellantDocuments } from "../src/packs/flagellant-features.mjs";
 import { flagellantClassDocuments } from "../src/packs/flagellant-class.mjs";
@@ -20,14 +19,12 @@ import {
   flagellantMaxDebts,
   flagellantPassiveDefinitions,
   flagellantAvailable,
-  createFlagellantState,
   flagellantRestCompleted,
   flagellantPrerequisiteFailures,
   validateFlagellantItem
 } from "../scripts/automation/classes/flagellant.mjs";
 import {
   grantFlagellantTechnique,
-  rollFlagellantPain,
   flagellantExpense,
   flagellantHitDice
 } from "../scripts/automation/classes/flagellant-actions.mjs";
@@ -339,7 +336,7 @@ beforeEach(() => {
       this.formula = formula;
     }
     async evaluate() {
-      const [_, n, side] = this.formula.match(/^(\d+)d(\d+)$/),
+      const [, n, side] = this.formula.match(/^(\d+)d(\d+)$/),
         values = dice.shift() ?? Array(Number(n)).fill(2);
       this.total = values.reduce((a, b) => a + b, 0);
       this.dice = [{ faces: Number(side), results: values.map(result => ({ result, active: true })) }];

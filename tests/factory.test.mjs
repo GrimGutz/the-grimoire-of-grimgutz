@@ -26,7 +26,6 @@ import {
   patchFactory,
   factoryRecords,
   factoryActiveRecords,
-  factoryAugment,
   factoryCapacity,
   factoryInstallFailures,
   factoryAddicted,
@@ -430,9 +429,9 @@ test("regeneration stops at half max, never at zero or over half", async () => {
   assert.equal(factoryRegeneration(actor), 0);
 });
 test("critical malfunction disables all installed tiers and preserves item uses", async () => {
-  const heart = await installed("heart"),
-    tendons = await installed("tendons"),
-    strength = await installed("str");
+  const heart = await installed("heart");
+  await installed("tendons");
+  await installed("str");
   await heart.item.update({ "system.uses.spent": 1 });
   await syncFactory(actor);
   assert.equal(actor.system.attributes.movement.walk, 40);

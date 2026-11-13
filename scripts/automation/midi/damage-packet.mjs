@@ -24,7 +24,7 @@ export function commitCalculatedDamage(token, item, parts) {
   const oldHP = Number(hp.value ?? 0),
     oldTempHP = Number(hp.temp ?? 0);
   const absorbed = rounded > 0 ? Math.min(oldTempHP, rounded) : 0;
-  const hpDamage = Math.min(oldHP, Math.max(-Number(hp.damage ?? hp.max - oldHP ?? 0), rounded - absorbed));
+  const hpDamage = Math.min(oldHP, Math.max(-Number(hp.damage ?? Number(hp.max ?? oldHP) - oldHP), rounded - absorbed));
   Object.assign(item, {
     oldHP,
     oldTempHP,

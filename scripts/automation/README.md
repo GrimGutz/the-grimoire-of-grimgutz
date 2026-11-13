@@ -4,17 +4,34 @@
 
 Current layout:
 
-- `runtime.mjs` — legacy runtime kept as the hook/registry layer while domain code is moved out.
+- `runtime.mjs` — hook/registry layer. Older prestige classes are still wired here through ordered tables (actions, use validators, prerequisite chain, sync tasks); newer content registers itself through `content-registry.mjs`.
+- `content-registry.mjs` — the ordered list of self-registering classes and transformations, plus the loops runtime uses (actions, validators, hook installers, sync tasks, Midi handlers, API, diagnostics).
+- `shared/content.mjs` — `defineContent()`, the descriptor format (see below).
 - `shared/constants.mjs` — shared module id, settings keys, flags and common style constants.
 - `shared/helpers.mjs` — shared document selectors, feature lookup helpers, notifications, `actorFromEffect` and `reportFailure(label)` for fire-and-forget hook promises.
+- `shared/authority.mjs` — `onAuthority()` and `isGmAuthority()` helpers for hooks that fire on every client but must change documents only once.
+- `shared/system-paths.mjs` — D&D5e data paths that moved between 5.3 and 6.x. Write Active Effect keys and update paths through `effectKey()`; read movement and senses with `movementSpeed()` / `senseRange()`.
 - `shared/transformation-core.mjs` — rules shared by every tiered transformation: character level, tier unlock and current tier, flag-backed state with serialized patches, Active Effect change builder, strict-prerequisite gate and advancement duplicate checks. New transformations should build on it instead of copying another transformation's helpers.
 - `shared/selectors.mjs` — class/subclass lookup helpers and level accessors.
 - `shared/dnd5e.mjs` — small dnd5e math helpers such as ability modifiers, size, and clamping.
-- `classes/` — target folder for prestige-class-specific automation.
-- `transformations/` — target folder for transformation-specific automation.
+- `classes/` — prestige-class automation.
+- `transformations/` — transformation automation.
 - `validation/` — drag/drop prerequisite and feature-level validation.
-- `subclasses/` — target folder for subclass-specific automation.
-- `midi/` — target folder for Midi-QOL hook handlers.
+- `subclasses/` — subclass automation.
+- `midi/` — Midi-QOL hook handlers; `midi/hooks.mjs` holds the global order they run in.
 - `effects/` — active-effect/passive-sync helpers, including module passive synchronization.
 
-Future rule: new content automation should go into the most specific folder first. Only wire it into `runtime.mjs` after the content-specific code is isolated.
+## Adding a class or transformation
+
+1. Put the rules in `classes/<id>*.mjs` or `transformations/<id>*.mjs` (transformations: build on `shared/transformation-core.mjs`).
+2. Write `<folder>/<id>-content.mjs` exporting one `defineContent({ id, kind, actions, itemValidators, advancementValidators, install, sync, inspect, midi, api })` descriptor. Only `id` and `kind` are required.
+3. Add the descriptor to `CONTENT` in `content-registry.mjs`.
+4. Only if it has Midi-QOL handlers: place their names in `MIDI_QOL_HOOKS` (`midi/hooks.mjs`). The content-registry tests fail if a descriptor handler is not scheduled.
+
+No edits to `runtime.mjs` are needed.
+
+## Conventions
+
+- Hooks on document changes and combat (`create*`, `update*`, `delete*`, `updateCombat`, `deleteCombat`) fire on every connected client. Change documents only on the automation authority: register with `onAuthority()` or guard with `isAutomationAuthority(actor)`; `isOwner` alone lets the GM and the owning player both write.
+- Read-modify-write of flag state must be serialized per actor: use `transformationState(flag, lock).patch` or `serialMutation(key, operation)`.
+- Never leave a promise floating in a hook: `await` it or pass it to a `reportFailure(label)` reporter. `npm run lint` enforces this.

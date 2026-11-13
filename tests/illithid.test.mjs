@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test, beforeEach } from "node:test";
-import { ctx, actor, source, target, base, setupFactory, owned, attack, encounter, token } from "./factory-fixture.mjs";
+import { ctx, actor, source, target, base, setupFactory, owned, attack, encounter } from "./factory-fixture.mjs";
 import { MODULE_ID, SETTINGS } from "../scripts/automation/shared/constants.mjs";
 import { ILLITHID_FEATURES } from "../scripts/automation/shared/illithid-definitions.mjs";
 import { illithidDocuments, illithidFolders } from "../src/packs/illithid-features.mjs";
@@ -9,7 +9,6 @@ import {
   ilState,
   ilRules,
   ilPatch,
-  ilLevel,
   ilHas,
   ilDC,
   ilHungerDays,
@@ -20,7 +19,7 @@ import {
   validateIllithidItem,
   validateIllithidAdvancement
 } from "../scripts/automation/transformations/illithid.mjs";
-import { ilExpense, ilCondition } from "../scripts/automation/transformations/illithid-use.mjs";
+import { ilExpense } from "../scripts/automation/transformations/illithid-use.mjs";
 import {
   ilExtractEligible,
   ilSlowRecords,
@@ -38,7 +37,6 @@ import {
   recordIllithidExtraction,
   finishIllithidSaves,
   illithidNaturalOne,
-  runIllithidEvent,
   cleanupIllithidLinks,
   installIllithidHooks
 } from "../scripts/automation/transformations/illithid-events.mjs";
@@ -842,7 +840,6 @@ test("Summon requires a real unused kill in the same reaction window", async () 
 });
 test("Devourer summon uses native base, chosen placement, reaction and preserved embedded references", async () => {
   await killState();
-  const a = [...base.items[0].system.activities.values()][0];
   await base.items[0].update({
     effects: [{ _id: "effectnative", name: "Native", type: "base", system: { changes: [] } }],
     "flags.test.value": true

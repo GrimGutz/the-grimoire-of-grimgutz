@@ -19,7 +19,6 @@ import {
   arkaneDC,
   arkaneAvailable,
   syncArkane,
-  arkanePassiveDefinitions,
   changeArkaneFusion,
   validateArkaneAdvancement,
   arkanePrerequisiteFailures,
@@ -29,9 +28,6 @@ import {
 import { controlArkane } from "../scripts/automation/transformations/arkane-actions.mjs";
 import { chooseArkaneSlots, arkaneSlotCosts } from "../scripts/automation/transformations/arkane-use.mjs";
 import {
-  useArkaneStorm,
-  moveArkaneStorm,
-  arkaneStormData,
   arkaneStormRecord,
   runArkaneStormRecord,
   captureArkaneStormEntry,
@@ -42,7 +38,6 @@ import {
 } from "../scripts/automation/transformations/arkane-storm.mjs";
 import {
   arkaneBarrierActive,
-  activateArkaneBarrier,
   carryArkaneBarrierDamage,
   guardArkaneBarrierUpdate,
   cleanupArkaneBarrier,
@@ -53,20 +48,7 @@ import { observeArkaneAppearance, installArkaneHooks } from "../scripts/automati
 import { applySpellSourceResistance } from "../scripts/automation/midi/spell-resistance.mjs";
 import { requestGm } from "../scripts/automation/shared/gm-requests.mjs";
 import { linkDocumentDescriptions } from "../tools/link-descriptions.mjs";
-let actor,
-  source,
-  target,
-  docs,
-  answers,
-  prompts,
-  calls,
-  messages,
-  hooks,
-  seq,
-  nativeMode,
-  saveSuccess,
-  actorCreateFails,
-  tokenCreateFails;
+let actor, source, target, docs, answers, prompts, calls, messages, hooks, seq, nativeMode, saveSuccess;
 function merge(raw, updates) {
   const out = structuredClone(raw);
   for (const [key, value] of Object.entries(updates)) {

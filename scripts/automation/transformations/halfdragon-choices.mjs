@@ -2,7 +2,7 @@ import { MODULE_ID } from "../shared/constants.mjs";
 import { HALFDRAGON_ANCESTRIES } from "../shared/halfdragon-definitions.mjs";
 import { findFeature } from "../shared/helpers.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
-import { hdState, hdRules, hdPatch, hdAncestry, hdWorn, syncHalfdragon } from "./halfdragon.mjs";
+import { hdRules, hdPatch, hdAncestry, hdWorn, syncHalfdragon } from "./halfdragon.mjs";
 import { hdGm } from "./halfdragon-use.mjs";
 export async function chooseHalfdragonAncestry(actor) {
   if (

@@ -1,8 +1,7 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { factoryAugment, factoryContext, factoryInstalledItem } from "./factory.mjs";
+import { factoryAugment } from "./factory.mjs";
 import { factoryChildSnapshot } from "./factory-homunculi.mjs";
-import { factoryGm } from "./factory-use.mjs";
-import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
+import { askOwner } from "../shared/owner-prompts.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";
 import { temporaryEffectTiming, isEffectActive } from "../effects/temporary-effects.mjs";
 import { onPrepareDamage } from "../shared/damage-events.mjs";

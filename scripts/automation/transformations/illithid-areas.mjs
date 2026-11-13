@@ -9,7 +9,7 @@ import { addCombatBenefit } from "../shared/combat-benefits.mjs";
 import { encounterForScene } from "../shared/combat-flow.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
-import { ilLevel, ilDC, ilChange, ilRules, ilState, ilPatch } from "./illithid.mjs";
+import { ilLevel, ilDC, ilChange, ilRules } from "./illithid.mjs";
 import {
   ilGm,
   ilExpense,

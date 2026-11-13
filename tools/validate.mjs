@@ -998,9 +998,6 @@ if (!schoolOfSteelSubclass) {
   if (!grantsAnimateObjects) errors.push("School of Steel must grant Animate Objects at level 10");
 }
 
-const featureIds = new Set(
-  [...allDocuments.values()].filter(entry => entry.pack === "features").map(entry => entry.document._id)
-);
 const itemUuids = new Set(
   [...allDocuments.values()].map(entry => `Compendium.${manifest.id}.${entry.pack}.Item.${entry.document._id}`)
 );
@@ -1041,7 +1038,6 @@ const transformationsByIdentifier = new Map(
   transformationDocuments.map(document => [document.system.identifier, document])
 );
 const allItemDocuments = [...allDocuments.values()].map(entry => entry.document);
-const allItemsByIdentifier = new Map(allItemDocuments.map(document => [document.system.identifier, document]));
 const transformationIdentifiers = new Set(transformationDocuments.map(document => document.system.identifier));
 for (const identifier of [
   "murderspawn-transformation",

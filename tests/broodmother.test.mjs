@@ -10,7 +10,6 @@ import { broodmotherTransformationDocuments } from "../src/packs/broodmother-tra
 import { broodmotherText } from "../src/broodmother-data.mjs";
 import {
   broodmotherState,
-  broodmotherHas,
   broodmotherDC,
   broodmotherTransformationLevel,
   broodmotherPassiveDefinitions,
@@ -20,7 +19,7 @@ import {
   validateBroodmotherAdvancement,
   inspectBroodmother
 } from "../scripts/automation/transformations/broodmother.mjs";
-import { controlBroodmother } from "../scripts/automation/transformations/broodmother-actions.mjs";
+import "../scripts/automation/transformations/broodmother-actions.mjs";
 import {
   broodmotherRecipe,
   broodmotherHitDice,
@@ -50,8 +49,6 @@ import {
 } from "../scripts/automation/transformations/broodmother-events.mjs";
 import { requestGm } from "../scripts/automation/shared/gm-requests.mjs";
 import { emitConfirmedDamage } from "../scripts/automation/shared/damage-events.mjs";
-import { processRepeatedSaves } from "../scripts/automation/effects/repeated-saves.mjs";
-import { linkDocumentDescriptions } from "../tools/link-descriptions.mjs";
 let actor,
   source,
   target,
@@ -881,11 +878,11 @@ test("off-scene acid turn queues event instead of retroactive automatic damage",
   assert.equal(game.journal[0].getFlag(MODULE_ID, "events")[0].state, "queued");
 });
 test("player-side movement snapshot lets active GM apply acid only on entry and deduplicate", async () => {
-  const pool = region({
-      shapes: [{ type: "circle", x: 450, y: 50, radius: 100 }],
-      flags: { [MODULE_ID]: { broodmotherPool: { sourceTokenUuid: source.uuid, sourceItemUuid: item("bile").uuid } } }
-    }),
-    options = {};
+  region({
+    shapes: [{ type: "circle", x: 450, y: 50, radius: 100 }],
+    flags: { [MODULE_ID]: { broodmotherPool: { sourceTokenUuid: source.uuid, sourceItemUuid: item("bile").uuid } } }
+  });
+  const options = {};
   captureBroodmotherMovement(target, { x: 400 }, options);
   await target.update({ x: 400 });
   await applyBroodmotherMovement(target, { x: 400 }, options);

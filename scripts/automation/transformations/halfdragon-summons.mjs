@@ -2,7 +2,7 @@ import { MODULE_ID } from "../shared/constants.mjs";
 import { HALFDRAGON_ICON } from "../shared/halfdragon-definitions.mjs";
 import { areaActivityData, areaDamagePart } from "../shared/area-definitions.mjs";
 import { areaPlacementAllowed } from "../shared/area-activities.mjs";
-import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
+import { confirmOwner } from "../shared/owner-prompts.mjs";
 import { createSummonedGroup } from "../shared/summons.mjs";
 import { dismissSummonActor } from "../shared/summon-lifecycle.mjs";
 import { summonActivities } from "../shared/summon-activities.mjs";

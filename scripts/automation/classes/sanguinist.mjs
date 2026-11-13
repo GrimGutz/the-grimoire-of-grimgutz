@@ -530,24 +530,6 @@ function classHitDiceUpdates(actor, amount) {
   }
   return updates;
 }
-
-async function restoreHitDice(actor, amount) {
-  let remaining = Math.max(0, amount);
-  let restoredTotal = 0;
-  const updates = [];
-  for (const item of actor?.items ?? []) {
-    if (item.type !== "class" || remaining <= 0) continue;
-    const used = Number(item.system?.hitDiceUsed ?? 0);
-    if (used <= 0) continue;
-    const restored = Math.min(used, remaining);
-    updates.push({ _id: item.id, "system.hitDiceUsed": used - restored });
-    restoredTotal += restored;
-    remaining -= restored;
-  }
-  if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
-  return restoredTotal;
-}
-
 async function clearAllHitDiceUsed(actor) {
   const updates = [];
   for (const item of actor?.items ?? []) {

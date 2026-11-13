@@ -123,14 +123,18 @@ npm run build
 npm run check
 ```
 
-`npm run check` собирает packs и запускает валидатор иконок, количества документов, ссылок, Advancement, runtime-токенов и activity actions.
+`npm run check` проверяет форматирование (Prettier) и линтер (ESLint, включая необработанные промисы), запускает тесты, собирает packs и запускает валидатор иконок, количества документов, ссылок, Advancement, runtime-токенов и activity actions. Валидатор также сравнивает установленные Foundry, D&D5e и рекомендуемые модули с `module.json` и предупреждает о версиях новее `verified`. Если Foundry установлена не по стандартному пути, задайте `FOUNDRY_APP_PATH` (папка `resources/app`) и `FOUNDRY_DATA_PATH` (папка `Data`).
 
-Для изменений только скриптов: `npm run verify` — поведенческие проверки и валидация без пересборки packs. [План аудита автоматизации](docs/AUTOMATION_AUDIT.md).
+Форматирование: `npm run format`. Линтер: `npm run lint`.
+
+Для изменений только скриптов: `npm run verify` — линтер, поведенческие проверки и валидация без пересборки packs. [План аудита автоматизации](docs/AUTOMATION_AUDIT.md).
 
 ## Структура
 
 - `src/packs/` — исходники compendium-документов.
 - `scripts/automation/runtime.mjs` — общая регистрация Foundry hooks/API.
+- `scripts/automation/content-registry.mjs` — список самостоятельно регистрируемых классов и трансформаций (`*-content.mjs`); новый контент подключается здесь, без правок `runtime.mjs`.
+- `scripts/automation/shared/` — общие помощники: ядро трансформаций, пути данных D&D5e, сериализуемые состояния, hooks только для GM. Правила — в `scripts/automation/README.md`.
 - `scripts/automation/classes/` — автоматизация отдельных престиж-классов.
 - `scripts/automation/transformations/` — автоматизация трансформаций.
 - `scripts/automation/subclasses/` — автоматизация подклассов.

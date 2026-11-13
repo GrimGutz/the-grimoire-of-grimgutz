@@ -4,7 +4,6 @@ import { nightmareTotalLevel } from "../shared/nightmare-definitions.mjs";
 import {
   nightmareLevel,
   nightmarePool,
-  nightmareState,
   nightmarePoints,
   nightmareResourceState,
   nightmareKnown

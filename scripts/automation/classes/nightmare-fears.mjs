@@ -1,13 +1,7 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 import { NIGHTMARE_FEARS, NIGHTMARE_ICON, nightmareFearLimit } from "../shared/nightmare-definitions.mjs";
-import {
-  nightmareFears,
-  nightmareFearData,
-  nightmareLevel,
-  nightmareDC,
-  nightmareFrightened
-} from "../shared/nightmare-state.mjs";
-import { enabled, findFeature } from "../shared/helpers.mjs";
+import { nightmareFears, nightmareFearData, nightmareLevel, nightmareDC } from "../shared/nightmare-state.mjs";
+import { enabled } from "../shared/helpers.mjs";
 import { isEffectActive, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { isGmAuthority } from "../shared/gm-requests.mjs";

@@ -15,7 +15,6 @@ import {
 import { confirmOwner, chooseSceneTokens, promptOwner } from "../shared/owner-prompts.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
 import { leaderReceipt, leaderReceiptData } from "../shared/leader-receipts.mjs";
-import { runAutomationEvent } from "../shared/event-ledger.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { addSaveAdvantage } from "../midi/save-modifiers.mjs";
 import { isAuraIncapacitated } from "../shared/aura-conditions.mjs";

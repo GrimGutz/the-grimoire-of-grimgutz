@@ -10,8 +10,7 @@ import {
   effectChange,
   enforcesTransformationPrerequisites,
   advancementSurvivors,
-  isDuplicateGrant,
-  rejectDuplicateBoons
+  isDuplicateGrant
 } from "../shared/transformation-core.mjs";
 import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 const hagStore = transformationState("hagState", "hag-state");

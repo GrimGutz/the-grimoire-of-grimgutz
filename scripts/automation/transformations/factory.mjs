@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, automationData, findFeature, isAutomationAuthority, notify } from "../shared/helpers.mjs";
+import { enabled, automationData, findFeature, notify } from "../shared/helpers.mjs";
 import { FACTORY_FEATURES, FACTORY_CAPACITY } from "../shared/factory-definitions.mjs";
 import { FACTORY_AUGMENTS } from "../shared/factory-augments.mjs";
 import { automationActors, isEffectActive } from "../effects/temporary-effects.mjs";
@@ -7,12 +7,9 @@ import {
   characterLevel,
   transformationTier,
   transformationState,
-  effectChange,
   enforcesTransformationPrerequisites,
   advancementSurvivors,
-  advancementResult,
-  isDuplicateGrant,
-  rejectDuplicateBoons
+  isDuplicateGrant
 } from "../shared/transformation-core.mjs";
 const factoryStore = transformationState("factoryState", "factory-state");
 export const factoryState = factoryStore.read;

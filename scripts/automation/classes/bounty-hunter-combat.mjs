@@ -13,7 +13,7 @@ import {
 import { hunterDie } from "../shared/bounty-hunter-definitions.mjs";
 import { isAuraIncapacitated, isAuraDefeated } from "../shared/aura-conditions.mjs";
 import { askOwner, confirmOwner, chooseSceneTokens } from "../shared/owner-prompts.mjs";
-import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
+import { registerGmRequest, requestGm } from "../shared/gm-requests.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { nativeApplicationReply, applyNativeOnce } from "../shared/native-applications.mjs";
 import {
@@ -29,16 +29,14 @@ import {
 } from "../shared/combat-benefits.mjs";
 import { combatTurnSnapshot, encounterForScene } from "../shared/combat-flow.mjs";
 import { addSaveAdvantage } from "../midi/save-modifiers.mjs";
-import { useAuraPulse } from "../midi/aura-workflow.mjs";
-import { useHunterCost, useHunterNative } from "./bounty-hunter-cost.mjs";
+import "../midi/aura-workflow.mjs";
+import { useHunterCost } from "./bounty-hunter-cost.mjs";
 import { hunterCondition, hunterSave } from "./bounty-hunter-actions.mjs";
-import { areaDamagePart } from "../shared/area-definitions.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { effectKey } from "../shared/system-paths.mjs";
 
 const gm = actor => ({ uuid: actor.uuid, testUserPermission: user => user.isGM });
 const has = (actor, key, level = 1) => hunterLevel(actor) >= level && findFeature(actor, `hunter-${key}`);
-const object = doc => doc.object ?? { actor: doc.actor, document: doc };
 export function hunterIsolation(token) {
   if (!token?.parent || !token.disposition) return "unknown";
   let unknown = false;

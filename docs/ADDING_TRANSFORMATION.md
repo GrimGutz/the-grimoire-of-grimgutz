@@ -26,6 +26,10 @@ Use this order so transformation cards, feature cards, and automation stay separ
 
 5. Add automation only when it is deterministic.
    - Runtime behavior belongs under `scripts/automation/transformations/`.
+   - Build on `scripts/automation/shared/transformation-core.mjs` (tier, state store, change builder, prerequisite gate, duplicate boons) instead of copying another transformation.
+   - Register it with one `transformations/<id>-content.mjs` descriptor (`defineContent`) listed in `scripts/automation/content-registry.mjs`; no `runtime.mjs` edits. Midi handlers also need a place in `MIDI_QOL_HOOKS`. See `scripts/automation/README.md`.
+   - Write Active Effect keys through `effectKey()` and read movement/senses with `movementSpeed()` / `senseRange()` (`shared/system-paths.mjs`).
+   - Document and combat hooks fire on every client: change documents only via `onAuthority` / `onGmAuthority` (`shared/authority.mjs`) or an explicit authority check.
    - Passive effects should use stable dnd5e paths only.
    - Conditional benefits should be an active item, macro, or Midi-QOL hook instead of a permanent passive effect.
    - Pack source should use simple `automation` / `actionData`; the canonical nested config is generated automatically. See `docs/AUTOMATION_CONFIG.md`.

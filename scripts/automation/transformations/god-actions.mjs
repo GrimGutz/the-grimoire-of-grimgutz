@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, automationData, findFeature, notify } from "../shared/helpers.mjs";
-import { godAvailable, godState, patchGod, godLevel, godDC, godAlignment, godFunctional, syncGod } from "./god.mjs";
+import { enabled, automationData, notify } from "../shared/helpers.mjs";
+import { godAvailable, patchGod, godLevel, godDC, godAlignment, godFunctional, syncGod } from "./god.mjs";
 import { godGm, godTargets, useGodCost } from "./god-use.mjs";
 import {
   chooseGodForm,

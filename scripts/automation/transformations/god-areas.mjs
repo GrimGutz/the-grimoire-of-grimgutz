@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 import { GOD_ICON, godWrathDice, godAnnihilationDamage } from "../shared/god-definitions.mjs";
-import { godState, patchGod, godLevel, godDC, godAlignment, godHas, godDomain } from "./god.mjs";
+import { godState, patchGod, godLevel, godDC, godAlignment, godDomain } from "./god.mjs";
 import { godGm, godExpense, useGodCost, godTargets, godPulse, applyGodHealing } from "./god-use.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";

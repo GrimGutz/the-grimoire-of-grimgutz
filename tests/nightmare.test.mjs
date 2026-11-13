@@ -10,7 +10,6 @@ import {
   nightmareKnownMaximum
 } from "../scripts/automation/shared/nightmare-definitions.mjs";
 import {
-  nightmareLevel,
   nightmareState,
   nightmarePool,
   nightmarePoints,
@@ -31,7 +30,7 @@ import {
   validateNightmareItem,
   nightmareRestCompleted
 } from "../scripts/automation/classes/nightmare.mjs";
-import { nightmareExpense } from "../scripts/automation/classes/nightmare-actions.mjs";
+import "../scripts/automation/classes/nightmare-actions.mjs";
 import {
   imposeNightmareFear,
   triggerNightmareFear,
@@ -62,7 +61,7 @@ import {
 import { requestGm } from "../scripts/automation/shared/gm-requests.mjs";
 import { processRepeatedSaves } from "../scripts/automation/effects/repeated-saves.mjs";
 import { synchronizeSummonLifecycle } from "../scripts/automation/shared/summon-lifecycle.mjs";
-import { createSummonedGroup } from "../scripts/automation/shared/summons.mjs";
+import "../scripts/automation/shared/summons.mjs";
 import { linkDocumentDescriptions } from "../tools/link-descriptions.mjs";
 
 let actor,

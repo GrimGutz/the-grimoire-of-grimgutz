@@ -1,4 +1,3 @@
-import { MODULE_ID } from "../shared/constants.mjs";
 import { enabled } from "../shared/helpers.mjs";
 import { dkHas, dkPassiveActive } from "./deathknight.mjs";
 import { confirmOwner } from "../shared/owner-prompts.mjs";

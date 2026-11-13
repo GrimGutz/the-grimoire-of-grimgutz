@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 import { enabled } from "../shared/helpers.mjs";
-import { factoryAugment, factoryContext, factoryState, patchFactory, factoryAscended } from "./factory.mjs";
+import { factoryAugment, factoryContext, factoryState, patchFactory } from "./factory.mjs";
 import { factoryGm, factoryExpense } from "./factory-use.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { applyNativeOnce, nativeApplicationReply } from "../shared/native-applications.mjs";

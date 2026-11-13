@@ -1,11 +1,7 @@
 import assert from "node:assert/strict";
 import { test, beforeEach } from "node:test";
 import { MODULE_ID, SETTINGS } from "../scripts/automation/shared/constants.mjs";
-import {
-  AUTOMATON_FEATURES,
-  AUTOMATON_MODELS,
-  automatonUnlockedTier
-} from "../scripts/automation/shared/automaton-definitions.mjs";
+import { AUTOMATON_FEATURES, automatonUnlockedTier } from "../scripts/automation/shared/automaton-definitions.mjs";
 import { automatonDocuments } from "../src/packs/automaton-features.mjs";
 import { automatonTransformationDocuments } from "../src/packs/automaton-transformation.mjs";
 import { automatonText } from "../src/automaton-data.mjs";
@@ -21,7 +17,7 @@ import {
   validateAutomatonItem,
   inspectAutomaton
 } from "../scripts/automation/transformations/automaton.mjs";
-import { controlAutomaton } from "../scripts/automation/transformations/automaton-actions.mjs";
+import "../scripts/automation/transformations/automaton-actions.mjs";
 import {
   reduceAutomatonPacket,
   prepareAutomatonDamage,
@@ -38,7 +34,6 @@ import {
 } from "../scripts/automation/transformations/automaton-events.mjs";
 import { applySpellSourceResistance } from "../scripts/automation/midi/spell-resistance.mjs";
 import { requestGm } from "../scripts/automation/shared/gm-requests.mjs";
-import { linkDocumentDescriptions } from "../tools/link-descriptions.mjs";
 import { emitConfirmedDamage } from "../scripts/automation/shared/damage-events.mjs";
 import { freezeAutomatonCasterFormulas } from "../scripts/automation/transformations/automaton-battery.mjs";
 let actor, source, target, docs, answers, prompts, calls, messages, hooks, seq, nativeMode;
@@ -987,10 +982,9 @@ test("aborted coils hit releases reservation without tempHP expense", async () =
 test("immunity choice requires exactly three and rest gates a second selection", async () => {
   answers.push("warrior");
   await use("model");
-  const spells = [1, 2, 3].map(i => {
+  [1, 2, 3].forEach(i => {
     const a = attack(actor, { level: i, weapon: false });
     a.item.system.identifier = `spell-${i}`;
-    return a.item;
   });
   answers.push(["spell-1", "spell-2"]);
   assert.equal((await use("resistance", "immunities")).status, "cancelled");

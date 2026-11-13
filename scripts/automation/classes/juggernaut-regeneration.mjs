@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, findFeature, notify } from "../shared/helpers.mjs";
+import { enabled, findFeature, notify, reportFailure } from "../shared/helpers.mjs";
 import { juggernautLevel } from "./juggernaut.mjs";
 import { askOwner } from "../shared/owner-prompts.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
@@ -129,6 +129,7 @@ onConfirmedDamage(async ({ actor, amount, event }) => {
     await suppressJuggernautRegeneration(actor, game.scenes?.get?.(event.sceneId));
 });
 export function installJuggernautRegenerationHooks() {
+  const reportJuggernaut = reportFailure("Juggernaut regeneration failed");
   Hooks.on("updateCombat", (combat, changes) => {
     if (!enabled() || !isGmAuthority() || !isForwardTurn(combat, changes)) return;
     const snapshot = combatTurnSnapshot(combat);
@@ -174,7 +175,7 @@ export function installJuggernautRegenerationHooks() {
   });
   Hooks.on("updateActor", actor => {
     if (enabled() && isGmAuthority() && actor.getFlag?.(MODULE_ID, "juggernautTempHp"))
-      void clearRegenerationTemporaryHp(actor);
+      reportJuggernaut(clearRegenerationTemporaryHp(actor));
   });
   const naturalOne = (rolls, config) => {
     const actor = config?.subject?.actor ?? config?.subject;
@@ -188,7 +189,7 @@ export function installJuggernautRegenerationHooks() {
         )
       )
     )
-      void suppressJuggernautRegeneration(actor, actor.getActiveTokens?.()[0]?.document?.parent);
+      reportJuggernaut(suppressJuggernautRegeneration(actor, actor.getActiveTokens?.()[0]?.document?.parent));
   };
   Hooks.on("dnd5e.rollAttack", naturalOne);
   Hooks.on("dnd5e.rollSavingThrow", naturalOne);

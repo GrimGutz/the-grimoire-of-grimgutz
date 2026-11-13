@@ -1,5 +1,5 @@
 import { MODULE_ID } from "./constants.mjs";
-import { activityActor, automationData, enabled, notify } from "./helpers.mjs";
+import { activityActor, automationData, enabled, notify, reportFailure } from "./helpers.mjs";
 import { registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { isEffectActive, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
@@ -151,6 +151,7 @@ export async function handleSummonSelfCost(workflow) {
 }
 
 export function installSummonCombatHooks() {
+  const reportSummonCost = reportFailure("Summon self cost failed");
   Hooks.on("dnd5e.preUseActivity", validateSummonActivityUse);
   Hooks.on("dnd5e.applyDamage", (actor, _amount, options) => {
     const data = options?.[MODULE_ID]?.protection;
@@ -160,6 +161,7 @@ export function installSummonCombatHooks() {
       );
   });
   Hooks.on("dnd5e.rollHealing", (rolls, { subject }) => {
-    if (rolls?.length && !game.modules.get("midi-qol")?.active) void handleSummonSelfCost({ activity: subject });
+    if (rolls?.length && !game.modules.get("midi-qol")?.active)
+      reportSummonCost(handleSummonSelfCost({ activity: subject }));
   });
 }

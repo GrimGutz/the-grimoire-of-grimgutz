@@ -14,7 +14,7 @@ import {
   prepareBroodmotherSpellSave,
   prepareBroodmotherPoisonSave
 } from "./broodmother-combat.mjs";
-import { broodmotherGm, broodmotherPulse, broodmotherCondition } from "./broodmother-use.mjs";
+import { broodmotherPulse, broodmotherCondition } from "./broodmother-use.mjs";
 import { summonBroodmotherHorror } from "./broodmother-summons.mjs";
 import { onConfirmedDamage } from "../shared/damage-events.mjs";
 import { isGmAuthority } from "../shared/gm-requests.mjs";

@@ -6,7 +6,8 @@ import {
   enabled,
   findFeature,
   itemIdentifier,
-  notify
+  notify,
+  reportFailure
 } from "./helpers.mjs";
 import { AREA_DEFINITIONS, areaActivityData } from "./area-definitions.mjs";
 import { choiceDialog, numberDialog } from "./dialogs.mjs";
@@ -440,10 +441,11 @@ export async function useAreaActivity(
 }
 
 export function installAreaActivityHooks({ validate = () => true } = {}) {
+  const reportArea = reportFailure("Area activity failed");
   Hooks.on("dnd5e.preUseActivity", (activity, usage, dialog, message) => {
     if (!enabled() || !areaDefinitionFor(activity)) return;
     // This cancels the original utility flow BEFORE any native resource consumption.
-    void useAreaActivity(activity, { validate, usage, dialog, message });
+    reportArea(useAreaActivity(activity, { validate, usage, dialog, message }));
     return false;
   });
 }

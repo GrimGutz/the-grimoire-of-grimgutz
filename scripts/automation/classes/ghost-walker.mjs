@@ -2,7 +2,6 @@ import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
 import {
   automationData,
   findFeature,
-  hasFeature,
   isAutomationAuthority,
   itemIdentifier,
   itemUses,

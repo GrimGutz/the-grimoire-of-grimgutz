@@ -7,7 +7,7 @@ import { serialMutation } from "../shared/transactions.mjs";
 import { onPrepareDamage } from "../shared/damage-events.mjs";
 import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
 import { hagHas, hagState, patchHag } from "./hag.mjs";
-import { hagGm, useHagCost } from "./hag-use.mjs";
+import { useHagCost } from "./hag-use.mjs";
 import { activeHagCurses, hagCurseData, addHagJinx } from "./hag-curses.mjs";
 export const hagMagical = workflow =>
   workflow?.item?.type === "spell" ||

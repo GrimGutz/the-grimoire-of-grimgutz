@@ -7,12 +7,8 @@ import { isEffectActive } from "../effects/temporary-effects.mjs";
 import {
   characterLevel,
   transformationTier,
-  transformationState,
   effectChange,
   enforcesTransformationPrerequisites,
-  advancementSurvivors,
-  advancementResult,
-  isDuplicateGrant,
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
 import { effectKey, movementSpeed } from "../shared/system-paths.mjs";

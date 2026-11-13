@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, findFeature, notify } from "../shared/helpers.mjs";
+import { enabled, findFeature, notify, reportFailure } from "../shared/helpers.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
 import { runAutomationEvent } from "../shared/event-ledger.mjs";
 import { onConfirmedDamage } from "../shared/damage-events.mjs";
@@ -152,6 +152,7 @@ onConfirmedDamage(async ({ event, amount }) => {
   });
 });
 export function installInsectCombatHooks() {
+  const reportDrain = reportFailure("Blood drain link cleanup failed");
   Hooks.on("dnd5e.preUseActivity", activity => {
     if (!enabled() || !activity.flags?.[MODULE_ID]?.bloodDrain || activity.flags[MODULE_ID].auraPulse) return;
     void useInsectBloodDrain(activity.actor).catch(error => notify(error.message, "warn"));
@@ -172,9 +173,11 @@ export function installInsectCombatHooks() {
       for (const actor of automationActors()) {
         const link = actor.getFlag(MODULE_ID, "bloodDrainLink");
         if (!link) continue;
-        void Promise.all([fromUuid(link.sourceTokenUuid), fromUuid(link.targetTokenUuid)]).then(([source, target]) => {
-          if (!drainLinkActive(source, target, link)) return actor.unsetFlag(MODULE_ID, "bloodDrainLink");
-        });
+        reportDrain(
+          Promise.all([fromUuid(link.sourceTokenUuid), fromUuid(link.targetTokenUuid)]).then(([source, target]) => {
+            if (!drainLinkActive(source, target, link)) return actor.unsetFlag(MODULE_ID, "bloodDrainLink");
+          })
+        );
       }
     });
 }

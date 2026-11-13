@@ -5,13 +5,7 @@ import { applyNativeOnce } from "../shared/native-applications.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { combatTurnSnapshot, isForwardTurn } from "../shared/combat-flow.mjs";
 import { runAutomationEvent, registerAutomationEvent } from "../shared/event-ledger.mjs";
-import {
-  automatonAvailable,
-  automatonHas,
-  automatonState,
-  automatonRegeneration,
-  patchAutomaton
-} from "./automaton.mjs";
+import { automatonAvailable, automatonHas, automatonRegeneration, patchAutomaton } from "./automaton.mjs";
 import { controlAutomaton } from "./automaton-actions.mjs";
 import {
   prepareAutomatonRange,

@@ -27,7 +27,6 @@ import {
   prepareMasterActivity,
   prepareMasterAttack,
   applyMasterAttackConfig,
-  applyMasterDamageConfig,
   masterCriticalThreshold,
   masterReliableFormula,
   selectedSchoolTempHp

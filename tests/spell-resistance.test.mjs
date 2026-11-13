@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
-import { FLAGS, MODULE_ID } from "../scripts/automation/shared/constants.mjs";
+import { FLAGS } from "../scripts/automation/shared/constants.mjs";
 import { applySpellSourceResistance } from "../scripts/automation/midi/spell-resistance.mjs";
 
 beforeEach(() => {

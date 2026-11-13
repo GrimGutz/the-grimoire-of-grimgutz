@@ -3,7 +3,6 @@ import {
   automatonState,
   automatonHas,
   automatonTransformationLevel,
-  automatonChange,
   automatonDC,
   patchAutomaton
 } from "./automaton.mjs";

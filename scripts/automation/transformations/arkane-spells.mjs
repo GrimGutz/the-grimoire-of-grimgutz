@@ -3,7 +3,7 @@ import { enabled } from "../shared/helpers.mjs";
 import { arkaneIdentity } from "../shared/arkane-definitions.mjs";
 import { arkaneHas, arkaneState, arkaneTransformationLevel, arkaneBodyActive, patchArkane } from "./arkane.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
-import { arkaneGm, arkaneExpense, chooseArkaneSlots } from "./arkane-use.mjs";
+import { arkaneExpense, chooseArkaneSlots } from "./arkane-use.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
 import { nativeApplicationReply, applyNativeOnce } from "../shared/native-applications.mjs";
 import { serialMutation } from "../shared/transactions.mjs";

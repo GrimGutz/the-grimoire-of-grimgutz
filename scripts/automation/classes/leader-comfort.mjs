@@ -1,4 +1,3 @@
-import { MODULE_ID } from "../shared/constants.mjs";
 import { enabled } from "../shared/helpers.mjs";
 import { requestGm } from "../shared/gm-requests.mjs";
 import { activeBenefits, benefitData } from "../shared/combat-benefits.mjs";

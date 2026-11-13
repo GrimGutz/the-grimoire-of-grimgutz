@@ -1,10 +1,10 @@
 import { MODULE_ID } from "./constants.mjs";
 import { isEffectActive, automationActors, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
-import { enabled, findFeature } from "./helpers.mjs";
+import { enabled } from "./helpers.mjs";
 import { isGmAuthority, registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { isForwardTurn, combatTurnSnapshot, encounterForScene } from "./combat-flow.mjs";
 import { tokenSceneDistance, feetToSceneUnits } from "./spatial.mjs";
-import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
+import { commitCalculatedDamage } from "../midi/damage-packet.mjs";
 import { isAuraIncapacitated, isAuraDefeated } from "./aura-conditions.mjs";
 import { onGmAuthority } from "./authority.mjs";
 

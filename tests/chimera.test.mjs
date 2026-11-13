@@ -22,13 +22,12 @@ import {
   inspectChimera,
   chimeraShared
 } from "../scripts/automation/transformations/chimera.mjs";
-import { controlChimera, chimeraAttackData } from "../scripts/automation/transformations/chimera-actions.mjs";
+import "../scripts/automation/transformations/chimera-actions.mjs";
 import {
   chooseChimera,
   rollChimeraMutation,
   saveChimeraState
 } from "../scripts/automation/transformations/chimera-choices.mjs";
-import { chimeraCondition } from "../scripts/automation/transformations/chimera-use.mjs";
 import {
   handleChimeraTurn,
   regenerateChimera,
@@ -42,19 +41,14 @@ import {
 } from "../scripts/automation/transformations/chimera-events.mjs";
 import {
   prepareChimeraSpellTargets,
-  prepareChimeraBronzeAttack,
   applyChimeraDamagePacket,
   finishChimeraMagicalSaves,
   filterChimeraHearingTargets
 } from "../scripts/automation/transformations/chimera-spells.mjs";
-import {
-  chimeraShareFingerprint,
-  expireChimeraShares
-} from "../scripts/automation/transformations/chimera-sharing.mjs";
+import { expireChimeraShares } from "../scripts/automation/transformations/chimera-sharing.mjs";
 import { applySpellSourceResistance } from "../scripts/automation/midi/spell-resistance.mjs";
 import { requestGm } from "../scripts/automation/shared/gm-requests.mjs";
 import { emitConfirmedDamage } from "../scripts/automation/shared/damage-events.mjs";
-import { processRepeatedSaves } from "../scripts/automation/effects/repeated-saves.mjs";
 import { linkDocumentDescriptions } from "../tools/link-descriptions.mjs";
 let actor,
   source,
@@ -432,15 +426,7 @@ async function native(activity, config) {
   if (nativeMode !== "normal") return nativeMode;
   for (const cost of activity.consumption?.targets ?? []) {
     if (cost.type === "hitDice") {
-      let n = Number(cost.value);
-      for (const row of chimeraHitDice(activity.actor)) {
-        const spent = Math.min(n, row.remaining);
-        if (spent)
-          await row.item.update({ "system.hd.spent": row.spent + spent, "system.hd.value": row.remaining - spent });
-        n -= spent;
-        if (!n) break;
-      }
-      if (n) return false;
+      throw new Error("Hit dice consumption is not modelled by this fixture");
     } else if (cost.type === "itemUses") {
       const original = activity.actor.items.find(i => i.id === (cost.target || activity.item.id));
       await original.update({ "system.uses.spent": Number(original.system.uses.spent ?? 0) + Number(cost.value) });

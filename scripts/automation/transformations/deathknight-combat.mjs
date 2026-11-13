@@ -1,14 +1,6 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, automationData, findFeature, itemUses } from "../shared/helpers.mjs";
-import {
-  dkHas,
-  dkAnchor,
-  dkReaperActive,
-  dkPassiveActive,
-  dkTransformationLevel,
-  dkPatch,
-  dkState
-} from "./deathknight.mjs";
+import { enabled, findFeature, itemUses } from "../shared/helpers.mjs";
+import { dkHas, dkAnchor, dkReaperActive, dkPassiveActive, dkTransformationLevel, dkPatch } from "./deathknight.mjs";
 import { dkCreatureType } from "./deathknight-levels.mjs";
 import { dkGm, dkExpense } from "./deathknight-use.mjs";
 import { confirmOwner } from "../shared/owner-prompts.mjs";

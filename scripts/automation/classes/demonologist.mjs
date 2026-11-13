@@ -228,15 +228,6 @@ export async function summonDemonologistInfernalFamiliar(actor) {
   }
   return createSummonedCreature(actor, quasitFamiliarSummon(actor));
 }
-
-async function showInfernalFamiliar(actor) {
-  await chat(
-    actor,
-    `<p><strong>${actor.name}: Инфернальный фамильяр.</strong> Вы получаете квазита-фамильяра. Если фамильяр уже был, квазит пожирает его и занимает его место. Создание/замена актёра выполняется вручную.</p>`
-  );
-  return true;
-}
-
 async function useMasterSummoner(actor) {
   await chat(
     actor,

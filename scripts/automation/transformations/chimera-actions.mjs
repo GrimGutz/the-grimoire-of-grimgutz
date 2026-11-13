@@ -2,7 +2,6 @@ import { MODULE_ID } from "../shared/constants.mjs";
 import { enabled, automationData, notify } from "../shared/helpers.mjs";
 import { CHIMERA_ELEMENTS } from "../shared/chimera-definitions.mjs";
 import {
-  chimeraHas,
   chimeraAvailable,
   chimeraState,
   chimeraDC,

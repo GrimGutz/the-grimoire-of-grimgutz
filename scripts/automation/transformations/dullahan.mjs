@@ -10,9 +10,7 @@ import {
   effectChange,
   enforcesTransformationPrerequisites,
   advancementSurvivors,
-  advancementResult,
-  isDuplicateGrant,
-  rejectDuplicateBoons
+  isDuplicateGrant
 } from "../shared/transformation-core.mjs";
 import { feetToSceneUnits } from "../shared/spatial.mjs";
 import { inFeet } from "../shared/combat-benefits.mjs";

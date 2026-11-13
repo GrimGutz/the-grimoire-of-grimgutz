@@ -1,4 +1,3 @@
-import { MODULE_ID } from "../shared/constants.mjs";
 import { automationData, automationAction, enabled, notify, reportFailure } from "../shared/helpers.mjs";
 import { arkaneAvailable, arkaneHas, arkaneState, patchArkane } from "./arkane.mjs";
 import { controlArkane } from "./arkane-actions.mjs";

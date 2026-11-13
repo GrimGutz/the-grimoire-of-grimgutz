@@ -10,8 +10,6 @@ import {
   transformationState,
   effectChange,
   enforcesTransformationPrerequisites,
-  advancementSurvivors,
-  isDuplicateGrant,
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
 import { feetToSceneUnits } from "../shared/spatial.mjs";
@@ -47,11 +45,6 @@ export function godFormBonuses(actor) {
   for (const a of GOD_ABILITIES) {
     const n = Number(allocation[a] ?? 0);
     if (!Number.isInteger(n) || n < 0) continue;
-    const own = [...(actor.effects ?? [])]
-      .filter(e => e.getFlag?.(MODULE_ID, "godPassive") === "form" && isEffectActive(e))
-      .flatMap(e => e.system?.changes ?? [])
-      .filter(c => c.key === `system.abilities.${a}.value` && c.type === "add")
-      .reduce((s, c) => s + Number(c.value), 0);
     // A temporary bonus from another source must not consume this allocation.
     // The 26 limit applies to the form's increase, not to every later effect.
     const base = baseAbilityValue(actor, a);

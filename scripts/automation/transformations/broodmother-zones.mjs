@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { broodmotherDC, broodmotherTransformationLevel, broodmotherHas } from "./broodmother.mjs";
+import { broodmotherDC, broodmotherTransformationLevel } from "./broodmother.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { areaActivityData } from "../shared/area-definitions.mjs";
 import { useAreaActivity } from "../shared/area-activities.mjs";

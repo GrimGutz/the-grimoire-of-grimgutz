@@ -9,7 +9,7 @@ import {
   trackSoulAuraTemporaryHp
 } from "../scripts/automation/shared/aura-events.mjs";
 
-let frames, tokens, pulses, scene, authority, active, automation, syncs;
+let frames, tokens, pulses, scene, authority, active, automation;
 function setPath(target, key, value) {
   const parts = key.split("."),
     last = parts.pop();
@@ -80,9 +80,7 @@ function frame(id, source, targets) {
   };
 }
 const context = () => ({
-  synchronize: async () => {
-    syncs++;
-  },
+  synchronize: async () => {},
   framesForScene: () => frames,
   tokensForScene: () => tokens,
   isAuthority: () => authority,
@@ -107,7 +105,6 @@ beforeEach(() => {
   authority = true;
   active = true;
   automation = true;
-  syncs = 0;
   scene = { id: "one", uuid: "Scene.one", grid: { size: 100, distance: 5, units: "ft", type: 1 } };
   globalThis.game = { settings: { get: () => automation }, scenes: [scene], modules: new Map(), user: { isGM: true } };
   globalThis.canvas = { scene };

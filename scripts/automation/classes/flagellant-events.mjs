@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, automationData, automationAction, findFeature, notify, reportFailure } from "../shared/helpers.mjs";
+import { enabled, automationData, automationAction, findFeature, reportFailure } from "../shared/helpers.mjs";
 import { flagellantPain, flagellantDie } from "../shared/flagellant-definitions.mjs";
 import {
   flagellantLevel,
@@ -15,7 +15,7 @@ import {
   nativeFlagellantHeal,
   rollFlagellantPain
 } from "./flagellant-actions.mjs";
-import { isGmAuthority, registerGmRequest } from "../shared/gm-requests.mjs";
+import { isGmAuthority } from "../shared/gm-requests.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { onPrepareDamage, onConfirmedDamage } from "../shared/damage-events.mjs";
 import { onPrepareAttack, benefitData, inFeet, canReact, turnKey } from "../shared/combat-benefits.mjs";

@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, automationData, notify, findFeature } from "../shared/helpers.mjs";
+import { enabled, automationData, notify } from "../shared/helpers.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
 import { applyNativeOnce, nativeApplicationReply } from "../shared/native-applications.mjs";

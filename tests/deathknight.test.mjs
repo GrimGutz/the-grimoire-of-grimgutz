@@ -7,22 +7,15 @@ import { deathknightTransformationDocuments } from "../src/packs/deathknight-tra
 import {
   dkState,
   dkHas,
-  dkDC,
-  dkTransformationLevel,
   dkPassiveDefinitions,
   syncDeathknight,
   dkPatch,
   dkAnchor,
   dkReaperActive,
   dkPrerequisiteFailures,
-  validateDeathknightItem,
   inspectDeathknight
 } from "../scripts/automation/transformations/deathknight.mjs";
-import {
-  controlDeathknight,
-  deathknightSeparation,
-  activateDeathknightReaper
-} from "../scripts/automation/transformations/deathknight-actions.mjs";
+import { deathknightSeparation } from "../scripts/automation/transformations/deathknight-actions.mjs";
 import {
   addDeathLevels,
   healDeathLevels,
@@ -33,8 +26,7 @@ import {
   prepareDeathknightDamageRoll,
   applyDeathknightHealing,
   offerDeathknightCritical,
-  prepareDeathknightSave,
-  prepareDeathknightAttack
+  prepareDeathknightSave
 } from "../scripts/automation/transformations/deathknight-combat.mjs";
 import {
   applyDeathknightPacket,
@@ -435,15 +427,7 @@ async function native(activity, config) {
   if (nativeMode !== "normal") return nativeMode;
   for (const cost of activity.consumption?.targets ?? []) {
     if (cost.type === "hitDice") {
-      let n = Number(cost.value);
-      for (const row of deathknightHitDice(activity.actor)) {
-        const spent = Math.min(n, row.remaining);
-        if (spent)
-          await row.item.update({ "system.hd.spent": row.spent + spent, "system.hd.value": row.remaining - spent });
-        n -= spent;
-        if (!n) break;
-      }
-      if (n) return false;
+      throw new Error("Hit dice consumption is not modelled by this fixture");
     } else if (cost.type === "itemUses") {
       const original = activity.actor.items.find(i => i.id === (cost.target || activity.item.id));
       await original.update({ "system.uses.spent": Number(original.system.uses.spent ?? 0) + Number(cost.value) });

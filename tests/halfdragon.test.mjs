@@ -9,10 +9,7 @@ import {
   hdState,
   hdRules,
   hdPatch,
-  hdLevel,
-  hdHas,
   hdDC,
-  hdAncestry,
   hdPoolMaximum,
   hdBreathSpec,
   halfdragonPassiveDefinitions,
@@ -23,10 +20,7 @@ import {
   inspectHalfdragon
 } from "../scripts/automation/transformations/halfdragon.mjs";
 import { hdExpense, hdAvailableHitDice, hdCondition } from "../scripts/automation/transformations/halfdragon-use.mjs";
-import {
-  resolveHalfdragonSangromancy,
-  halfdragonBreath
-} from "../scripts/automation/transformations/halfdragon-areas.mjs";
+import { resolveHalfdragonSangromancy } from "../scripts/automation/transformations/halfdragon-areas.mjs";
 import {
   applyHalfdragonBite,
   finishHalfdragonAttack,
@@ -41,10 +35,7 @@ import {
   wakeHalfdragonGas,
   syncHalfdragonLight
 } from "../scripts/automation/transformations/halfdragon-events.mjs";
-import {
-  halfdragonLivingRecipe,
-  dismissHalfdragonLiving
-} from "../scripts/automation/transformations/halfdragon-summons.mjs";
+import { halfdragonLivingRecipe } from "../scripts/automation/transformations/halfdragon-summons.mjs";
 import { HALFDRAGON_AURAS } from "../scripts/automation/transformations/halfdragon-auras.mjs";
 import { applySpellSourceResistance } from "../scripts/automation/midi/spell-resistance.mjs";
 import { requestGm } from "../scripts/automation/shared/gm-requests.mjs";

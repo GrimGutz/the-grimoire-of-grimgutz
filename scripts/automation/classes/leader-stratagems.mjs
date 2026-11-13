@@ -1,4 +1,4 @@
-import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
+import { MODULE_ID } from "../shared/constants.mjs";
 import { automationData, enabled, findFeature, itemIdentifier, notify } from "../shared/helpers.mjs";
 import { leaderLevel } from "../shared/selectors.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
@@ -135,13 +135,7 @@ async function applyStratagem(actor, data) {
     canReact(token.actor) &&
     !leaderReceipt(token.actor, scene);
   const enemy = token => token.uuid !== source.uuid && token.disposition !== source.disposition;
-  let selected = [],
-    victim,
-    mode,
-    amount,
-    defenderSkill,
-    selectedSkill,
-    helpKind;
+  let selected, victim, mode, amount, defenderSkill, selectedSkill, helpKind;
   if (rule === "caution") mode = activity.activation?.type === "bonus" ? "check" : "protect";
   const select = async (relation, max = 1, range = null) =>
     chooseSceneTokens(actor, scene, {

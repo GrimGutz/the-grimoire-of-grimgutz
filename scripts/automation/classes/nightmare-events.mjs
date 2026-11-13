@@ -25,7 +25,7 @@ import { isGmAuthority, registerGmRequest, requestGm } from "../shared/gm-reques
 import { serialMutation } from "../shared/transactions.mjs";
 import { runAutomationEvent, registerAutomationEvent } from "../shared/event-ledger.mjs";
 import { confirmOwner } from "../shared/owner-prompts.mjs";
-import { automationActors, isEffectActive } from "../effects/temporary-effects.mjs";
+import { automationActors } from "../effects/temporary-effects.mjs";
 
 const gm = actor => ({ uuid: actor.uuid, testUserPermission: user => user.isGM });
 const latent = token =>

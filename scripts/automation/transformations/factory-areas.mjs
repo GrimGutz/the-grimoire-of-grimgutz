@@ -1,16 +1,8 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import {
-  factoryState,
-  patchFactory,
-  factoryLevel,
-  factoryDC,
-  factoryContext,
-  factoryInstalledItem
-} from "./factory.mjs";
-import { factoryGm, factoryExpense, factoryTargets, factoryPulse } from "./factory-use.mjs";
+import { factoryState, patchFactory, factoryLevel, factoryContext } from "./factory.mjs";
+import { factoryGm, factoryTargets, factoryPulse } from "./factory-use.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";
-import { useNativeUtility } from "../shared/native-actions.mjs";
 import { areaActivityData } from "../shared/area-definitions.mjs";
 import { useAreaActivity } from "../shared/area-activities.mjs";
 import { inFeet } from "../shared/combat-benefits.mjs";

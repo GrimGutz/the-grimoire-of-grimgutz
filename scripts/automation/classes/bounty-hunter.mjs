@@ -2,7 +2,6 @@ import { MODULE_ID, SETTINGS } from "../shared/constants.mjs";
 import {
   HUNTER_ID,
   HUNTER_TIERS,
-  HUNTER_TROPHIES,
   hunterMaximum,
   hunterTierChoices,
   trophyDefinition

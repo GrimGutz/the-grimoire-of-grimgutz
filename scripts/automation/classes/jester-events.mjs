@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, findFeature, automationData, automationAction, notify, reportFailure } from "../shared/helpers.mjs";
+import { enabled, findFeature, automationData, automationAction, reportFailure } from "../shared/helpers.mjs";
 import { jesterLevel, jesterAvailable, jesterPoints, changeJesterChaos, jesterRestCompleted } from "./jester.mjs";
 import { jesterMaximum } from "../shared/jester-definitions.mjs";
 import { controlJester, offerJesterMovement, jesterGm } from "./jester-actions.mjs";

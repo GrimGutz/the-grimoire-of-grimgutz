@@ -8,11 +8,9 @@ import {
   characterLevel,
   transformationTier,
   transformationState,
-  effectChange,
   enforcesTransformationPrerequisites,
   advancementSurvivors,
-  isDuplicateGrant,
-  rejectDuplicateBoons
+  isDuplicateGrant
 } from "../shared/transformation-core.mjs";
 import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 const ilStore = transformationState("illithidState", "illithid-state");

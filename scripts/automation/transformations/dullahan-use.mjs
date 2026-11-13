@@ -1,4 +1,3 @@
-import { MODULE_ID } from "../shared/constants.mjs";
 import { itemUses } from "../shared/helpers.mjs";
 import { chooseSceneTokens } from "../shared/owner-prompts.mjs";
 import { inFeet } from "../shared/combat-benefits.mjs";

@@ -1,11 +1,10 @@
-import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, automationData, notify, findFeature } from "../shared/helpers.mjs";
+import { enabled, automationData, notify } from "../shared/helpers.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { nativeApplicationReply, applyNativeOnce } from "../shared/native-applications.mjs";
-import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
+import { confirmOwner } from "../shared/owner-prompts.mjs";
 import { canReact, recordModuleReaction } from "../shared/combat-benefits.mjs";
-import { ilAvailable, ilState, ilPatch, ilLevel, ilDC, ilCharLevel } from "./illithid.mjs";
+import { ilAvailable, ilPatch, ilLevel, ilDC, ilCharLevel } from "./illithid.mjs";
 import { ilGm, useIlCost } from "./illithid-use.mjs";
 import {
   extractIllithidBrain,

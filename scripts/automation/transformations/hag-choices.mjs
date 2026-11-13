@@ -1,11 +1,10 @@
-import { MODULE_ID } from "../shared/constants.mjs";
 import { findFeature } from "../shared/helpers.mjs";
 import { HAG_TYPES } from "../shared/hag-definitions.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";
 import { encounterForActor, combatTurnSnapshot } from "../shared/combat-flow.mjs";
-import { hagState, patchHag, hagHas, hagLevel, hagType, hagCurses, hagRules, syncHag } from "./hag.mjs";
-import { hagGm, hagTargets, useHagCost } from "./hag-use.mjs";
+import { hagState, patchHag, hagHas, hagLevel, hagType, hagRules, syncHag } from "./hag.mjs";
+import { hagGm, hagTargets } from "./hag-use.mjs";
 export async function chooseHagType(actor) {
   if (
     hagType(actor) &&

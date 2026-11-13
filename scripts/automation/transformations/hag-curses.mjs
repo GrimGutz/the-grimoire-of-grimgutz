@@ -1,7 +1,7 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 import { HAG_ICON } from "../shared/hag-definitions.mjs";
 import { HAG_TYPES } from "../shared/hag-definitions.mjs";
-import { enabled, findFeature } from "../shared/helpers.mjs";
+import { enabled } from "../shared/helpers.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";
 import { temporaryEffectTiming, isEffectActive } from "../effects/temporary-effects.mjs";

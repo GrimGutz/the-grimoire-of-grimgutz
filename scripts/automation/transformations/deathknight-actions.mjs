@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, automationData, findFeature, notify, itemUses } from "../shared/helpers.mjs";
+import { enabled, automationData, notify, itemUses } from "../shared/helpers.mjs";
 import {
   dkHas,
   dkAvailable,

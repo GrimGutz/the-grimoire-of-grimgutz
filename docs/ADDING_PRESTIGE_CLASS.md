@@ -41,3 +41,5 @@ Use this order to avoid touching unrelated module systems.
    - `npm run check`
 
 Rule of thumb: item/card generation goes in `src/packs/`; runtime behavior goes in `scripts/automation/`; validation goes in `tools/validate.mjs`.
+
+Runtime wiring: write one `classes/<id>-content.mjs` descriptor (`defineContent`) and list it in `scripts/automation/content-registry.mjs` instead of editing `runtime.mjs`. Hook, data-path and state conventions are in `scripts/automation/README.md`.

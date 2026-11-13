@@ -8,7 +8,6 @@ import { hagTransformationDocuments } from "../src/packs/hag-transformation.mjs"
 import {
   hagState,
   patchHag,
-  hagLevel,
   hagHas,
   hagCurses,
   hagType,

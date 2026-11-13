@@ -1,19 +1,13 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, findFeature } from "../shared/helpers.mjs";
-import { broodmotherHas, broodmotherDC, broodmotherState } from "./broodmother.mjs";
+import { enabled } from "../shared/helpers.mjs";
+import { broodmotherHas } from "./broodmother.mjs";
 import { broodmotherChildren } from "./broodmother-summons.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
 import { applyNativeOnce, nativeApplicationReply } from "../shared/native-applications.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { areaDamagePart } from "../shared/area-definitions.mjs";
-import {
-  broodmotherExpense,
-  broodmotherTarget,
-  broodmotherPulse,
-  broodmotherCondition,
-  broodmotherGm
-} from "./broodmother-use.mjs";
+import { broodmotherExpense, broodmotherTarget, broodmotherPulse, broodmotherCondition } from "./broodmother-use.mjs";
 import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
 
 export function broodmotherAttackData(activity, kind) {

@@ -1,17 +1,7 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 import { enabled, automationData, automationAction, findFeature, notify, reportFailure } from "../shared/helpers.mjs";
-import {
-  godHas,
-  godFunctional,
-  godState,
-  patchGod,
-  godAvailable,
-  godDC,
-  godDomain,
-  godAlignment,
-  syncGod
-} from "./god.mjs";
-import { godGm, godPulse, applyGodHealing } from "./god-use.mjs";
+import { godHas, godFunctional, godState, patchGod, godAvailable, godDC, godDomain, godAlignment } from "./god.mjs";
+import { godPulse, applyGodHealing } from "./god-use.mjs";
 import { godDawn, godRecover } from "./god-choices.mjs";
 import { controlGod } from "./god-actions.mjs";
 import { endGodDomain } from "./god-areas.mjs";

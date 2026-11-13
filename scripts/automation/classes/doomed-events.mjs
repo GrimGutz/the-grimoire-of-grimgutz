@@ -1,12 +1,6 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 import { enabled, automationData, automationAction, findFeature, notify, reportFailure } from "../shared/helpers.mjs";
-import {
-  doomedLevel,
-  doomedState,
-  doomedCurseActive,
-  doomedGiftActive,
-  doomedEmpowered
-} from "../shared/doomed-state.mjs";
+import { doomedLevel, doomedCurseActive, doomedGiftActive, doomedEmpowered } from "../shared/doomed-state.mjs";
 import { doomedCritical, doomedMaximum } from "../shared/doomed-definitions.mjs";
 import { syncDoomed, doomedAvailable, prepareDoomedRest, doomedRestCompleted } from "./doomed.mjs";
 import { controlDoomed } from "./doomed-actions.mjs";

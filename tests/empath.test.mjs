@@ -8,7 +8,6 @@ import {
   empathTemporaryDice
 } from "../scripts/automation/shared/empath-definitions.mjs";
 import {
-  empathLevel,
   empathState,
   empathMask,
   empathSnapshot,
@@ -25,17 +24,8 @@ import {
   empathPrerequisiteFailures,
   validateEmpathItem
 } from "../scripts/automation/classes/empath.mjs";
-import {
-  empathExpense,
-  setEmpathMask,
-  empathWaveActivity,
-  controlEmpath
-} from "../scripts/automation/classes/empath-actions.mjs";
-import {
-  createEmpathEffect,
-  empathEffectDefinition,
-  empathPulse
-} from "../scripts/automation/classes/empath-effects.mjs";
+import { setEmpathMask, empathWaveActivity, controlEmpath } from "../scripts/automation/classes/empath-actions.mjs";
+import { createEmpathEffect, empathEffectDefinition } from "../scripts/automation/classes/empath-effects.mjs";
 import {
   blockEmpathActivity,
   applyEmpathHealingBan,
@@ -50,20 +40,7 @@ import { requestGm } from "../scripts/automation/shared/gm-requests.mjs";
 import { processRepeatedSaves } from "../scripts/automation/effects/repeated-saves.mjs";
 import { cleanupCombatBenefits } from "../scripts/automation/shared/combat-benefits.mjs";
 import { linkDocumentDescriptions } from "../tools/link-descriptions.mjs";
-let actor,
-  source,
-  target,
-  docs,
-  answers,
-  prompts,
-  calls,
-  messages,
-  hooks,
-  seq,
-  nativeMode,
-  saveSuccess,
-  actorCreateFails,
-  tokenCreateFails;
+let actor, source, target, docs, answers, prompts, calls, messages, hooks, seq, nativeMode, saveSuccess;
 function merge(raw, updates) {
   const out = structuredClone(raw);
   for (const [key, value] of Object.entries(updates)) {

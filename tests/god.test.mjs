@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test, beforeEach } from "node:test";
 import { ctx, actor, source, target, setupFactory, owned, attack, encounter } from "./factory-fixture.mjs";
-import { MODULE_ID, SETTINGS } from "../scripts/automation/shared/constants.mjs";
+import { MODULE_ID } from "../scripts/automation/shared/constants.mjs";
 import { GOD_FEATURES, godAnnihilationDamage, godWrathDice } from "../scripts/automation/shared/god-definitions.mjs";
 import { godDocuments, godFolders } from "../src/packs/god-features.mjs";
 import { godTransformationDocuments } from "../src/packs/god-transformation.mjs";
@@ -12,7 +12,6 @@ import {
   godDC,
   godHas,
   godFunctional,
-  godPool,
   godDomain,
   syncGod,
   godPassiveDefinitions,
@@ -28,24 +27,11 @@ import {
 import { applyGodHealing, godPulse } from "../scripts/automation/transformations/god-use.mjs";
 import {
   godPreparedSpell,
-  castGodSpell,
   finishGodSaves,
   prepareGodCounter
 } from "../scripts/automation/transformations/god-spells.mjs";
-import {
-  godDevourBudget,
-  activateGodDomain,
-  endGodDomain,
-  godHorizontalFeet
-} from "../scripts/automation/transformations/god-areas.mjs";
-import {
-  grantGodMercy,
-  activeGodMercies,
-  syncGodMercies,
-  godGiftFingerprint,
-  removeGodGiftItem,
-  cleanupGodGifts
-} from "../scripts/automation/transformations/god-gifts.mjs";
+import { godDevourBudget, endGodDomain, godHorizontalFeet } from "../scripts/automation/transformations/god-areas.mjs";
+import { activeGodMercies, syncGodMercies, cleanupGodGifts } from "../scripts/automation/transformations/god-gifts.mjs";
 import {
   handleGodTurn,
   runGodTurn,

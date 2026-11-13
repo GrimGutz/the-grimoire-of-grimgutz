@@ -1,5 +1,5 @@
 import { MODULE_ID } from "../shared/constants.mjs";
-import { enabled, automationData, automationAction, findFeature, itemUses, notify } from "../shared/helpers.mjs";
+import { enabled, automationData, findFeature, itemUses, notify } from "../shared/helpers.mjs";
 import { jesterMaximum, jesterChaosDelta, jesterImpromptuDie } from "../shared/jester-definitions.mjs";
 import { jesterLevel, jesterAvailable, jesterPool, jesterPoints, jesterDC, changeJesterChaos } from "./jester.mjs";
 import { askOwner, confirmOwner, chooseSceneTokens } from "../shared/owner-prompts.mjs";
@@ -127,7 +127,7 @@ async function useRetort(actor, activity, source, requestId) {
     { requestId, action: "jester-retort", activityUuid: activity.uuid },
     () => useNativeUtility(activity, { dataPatch: expense }),
     async () => {
-      let gain = true;
+      let gain;
       if (mode === "sting") {
         const result = await useAuraPulse({
           scene: source.parent,

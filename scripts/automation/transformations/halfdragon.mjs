@@ -11,8 +11,6 @@ import {
   transformationState,
   effectChange,
   enforcesTransformationPrerequisites,
-  advancementSurvivors,
-  isDuplicateGrant,
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
 import { effectKey, movementSpeed } from "../shared/system-paths.mjs";

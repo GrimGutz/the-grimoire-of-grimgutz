@@ -162,7 +162,6 @@ async function chooseRitualistRitualPointCost(actor, activity, { title = "Рит
 }
 
 export function validateRitualistRitualPointUse(actor, activity) {
-  const data = automationData(activity);
   const cost = Math.max(1, fixedRitualistRitualPointCost(activity) ?? 1);
   if (!actor || !ritualistClass(actor)) {
     notify("Эта активность требует класс «Ритуалист».", "warn");

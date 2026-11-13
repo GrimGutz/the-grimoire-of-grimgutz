@@ -1,5 +1,5 @@
 import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
-import { findFeature, itemIdentifier, enabled, notify } from "../shared/helpers.mjs";
+import { findFeature, enabled, notify } from "../shared/helpers.mjs";
 import { registerGmRequest, requestGm } from "../shared/gm-requests.mjs";
 import { LEADER_PRESENCE_KEYS, presenceChoices, presenceApplies } from "../shared/leader-presence-definitions.mjs";
 export { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs";

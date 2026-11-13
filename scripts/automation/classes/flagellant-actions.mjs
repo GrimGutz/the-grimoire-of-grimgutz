@@ -1,6 +1,6 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 import { enabled, automationData, findFeature, itemUses, notify } from "../shared/helpers.mjs";
-import { FLAGELLANT_ICON, flagellantDie, flagellantPain } from "../shared/flagellant-definitions.mjs";
+import { flagellantDie, flagellantPain } from "../shared/flagellant-definitions.mjs";
 import {
   flagellantLevel,
   flagellantAvailable,

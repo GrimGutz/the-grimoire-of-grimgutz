@@ -26,13 +26,11 @@ import {
   benefitData,
   canReact,
   inFeet,
-  meleeReach,
   recordModuleReaction,
   tokenRef,
   turnKey
 } from "../shared/combat-benefits.mjs";
 import { encounterForScene } from "../shared/combat-flow.mjs";
-import { feetToSceneUnits } from "../shared/spatial.mjs";
 import { areaDamagePart } from "../shared/area-definitions.mjs";
 import { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs";
 import { installMasterBladeHooks } from "./master-blade.mjs";

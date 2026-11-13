@@ -140,10 +140,7 @@ export async function activeGodMercies(actor) {
 export function godMercyChanges(target, kind) {
   if (kind === "speed") return [godChange(effectKey("system.attributes.movement.walk"), 2, "multiply", "final")];
   if (kind !== "endurance") return [];
-  const prof = Number(target.system.attributes.prof),
-    own = [...(target.effects ?? [])]
-      .filter(e => e.getFlag?.(MODULE_ID, "godMercy")?.kind === "endurance")
-      .flatMap(e => e.system?.changes ?? []);
+  const prof = Number(target.system.attributes.prof);
   return GOD_ABILITIES.flatMap(a => {
     const base = Number(target._source?.system?.abilities?.[a]?.proficient ?? 0);
     return [

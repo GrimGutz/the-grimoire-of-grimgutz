@@ -10,9 +10,6 @@ import {
   transformationState,
   effectChange,
   enforcesTransformationPrerequisites,
-  advancementSurvivors,
-  advancementResult,
-  isDuplicateGrant,
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
 const dkStore = transformationState("deathknightState", "deathknight-state");

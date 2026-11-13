@@ -1234,9 +1234,8 @@ function installHooks() {
       console.error(`${MODULE_ID} | Sanguinist recovery failed`, error)
     );
   });
-  Hooks.on("dnd5e.rollSavingThrow", (_rolls, { subject }) => {
-    void clearPendingSteelWill(subject);
-  });
+  const reportSteelWill = reportFailure("Steel Will cleanup failed");
+  Hooks.on("dnd5e.rollSavingThrow", (_rolls, { subject }) => reportSteelWill(clearPendingSteelWill(subject)));
 
   installMidiQolHooks(getMidiHookHandlers());
 

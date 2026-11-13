@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test, beforeEach } from "node:test";
 import { readFile } from "node:fs/promises";
-import { MODULE_ID, SETTINGS, FLAGS } from "../scripts/automation/shared/constants.mjs";
+import { MODULE_ID, SETTINGS } from "../scripts/automation/shared/constants.mjs";
 import {
   DOOMED_CURSES,
   DOOMED_FEATURES,
@@ -9,13 +9,11 @@ import {
   doomedCritical
 } from "../scripts/automation/shared/doomed-definitions.mjs";
 import {
-  doomedLevel,
   doomedState,
   doomedAccepted,
   doomedOccupied,
   doomedCapacity,
   doomedDC,
-  doomedCurseActive,
   doomedGiftActive,
   doomedEmpowered
 } from "../scripts/automation/shared/doomed-state.mjs";
@@ -31,11 +29,7 @@ import {
   prepareDoomedRest,
   doomedRestCompleted
 } from "../scripts/automation/classes/doomed.mjs";
-import {
-  doomedExpense,
-  suppressDoomedGift,
-  doomedTransferredChanges
-} from "../scripts/automation/classes/doomed-actions.mjs";
+import { suppressDoomedGift, doomedTransferredChanges } from "../scripts/automation/classes/doomed-actions.mjs";
 import {
   applyDoomedAttackConfig,
   applyDoomedDeathSave,
@@ -206,9 +200,7 @@ function makeActor(level = 5, id = "doomed") {
       if (type === "ActiveEffect")
         for (const e of [...this.effects])
           if (ids.includes(e.id)) await e.delete();
-          else {
-          }
-      else this.items = this.items.filter(i => !ids.includes(i.id));
+          else this.items = this.items.filter(i => !ids.includes(i.id));
     },
     async endConcentration() {
       this.endedConcentration = true;

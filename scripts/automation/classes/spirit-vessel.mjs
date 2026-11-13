@@ -40,19 +40,6 @@ const ABILITY_LABELS = {
   wis: "Мудрость",
   cha: "Харизма"
 };
-
-const SPIRIT_LABELS = {
-  aberration: "Абберация",
-  celestial: "Небожитель",
-  "elemental-earth": "Элементаль Земли",
-  "elemental-air": "Элементаль Воздуха",
-  "elemental-fire": "Элементаль Огня",
-  "elemental-water": "Элементаль Воды",
-  fey: "Фея",
-  fiend: "Исчадие",
-  undead: "Нежить"
-};
-
 const STRIKE_DAMAGE_OPTIONS = {
   aberration: [["psychic", "психический"]],
   celestial: [["radiant", "излучение"]],
@@ -164,11 +151,6 @@ function flaggedEffects(actor, flag) {
 function flowEffect(actor) {
   return flaggedEffects(actor, FLAGS.SPIRIT_VESSEL_FLOW_EFFECT).find(isEffectActive);
 }
-
-function fiendFlamesEffect(actor) {
-  return flaggedEffects(actor, FLAGS.SPIRIT_VESSEL_FIEND_FLAMES_EFFECT).find(isEffectActive);
-}
-
 async function replaceFlaggedEffect(actor, flag, data) {
   const existing = flaggedEffects(actor, flag).map(effect => effect.id);
   if (existing.length) await actor.deleteEmbeddedDocuments("ActiveEffect", existing);

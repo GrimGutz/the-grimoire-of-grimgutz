@@ -13,7 +13,6 @@ import { bountyHunterDocuments } from "../src/packs/bounty-hunter-features.mjs";
 import { bountyHunterClassDocuments } from "../src/packs/bounty-hunter-class.mjs";
 import { hunterTrophyRule } from "../src/bounty-hunter-data.mjs";
 import {
-  hunterLevel,
   hunterDC,
   hunterPool,
   hunterConfig,

@@ -74,13 +74,6 @@ async function rollToChat(actor, formula, flavor) {
   });
   return roll;
 }
-
-function classLevel(actor, identifier) {
-  return Number(
-    actor?.items?.find(item => item.type === "class" && itemIdentifier(item) === identifier)?.system?.levels ?? 0
-  );
-}
-
 export function oracleClass(actor) {
   return actor?.items?.find(item => item.type === "class" && itemIdentifier(item) === "oracle");
 }

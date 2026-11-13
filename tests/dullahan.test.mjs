@@ -19,11 +19,7 @@ import {
 } from "../scripts/automation/transformations/dullahan.mjs";
 import { controlDullahan } from "../scripts/automation/transformations/dullahan-actions.mjs";
 import { dullahanMountFailures } from "../scripts/automation/transformations/dullahan-mounts.mjs";
-import {
-  addDullahanBurn,
-  cleanupDullahanBurns,
-  syncDullahanBurnLight
-} from "../scripts/automation/transformations/dullahan-burning.mjs";
+import { addDullahanBurn, cleanupDullahanBurns } from "../scripts/automation/transformations/dullahan-burning.mjs";
 import {
   applyDullahanPacket,
   applyDullahanHealing,

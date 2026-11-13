@@ -14,8 +14,7 @@ import {
   factoryContext,
   factoryAugment,
   factoryInstalledItem,
-  factoryAddicted,
-  factoryAscended
+  factoryAddicted
 } from "./factory.mjs";
 import { syncFactoryItems } from "./factory-items.mjs";
 import { effectKey, movementSpeed } from "../shared/system-paths.mjs";

@@ -480,13 +480,6 @@ function summonedActor(owner, summon) {
           actor.getFlag(MODULE_ID, "summonSource") === summon.source))
   );
 }
-
-function firstTokenDocument(actor) {
-  const tokens = actor?.getActiveTokens?.(true, true) ?? actor?.getActiveTokens?.() ?? [];
-  const token = tokens[0];
-  return token?.document ?? token ?? null;
-}
-
 function sceneTokens(scene) {
   return [...(scene?.tokens ?? [])];
 }
