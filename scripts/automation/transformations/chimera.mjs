@@ -15,6 +15,7 @@ import {
   isDuplicateGrant,
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
+import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 export const chimeraState = actor => actor?.getFlag?.(MODULE_ID, "chimeraState") ?? {};
 export const chimeraCharacterLevel = characterLevel;
 export const chimeraShared = item => item?.getFlag?.(MODULE_ID, "chimeraShared");
@@ -78,11 +79,11 @@ export function chimeraPassiveDefinitions(actor) {
     add("form", "form", changes);
   }
   const level = chimeraCharacterLevel(actor),
-    walk = Number(actor.system.attributes.movement.walk ?? 0);
+    walk = Number(movementSpeed(actor, "walk") ?? 0);
   for (const [id, changes] of [
     ["turtle", [change("system.attributes.ac.bonus", 1)]],
     ["bear", [change("system.attributes.hp.bonuses.overall", level)]],
-    ["ram", [change("system.attributes.movement.walk", 10)]],
+    ["ram", [change(effectKey("system.attributes.movement.walk"), 10)]],
     ["fly", [change("flags.midi-qol.actions.reactionsMax", 2, "upgrade")]]
   ])
     if (chimeraAdaptation(actor, id)) add(`adaptation-${id}`, "menagerie", changes);
@@ -92,17 +93,17 @@ export function chimeraPassiveDefinitions(actor) {
     if (k.skill && actor.system.skills?.[k.skill])
       changes.push(
         k.grade === 3
-          ? change(`system.skills.${k.skill}.bonuses.check`, 2)
+          ? change(effectKey(`system.skills.${k.skill}.bonuses.check`), 2)
           : change(`system.skills.${k.skill}.value`, k.grade, "upgrade")
       );
     if (chimeraKnowledge(actor, "spider"))
-      changes.push(change("system.attributes.movement.climb", walk, "upgrade", "final", 40));
+      changes.push(change(effectKey("system.attributes.movement.climb"), walk, "upgrade", "final", 40));
     if (chimeraKnowledge(actor, "fish"))
-      changes.push(change("system.attributes.movement.swim", walk, "upgrade", "final", 40));
+      changes.push(change(effectKey("system.attributes.movement.swim"), walk, "upgrade", "final", 40));
     if (changes.length) add("knowledge", "knowledge", changes);
   }
   if (chimeraHas(actor, "wings"))
-    add("wings", "wings", [change("system.attributes.movement.fly", walk, "upgrade", "final", 40)]);
+    add("wings", "wings", [change(effectKey("system.attributes.movement.fly"), walk, "upgrade", "final", 40)]);
   if (chimeraHas(actor, "resistance"))
     add("resistance", "resistance", [
       change("system.attributes.hp.bonuses.overall", 2 * level),

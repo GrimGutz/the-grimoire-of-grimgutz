@@ -73,7 +73,7 @@ export const ghostWalkerDocuments = [
         img: `${WOW}/Spells/SpectralSight.png`,
         changes: [
           { key: "system.details.type.value", type: "override", value: "undead", priority: 100 },
-          { key: "system.attributes.senses.darkvision", type: "upgrade", value: "60", priority: 20 }
+          { key: "system.attributes.senses.ranges.darkvision", type: "upgrade", value: "60", priority: 20 }
         ]
       })
     ],

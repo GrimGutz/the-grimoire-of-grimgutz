@@ -16,6 +16,7 @@ import {
 } from "../shared/transformation-core.mjs";
 import { feetToSceneUnits } from "../shared/spatial.mjs";
 import { inFeet } from "../shared/combat-benefits.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 const dullahanStore = transformationState("dullahanState", "dullahan-state");
 export const dullahanState = dullahanStore.read;
 export const dullahanCharacterLevel = characterLevel;
@@ -84,7 +85,11 @@ export function dullahanPassiveDefinitions(actor) {
   ])
     if (dullahanHas(actor, id))
       add(id, [
-        dullahanChange(`system.attributes.senses.${sense}`, feetToSceneUnits(feet, { grid: { units } }), "upgrade")
+        dullahanChange(
+          effectKey(`system.attributes.senses.${sense}`),
+          feetToSceneUnits(feet, { grid: { units } }),
+          "upgrade"
+        )
       ]);
   if (dullahanMounted(actor))
     add(
@@ -109,7 +114,7 @@ export function dullahanPassiveDefinitions(actor) {
     add("broken", [
       dullahanChange("system.attributes.hp.tempmax", remaining - base),
       ...["str", "dex", "con", "int", "wis", "cha"].map(a =>
-        dullahanChange(`system.abilities.${a}.bonuses.save`, -tier)
+        dullahanChange(effectKey(`system.abilities.${a}.bonuses.save`), -tier)
       )
     ]);
   }

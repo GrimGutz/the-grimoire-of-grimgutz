@@ -1,6 +1,7 @@
 import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
 import { automationData, findFeature, isAutomationAuthority } from "../shared/helpers.mjs";
 import { syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const murderspawnPassiveSyncs = new Set();
 
@@ -78,7 +79,7 @@ function murderspawnPassiveDefinitions(actor) {
         img: deathRun.img,
         changes: [
           {
-            key: "system.attributes.movement.walk",
+            key: effectKey("system.attributes.movement.walk"),
             type: "add",
             value: "10",
             phase: "final",
@@ -99,7 +100,7 @@ function murderspawnPassiveDefinitions(actor) {
         img: primalReflexes.img,
         changes: [
           {
-            key: "system.attributes.init.bonus",
+            key: effectKey("system.attributes.init.bonus"),
             type: "add",
             value: "10",
             phase: "final",

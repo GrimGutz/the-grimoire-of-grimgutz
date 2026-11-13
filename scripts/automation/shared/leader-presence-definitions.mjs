@@ -2,6 +2,7 @@ import { MODULE_ID } from "./constants.mjs";
 import { findFeature } from "./helpers.mjs";
 import { isAuraDefeated, isAuraIncapacitated } from "./aura-conditions.mjs";
 import { feetToSceneUnits } from "./spatial.mjs";
+import { effectKey } from "./system-paths.mjs";
 
 export const LEADER_PRESENCE_KEYS = [
   "calming-presence",
@@ -58,19 +59,21 @@ const movement = actor =>
     .filter(type => Number(actor.system?.attributes?.movement?.[type]) > 0)
     .map(type =>
       change(
-        `system.attributes.movement.${type}`,
+        effectKey(`system.attributes.movement.${type}`),
         feetToSceneUnits(10, { grid: { units: actor.system.attributes.movement.units ?? "ft" } }),
         "final"
       )
     );
 const effects = {
   "boisterous-presence": (_source, target) => movement(target.actor),
-  "tactical-presence": source => [change("system.attributes.init.bonus", mod(source.actor, "int"))],
+  "tactical-presence": source => [change(effectKey("system.attributes.init.bonus"), mod(source.actor, "int"))],
   "insightful-presence": source =>
-    ["prc", "ins", "inv"].map(skill => change(`system.skills.${skill}.bonuses.check`, mod(source.actor, "wis"))),
+    ["prc", "ins", "inv"].map(skill =>
+      change(effectKey(`system.skills.${skill}.bonuses.check`), mod(source.actor, "wis"))
+    ),
   "inspiring-presence": () => [
-    change("system.abilities.cha.bonuses.check", 2),
-    change("system.abilities.cha.bonuses.save", 2)
+    change(effectKey("system.abilities.cha.bonuses.check"), 2),
+    change(effectKey("system.abilities.cha.bonuses.save"), 2)
   ]
 };
 export const LEADER_PRESENCE_DEFINITIONS = LEADER_PRESENCE_KEYS.map(key => ({

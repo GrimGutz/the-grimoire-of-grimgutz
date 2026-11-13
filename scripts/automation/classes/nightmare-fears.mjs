@@ -18,6 +18,7 @@ import { processRepeatedSaves } from "../effects/repeated-saves.mjs";
 import { applyNativeOnce, nativeApplicationReply } from "../shared/native-applications.mjs";
 import { rememberNightmareTarget } from "./nightmare.mjs";
 import { canReact, recordModuleReaction } from "../shared/combat-benefits.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const object = token => token.object ?? { actor: token.actor, document: token };
 const gm = actor => ({ uuid: actor.uuid, testUserPermission: user => user.isGM });
@@ -39,7 +40,7 @@ export function nightmareManifestation(id, { blockedStatus = false } = {}) {
       changes.push({ key, value: String(value), type, phase, priority });
   if (id === "agora") {
     change("system.attributes.ac.bonus", -2);
-    change("system.abilities.dex.bonuses.save", -2);
+    change(effectKey("system.abilities.dex.bonuses.save"), -2);
   }
   if (id === "algo") change("flags.midi-qol.disadvantage.attack.all", "true", "override");
   if (id === "atych")
@@ -51,7 +52,7 @@ export function nightmareManifestation(id, { blockedStatus = false } = {}) {
       change(path, -1, "downgrade", "final");
   if (id === "claustro")
     for (const mode of ["walk", "burrow", "climb", "fly", "swim"])
-      change(`system.attributes.movement.${mode}`, 0, "override", "final", 100);
+      change(effectKey(`system.attributes.movement.${mode}`), 0, "override", "final", 100);
   if (id === "nycto" && !blockedStatus) statuses.push("blinded");
   if (id === "thanato") statuses.push("frightened");
   return { changes, statuses };

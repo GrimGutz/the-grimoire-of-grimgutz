@@ -10,6 +10,7 @@ import {
 import { abilityMod, clamp, sizeNumber } from "../shared/dnd5e.mjs";
 import { aberrantLevel } from "../shared/selectors.mjs";
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const aberrantPassiveSyncs = new Set();
 
@@ -54,7 +55,7 @@ function aberrantPassiveDefinitions(actor) {
         img: reflexes.img,
         changes: [
           {
-            key: "system.attributes.movement.walk",
+            key: effectKey("system.attributes.movement.walk"),
             type: "add",
             value: String(bonus),
             phase: "final",

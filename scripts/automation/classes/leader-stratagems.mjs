@@ -21,6 +21,7 @@ import { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs"
 import { isAuraIncapacitated } from "../shared/aura-conditions.mjs";
 import { leaderReceipt, leaderReceiptData } from "../shared/leader-receipts.mjs";
 import { encounterForScene, combatTurnSnapshot } from "../shared/combat-flow.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 export const STRATAGEM_RULES = Object.freeze({
   "stratagem-cunning-ruse": "contest",
@@ -53,7 +54,7 @@ export function movementChanges(actor, feet) {
   return ["walk", "fly", "climb", "swim", "burrow"]
     .filter(key => Number(actor.system?.attributes?.movement?.[key]) > 0)
     .map(key => ({
-      key: `system.attributes.movement.${key}`,
+      key: effectKey(`system.attributes.movement.${key}`),
       value: String(value),
       type: "add",
       phase: "final",
@@ -369,7 +370,7 @@ async function applyStratagem(actor, data) {
     await add(selected[0], {
       kind: "save-bonus",
       expiry: "targetEnd",
-      changes: [change("system.bonuses.abilities.save", 1 + level)]
+      changes: [change(effectKey("system.bonuses.abilities.save"), 1 + level)]
     });
   }
   if (rule === "line")

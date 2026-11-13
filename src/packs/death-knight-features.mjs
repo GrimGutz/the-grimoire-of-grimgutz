@@ -54,7 +54,7 @@ export const deathKnightDocuments = [
         img: "icons/magic/death/skull-humanoid-crown-white-blue.webp",
         changes: [
           { key: "system.details.type.value", type: "override", value: "undead", priority: 100 },
-          { key: "system.attributes.senses.darkvision", type: "upgrade", value: "120", priority: 20 },
+          { key: "system.attributes.senses.ranges.darkvision", type: "upgrade", value: "120", priority: 20 },
           { key: "system.traits.di.value", type: "custom", value: "poison", priority: 20 },
           { key: "system.traits.ci.value", type: "custom", value: "poisoned", priority: 20 },
           { key: "system.traits.ci.value", type: "custom", value: "diseased", priority: 20 }

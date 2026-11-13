@@ -12,6 +12,7 @@ import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
 import { druidClass, forestLordClass, forestLordLevel, rangerClass } from "../shared/selectors.mjs";
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const forestPassiveSyncs = new Set();
 const natureMagicSyncs = new Set();
@@ -251,11 +252,41 @@ export async function takeRoot(actor) {
     system: {
       changes: [
         { key: "system.abilities.dex.value", type: "override", value: "1", phase: "initial", priority: 100 },
-        { key: "system.attributes.movement.walk", type: "override", value: "0", phase: "final", priority: 100 },
-        { key: "system.attributes.movement.burrow", type: "override", value: "0", phase: "final", priority: 100 },
-        { key: "system.attributes.movement.climb", type: "override", value: "0", phase: "final", priority: 100 },
-        { key: "system.attributes.movement.fly", type: "override", value: "0", phase: "final", priority: 100 },
-        { key: "system.attributes.movement.swim", type: "override", value: "0", phase: "final", priority: 100 }
+        {
+          key: effectKey("system.attributes.movement.walk"),
+          type: "override",
+          value: "0",
+          phase: "final",
+          priority: 100
+        },
+        {
+          key: effectKey("system.attributes.movement.burrow"),
+          type: "override",
+          value: "0",
+          phase: "final",
+          priority: 100
+        },
+        {
+          key: effectKey("system.attributes.movement.climb"),
+          type: "override",
+          value: "0",
+          phase: "final",
+          priority: 100
+        },
+        {
+          key: effectKey("system.attributes.movement.fly"),
+          type: "override",
+          value: "0",
+          phase: "final",
+          priority: 100
+        },
+        {
+          key: effectKey("system.attributes.movement.swim"),
+          type: "override",
+          value: "0",
+          phase: "final",
+          priority: 100
+        }
       ]
     }
   };

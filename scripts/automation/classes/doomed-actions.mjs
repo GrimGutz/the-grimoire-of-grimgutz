@@ -25,6 +25,7 @@ import { areaDamagePart } from "../shared/area-definitions.mjs";
 import { useAuraPulse } from "../midi/aura-workflow.mjs";
 import { applyTargetEffect } from "../shared/target-effects.mjs";
 import { temporaryEffectTiming, isEffectActive } from "../effects/temporary-effects.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const gm = actor => ({ uuid: actor.uuid, testUserPermission: user => user.isGM });
 const object = token => token.object ?? { actor: token.actor, document: token };
@@ -296,14 +297,12 @@ async function useDoomedCore(actor, activity, source, operation, requestId) {
       () => useNativeUtility(activity, { dataPatch: expense }),
       async () => {
         await recordModuleReaction(actor, source?.parent);
-        await new Roll(String(amount))
-          .evaluate()
-          .then(roll =>
-            roll.toMessage({
-              speaker: ChatMessage.getSpeaker({ actor }),
-              flavor: `Стойкость обречённого: уменьшите исходный урон на ${amount}, минимум до 0 (GM)`
-            })
-          );
+        await new Roll(String(amount)).evaluate().then(roll =>
+          roll.toMessage({
+            speaker: ChatMessage.getSpeaker({ actor }),
+            flavor: `Стойкость обречённого: уменьшите исходный урон на ${amount}, минимум до 0 (GM)`
+          })
+        );
         return true;
       }
     );
@@ -358,7 +357,7 @@ export function doomedTransferredChanges(actor, id, targetActor = actor) {
       phase,
       priority
     });
-  if (id === "soul") return ["wis", "cha"].map(key => change(`system.abilities.${key}.bonuses.save`, -2));
+  if (id === "soul") return ["wis", "cha"].map(key => change(effectKey(`system.abilities.${key}.bonuses.save`), -2));
   if (id === "wounds") return [change("system.attributes.death.roll.mode", -1, "downgrade", "final")];
   if (id === "luck") return [change("system.attributes.init.roll.mode", -1, "downgrade", "final")];
   if (id === "mind") return [change("system.abilities.int.save.roll.mode", -1, "downgrade", "final")];
@@ -368,13 +367,13 @@ export function doomedTransferredChanges(actor, id, targetActor = actor) {
   if (id === "grave")
     return [
       change(
-        "system.attributes.movement.walk",
+        effectKey("system.attributes.movement.walk"),
         -doomedFeet(5, targetActor.system.attributes.movement?.units),
         "add",
         "final"
       ),
       change(
-        "system.attributes.movement.walk",
+        effectKey("system.attributes.movement.walk"),
         doomedFeet(5, targetActor.system.attributes.movement?.units),
         "upgrade",
         "final",

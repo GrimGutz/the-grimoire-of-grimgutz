@@ -9,6 +9,7 @@ import { useNativeUtility } from "../shared/native-actions.mjs";
 import { temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { recordModuleReaction } from "../shared/combat-benefits.mjs";
+import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 export async function chooseFactoryForm(actor) {
   const physical = await askOwner(actor, {
     title: "Изготовленная форма: +1, предел 16",
@@ -89,9 +90,9 @@ export async function ascendFactory(actor, activity, source, requestId) {
                 priority: 20
               })),
               {
-                key: "system.attributes.movement.fly",
+                key: effectKey("system.attributes.movement.fly"),
                 type: "upgrade",
-                value: String(Number(actor.system.attributes.movement.walk)),
+                value: String(Number(movementSpeed(actor, "walk"))),
                 phase: "final",
                 priority: 40
               },

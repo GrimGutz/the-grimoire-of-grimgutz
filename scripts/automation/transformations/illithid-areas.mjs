@@ -20,6 +20,7 @@ import {
   planIllithidConcentration,
   beginIllithidConcentration
 } from "./illithid-use.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 export const ilExtractEligible = t =>
   ["charmed", "incapacitated", "grappled", "unconscious", "paralyzed", "petrified", "stunned"].some(s =>
     t.actor.statuses?.has?.(s)
@@ -122,10 +123,10 @@ export async function syncIllithidSlow(actor) {
     }
     const changes = [
       ...["walk", "fly", "swim", "climb", "burrow"].map(k =>
-        ilChange(`system.attributes.movement.${k}`, 0.5, "multiply", "final")
+        ilChange(effectKey(`system.attributes.movement.${k}`), 0.5, "multiply", "final")
       ),
       ilChange("system.attributes.ac.bonus", -2),
-      ilChange("system.abilities.dex.bonuses.save", -2),
+      ilChange(effectKey("system.abilities.dex.bonuses.save"), -2),
       ilChange("flags.midi-qol.actions.reactionsMax", 0, "override")
     ];
     if (!e)

@@ -18,6 +18,7 @@ import {
   factoryAscended
 } from "./factory.mjs";
 import { syncFactoryItems } from "./factory-items.mjs";
+import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 export const factoryChange = (key, value, type = "add", phase = "initial", priority = 20) => ({
   key,
   value: String(value),
@@ -76,14 +77,16 @@ export function factoryPassiveDefinitions(actor) {
       ctx = factoryContext(actor, record),
       item = factoryInstalledItem(actor, record),
       c = [],
-      walk = Number(actor.system.attributes.movement.walk ?? 0),
+      walk = Number(movementSpeed(actor, "walk") ?? 0),
       units = actor.system.attributes.movement.units ?? "ft";
     if (id === "senses") c.push(factoryChange("system.skills.prc.roll.mode", 1, "override"));
-    if (id === "reflexes") c.push(factoryChange("system.attributes.init.bonus", ctx.int));
-    if (id === "neural" && record.save) c.push(factoryChange(`system.abilities.${record.save}.bonuses.save`, ctx.int));
-    if (id === "spikes") c.push(factoryChange("system.attributes.movement.climb", walk, "upgrade", "final", 40));
+    if (id === "reflexes") c.push(factoryChange(effectKey("system.attributes.init.bonus"), ctx.int));
+    if (id === "neural" && record.save)
+      c.push(factoryChange(effectKey(`system.abilities.${record.save}.bonuses.save`), ctx.int));
+    if (id === "spikes")
+      c.push(factoryChange(effectKey("system.attributes.movement.climb"), walk, "upgrade", "final", 40));
     if (id === "tendons")
-      c.push(factoryChange("system.attributes.movement.walk", feetToSceneUnits(10, { grid: { units } })));
+      c.push(factoryChange(effectKey("system.attributes.movement.walk"), feetToSceneUnits(10, { grid: { units } })));
     if (id === "skin")
       c.push(
         factoryChange("system.attributes.ac.calc", "custom", "override"),
@@ -118,7 +121,7 @@ export function factoryPassiveDefinitions(actor) {
     if (id === "air-walkers") {
       const combat = encounterForActor(actor);
       if (combat?.combatant?.actor?.uuid === actor.uuid)
-        c.push(factoryChange("system.attributes.movement.fly", walk, "upgrade", "final", 40));
+        c.push(factoryChange(effectKey("system.attributes.movement.fly"), walk, "upgrade", "final", 40));
     }
     add(`augment:${record.id}`, item, c);
   }

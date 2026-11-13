@@ -4,6 +4,7 @@ import { EMPATH_MASKS, empathTotalLevel } from "../shared/empath-definitions.mjs
 import { empathLevel, empathState, empathMask, empathMaskActive } from "../shared/empath-state.mjs";
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 export const empathFeet = (feet, units) =>
   /^(m|м|метр)$/u.test(String(units ?? "ft").toLowerCase()) ? Number(feet) * 0.3048 : Number(feet);
 export const empathChange = (key, value, type = "add", phase = "initial", priority = 20) => ({
@@ -53,7 +54,7 @@ export function empathPassiveDefinitions(actor) {
   if (mask.id === "joy")
     changes.push(
       empathChange(
-        "system.attributes.movement.walk",
+        effectKey("system.attributes.movement.walk"),
         empathFeet(10, actor.system.attributes.movement?.units),
         "add",
         "final"
@@ -73,7 +74,7 @@ export function empathPassiveDefinitions(actor) {
   if (mask.id === "calm" && empathLevel(actor) >= 5 && findFeature(actor, "empath-facets"))
     changes.push(
       empathChange(
-        "system.attributes.init.bonus",
+        effectKey("system.attributes.init.bonus"),
         Math.floor((Number(actor.system.abilities.wis.value) - oldWisdom + newWisdom - 10) / 2),
         "add",
         "final"

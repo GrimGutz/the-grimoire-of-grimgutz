@@ -15,6 +15,7 @@ import { applyNativeOnce } from "../shared/native-applications.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 export const hunterLevel = actor => classLevel(actor, HUNTER_ID);
 export const hunterConfig = actor => actor?.getFlag?.(MODULE_ID, "hunterConfiguration") ?? {};
@@ -128,7 +129,7 @@ export function hunterPassiveDefinitions(actor) {
       if (key === "hunter-beast-medium")
         changes.push(
           change(
-            "system.attributes.senses.blindsight",
+            effectKey("system.attributes.senses.blindsight"),
             hunterFeet(20, actor.system.attributes.senses?.units),
             "upgrade",
             "final"
@@ -140,7 +141,9 @@ export function hunterPassiveDefinitions(actor) {
       )
         resist(state.damageType);
       if (key === "hunter-dragon-major")
-        changes.push(change("system.attributes.movement.fly", "@attributes.movement.walk", "upgrade", "final"));
+        changes.push(
+          change(effectKey("system.attributes.movement.fly"), "@attributes.movement.walk", "upgrade", "final")
+        );
       if (key === "hunter-giant-medium")
         changes.push(change("system.abilities.str.check.roll.mode", 1, "upgrade", "final"));
       if (key === "hunter-humanoid-minor") {
@@ -151,7 +154,7 @@ export function hunterPassiveDefinitions(actor) {
       if (key === "hunter-monstrosity-major")
         changes.push(
           change(
-            "system.attributes.movement.walk",
+            effectKey("system.attributes.movement.walk"),
             hunterFeet(10, actor.system.attributes.movement.units),
             "add",
             "final"

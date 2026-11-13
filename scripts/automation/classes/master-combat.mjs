@@ -36,6 +36,7 @@ import { feetToSceneUnits } from "../shared/spatial.mjs";
 import { areaDamagePart } from "../shared/area-definitions.mjs";
 import { inspiringTemporaryHp } from "../shared/leader-presence-definitions.mjs";
 import { installMasterBladeHooks } from "./master-blade.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const isChild = activity =>
   automationData(activity).masterChild || automationData(activity).leaderResolved || automationData(activity).auraPulse;
@@ -497,7 +498,7 @@ async function applyHitTechnique(actor, item, source, target, context, options) 
       changes: ["walk", "fly", "swim", "climb", "burrow"]
         .filter(k => Number(movement[k]) > 0)
         .map(k => ({
-          key: `system.attributes.movement.${k}`,
+          key: effectKey(`system.attributes.movement.${k}`),
           value: pinned ? "0" : String(-Math.min(Number(movement[k]), extraRange(10, movement.units))),
           type: pinned ? "override" : "add",
           phase: "final",

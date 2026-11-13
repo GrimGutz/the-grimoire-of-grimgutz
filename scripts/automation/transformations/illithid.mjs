@@ -14,6 +14,7 @@ import {
   isDuplicateGrant,
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
+import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 const ilStore = transformationState("illithidState", "illithid-state");
 export const ilState = ilStore.read;
 export const ilPatch = ilStore.patch;
@@ -89,7 +90,7 @@ export function illithidPassiveDefinitions(a) {
   if (ilHas(a, "bond")) add("bond", [ilChange("system.attributes.death.roll.mode", -1, "downgrade")]);
   if (ilHas(a, "flight"))
     add("flight", [
-      ilChange("system.attributes.movement.fly", Number(a.system.attributes.movement.walk ?? 0), "upgrade", "final")
+      ilChange(effectKey("system.attributes.movement.fly"), Number(movementSpeed(a, "walk") ?? 0), "upgrade", "final")
     ]);
   if (ilHas(a, "mind")) {
     const base = ilState(a).skillBaseline ?? {},
@@ -99,7 +100,7 @@ export function illithidPassiveDefinitions(a) {
       expert = Object.values(grades).some(n => n >= 2);
     add("mind", [
       ...Object.entries(grades).map(([k, n]) => ilChange(`system.skills.${k}.value`, n >= 1 ? 2 : 1, "upgrade")),
-      ...(expert ? ["ins", "arc"].map(k => ilChange(`system.skills.${k}.bonuses.check`, 2)) : [])
+      ...(expert ? ["ins", "arc"].map(k => ilChange(effectKey(`system.skills.${k}.bonuses.check`), 2)) : [])
     ]);
   }
   if (ilHas(a, "fortress")) {
@@ -112,7 +113,7 @@ export function illithidPassiveDefinitions(a) {
       const proficient =
         Math.max(Number(base[k] ?? 0), Number(a._source?.system?.abilities?.[k]?.proficient ?? 0)) >= 1;
       changes.push(ilChange(`system.abilities.${k}.proficient`, 1, "upgrade"));
-      if (proficient) changes.push(ilChange(`system.abilities.${k}.bonuses.save`, 2));
+      if (proficient) changes.push(ilChange(effectKey(`system.abilities.${k}.bonuses.save`), 2));
     }
     add("fortress", changes);
   }

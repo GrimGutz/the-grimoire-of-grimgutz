@@ -34,6 +34,7 @@ import { useHunterCost, useHunterNative } from "./bounty-hunter-cost.mjs";
 import { hunterCondition, hunterSave } from "./bounty-hunter-actions.mjs";
 import { areaDamagePart } from "../shared/area-definitions.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const gm = actor => ({ uuid: actor.uuid, testUserPermission: user => user.isGM });
 const has = (actor, key, level = 1) => hunterLevel(actor) >= level && findFeature(actor, `hunter-${key}`);
@@ -354,7 +355,7 @@ registerGmRequest("hunter-hit-complete", (actor, data) =>
           kind: "hunter-slow",
           expiry: "sourceStart",
           changes: ["walk", "fly", "swim", "climb", "burrow"].map(m => ({
-            key: `system.attributes.movement.${m}`,
+            key: effectKey(`system.attributes.movement.${m}`),
             value: `max(0, @attributes.movement.${m} - ${hunterFeet(10, target.actor.system.attributes.movement.units)})`,
             type: "override",
             phase: "final",
@@ -385,7 +386,7 @@ registerGmRequest("hunter-hit-complete", (actor, data) =>
               kind: "hunter-cut",
               expiry: "sourceStart",
               changes: ["walk", "fly", "swim", "climb", "burrow"].map(m => ({
-                key: `system.attributes.movement.${m}`,
+                key: effectKey(`system.attributes.movement.${m}`),
                 value: "0",
                 type: "override",
                 phase: "final",

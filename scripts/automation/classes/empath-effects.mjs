@@ -5,20 +5,21 @@ import { addCombatBenefit } from "../shared/combat-benefits.mjs";
 import { encounterForScene } from "../shared/combat-flow.mjs";
 import { temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { useAuraPulse } from "../midi/aura-workflow.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 export const empathPlaceable = token => token.object ?? { actor: token.actor, document: token };
 export function empathMovement(actor, { half = false, subtract = 0 } = {}) {
   return ["walk", "burrow", "climb", "fly", "swim"].flatMap(mode =>
     half
-      ? [empathChange(`system.attributes.movement.${mode}`, 0.5, "multiply", "final", 40)]
+      ? [empathChange(effectKey(`system.attributes.movement.${mode}`), 0.5, "multiply", "final", 40)]
       : [
           empathChange(
-            `system.attributes.movement.${mode}`,
+            effectKey(`system.attributes.movement.${mode}`),
             -empathFeet(subtract, actor.system.attributes.movement.units),
             "add",
             "final",
             40
           ),
-          empathChange(`system.attributes.movement.${mode}`, 0, "upgrade", "final", 41)
+          empathChange(effectKey(`system.attributes.movement.${mode}`), 0, "upgrade", "final", 41)
         ]
   );
 }
@@ -44,8 +45,8 @@ export function empathEffectDefinition(feature, snapshot, actor) {
     if (mask === "anger")
       for (const skill of ["per", "ins"]) changes.push(c(`system.skills.${skill}.roll.mode`, -1, "downgrade", "final"));
     if (mask === "calm")
-      for (const skill of ["inv", "ins"]) changes.push(c(`system.skills.${skill}.bonuses.check`, "1d6"));
-    if (mask === "joy") changes.push(c("system.abilities.cha.bonuses.check", "1d6"));
+      for (const skill of ["inv", "ins"]) changes.push(c(effectKey(`system.skills.${skill}.bonuses.check`), "1d6"));
+    if (mask === "joy") changes.push(c(effectKey("system.abilities.cha.bonuses.check"), "1d6"));
   }
   if (feature === "catharsis" && mask === "calm") {
     changes.length = 0;

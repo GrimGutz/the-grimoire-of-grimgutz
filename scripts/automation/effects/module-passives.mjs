@@ -6,6 +6,7 @@ import {
   passiveEffectSignature,
   recordPassiveSnapshots
 } from "./passive-helpers.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const passiveEffectSyncs = new Set();
 let migrationSourcesPromise;
@@ -39,9 +40,7 @@ function normalizePassiveChanges(actor, item, changes) {
   const feature = automationData(item).feature ?? itemIdentifier(item);
   return changes.map(change => {
     const normalized = foundry.utils.deepClone(change);
-    normalized.key = normalized.key
-      .replace("system.attributes.senses.darkvision", "system.attributes.senses.ranges.darkvision")
-      .replace("system.attributes.senses.blindsight", "system.attributes.senses.ranges.blindsight");
+    normalized.key = effectKey(normalized.key);
     if (feature === "forest-barkskin" && normalized.key === "system.attributes.ac.bonus") {
       normalized.value = String(Math.max(1, Number(actor.system?.abilities?.con?.mod ?? 0)));
     }

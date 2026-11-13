@@ -247,7 +247,7 @@ export function makeActor(level = 16, id = "factory", features = true) {
           prof: 5,
           hp: { value: 40, max: 60, temp: 0, tempmax: 0, bonuses: { overall: 0 } },
           movement: { walk: 30, units: "ft" },
-          senses: { units: "ft", truesight: 0, blindsight: 0 },
+          senses: { units: "ft", ranges: { truesight: 0, blindsight: 0 } },
           ac: { flat: 14, value: 14 },
           concentration: { limit: 1 }
         },

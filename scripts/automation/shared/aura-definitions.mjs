@@ -8,6 +8,7 @@ import { DEATHKNIGHT_AURAS } from "../transformations/deathknight-auras.mjs";
 import { ILLITHID_AURAS } from "../transformations/illithid-refuge.mjs";
 import { HALFDRAGON_AURAS } from "../transformations/halfdragon-auras.mjs";
 import { GOD_AURAS } from "../transformations/god-auras.mjs";
+import { effectKey } from "./system-paths.mjs";
 export { isAuraDefeated, isAuraIncapacitated } from "./aura-conditions.mjs";
 
 export function auraFeature(actor, definition) {
@@ -71,7 +72,7 @@ export const AURA_DEFINITIONS = [
       name: "Аура маскировки: бонус спасбросков",
       img: findFeature(token.actor, "masking-aura")?.img,
       description: "Бонус союзнику от Полого. Магическое обнаружение разрешает Мастер.",
-      changes: [change("system.bonuses.abilities.save", token.actor.system?.abilities?.con?.mod ?? 0)]
+      changes: [change(effectKey("system.bonuses.abilities.save"), token.actor.system?.abilities?.con?.mod ?? 0)]
     })
   },
   {
@@ -198,7 +199,7 @@ export const AURA_DEFINITIONS = [
     effect: token => ({
       name: "Аура Просвещения: проверки",
       img: findFeature(token.actor, "аура-просвещения-1")?.img,
-      changes: [change("system.bonuses.abilities.check", token.actor.system?.abilities?.cha?.mod ?? 0)]
+      changes: [change(effectKey("system.bonuses.abilities.check"), token.actor.system?.abilities?.cha?.mod ?? 0)]
     })
   },
   {
@@ -216,7 +217,7 @@ export const AURA_DEFINITIONS = [
       name: "Аура командования: инициатива",
       img: findFeature(token.actor, "тактическое-присутствие-аура-командования-1")?.img,
       description: "Требуется видеть или слышать Лидера. Дополнительные 3 урона один раз за ход подтверждает Мастер.",
-      changes: [change("system.attributes.init.bonus", token.actor.system?.abilities?.int?.mod ?? 0)]
+      changes: [change(effectKey("system.attributes.init.bonus"), token.actor.system?.abilities?.int?.mod ?? 0)]
     })
   }
 ];

@@ -11,6 +11,7 @@ import {
 import { abilityMod, clamp } from "../shared/dnd5e.mjs";
 import { selectFormDialog, slotLevelDialog } from "../shared/dialogs.mjs";
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const oracleSyncs = new Set();
 const oraclePassiveSyncs = new Set();
@@ -209,12 +210,12 @@ function dissonanceEffectData(actor, dissonance) {
     },
     system: {
       changes: [
-        change("system.bonuses.abilities.check", "add", penalty),
-        change("system.bonuses.abilities.save", "add", penalty),
-        change("system.bonuses.mwak.attack", "add", penalty),
-        change("system.bonuses.rwak.attack", "add", penalty),
-        change("system.bonuses.msak.attack", "add", penalty),
-        change("system.bonuses.rsak.attack", "add", penalty)
+        change(effectKey("system.bonuses.abilities.check"), "add", penalty),
+        change(effectKey("system.bonuses.abilities.save"), "add", penalty),
+        change(effectKey("system.bonuses.mwak.attack"), "add", penalty),
+        change(effectKey("system.bonuses.rwak.attack"), "add", penalty),
+        change(effectKey("system.bonuses.msak.attack"), "add", penalty),
+        change(effectKey("system.bonuses.rsak.attack"), "add", penalty)
       ]
     }
   };

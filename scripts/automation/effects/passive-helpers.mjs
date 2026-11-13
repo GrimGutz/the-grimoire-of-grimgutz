@@ -48,7 +48,8 @@ export function flaggedPassiveEffectData(
         [flag]: key
       }
     },
-    system: { changes }
+    // Every module passive passes through here: keep its keys on the running dnd5e layout.
+    system: { changes: changes.map(change => ({ ...change, key: effectKey(change.key) })) }
   };
 }
 
@@ -93,6 +94,7 @@ export async function syncFlaggedPassiveEffects(actor, syncSet, moduleId, flag, 
   }
 }
 import { migrationFingerprint } from "../shared/owned-item-migration.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 export function guardPassiveChanges(current, data, moduleId) {
   const changes = current?.toObject?.().system?.changes ?? current?.system?.changes ?? [];

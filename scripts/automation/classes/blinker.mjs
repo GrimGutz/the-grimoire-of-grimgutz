@@ -11,6 +11,7 @@ import {
   itemUses,
   notify
 } from "../shared/helpers.mjs";
+import { movementSpeed } from "../shared/system-paths.mjs";
 
 const blinkerSyncs = new Set();
 
@@ -110,7 +111,7 @@ export async function syncBlinkerResources(actor, { notifyResult = false } = {})
 }
 
 export function blinkDistance(actor) {
-  const walk = Number(actor?.system?.attributes?.movement?.walk ?? 0);
+  const walk = Number(movementSpeed(actor, "walk") ?? 0);
   const base = Number.isFinite(walk) && walk > 0 ? walk : 30;
   const level = blinkerLevel(actor);
   if (level >= 5 || hasFeature(actor, "disappearance")) return base * 2;

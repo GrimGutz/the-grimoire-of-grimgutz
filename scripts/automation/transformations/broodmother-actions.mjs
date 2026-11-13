@@ -25,6 +25,7 @@ import { summonBroodmother, summonBroodmotherHorror, dismissBroodmotherChild } f
 import { useBroodmotherAttack } from "./broodmother-combat.mjs";
 import { useBroodmotherArea, removeBroodmotherCoating, damageBroodmotherWall } from "./broodmother-zones.mjs";
 import { feetToSceneUnits } from "../shared/spatial.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 async function spinner(actor, activity, source, operation, requestId) {
   if (operation === "escape-thread") {
@@ -221,7 +222,7 @@ async function mimic(actor, activity, source, operation, requestId) {
             flags: { [MODULE_ID]: { broodmotherMimicBody: true } },
             system: {
               changes: ["walk", "fly", "swim", "climb", "burrow"].map(k =>
-                broodmotherChange(`system.attributes.movement.${k}`, 0, "override", "final", 100)
+                broodmotherChange(effectKey(`system.attributes.movement.${k}`), 0, "override", "final", 100)
               )
             }
           }

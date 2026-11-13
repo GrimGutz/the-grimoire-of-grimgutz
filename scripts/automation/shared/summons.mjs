@@ -3,6 +3,7 @@ import { itemUses, notify } from "./helpers.mjs";
 import { gmRequestResult, installGmRequests, registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { summonActivities, summonActivitySignature } from "./summon-activities.mjs";
 import { summonConcentrationActivity } from "./summon-lifecycle.mjs";
+import { effectKey } from "./system-paths.mjs";
 
 const SOCKET_TYPE = "create-summon";
 const OWNERSHIP = globalThis.CONST?.DOCUMENT_OWNERSHIP_LEVELS ?? {
@@ -103,13 +104,16 @@ function defaultConditionTrait(overrides = {}) {
   };
 }
 
+// Summon source data keeps the pre-6.0 movement layout; dnd5e 6.0+ migrates it into
+// `movement.speeds` on creation. Input may come from either layout.
 function movementData(movement = {}) {
+  const speed = type => Number(movement.speeds?.[type] ?? movement[type] ?? 0);
   return {
-    burrow: Number(movement.burrow ?? 0),
-    climb: Number(movement.climb ?? 0),
-    fly: Number(movement.fly ?? 0),
-    swim: Number(movement.swim ?? 0),
-    walk: Number(movement.walk ?? 0),
+    burrow: speed("burrow"),
+    climb: speed("climb"),
+    fly: speed("fly"),
+    swim: speed("swim"),
+    walk: speed("walk"),
     units: movement.units ?? "ft",
     hover: Boolean(movement.hover)
   };
@@ -554,8 +558,12 @@ function managedValues(summon) {
     "system.attributes.hp.max": system.attributes.hp.max,
     "system.attributes.hp.formula": system.attributes.hp.formula
   };
-  for (const [key, value] of Object.entries(system.attributes.movement))
-    values[`system.attributes.movement.${key}`] = value;
+  for (const [key, value] of Object.entries(system.attributes.movement)) {
+    if (key === "speeds")
+      for (const [type, speed] of Object.entries(value ?? {}))
+        values[effectKey(`system.attributes.movement.${type}`)] = speed;
+    else values[effectKey(`system.attributes.movement.${key}`)] = value;
+  }
   for (const [key, value] of Object.entries(system.abilities)) values[`system.abilities.${key}.value`] = value.value;
   return values;
 }

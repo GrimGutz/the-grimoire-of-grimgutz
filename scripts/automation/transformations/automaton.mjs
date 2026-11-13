@@ -15,6 +15,7 @@ import {
   isDuplicateGrant,
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
+import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 
 export const automatonState = actor => actor?.getFlag?.(MODULE_ID, "automatonState") ?? {};
 export const automatonCharacterLevel = characterLevel;
@@ -74,15 +75,15 @@ export function automatonPassiveDefinitions(actor) {
       const units = actor.system.attributes.movement.units,
         ten = units === "m" || units === "meters" ? 3 : 10;
       changes.push(
-        automatonChange("system.attributes.movement.walk", ten),
-        automatonChange("system.abilities.dex.bonuses.save", level)
+        automatonChange(effectKey("system.attributes.movement.walk"), ten),
+        automatonChange(effectKey("system.abilities.dex.bonuses.save"), level)
       );
     }
     if (state.model === "juggernaut")
       changes.push(
         automatonChange("system.attributes.ac.calc", "flat", "override"),
         automatonChange("system.attributes.ac.flat", 19, "override"),
-        automatonChange("system.abilities.con.bonuses.save", level)
+        automatonChange(effectKey("system.abilities.con.bonuses.save"), level)
       );
     // Warrior's state is used by conditional attack hooks, not a global advantage.
     add("model", "model", changes, "Выбранная модель и её условные атаки.");
@@ -92,8 +93,8 @@ export function automatonPassiveDefinitions(actor) {
   if (automatonHas(actor, "flight"))
     add("flight", "flight", [
       automatonChange(
-        "system.attributes.movement.fly",
-        Number(actor.system.attributes.movement.walk ?? 0),
+        effectKey("system.attributes.movement.fly"),
+        Number(movementSpeed(actor, "walk") ?? 0),
         "upgrade",
         "final",
         40

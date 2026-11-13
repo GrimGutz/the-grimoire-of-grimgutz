@@ -29,6 +29,7 @@ import {
   useDeathknightCrucible
 } from "./deathknight-zones.mjs";
 import { migrationFingerprint } from "../shared/owned-item-migration.mjs";
+import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 
 async function bindAnchor(actor) {
   const weapons = [...(actor.items ?? [])].filter(i => i.type === "weapon"),
@@ -241,8 +242,8 @@ export async function activateDeathknightReaper(actor, activity, source, request
               changes: [
                 dkChange("system.traits.size", size, "override"),
                 dkChange(
-                  "system.attributes.movement.fly",
-                  Number(actor.system.attributes.movement.walk ?? 0),
+                  effectKey("system.attributes.movement.fly"),
+                  Number(movementSpeed(actor, "walk") ?? 0),
                   "upgrade",
                   "final",
                   40

@@ -342,7 +342,7 @@ test("apotheosis and demiscience create only real numeric passives", () => {
   const c = godPassiveDefinitions(actor).flatMap(e => e.system.changes);
   assert.ok(c.some(c => c.key === "system.attributes.hp.bonuses.overall" && c.value === "40"));
   assert.ok(c.some(c => c.key === "system.traits.dr.value" && c.value === "all"));
-  assert.ok(c.some(c => c.key === "system.attributes.senses.truesight" && c.value === "120"));
+  assert.ok(c.some(c => c.key === "system.attributes.senses.ranges.truesight" && c.value === "120"));
   assert.ok(!c.some(c => c.key.includes("init")));
   assert.ok(!actor.effects.some(e => e.getFlag(MODULE_ID, "godPassive") === "rival"));
 });

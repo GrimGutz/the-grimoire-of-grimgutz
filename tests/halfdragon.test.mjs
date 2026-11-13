@@ -219,12 +219,12 @@ test("Senses never escalate their own proficiency into expertise on repeated syn
   await actor.update({ "system.skills.prc.value": 1 });
   await syncHalfdragon(actor);
   assert.equal(actor.system.skills.prc.value, 2);
-  assert.equal(actor.system.attributes.senses.blindsight, 30);
+  assert.equal(actor.system.attributes.senses.ranges.blindsight, 30);
 });
 test("Senses convert thirty feet to actor metric units", async () => {
   await actor.update({ "system.attributes.senses.units": "m" });
   await syncHalfdragon(actor);
-  assert.ok(Math.abs(actor.system.attributes.senses.blindsight - 9.144) < 0.01);
+  assert.ok(Math.abs(actor.system.attributes.senses.ranges.blindsight - 9.144) < 0.01);
 });
 test("Wings require worn clothing and armor to be adapted, without unequipping", async () => {
   assert.equal(actor.system.attributes.movement.fly, 30);

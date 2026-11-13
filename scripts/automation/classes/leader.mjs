@@ -13,6 +13,7 @@ import {
 import { leaderClass } from "../shared/selectors.mjs";
 import { encounterForActor, combatTurnSnapshot } from "../shared/combat-flow.mjs";
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const leaderPassiveSyncs = new Set();
 
@@ -28,7 +29,7 @@ function leaderMovementBonusChanges(actor, bonus = 10) {
   return ["walk", "burrow", "climb", "fly", "swim"]
     .filter(type => Number(movement[type] ?? 0) > 0)
     .map(type => ({
-      key: `system.attributes.movement.${type}`,
+      key: effectKey(`system.attributes.movement.${type}`),
       type: "add",
       value: String(bonus),
       phase: "final",
@@ -95,7 +96,7 @@ async function applyFrontlineCommander(actor, snapshot) {
   const changes = ["walk", "burrow", "climb", "fly", "swim"]
     .filter(type => Number(movement[type] ?? 0) > 0)
     .map(type => ({
-      key: `system.attributes.movement.${type}`,
+      key: effectKey(`system.attributes.movement.${type}`),
       type: "add",
       value: feetToSceneUnits(10, { grid: { units: movement.units ?? "ft" } }),
       phase: "final",

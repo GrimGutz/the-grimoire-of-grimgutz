@@ -13,6 +13,7 @@ import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-reques
 import { areaActivityData } from "../shared/area-definitions.mjs";
 import { useAreaActivity } from "../shared/area-activities.mjs";
 import { temporaryEffectTiming } from "../effects/temporary-effects.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 export const factoryChildren = owner =>
   [...(game.actors ?? [])].filter(
     a =>
@@ -306,7 +307,7 @@ registerGmRequest("factory-child", async (actor, data, { requestId }) => {
                 system: {
                   changes: [
                     ...["walk", "fly", "swim", "climb", "burrow"].map(k => ({
-                      key: `system.attributes.movement.${k}`,
+                      key: effectKey(`system.attributes.movement.${k}`),
                       type: "multiply",
                       value: "0.5",
                       phase: "initial",

@@ -13,6 +13,7 @@ import { abilityMod, strengthValue } from "../shared/dnd5e.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
 import { crusherClass, crusherLevel } from "../shared/selectors.mjs";
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
+import { abilitySaveBonus, abilitySaveProficiency, globalSaveBonus } from "../shared/system-paths.mjs";
 
 const pendingSteelWillSaves = new Set();
 const crusherPassiveSyncs = new Set();
@@ -303,13 +304,14 @@ export async function applyPowerfulCleaving(workflow) {
 
 function constructStrengthSave(actor, existingRoll) {
   const ability = actor.system.abilities?.str;
+  const proficiency = abilitySaveProficiency(ability);
   const rollData = actor.getRollData();
   const { parts, data } = CONFIG.Dice.D20Roll.constructParts(
     {
       mod: ability?.mod,
-      prof: ability?.saveProf?.hasProficiency ? ability.saveProf.term : null,
-      strSaveBonus: ability?.bonuses?.save,
-      saveBonus: actor.system.bonuses?.abilities?.save
+      prof: proficiency?.hasProficiency ? proficiency.term : null,
+      strSaveBonus: abilitySaveBonus(ability),
+      saveBonus: globalSaveBonus(actor)
     },
     rollData
   );

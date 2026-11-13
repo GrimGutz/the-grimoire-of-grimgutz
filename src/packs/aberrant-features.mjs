@@ -84,7 +84,7 @@ const unnaturalTraits = [
       key: "aberrant-cat-eyes",
       name: "Кошачьи глаза",
       img: `${WOW}/Abilities/BloodyEye.png`,
-      changes: [{ key: "system.attributes.senses.darkvision", type: "add", value: "30", priority: 20 }]
+      changes: [{ key: "system.attributes.senses.ranges.darkvision", type: "add", value: "30", priority: 20 }]
     })],
     description: `<p>Вы получаете тёмное зрение 30 футов либо увеличиваете существующее на 30 футов.</p><hr><p><strong>Автоматизация Foundry:</strong> переносимый эффект добавляет 30 футов тёмного зрения.</p>`
   }),
@@ -221,7 +221,7 @@ export const aberrantDocuments = [
       img: "icons/magic/control/buff-strength-muscle-damage-orange.webp",
       changes: [
         { key: "system.abilities.str.value", type: "add", value: "2", priority: 20 },
-        { key: "system.attributes.senses.blindsight", type: "upgrade", value: "30", priority: 20 }
+        { key: "system.attributes.senses.ranges.blindsight", type: "upgrade", value: "30", priority: 20 }
       ]
     })],
     description: `<p>Сила увеличивается на 2, максимум до 22, и вы получаете слепое зрение 30 футов.</p><hr><p><strong>Автоматизация Foundry:</strong> переносимый эффект добавляет Силу и слепое зрение. Если итог превышает 22, ограничьте значение вручную.</p>`
@@ -239,7 +239,7 @@ export const aberrantDocuments = [
       img: "icons/skills/movement/arrow-upward-yellow.webp",
       changes: [
         { key: "system.abilities.dex.value", type: "add", value: "2", priority: 20 },
-        { key: "system.attributes.senses.blindsight", type: "upgrade", value: "30", priority: 20 }
+        { key: "system.attributes.senses.ranges.blindsight", type: "upgrade", value: "30", priority: 20 }
       ]
     })],
     description: `<p>Ловкость увеличивается на 2, максимум до 22, и вы получаете слепое зрение 30 футов.</p><hr><p><strong>Автоматизация Foundry:</strong> переносимый эффект добавляет Ловкость и слепое зрение. Если итог превышает 22, ограничьте значение вручную.</p>`

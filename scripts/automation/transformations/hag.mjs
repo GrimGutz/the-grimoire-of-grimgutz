@@ -13,6 +13,7 @@ import {
   isDuplicateGrant,
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
+import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 const hagStore = transformationState("hagState", "hag-state");
 export const hagState = hagStore.read;
 export const hagRules = actor =>
@@ -83,8 +84,8 @@ export function hagPassiveDefinitions(actor) {
     if (type === "sea")
       changes.push(
         hagChange(
-          "system.attributes.movement.swim",
-          Number(actor.system.attributes.movement.walk ?? 0),
+          effectKey("system.attributes.movement.swim"),
+          Number(movementSpeed(actor, "walk") ?? 0),
           "upgrade",
           "final"
         )

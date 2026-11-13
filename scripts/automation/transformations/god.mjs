@@ -15,6 +15,7 @@ import {
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
 import { feetToSceneUnits } from "../shared/spatial.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 const godStore = transformationState("godState", "god-state");
 export const godState = godStore.read;
 export const godCharacterLevel = characterLevel;
@@ -86,16 +87,16 @@ export function godPassiveDefinitions(actor) {
       changes = [
         godChange("system.traits.dr.value", "all"),
         godChange("system.attributes.hp.bonuses.overall", 10 * n),
-        godChange("system.bonuses.abilities.save", n)
+        godChange(effectKey("system.bonuses.abilities.save"), n)
       ];
     if (actor.system.attributes.death?.bonuses?.save !== undefined)
-      changes.push(godChange("system.attributes.death.bonuses.save", n));
+      changes.push(godChange(effectKey("system.attributes.death.bonuses.save"), n));
     add("apotheosis", changes);
   }
   if (godHas(actor, "demiscience")) {
     const units = actor.system.attributes.senses?.units ?? actor.system.attributes.movement?.units ?? "ft";
     add("demiscience", [
-      godChange("system.attributes.senses.truesight", feetToSceneUnits(120, { grid: { units } }), "upgrade"),
+      godChange(effectKey("system.attributes.senses.truesight"), feetToSceneUnits(120, { grid: { units } }), "upgrade"),
       godChange("system.traits.ci.value", "surprised")
     ]);
   }

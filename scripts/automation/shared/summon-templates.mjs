@@ -1,5 +1,6 @@
 import { abilityMod } from "./dnd5e.mjs";
 import { registerSummonRecipe } from "./summons.mjs";
+import { movementSpeed } from "./system-paths.mjs";
 
 function abilityValues(actor) {
   return Object.fromEntries(
@@ -227,7 +228,7 @@ export function ghostWalkerSpiritSummon(actor, targetActor = null) {
     hp,
     hpFormula: "",
     abilities: targetActor ? abilityValues(targetActor) : { str: 10, dex: 12, con: 10, int: 10, wis: 10, cha: 10 },
-    movement: { walk: Number(targetActor?.system?.attributes?.movement?.walk ?? 30) || 30, fly: 30, hover: true },
+    movement: { walk: Number(movementSpeed(targetActor, "walk") ?? 30) || 30, fly: 30, hover: true },
     senses: { darkvision: 60 },
     dr: { value: ["necrotic"], custom: "дробящий, колющий и рубящий урон от немагического не посеребрённого оружия" },
     dv: { value: ["radiant"], custom: "серебряное или посеребрённое оружие" },

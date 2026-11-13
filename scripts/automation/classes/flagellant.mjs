@@ -20,6 +20,7 @@ import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-reques
 import { serialMutation } from "../shared/transactions.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 export const flagellantLevel = actor => classLevel(actor, "flagellant");
 export const flagellantTotalLevel = actor =>
@@ -103,7 +104,13 @@ export function flagellantTechniqueChanges(actor, state) {
       feet = data.amount * 5,
       amount = units === "m" ? feet * 0.3048 : units === "yd" ? feet / 3 : feet;
     return [
-      { key: "system.attributes.movement.walk", value: String(amount), type: "add", phase: "final", priority: 20 }
+      {
+        key: effectKey("system.attributes.movement.walk"),
+        value: String(amount),
+        type: "add",
+        phase: "final",
+        priority: 20
+      }
     ];
   }
   return [];

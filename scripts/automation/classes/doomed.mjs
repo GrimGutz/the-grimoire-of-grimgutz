@@ -14,6 +14,7 @@ import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/
 import { requestGm, registerGmRequest, isGmAuthority } from "../shared/gm-requests.mjs";
 import { serialMutation } from "../shared/transactions.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 const change = (key, value, type = "add", phase = "initial", priority = 20) => ({
   key,
   value: String(value),
@@ -88,7 +89,7 @@ export function doomedPassiveDefinitions(actor) {
     }
     if (id === "soul")
       for (const ability of ["wis", "cha"])
-        drawback.push(change(`system.abilities.${ability}.bonuses.save`, amp ? -4 : -2));
+        drawback.push(change(effectKey(`system.abilities.${ability}.bonuses.save`), amp ? -4 : -2));
     if (id === "truth") boon.push(change("system.skills.ins.roll.mode", 1, "upgrade", "final"));
     if (id === "luck") drawback.push(change("system.attributes.init.roll.mode", -1, "downgrade", "final"));
     if (id === "mind") drawback.push(change("system.abilities.int.save.roll.mode", -1, "downgrade", "final"));
@@ -97,8 +98,8 @@ export function doomedPassiveDefinitions(actor) {
         step = doomedFeet(amp ? 10 : 5, units),
         minimum = doomedFeet(5, units);
       drawback.push(
-        change("system.attributes.movement.walk", -step, "add", "final"),
-        change("system.attributes.movement.walk", minimum, "upgrade", "final", 21)
+        change(effectKey("system.attributes.movement.walk"), -step, "add", "final"),
+        change(effectKey("system.attributes.movement.walk"), minimum, "upgrade", "final", 21)
       );
     }
     if (id === "flesh") {
@@ -117,7 +118,7 @@ export function doomedPassiveDefinitions(actor) {
         drawback.push(change("system.traits.dv.value", type));
       boon.push(
         change(
-          "system.attributes.movement.fly",
+          effectKey("system.attributes.movement.fly"),
           doomedFeet(amp ? 60 : 30, actor.system.attributes.movement?.units),
           "upgrade",
           "final"
@@ -127,13 +128,13 @@ export function doomedPassiveDefinitions(actor) {
     }
     if (id === "chains" && amp)
       for (const mode of ["walk", "burrow", "climb", "fly", "swim"])
-        drawback.push(change(`system.attributes.movement.${mode}`, 0, "override", "final", 100));
+        drawback.push(change(effectKey(`system.attributes.movement.${mode}`), 0, "override", "final", 100));
     if (id === "buried" && amp)
       for (const status of ["grappled", "restrained"]) boon.push(change("system.traits.ci.value", status));
     if (id === "revelation") {
       boon.push(
         change(
-          "system.attributes.senses.truesight",
+          effectKey("system.attributes.senses.truesight"),
           doomedFeet(60, actor.system.attributes.senses?.units),
           "upgrade",
           "final"

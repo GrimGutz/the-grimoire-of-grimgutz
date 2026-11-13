@@ -26,6 +26,7 @@ import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-reques
 import { serialMutation } from "../shared/transactions.mjs";
 import { temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { combatForScene } from "../shared/combat-benefits.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 export async function rechargeFactoryArc(actor) {
   if (factoryState(actor).arcReady !== false) return false;
@@ -223,7 +224,7 @@ registerGmRequest("factory-action", (actor, data, { requestId }) =>
               flags: { [MODULE_ID]: { factoryAgility: true } },
               system: {
                 changes: ["walk", "fly", "swim", "climb", "burrow"].map(k =>
-                  factoryChange(`system.attributes.movement.${k}`, 2, "multiply", "final", 50)
+                  factoryChange(effectKey(`system.attributes.movement.${k}`), 2, "multiply", "final", 50)
                 )
               }
             }

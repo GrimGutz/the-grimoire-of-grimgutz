@@ -656,12 +656,12 @@ test("advancement rejects missing prerequisite and duplicate boons", () => {
   assert.equal(validateDullahanAdvancement({ actor }, null, [item("sight")], null, []), false);
 });
 test("native passive senses preserve greater values, scale units and sync once", async () => {
-  await actor.update({ "system.attributes.senses.truesight": 150 });
+  await actor.update({ "system.attributes.senses.ranges.truesight": 150 });
   await syncDullahan(actor);
   await syncDullahan(actor);
   assert.equal(actor.system.details.type.value, "undead");
-  assert.equal(actor.system.attributes.senses.truesight, 150);
-  assert.equal(actor.system.attributes.senses.blindsight, 20);
+  assert.equal(actor.system.attributes.senses.ranges.truesight, 150);
+  assert.equal(actor.system.attributes.senses.ranges.blindsight, 20);
   assert.equal(actor.effects.filter(e => e.getFlag(MODULE_ID, "dullahanPassive") === "sight").length, 1);
   await actor.update({ "system.attributes.senses.units": "m" });
   assert.equal(
@@ -1218,7 +1218,7 @@ test("manual passive edits and disabled state survive synchronization", async ()
   await sight.update({
     disabled: true,
     "system.changes": [
-      { key: "system.attributes.senses.truesight", value: "200", type: "upgrade", phase: "initial", priority: 20 }
+      { key: "system.attributes.senses.ranges.truesight", value: "200", type: "upgrade", phase: "initial", priority: 20 }
     ]
   });
   await syncDullahan(actor);
@@ -1231,7 +1231,7 @@ test("a synthetic actor outside the world collection gets actual passive effects
   token(synthetic, "unlinked", 300);
   await syncDullahan(synthetic);
   assert.equal(synthetic.system.details.type.value, "undead");
-  assert.equal(synthetic.system.attributes.senses.truesight, 120);
+  assert.equal(synthetic.system.attributes.senses.ranges.truesight, 120);
   assert.ok(!game.actors.includes(synthetic));
 });
 test("concurrent native interception shares one application and one expense", async () => {

@@ -6,6 +6,7 @@ import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { temporaryEffectTiming, isEffectActive, automationActors } from "../effects/temporary-effects.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";
 import { migrationFingerprint } from "../shared/owned-item-migration.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 export function godGiftFingerprint(item) {
   const d = item.toObject();
   delete d._id;
@@ -137,7 +138,7 @@ export async function activeGodMercies(actor) {
   return result;
 }
 export function godMercyChanges(target, kind) {
-  if (kind === "speed") return [godChange("system.attributes.movement.walk", 2, "multiply", "final")];
+  if (kind === "speed") return [godChange(effectKey("system.attributes.movement.walk"), 2, "multiply", "final")];
   if (kind !== "endurance") return [];
   const prof = Number(target.system.attributes.prof),
     own = [...(target.effects ?? [])]
@@ -147,7 +148,7 @@ export function godMercyChanges(target, kind) {
     const base = Number(target._source?.system?.abilities?.[a]?.proficient ?? 0);
     return [
       godChange(`system.abilities.${a}.proficient`, 1, "upgrade"),
-      ...(base < 2 ? [godChange(`system.abilities.${a}.bonuses.save`, prof)] : [])
+      ...(base < 2 ? [godChange(effectKey(`system.abilities.${a}.bonuses.save`), prof)] : [])
     ];
   });
 }

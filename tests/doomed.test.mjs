@@ -800,7 +800,7 @@ test("grave and flying movement/senses convert feet to metres; story rules creat
   await accept("grave", "bones", "revelation", "mind", "truth");
   const changes = doomedPassiveDefinitions(actor).flatMap(e => e.system.changes);
   assert.ok(changes.some(c => c.key === "system.attributes.movement.fly" && Number(c.value) === 9.144));
-  assert.ok(changes.some(c => c.key === "system.attributes.senses.truesight" && Number(c.value) === 18.288));
+  assert.ok(changes.some(c => c.key === "system.attributes.senses.ranges.truesight" && Number(c.value) === 18.288));
   assert.ok(!changes.some(c => c.key === "system.abilities.wis.save.roll.mode"));
 });
 test("cold aura timing is targetStart only, radius 10/20, suppression and incapacity disable it", async () => {

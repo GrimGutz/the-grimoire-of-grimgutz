@@ -32,6 +32,7 @@ import {
   previewArkaneCircle
 } from "./arkane-use.mjs";
 import { areaPlacementAllowed } from "../shared/area-activities.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 async function roll(formula, actor) {
   const result = await new Roll(formula, actor.getRollData()).evaluate();
   await result.toMessage?.({ speaker: ChatMessage.getSpeaker({ actor }) });
@@ -123,7 +124,7 @@ async function parasite(actor, activity, requestId) {
       changes.push(
         arkaneChange("system.bonuses.spell.dc", 2),
         ...["str", "dex", "con", "int", "wis", "cha"].map(ability =>
-          arkaneChange(`system.abilities.${ability}.bonuses.save`, 2)
+          arkaneChange(effectKey(`system.abilities.${ability}.bonuses.save`), 2)
         )
       );
       const old = [...(actor.effects ?? [])].filter(e => e.getFlag?.(MODULE_ID, "arkaneParasite")),

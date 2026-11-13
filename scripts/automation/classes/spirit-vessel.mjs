@@ -15,6 +15,7 @@ import { choiceDialog } from "../shared/dialogs.mjs";
 import { applyTargetEffect } from "../shared/target-effects.mjs";
 import { isEffectActive, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const spiritVesselSyncs = new Set();
 const spiritVesselPassiveSyncs = new Set();
@@ -276,7 +277,12 @@ function spiritVesselPassiveDefinitions(actor) {
     if (spirit === "celestial") {
       changes.push(
         change("system.attributes.senses.ranges.darkvision", "upgrade", "120", "final"),
-        change("system.attributes.movement.fly", "upgrade", level >= 3 ? "120" : level >= 2 ? "60" : "30", "final")
+        change(
+          effectKey("system.attributes.movement.fly"),
+          "upgrade",
+          level >= 3 ? "120" : level >= 2 ? "60" : "30",
+          "final"
+        )
       );
       if (level >= 2) changes.push(change("system.traits.di.value", "custom", "radiant"));
       if (level >= 3) {
@@ -289,7 +295,7 @@ function spiritVesselPassiveDefinitions(actor) {
     if (spirit === "elemental-earth") {
       if (level >= 2) {
         changes.push(
-          change("system.attributes.movement.burrow", "upgrade", "30", "final"),
+          change(effectKey("system.attributes.movement.burrow"), "upgrade", "30", "final"),
           change("system.attributes.senses.ranges.tremorsense", "upgrade", "15", "final")
         );
       }
@@ -301,7 +307,7 @@ function spiritVesselPassiveDefinitions(actor) {
       }
     }
     if (spirit === "elemental-air") {
-      if (level >= 2) changes.push(change("system.attributes.movement.fly", "upgrade", "30", "final"));
+      if (level >= 2) changes.push(change(effectKey("system.attributes.movement.fly"), "upgrade", "30", "final"));
       if (level >= 3) {
         changes.push(
           change("system.traits.dr.value", "custom", "piercing"),
@@ -310,7 +316,7 @@ function spiritVesselPassiveDefinitions(actor) {
       }
     }
     if (spirit === "elemental-fire") {
-      if (level >= 2) changes.push(change("system.attributes.movement.walk", "add", "15", "final"));
+      if (level >= 2) changes.push(change(effectKey("system.attributes.movement.walk"), "add", "15", "final"));
       if (level >= 3) {
         changes.push(
           change("system.traits.dr.value", "custom", "fire"),
@@ -320,7 +326,9 @@ function spiritVesselPassiveDefinitions(actor) {
     }
     if (spirit === "elemental-water") {
       if (level >= 1)
-        changes.push(change("system.attributes.movement.swim", "upgrade", level >= 2 ? "60" : "30", "final"));
+        changes.push(
+          change(effectKey("system.attributes.movement.swim"), "upgrade", level >= 2 ? "60" : "30", "final")
+        );
       if (level >= 3) {
         changes.push(
           change("system.traits.dr.value", "custom", "slashing"),

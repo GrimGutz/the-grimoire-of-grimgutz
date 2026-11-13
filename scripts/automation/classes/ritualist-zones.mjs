@@ -7,6 +7,7 @@ import { applyNativeOnce, nativeApplicationReply } from "../shared/native-applic
 import { sourceTokenForActor } from "../shared/zones.mjs";
 import { areaPlacementAllowed } from "../shared/area-activities.mjs";
 import { tokenOccupiedPoints, feetToSceneUnits } from "../shared/spatial.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const recipientCache = new WeakMap();
 
@@ -36,7 +37,7 @@ export function protectiveZoneChanges(friendly, actor) {
   return ["walk", "fly", "swim", "burrow", "climb"]
     .filter(mode => Number(actor.system.attributes.movement[mode]) > 0)
     .map(mode => ({
-      key: `system.attributes.movement.${mode}`,
+      key: effectKey(`system.attributes.movement.${mode}`),
       value: "0.5",
       type: "multiply",
       phase: "final",

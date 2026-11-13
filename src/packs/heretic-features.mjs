@@ -107,7 +107,7 @@ const markDefinitions = [
       key: "heretic-sharp-darkvision",
       name: "Острое тёмное зрение",
       img: "icons/magic/perception/eye-ringed-glow-angry-teal.webp",
-      changes: [{ key: "system.attributes.senses.darkvision", type: "add", value: "120", priority: 20 }]
+      changes: [{ key: "system.attributes.senses.ranges.darkvision", type: "add", value: "120", priority: 20 }]
     })],
     body: "<p>Вы видите в темноте и тусклом свете на 120 футов. Если у вас уже есть тёмное зрение, его дистанция прибавляется к этой величине, максимум 300 футов.</p>",
     automation: "переносимый эффект добавляет 120 футов к текущему тёмному зрению. Если итог превышает 300 футов, ограничьте его вручную."
@@ -232,8 +232,8 @@ const distortedDefinitions = [
       name: "Взгляд за грань",
       img: "icons/magic/perception/eye-ringed-glow-angry-teal.webp",
       changes: [
-        { key: "system.attributes.senses.darkvision", type: "upgrade", value: "120", priority: 20 },
-        { key: "system.attributes.senses.blindsight", type: "upgrade", value: "30", priority: 20 }
+        { key: "system.attributes.senses.ranges.darkvision", type: "upgrade", value: "120", priority: 20 },
+        { key: "system.attributes.senses.ranges.blindsight", type: "upgrade", value: "30", priority: 20 }
       ]
     })],
     body: "<p>Вы видите в тусклом свете, обычной и магической темноте на 120 футов и получаете слепое зрение 30 футов.</p>",

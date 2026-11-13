@@ -11,6 +11,7 @@ import {
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 import { createSummonedCreature } from "../shared/summons.mjs";
 import { ghostWalkerSpiritSummon } from "../shared/summon-templates.mjs";
+import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 
 const ghostWalkerSyncs = new Set();
 const ghostWalkerPassiveSyncs = new Set();
@@ -220,7 +221,7 @@ function ghostWalkerPassiveDefinitions(actor) {
   const definitions = [];
 
   const ghostStep = findFeature(actor, "ghost-step");
-  const walk = Number(actor?.system?.attributes?.movement?.walk ?? 0);
+  const walk = Number(movementSpeed(actor, "walk") ?? 0);
   if (ghostStep && Number.isFinite(walk) && walk > 0) {
     definitions.push(
       flaggedPassiveEffectData(MODULE_ID, FLAGS.GHOST_WALKER_PASSIVE, {
@@ -228,7 +229,7 @@ function ghostWalkerPassiveDefinitions(actor) {
         feature: ghostStep,
         changes: [
           {
-            key: "system.attributes.movement.fly",
+            key: effectKey("system.attributes.movement.fly"),
             type: "upgrade",
             value: String(walk),
             phase: "final",

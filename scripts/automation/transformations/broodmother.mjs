@@ -15,6 +15,7 @@ import {
   isDuplicateGrant,
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
+import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 export const broodmotherState = actor => actor?.getFlag?.(MODULE_ID, "broodmotherState") ?? {};
 export const broodmotherCharacterLevel = characterLevel;
 export function broodmotherTransformationLevel(actor) {
@@ -68,8 +69,8 @@ export function broodmotherPassiveDefinitions(actor) {
     add("spider", "spider", [
       broodmotherChange("system.attributes.ac.value", floor, "upgrade", "final", 40),
       broodmotherChange(
-        "system.attributes.movement.climb",
-        Number(actor.system.attributes.movement.walk ?? 0),
+        effectKey("system.attributes.movement.climb"),
+        Number(movementSpeed(actor, "walk") ?? 0),
         "upgrade",
         "final",
         40

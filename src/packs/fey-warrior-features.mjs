@@ -235,7 +235,7 @@ export const feyWarriorDocuments = [
       key: "fey-eyes",
       name: "Кошачье зрение",
       img: `${WOW}/Abilities/CatlikeReflexes.png`,
-      changes: [{ key: "system.attributes.senses.darkvision", type: "upgrade", value: "120", priority: 20 }],
+      changes: [{ key: "system.attributes.senses.ranges.darkvision", type: "upgrade", value: "120", priority: 20 }],
       transfer: false
     })],
     activities: utilityActivity({

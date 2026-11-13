@@ -1,5 +1,6 @@
 import { FLAGS, MODULE_ID, SETTINGS } from "../shared/constants.mjs";
 import { automationData, findFeature, isAutomationAuthority, itemIdentifier, notify } from "../shared/helpers.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 const plagueDoctorSyncs = new Set();
 
@@ -198,7 +199,7 @@ export async function activateDiseaseForm(actor) {
   }
 
   const changes = ["walk", "fly", "climb", "swim", "burrow"].map(mode => ({
-    key: `system.attributes.movement.${mode}`,
+    key: effectKey(`system.attributes.movement.${mode}`),
     type: "override",
     value: "0",
     phase: "final",

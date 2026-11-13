@@ -29,6 +29,7 @@ import { chooseAutomatonEquipment, useAutomatonEquipment } from "./automaton-equ
 import { storeAutomatonSpell, castAutomatonSpell } from "./automaton-battery.mjs";
 import { useAreaActivity } from "../shared/area-activities.mjs";
 import { areaActivityData } from "../shared/area-definitions.mjs";
+import { effectKey } from "../shared/system-paths.mjs";
 
 async function chooseModel(actor, activity, requestId) {
   const model = await askOwner(actor, {
@@ -121,10 +122,10 @@ async function antimagic(actor, activity, operation, requestId) {
         changes = [];
       if (!upgraded) {
         for (const key of ["walk", "fly", "swim", "climb", "burrow"])
-          changes.push(automatonChange(`system.attributes.movement.${key}`, 0.5, "multiply", "final", 50));
+          changes.push(automatonChange(effectKey(`system.attributes.movement.${key}`), 0.5, "multiply", "final", 50));
         changes.push(
           automatonChange("system.attributes.ac.bonus", -2),
-          automatonChange("system.abilities.dex.bonuses.save", -2)
+          automatonChange(effectKey("system.abilities.dex.bonuses.save"), -2)
         );
       }
       await automatonStateEffect(actor, activity.item, "antimagic", {
@@ -324,7 +325,7 @@ registerGmRequest("automaton-action", (actor, data, { requestId }) =>
           else
             await automatonStateEffect(actor, activity.item, "bastion", {
               changes: ["walk", "fly", "swim", "climb", "burrow"].map(k =>
-                automatonChange(`system.attributes.movement.${k}`, 0, "override", "final", 100)
+                automatonChange(effectKey(`system.attributes.movement.${k}`), 0, "override", "final", 100)
               )
             });
           return true;

@@ -15,6 +15,7 @@ import {
   isDuplicateGrant,
   rejectDuplicateBoons
 } from "../shared/transformation-core.mjs";
+import { effectKey, movementSpeed } from "../shared/system-paths.mjs";
 const hdStore = transformationState("halfdragonState", "halfdragon-state");
 export const hdState = hdStore.read;
 export const hdRules = actor => ({
@@ -112,12 +113,17 @@ export function halfdragonPassiveDefinitions(actor) {
       units = actor.system.attributes.senses?.units ?? "ft";
     add("senses", [
       hdChange("system.skills.prc.value", grade, "upgrade"),
-      hdChange("system.attributes.senses.blindsight", feetToSceneUnits(30, { grid: { units } }), "upgrade")
+      hdChange(effectKey("system.attributes.senses.blindsight"), feetToSceneUnits(30, { grid: { units } }), "upgrade")
     ]);
   }
   if (hdHas(actor, "wings") && hdWingGearReady(actor))
     add("wings", [
-      hdChange("system.attributes.movement.fly", Number(actor.system.attributes.movement.walk ?? 0), "upgrade", "final")
+      hdChange(
+        effectKey("system.attributes.movement.fly"),
+        Number(movementSpeed(actor, "walk") ?? 0),
+        "upgrade",
+        "final"
+      )
     ]);
   if (hdHas(actor, "guard") && hdAncestry(actor))
     add("guard", [hdChange("system.traits.di.value", hdAncestry(actor).damageType)]);
