@@ -80,3 +80,11 @@ test("each content validator is registered exactly once", async () => {
   assert.equal(new Set(items).size, items.length);
   assert.equal(new Set(advancements).size, advancements.length);
 });
+
+test("bestiary biographies parse paragraphs even if markdown sources use CRLF", async () => {
+  const { documents } = await import("../src/packs/bestiary.mjs");
+  for (const actor of documents) {
+    const biography = actor.system?.details?.biography?.value ?? "";
+    assert.ok(!biography.includes("\r"), `${actor.name} biography contains a carriage return`);
+  }
+});

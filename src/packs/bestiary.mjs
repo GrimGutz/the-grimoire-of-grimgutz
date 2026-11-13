@@ -9,10 +9,13 @@ const statblocksPath = path.join(root, "Statblocks.md");
 const gutzPath = path.join(root, "Gutz.md");
 const gutzPhaseTwoPath = path.join(root, "Gutz copy.md");
 const divineBattleSpellsPath = path.join(root, "Божественные боевые заклинания 1-6 уровней.md");
-const statblocksText = readFileSync(statblocksPath, "utf8");
-const gutzText = readFileSync(gutzPath, "utf8");
-const gutzPhaseTwoText = readFileSync(gutzPhaseTwoPath, "utf8");
-const divineBattleSpellsText = readFileSync(divineBattleSpellsPath, "utf8");
+// Windows editors may save these sources with CRLF even though git stores LF;
+// the markdown parsing below splits on "\n", so normalize before parsing.
+const readMarkdown = file => readFileSync(file, "utf8").replace(/\r\n?/g, "\n");
+const statblocksText = readMarkdown(statblocksPath);
+const gutzText = readMarkdown(gutzPath);
+const gutzPhaseTwoText = readMarkdown(gutzPhaseTwoPath);
+const divineBattleSpellsText = readMarkdown(divineBattleSpellsPath);
 
 const SOURCE = {
   custom: "Statblocks.md: фантомы и сконструированный голем",
