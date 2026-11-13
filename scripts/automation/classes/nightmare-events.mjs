@@ -25,7 +25,7 @@ import { isGmAuthority, registerGmRequest, requestGm } from "../shared/gm-reques
 import { serialMutation } from "../shared/transactions.mjs";
 import { runAutomationEvent, registerAutomationEvent } from "../shared/event-ledger.mjs";
 import { confirmOwner } from "../shared/owner-prompts.mjs";
-import { automationActors } from "../effects/temporary-effects.mjs";
+import { everyActor } from "../shared/actor-index.mjs";
 
 const gm = actor => ({ uuid: actor.uuid, testUserPermission: user => user.isGM });
 const latent = token =>
@@ -263,7 +263,8 @@ export function seedNightmareFearTracking() {
     frightenedCache.clear();
     fearGame = game;
   }
-  for (const actor of automationActors()) frightenedCache.set(actor.uuid, Boolean(nightmareFrightened(actor)));
+  // Every creature can become frightened near a Nightmare; seeded once, not per event.
+  for (const actor of everyActor()) frightenedCache.set(actor.uuid, Boolean(nightmareFrightened(actor)));
 }
 export async function observeNightmareFrightened(actor) {
   if (!enabled() || !isGmAuthority() || !actor?.uuid) return;
@@ -405,7 +406,7 @@ export function installNightmareHooks() {
   Hooks.on("dnd5e.restCompleted", (actor, result) => report(nightmareRestCompleted(actor, result)));
   Hooks.on("ready", seedNightmareFearTracking);
   Hooks.on("canvasReady", () => {
-    for (const actor of automationActors())
+    for (const actor of everyActor())
       if (!frightenedCache.has(actor.uuid)) frightenedCache.set(actor.uuid, Boolean(nightmareFrightened(actor)));
   });
   Hooks.on("createActor", actor => {

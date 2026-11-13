@@ -8,8 +8,12 @@ import { sourceTokenForActor } from "../shared/zones.mjs";
 import { areaPlacementAllowed } from "../shared/area-activities.mjs";
 import { tokenOccupiedPoints, feetToSceneUnits } from "../shared/spatial.mjs";
 import { effectKey } from "../shared/system-paths.mjs";
+import { automationActors } from "../shared/actor-index.mjs";
 
-const recipientCache = new WeakMap();
+const zoneRecipient = (actor, scene) =>
+  [...(actor.effects ?? [])].some(
+    effect => effect.getFlag?.(MODULE_ID, "protectiveZoneRecipient")?.sceneId === scene.id
+  );
 
 export function protectiveZoneContains(zone, token, scene) {
   if (
@@ -51,17 +55,16 @@ export async function syncProtectiveZones(scene) {
       zone.flags?.[MODULE_ID]?.protectiveZone &&
       Number(zone.flags[MODULE_ID].zoneExpiresAt) > Number(game.time.worldTime)
   );
-  const desired = new Map(),
-    actors = new Map(recipientCache.get(scene) ?? []);
-  if (!recipientCache.has(scene))
-    for (const actor of game.actors ?? [])
-      if (
-        [...(actor.effects ?? [])].some(
-          effect => effect.getFlag?.(MODULE_ID, "protectiveZoneRecipient")?.sceneId === scene.id
-        )
-      )
-        actors.set(actor.uuid, actor);
-  for (const token of scene.tokens ?? []) if (token.actor) actors.set(token.actor.uuid, token.actor);
+  // Current recipients carry a module effect, so the actor index finds them
+  // without reading every token. Scenes with neither zones nor recipients
+  // (almost all of them on any actor update or world-time tick) stop here.
+  const actors = new Map(
+    automationActors()
+      .filter(actor => zoneRecipient(actor, scene))
+      .map(actor => [actor.uuid, actor])
+  );
+  if (!zones.length && !actors.size) return;
+  const desired = new Map();
   for (const zone of zones) {
     const source = await fromUuid(zone.flags[MODULE_ID].protectiveZone.sourceTokenUuid);
     if (!source) continue;
@@ -106,16 +109,6 @@ export async function syncProtectiveZones(scene) {
         system: { changes: protectiveZoneChanges(friendly, actor) }
       }
     ]);
-  recipientCache.set(
-    scene,
-    new Map(
-      [...actors].filter(([, actor]) =>
-        [...(actor.effects ?? [])].some(
-          effect => effect.getFlag?.(MODULE_ID, "protectiveZoneRecipient")?.sceneId === scene.id
-        )
-      )
-    )
-  );
 }
 registerGmRequest("ritualist-protective-zone", async (actor, data, { requestId }) => {
   const zone = await fromUuid(data.zoneUuid),

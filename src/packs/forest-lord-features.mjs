@@ -1,11 +1,4 @@
-import {
-  MODULE_ID,
-  activeEffect,
-  feature,
-  folder,
-  idFor,
-  utilityActivity
-} from "../common.mjs";
+import { activeEffect, feature, folder, idFor, utilityActivity } from "../common.mjs";
 
 const SOURCE = "Престиж-класс: Лесной владыка; Мистический гримуар Jorving, стр. 71–76";
 const WOW = "modules/the-grimoire-of-grimgutz/assets/icons/WoW%20Icon%20Pack";

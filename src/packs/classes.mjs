@@ -1,13 +1,4 @@
-import {
-  baseDocument,
-  hitPointsAdvancement,
-  idFor,
-  itemChoice,
-  itemGrant,
-  sourceData,
-  strengthIncreaseAdvancement,
-  traitAdvancement
-} from "../common.mjs";
+import { baseDocument, hitPointsAdvancement, itemChoice, itemGrant, sourceData, strengthIncreaseAdvancement, traitAdvancement } from "../common.mjs";
 import { deathKnightClassDocuments } from "./death-knight-class.mjs";
 import { aberrantClassDocuments } from "./aberrant-class.mjs";
 import { forestLordClassDocuments } from "./forest-lord-class.mjs";

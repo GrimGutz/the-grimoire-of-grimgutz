@@ -455,6 +455,7 @@ import {
   syncSchoolOfSteel,
   validateSchoolOfSteelAction
 } from "./subclasses/school-of-steel.mjs";
+import { installActorIndexHooks } from "./shared/actor-index.mjs";
 
 export {
   MODULE_ID,
@@ -1169,6 +1170,7 @@ async function migrateOwnedItemsNow(actor) {
   }
 }
 function installHooks() {
+  installActorIndexHooks();
   installSummonSocket();
   installSummonLifecycleHooks();
   installSummonCombatHooks();

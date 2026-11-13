@@ -1,5 +1,6 @@
 import { MODULE_ID } from "../shared/constants.mjs";
 import { combatTurnSnapshot, encounterForActor } from "../shared/combat-flow.mjs";
+import { automationActors } from "../shared/actor-index.mjs";
 
 const TIME_UNITS = new Set(["seconds", "minutes", "hours", "days", "weeks", "months", "years"]);
 let cleanupRunning = null;
@@ -155,18 +156,8 @@ export function isEffectActive(effect) {
   );
 }
 
-/** Include synthetic actors from every scene; the canvas need not be open. */
-export function automationActors() {
-  const actors = new Map();
-  const add = actor => {
-    if (actor?.uuid) actors.set(actor.uuid, actor);
-  };
-  for (const actor of game.actors ?? []) add(actor);
-  for (const scene of game.scenes ?? []) {
-    for (const token of scene.tokens ?? []) add(token.actor);
-  }
-  return [...actors.values()];
-}
+// Actors carrying module data, world and synthetic (see shared/actor-index.mjs).
+export { automationActors };
 
 function expiryEventReached(effect, event, context) {
   const raw = sourceData(effect).duration ?? {};

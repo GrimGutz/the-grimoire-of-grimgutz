@@ -20,11 +20,12 @@ import { serialMutation } from "../shared/transactions.mjs";
 import { onPrepareDamage, onConfirmedDamage } from "../shared/damage-events.mjs";
 import { onPrepareAttack, benefitData, inFeet, canReact, turnKey } from "../shared/combat-benefits.mjs";
 import { encounterForScene, combatTurnSnapshot, isForwardTurn } from "../shared/combat-flow.mjs";
-import { isEffectActive, automationActors } from "../effects/temporary-effects.mjs";
+import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { runAutomationEvent, registerAutomationEvent } from "../shared/event-ledger.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";
 import { confirmOwner, chooseSceneTokens, promptOwner } from "../shared/owner-prompts.mjs";
 import { useAuraPulse } from "../midi/aura-workflow.mjs";
+import { everyActor } from "../shared/actor-index.mjs";
 
 const object = doc => doc.object ?? { actor: doc.actor, document: doc };
 const hpCache = new Map(),
@@ -45,7 +46,8 @@ export function seedFlagellantTracking() {
   liveAccumulated.clear();
   accumulationClaims.clear();
   lossSeen.clear();
-  for (const actor of automationActors()) {
+  // Previous HP of every creature (allies and enemies) for loss events; seeded once.
+  for (const actor of everyActor()) {
     if (actor.system?.attributes?.hp) hpCache.set(actor.uuid, Number(actor.system.attributes.hp.value));
     for (const effect of actor.effects ?? []) trackFlagellantState(effect);
   }
@@ -343,7 +345,7 @@ export function installFlagellantHooks() {
   Hooks.on("ready", seedFlagellantTracking);
   Hooks.on("canvasReady", () => {
     if (isGmAuthority())
-      for (const actor of automationActors())
+      for (const actor of everyActor())
         if (actor.system?.attributes?.hp && !hpCache.has(actor.uuid))
           hpCache.set(actor.uuid, Number(actor.system.attributes.hp.value));
   });

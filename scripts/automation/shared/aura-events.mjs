@@ -1,5 +1,5 @@
 import { MODULE_ID } from "./constants.mjs";
-import { automationActors, isEffectActive } from "../effects/temporary-effects.mjs";
+import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { enabled, findFeature, itemIdentifier, notify, reportFailure } from "./helpers.mjs";
 import { auraFeature } from "./aura-definitions.mjs";
 import { tokensInAuraTemplate } from "./aura-templates.mjs";
@@ -9,6 +9,7 @@ import { choiceDialog } from "./dialogs.mjs";
 import { registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { dispatchAutomationPulse } from "../midi/aura-workflow.mjs";
 import { inspiringTemporaryHp } from "./leader-presence-definitions.mjs";
+import { everyActor } from "./actor-index.mjs";
 
 const flag = (actor, key) => actor?.getFlag?.(MODULE_ID, key) ?? actor?.flags?.[MODULE_ID]?.[key];
 const field = (data, path) =>
@@ -302,7 +303,8 @@ export function installAuraEventHooks(context) {
   const engine = (installedEngine = createAuraEventEngine(context));
   const report = reportFailure("Aura event failed");
   Hooks.once("ready", () => {
-    for (const actor of automationActors()) engine.seed(actor);
+    // Aura deaths concern any creature, so seed health for every actor once.
+    for (const actor of everyActor()) engine.seed(actor);
   });
   Hooks.on("createActor", actor => engine.seed(actor));
   Hooks.on("createToken", token => {
