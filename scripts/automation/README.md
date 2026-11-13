@@ -6,7 +6,8 @@ Current layout:
 
 - `runtime.mjs` — legacy runtime kept as the hook/registry layer while domain code is moved out.
 - `shared/constants.mjs` — shared module id, settings keys, flags and common style constants.
-- `shared/helpers.mjs` — shared document selectors, feature lookup helpers, and notifications.
+- `shared/helpers.mjs` — shared document selectors, feature lookup helpers, notifications, `actorFromEffect` and `reportFailure(label)` for fire-and-forget hook promises.
+- `shared/transformation-core.mjs` — rules shared by every tiered transformation: character level, tier unlock and current tier, flag-backed state with serialized patches, Active Effect change builder, strict-prerequisite gate and advancement duplicate checks. New transformations should build on it instead of copying another transformation's helpers.
 - `shared/selectors.mjs` — class/subclass lookup helpers and level accessors.
 - `shared/dnd5e.mjs` — small dnd5e math helpers such as ability modifiers, size, and clamping.
 - `classes/` — target folder for prestige-class-specific automation.

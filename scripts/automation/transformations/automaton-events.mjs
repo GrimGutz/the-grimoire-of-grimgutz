@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,automationData,automationAction,notify} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,notify,reportFailure} from "../shared/helpers.mjs";
 import {registerGmRequest,requestGm,isGmAuthority} from "../shared/gm-requests.mjs";
 import {applyNativeOnce} from "../shared/native-applications.mjs";
 import {serialMutation} from "../shared/transactions.mjs";
@@ -32,7 +32,7 @@ registerGmRequest("automaton-rest",(actor,data,{requestId})=>serialMutation(`aut
   });
 }));
 export function installAutomatonHooks(){
-  const report=promise=>{if(promise?.catch)void promise.catch(error=>console.error(`${MODULE_ID} | Automaton automation`,error));};
+  const report = reportFailure("Automaton automation");
   const intercept=activity=>{
     if(!enabled()||!activity)return;const flags=automationData(activity);
     if(activity.item?.getFlag?.(MODULE_ID,"automatonBatterySpell")&&!flags.automatonBatteryRelease){notify("Выпускайте это заклинание через карточку Дуговой батареи.","warn");return false;}

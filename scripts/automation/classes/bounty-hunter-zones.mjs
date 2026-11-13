@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,notify,automationData} from "../shared/helpers.mjs";
+import {enabled,notify,automationData,reportFailure} from "../shared/helpers.mjs";
 import {hunterDC,selectedHunterTrophy} from "./bounty-hunter.mjs";
 import {trophyDefinition} from "../shared/bounty-hunter-definitions.mjs";
 import {hunterNativeActivity,useHunterCost} from "./bounty-hunter-cost.mjs";
@@ -113,7 +113,7 @@ export async function useHunterZone(activity) {
 const previousPositions=new Map();
 const rememberPosition=token=>previousPositions.set(token.uuid,{uuid:token.uuid,x:token.x,y:token.y,width:token.width,height:token.height,elevation:token.elevation});
 export function installHunterZoneHooks({pulse=pulseHunterStorm}={}) {
-  const report=promise=>void promise.catch(error=>console.error(`${MODULE_ID} | Hunter zone`,error));
+  const report = reportFailure("Hunter zone");
   const prime=()=>{if(isGmAuthority())for(const scene of game.scenes??[])for(const token of scene.tokens??[])rememberPosition(token);};
   // preUpdate is local to the initiating client. Keep a GM-side baseline so
   // remote player movement is also detected by the broadcast update hook.

@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,automationData,automationAction,findFeature,notify} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,findFeature,notify,reportFailure} from "../shared/helpers.mjs";
 import {flagellantPain,flagellantDie} from "../shared/flagellant-definitions.mjs";
 import {flagellantLevel,flagellantAvailable,flagellantTechniques,flagellantDC,flagellantRestCompleted} from "./flagellant.mjs";
 import {controlFlagellant,activeStates,useFlagellantTechnique,nativeFlagellantHeal,rollFlagellantPain} from "./flagellant-actions.mjs";
@@ -110,7 +110,7 @@ onPrepareAttack(async({actor,attacker,target,data})=>{
 });
 export function applyFlagellantRetributionSave(_target,workflow,details){if(!enabled()||!automationData(workflow?.activity).flagellantRetributionDisadvantage)return;
   details.disadvantage=true;details.modifierTracker?.disadvantage?.add?.(`${MODULE_ID}.flagellant-thirst`,"Воздаяние: Жажда боли");details.tracker?.disadvantage?.add?.(`${MODULE_ID}.flagellant-thirst`,"Воздаяние: Жажда боли");}
-export function installFlagellantHooks(){const report=promise=>{if(promise?.catch)void promise.catch(error=>console.error(`${MODULE_ID} | Flagellant automation`,error));};
+export function installFlagellantHooks(){const report = reportFailure("Flagellant automation");
   const intercept=activity=>{if(!enabled()||automationData(activity).leaderResolved||automationData(activity).auraPulse||automationData(activity).flagellantResolved||automationAction(activity)!=="flagellant-control")return;
     if(!flagellantAvailable(activity.actor,activity.item))return false;report(controlFlagellant(activity.actor,activity));return false;};
   Hooks.on("midi-qol.preTargetingV2",({workflow})=>intercept(workflow?.activity));Hooks.on("dnd5e.preUseActivity",intercept);Hooks.on("midi-qol.preTargetSave",applyFlagellantRetributionSave);

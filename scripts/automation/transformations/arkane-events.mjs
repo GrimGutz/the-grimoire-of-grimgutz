@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {automationData,automationAction,enabled,notify} from "../shared/helpers.mjs";
+import {automationData,automationAction,enabled,notify,reportFailure} from "../shared/helpers.mjs";
 import {arkaneAvailable,arkaneHas,arkaneState} from "./arkane.mjs";
 import {controlArkane} from "./arkane-actions.mjs";
 import {registerGmRequest,requestGm,isGmAuthority} from "../shared/gm-requests.mjs";
@@ -13,7 +13,7 @@ registerGmRequest("arkane-rest",(actor,_data,{requestId})=>serialMutation(`arkan
 }));
 export async function observeArkaneAppearance(actor){if(!enabled()||!isGmAuthority()||!arkaneHas(actor,"appearance")||arkaneState(actor).appearance==="true")return;
   if(actor.statuses?.has("unconscious")||actor.concentration?.effects?.size)await actor.setFlag(MODULE_ID,"arkaneState",{...structuredClone(arkaneState(actor)),appearance:"true"});}
-export function installArkaneHooks(){const report=promise=>{if(promise?.catch)void promise.catch(error=>console.error(`${MODULE_ID} | Arkane automation`,error));};
+export function installArkaneHooks(){const report = reportFailure("Arkane automation");
   const intercept=activity=>{if(!enabled()||automationData(activity).leaderResolved||automationData(activity).auraPulse||automationData(activity).arkaneResolved||automationAction(activity)!=="arkane-control")return;
     if(!arkaneAvailable(activity.actor,activity.item)){notify("Не открыт уровень Присутствия или не получен обязательный бонус.","warn");return false;}report(controlArkane(activity.actor,activity));return false;};
   Hooks.on("midi-qol.preTargetingV2",({workflow})=>intercept(workflow?.activity));Hooks.on("dnd5e.preUseActivity",intercept);

@@ -24,4 +24,4 @@ export const HALFDRAGON_FEATURES=[
   ["descendant","Потомки Богов",4,41,["recover"]],
   ["insatiable","Ненасытная Жадность",4,41,[],true]
 ].map(([id,name,level,page,operations=[],flaw=false])=>({id,key:`halfdragon-${id}`,name,level,page,operations,flaw,img:HALFDRAGON_ICON}));
-export const halfdragonUnlockedTier=n=>Math.max(1,Math.min(4,Math.ceil(Number(n)/5)));
+export {unlockedTier as halfdragonUnlockedTier} from "./transformation-core.mjs";

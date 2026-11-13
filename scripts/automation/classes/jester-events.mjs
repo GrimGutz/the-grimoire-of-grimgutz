@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,findFeature,automationData,automationAction,notify} from "../shared/helpers.mjs";
+import {enabled,findFeature,automationData,automationAction,notify,reportFailure} from "../shared/helpers.mjs";
 import {jesterLevel,jesterAvailable,jesterPoints,changeJesterChaos,jesterRestCompleted} from "./jester.mjs";
 import {jesterMaximum} from "../shared/jester-definitions.mjs";
 import {controlJester,offerJesterMovement,jesterGm} from "./jester-actions.mjs";
@@ -72,7 +72,7 @@ registerGmRequest("jester-initiative-manual",async(actor,data,{requestId})=>{
   return applyNativeOnce(actor,{requestId,action:"jester-initiative",activityUuid:null},async()=>true,async()=>{await grantJesterInitiative(actor,source);return true;});
 });
 export function installJesterHooks(){
-  const report=promise=>void promise.catch(error=>console.error(`${MODULE_ID} | Jester automation`,error));
+  const report = reportFailure("Jester automation");
   const intercept=activity=>{if(!enabled()||automationData(activity).leaderResolved||automationData(activity).auraPulse||automationData(activity).jesterResolved||automationAction(activity)!=="jester-control")return;
     if(!jesterAvailable(activity.actor,activity.item))return false;report(controlJester(activity.actor,activity));return false;};
   Hooks.on("midi-qol.preTargetingV2",({workflow})=>intercept(workflow?.activity));Hooks.on("dnd5e.preUseActivity",intercept);

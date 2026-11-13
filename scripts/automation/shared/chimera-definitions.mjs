@@ -42,5 +42,5 @@ export const CHIMERA_MUTATIONS=[
   ["poison",[[82,91],[84,92],[90,95],[92,96]],"Невосприимчивость к состоянию «отравлен» и сопротивление урону ядом."],
   ["healing",[[92,100],[93,100],[96,100],[97,100]],"Получая хиты от не принадлежащего вам заклинания или способности, получаете дополнительно модификатор Телосложения хитов."]
 ].map(([id,ranges,text],index)=>({id,ranges,text,index}));
-export const chimeraUnlockedTier=n=>Math.max(1,Math.min(4,Math.ceil(Number(n)/5)));
+export {unlockedTier as chimeraUnlockedTier} from "./transformation-core.mjs";
 export function chimeraMutationFor(roll,tier){return CHIMERA_MUTATIONS.find(row=>Number(roll)>=row.ranges[Math.max(1,Math.min(4,tier))-1][0]&&Number(roll)<=row.ranges[Math.max(1,Math.min(4,tier))-1][1])??null;}

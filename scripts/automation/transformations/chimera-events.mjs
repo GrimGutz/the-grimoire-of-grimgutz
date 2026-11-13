@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,automationData,automationAction,notify} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,notify,reportFailure} from "../shared/helpers.mjs";
 import {chimeraAvailable,chimeraHas,chimeraItem,chimeraState,chimeraMutation,chimeraPassiveActive,chimeraAdaptation,chimeraKnowledge} from "./chimera.mjs";
 import {controlChimera} from "./chimera-actions.mjs";
 import {saveChimeraState,rollChimeraMutation,chimeraGm} from "./chimera-choices.mjs";
@@ -76,7 +76,7 @@ export function prepareChimeraPerception(config){const actor=config?.subject;if(
     await actor.rollSkill({...config,advantage:config.advantage||applies,[MODULE_ID]:{...config[MODULE_ID],chimeraPerception:true}});
   })().catch(e=>console.error(`${MODULE_ID} | Chimera perception`,e));return false;
 }
-export function installChimeraHooks(){const report=p=>{if(p?.catch)void p.catch(e=>console.error(`${MODULE_ID} | Chimera automation`,e));};
+export function installChimeraHooks(){const report = reportFailure("Chimera automation");
   const intercept=activity=>{if(!enabled()||!activity)return;const flags=automationData(activity);if(flags.chimeraResolved||flags.auraPulse||flags.leaderResolved||automationAction(activity)!=="chimera-control")return;
     if(!chimeraAvailable(activity.actor,activity.item)){notify("Химера: ступень не открыта, особенность подавлена или срок передачи истёк.","warn");return false;}report(controlChimera(activity.actor,activity));return false;};
   Hooks.on("dnd5e.preUseActivity",intercept);Hooks.on("midi-qol.preTargetingV2",({workflow})=>intercept(workflow?.activity));

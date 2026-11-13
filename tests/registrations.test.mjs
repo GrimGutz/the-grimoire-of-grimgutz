@@ -40,3 +40,22 @@ test("registerAutomation installs the actual Midi callbacks and summon socket", 
   assert.ok(subscriptions.some(([name]) => name === "createToken"));
   assert.ok(subscriptions.some(([name]) => name === "updateCombat"));
 });
+
+test("each content validator is registered exactly once", async () => {
+  const subscriptions = [];
+  globalThis.Hooks = { on: (name, callback) => subscriptions.push([name, callback]), once: () => {} };
+  globalThis.foundry = {applications: {api: {ApplicationV2: class {}}}};
+  globalThis.game = { settings: { register() {}, registerMenu() {} }, socket: { on() {} } };
+  registerAutomation();
+  const hag = await import("../scripts/automation/transformations/hag.mjs");
+  const illithid = await import("../scripts/automation/transformations/illithid.mjs");
+  const master = await import("../scripts/automation/classes/master.mjs");
+  const items = subscriptions.filter(([name]) => name === "preCreateItem").map(([, callback]) => callback);
+  const advancements = subscriptions.filter(([name]) => name === "dnd5e.preAdvancementManagerComplete").map(([, callback]) => callback);
+  assert.equal(items.length, 19, "18 content validators and one prerequisite chain");
+  assert.equal(advancements.length, 13, "12 content validators and one generic advancement validator");
+  for (const validate of [hag.validateHagItem, illithid.validateIllithidItem, master.validateMasterItem]) assert.equal(items.filter(c => c === validate).length, 1);
+  for (const validate of [hag.validateHagAdvancement, illithid.validateIllithidAdvancement, master.validateMasterAdvancement]) assert.equal(advancements.filter(c => c === validate).length, 1);
+  assert.equal(new Set(items).size, items.length);
+  assert.equal(new Set(advancements).size, advancements.length);
+});

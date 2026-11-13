@@ -20,6 +20,6 @@ export const GOD_FEATURES=[
   ["demiscience","Демисциенция",4,17,["foresight"]],
   ["rival","Небесный Соперник",4,17,[],true]
 ].map(([id,name,level,page,operations=[],flaw=false])=>({id,key:`god-${id}`,name,level,page,operations,flaw,img:GOD_ICON}));
-export const godUnlockedTier=n=>Math.max(1,Math.min(4,Math.ceil(Number(n)/5)));
+export {unlockedTier as godUnlockedTier} from "./transformation-core.mjs";
 export const godWrathDice=tier=>4*Number(tier);
 export function godAnnihilationDamage(feet){if(!Number.isFinite(feet)||feet<0||feet>300)return 0;return Math.floor(800/2**Math.max(0,Math.ceil(feet/30)-1));}

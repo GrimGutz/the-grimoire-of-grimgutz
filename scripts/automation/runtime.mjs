@@ -6,16 +6,18 @@ import {
 } from "./shared/constants.mjs";
 import {
   activityActor,
+  actorFromEffect,
   automationAction,
   automationData,
   enabled,
   isAutomationAuthority,
   itemIdentifier,
-  notify
+  notify,
+  reportFailure
 } from "./shared/helpers.mjs";
 import { clamp } from "./shared/dnd5e.mjs";
-import { installTemporaryEffectHooks } from "./effects/temporary-effects.mjs";
-import { automationActors } from "./effects/temporary-effects.mjs";
+import { serialMutation } from "./shared/transactions.mjs";
+import { automationActors, installTemporaryEffectHooks } from "./effects/temporary-effects.mjs";
 import { createActorSynchronizer } from "./shared/actor-sync.mjs";
 import {syncMaster, extendMasterCasting, validateMasterItem, validateMasterAdvancement} from "./classes/master.mjs";
 import {controlMaster, installMasterHooks} from "./classes/master-combat.mjs";
@@ -736,7 +738,14 @@ const COMMON_ACTIVITY_ACTIONS = new Map([
   ["return-crawling-eye", async (actor, activity, context) => returnCrawlingEye(actor)]
 ]);
 
+let actionHandlerRegistry;
+
+/** Action id → handler. Static, so it is built once instead of on every activity use. */
 export function getAutomationActionHandlers() {
+  return actionHandlerRegistry ??= buildAutomationActionHandlers();
+}
+
+function buildAutomationActionHandlers() {
   const registry = new Map(COMMON_ACTIVITY_ACTIONS);
   registry.set("master-control", controlMaster);
   registry.set("bounty-hunter-control",controlHunter);
@@ -777,6 +786,21 @@ async function handleActivityAction(activity, context = {}) {
   return handler(actor, activity, context);
 }
 
+// Action families that share one use validator.
+const WITCH_BLADE_RAGE_ACTIONS = new Set([
+  "use-witch-blade-rage", "activate-witch-hunter-empower", "activate-ethereal-storm",
+  "open-immaterial-whirlwind", "use-witch-blade-seal-evil"
+]);
+const DARK_WARRIOR_ACTIONS = new Set(["apply-black-magic-oil", "drink-dark-warrior-elixir"]);
+const DEVIL_WORSHIPPER_ACTIONS = new Set([
+  "choose-devil-worshipper-ability", "show-dark-luck", "show-empowered-charms", "summon-devil-imp-familiar",
+  "summon-devil-glaive", "roll-devil-glaive-damage", "roll-devil-glaive-grapple-damage", "gain-devil-soul-aura-temp-hp"
+]);
+const NETHERESE_ARCANIST_ACTIONS = new Set([
+  "show-scholar-arcanist", "activate-mini-mythal", "teleport-in-mini-mythal",
+  "overload-mini-mythal", "use-ancient-knowledge", "cast-netherese-great-spell"
+]);
+
 function validateActivityUse(activity) {
   if (!enabled()) return true;
   const actor = activityActor(activity);
@@ -790,11 +814,7 @@ function validateActivityUse(activity) {
     return validateHereticActivityUse(activity);
   }
   if (isTransformationAction(action)) return validateTransformationActivityUse(activity, action);
-  if (action === "use-witch-blade-rage") return validateWitchBladeRageUse(actor, activity);
-  if (action === "activate-witch-hunter-empower") return validateWitchBladeRageUse(actor, activity);
-  if (action === "activate-ethereal-storm") return validateWitchBladeRageUse(actor, activity);
-  if (action === "open-immaterial-whirlwind") return validateWitchBladeRageUse(actor, activity);
-  if (action === "use-witch-blade-seal-evil") return validateWitchBladeRageUse(actor, activity);
+  if (WITCH_BLADE_RAGE_ACTIONS.has(action)) return validateWitchBladeRageUse(actor, activity);
   if (action === "activate-crusader-rage") return validateCrusaderRageUse(actor);
   if (action === "use-crusader-consecration") return validateCrusaderConsecrationUse(actor);
   if (action === "condemn-crusader-target") return validateCrusaderCondemnationUse(actor);
@@ -807,31 +827,9 @@ function validateActivityUse(activity) {
   if (action === "use-onmyoji-ki") return validateOnmyojiKiUse(actor, activity);
   if (action === "summon-onmyoji-shikigami") return validateOnmyojiShikigamiUse(actor);
   if (action === "use-ritualist-ritual-points" || action === "summon-ritualist-spirits") return validateRitualistRitualPointUse(actor, activity);
-  if (["apply-black-magic-oil", "drink-dark-warrior-elixir"].includes(action)) {
-    return validateDarkWarriorActivityUse(actor, activity, action);
-  }
-  if ([
-    "choose-devil-worshipper-ability",
-    "show-dark-luck",
-    "show-empowered-charms",
-    "summon-devil-imp-familiar",
-    "summon-devil-glaive",
-    "roll-devil-glaive-damage",
-    "roll-devil-glaive-grapple-damage",
-    "gain-devil-soul-aura-temp-hp"
-  ].includes(action)) {
-    return validateDevilWorshipperActivityUse(actor, activity, action);
-  }
-  if ([
-    "show-scholar-arcanist",
-    "activate-mini-mythal",
-    "teleport-in-mini-mythal",
-    "overload-mini-mythal",
-    "use-ancient-knowledge",
-    "cast-netherese-great-spell"
-  ].includes(action)) {
-    return validateNethereseArcanistActivityUse(actor, activity, action);
-  }
+  if (DARK_WARRIOR_ACTIONS.has(action)) return validateDarkWarriorActivityUse(actor, activity, action);
+  if (DEVIL_WORSHIPPER_ACTIONS.has(action)) return validateDevilWorshipperActivityUse(actor, activity, action);
+  if (NETHERESE_ARCANIST_ACTIONS.has(action)) return validateNethereseArcanistActivityUse(actor, activity, action);
 
   if (isSchoolOfSteelAction(action)) return validateSchoolOfSteelAction(actor, action);
   if (isSpiritVesselAction(action)) return validateSpiritVesselActivityUse(actor, activity, action);
@@ -1017,38 +1015,76 @@ const validateAdvancement = createAdvancementValidator({
   demonologistPrerequisiteFailures,
   sanguinistPrerequisiteFailures
 });
-function actorFromEffect(effect) {
-  if (effect?.parent instanceof Actor) return effect.parent;
-  if (effect?.parent instanceof Item) return effect.parent.actor;
-  return null;
+
+// Content modules that own their item/advancement validation (newer classes and
+// transformations). Registered as separate hooks in this order.
+const CONTENT_ITEM_VALIDATORS = [
+  validateHunterItem, validateJesterItem, validateFlagellantItem, validateNightmareItem,
+  validateBroodmotherItem, validateChimeraItem, validateDeathknightItem, validateIllithidItem,
+  validateHalfdragonItem, validateHagItem, validateGodItem, validateFactoryItem, validateDullahanItem,
+  validateAutomatonItem, validateArkaneItem, validateEmpathItem, validateDoomedItem, validateMasterItem
+];
+const CONTENT_ADVANCEMENT_VALIDATORS = [
+  validateBroodmotherAdvancement, validateChimeraAdvancement, validateDeathknightAdvancement,
+  validateIllithidAdvancement, validateHalfdragonAdvancement, validateHagAdvancement, validateGodAdvancement,
+  validateFactoryAdvancement, validateDullahanAdvancement, validateAutomatonAdvancement,
+  validateArkaneAdvancement, validateMasterAdvancement
+];
+
+/**
+ * Optional (strict-mode) prerequisite gates evaluated by one preCreateItem hook,
+ * all as `(item, options, userId)`. The first explicit `false` cancels creation.
+ * Classes first, then subclasses, techniques and features — the historical order.
+ */
+function prerequisiteValidatorChain() {
+  const byUser = validate => (item, _options, userId) => validate(item, userId);
+  return [
+    ...[
+      validateCrusherPrerequisites, validateLeaderPrerequisites, validateDeathKnightPrerequisites,
+      validateHereticPrerequisites, validateForestLordPrerequisites, validateAberrantPrerequisites,
+      validateWitchBladePrerequisites, validateJuggernautPrerequisites, validateSoulEaterPrerequisites,
+      validateGuardianPrerequisites, validateCrusaderPrerequisites, validateFeyWarriorPrerequisites,
+      validateGhostWalkerPrerequisites, validateBlinkerPrerequisites, validateFallenPriestPrerequisites,
+      validatePlagueDoctorPrerequisites, validateInsectLordPrerequisites, validateGamblerPrerequisites,
+      validateKeeperPrerequisites, validateBloodMagePrerequisites, validateOnmyojiPrerequisites,
+      validateRitualistPrerequisites, validateDarkWarriorPrerequisites, validateDevilWorshipperPrerequisites,
+      validateNethereseArcanistPrerequisites, validateSpiritVesselPrerequisites, validateOraclePrerequisites,
+      validateDemonologistPrerequisites, validateSanguinistPrerequisites
+    ].map(byUser),
+    validateKeeperSubclassPrerequisites,
+    validateSpiritVesselSubclassPrerequisites,
+    byUser(validateSchoolOfSteelPrerequisites),
+    validateTechniquePrerequisites,
+    validateLeaderFeaturePrerequisites, validateDeathKnightFeaturePrerequisites, validateHereticFeaturePrerequisites,
+    validateForestLordFeaturePrerequisites, validateAberrantFeaturePrerequisites, validateWitchBladeFeaturePrerequisites,
+    validateJuggernautFeaturePrerequisites, validateSoulEaterFeaturePrerequisites, validateGuardianFeaturePrerequisites,
+    validateCrusaderFeaturePrerequisites, validateFeyWarriorFeaturePrerequisites, validateGhostWalkerFeaturePrerequisites,
+    validateBlinkerFeaturePrerequisites, validateFallenPriestFeaturePrerequisites, validatePlagueDoctorFeaturePrerequisites,
+    validateInsectLordFeaturePrerequisites, validateGamblerFeaturePrerequisites, validateKeeperFeaturePrerequisites,
+    validateBloodMageFeaturePrerequisites, validateOnmyojiFeaturePrerequisites, validateRitualistFeaturePrerequisites,
+    validateDarkWarriorFeaturePrerequisites, validateDevilWorshipperFeaturePrerequisites,
+    validateNethereseArcanistFeaturePrerequisites, validateSpiritVesselFeaturePrerequisites,
+    validateOracleFeaturePrerequisites, validateDemonologistFeaturePrerequisites, validateSanguinistFeaturePrerequisites,
+    validateSchoolOfSteelFeaturePrerequisites
+  ];
 }
 
-function scheduleSteelGiantSync(actor) {
-  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  setTimeout(() => {
-    void syncSteelGiant(actor).catch(error => {
-      console.error(`${MODULE_ID} | Steel Giant sync failed`, error);
-    });
-  }, 50);
+/**
+ * Defer `task(actor)` until the triggering document operation settles, on the
+ * automation authority only. Unlike the passive synchronizer these run even
+ * with automation disabled, so they can restore original class data.
+ */
+function deferredAuthorityTask(task, label) {
+  const report = reportFailure(`${label} sync failed`);
+  return actor => {
+    if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
+    setTimeout(() => report(task(actor)), 50);
+  };
 }
 
-function scheduleMysticalPowerSync(actor) {
-  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  setTimeout(() => {
-    void syncMysticalPower(actor).catch(error => {
-      console.error(`${MODULE_ID} | Mystical Power sync failed`, error);
-    });
-  }, 50);
-}
-
-function scheduleNatureMagicSync(actor) {
-  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
-  setTimeout(() => {
-    void syncNatureMagic(actor).catch(error => {
-      console.error(`${MODULE_ID} | Nature Magic sync failed`, error);
-    });
-  }, 50);
-}
+const scheduleSteelGiantSync = deferredAuthorityTask(syncSteelGiant, "Steel Giant");
+const scheduleMysticalPowerSync = deferredAuthorityTask(syncMysticalPower, "Mystical Power");
+const scheduleNatureMagicSync = deferredAuthorityTask(syncNatureMagic, "Nature Magic");
 
 const actorSynchronizer = createActorSynchronizer([
   syncCrusherPassiveEffects, syncLeaderPassiveEffects, syncDeathKnightPassiveEffects,
@@ -1066,8 +1102,26 @@ const actorSynchronizer = createActorSynchronizer([
 ]);
 const schedulePassiveSync = actorSynchronizer.schedule;
 
-export async function migrateOwnedItems(actor) {
-  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
+/** Everything an owned-item change can affect on its actor. */
+function scheduleItemSyncs(actor) {
+  scheduleSteelGiantSync(actor);
+  scheduleMysticalPowerSync(actor);
+  scheduleNatureMagicSync(actor);
+  schedulePassiveSync(actor);
+}
+
+/**
+ * Bring module items owned by `actor` up to date with the compendium.
+ * Serialized per actor: one advancement fires createItem once per granted item,
+ * and parallel runs would plan the same effect creations/deletions from the same
+ * stale snapshot (duplicate-id creates, deletes of already deleted effects).
+ */
+export function migrateOwnedItems(actor) {
+  if (!actor?.isOwner || !isAutomationAuthority(actor)) return Promise.resolve();
+  return serialMutation(`owned-item-migration:${actor.uuid}`, () => migrateOwnedItemsNow(actor));
+}
+
+async function migrateOwnedItemsNow(actor) {
   const sources = await moduleItemSources();
   const updates = [], effectSyncs = [];
   for (const item of actor.items) {
@@ -1114,53 +1168,27 @@ function installHooks() {
   installHunterCombatHooks();
   installHunterZoneHooks();
   installHunterEventHooks();
-  Hooks.on("preCreateItem",validateHunterItem);
   Hooks.on("dnd5e.preUseActivity",validateHunterDisposable);
   installJesterHooks();
-  Hooks.on("preCreateItem",validateJesterItem);
   installFlagellantHooks();
-  Hooks.on("preCreateItem",validateFlagellantItem);
   installDoomedHooks();
   installNightmareHooks();
-  Hooks.on("preCreateItem",validateNightmareItem);
   installEmpathHooks();
   installArkaneHooks();
   installAutomatonHooks();
   installBroodmotherHooks();
-  Hooks.on("preCreateItem",validateBroodmotherItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete",validateBroodmotherAdvancement);
   installChimeraHooks();
-  Hooks.on("preCreateItem",validateChimeraItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete",validateChimeraAdvancement);
   installDeathknightHooks();
-  Hooks.on("preCreateItem",validateDeathknightItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete",validateDeathknightAdvancement);
   installDullahanHooks();
   installFactoryHooks();
   installGodHooks();
   installHagHooks();
   installHalfdragonHooks();
   installIllithidHooks();
-  Hooks.on("preCreateItem",validateIllithidItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete",validateIllithidAdvancement);
-  Hooks.on("preCreateItem",validateHalfdragonItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete",validateHalfdragonAdvancement);
-  Hooks.on("preCreateItem",validateHagItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete",validateHagAdvancement);
-  Hooks.on("preCreateItem",validateGodItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete",validateGodAdvancement);
-  Hooks.on("preCreateItem",validateFactoryItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete",validateFactoryAdvancement);
-  Hooks.on("preCreateItem",validateDullahanItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete",validateDullahanAdvancement);
-  Hooks.on("preCreateItem",validateAutomatonItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete",validateAutomatonAdvancement);
-  Hooks.on("preCreateItem",validateArkaneItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete",validateArkaneAdvancement);
-  Hooks.on("preCreateItem",validateEmpathItem);
-  Hooks.on("preCreateItem",validateDoomedItem);
-  Hooks.on("preCreateItem", validateMasterItem);
-  Hooks.on("dnd5e.preAdvancementManagerComplete", validateMasterAdvancement);
+  // Self-contained content validators. Order only decides which warning wins
+  // when several reject the same document; it matches the historical order.
+  for (const validate of CONTENT_ITEM_VALIDATORS) Hooks.on("preCreateItem", validate);
+  for (const validate of CONTENT_ADVANCEMENT_VALIDATORS) Hooks.on("dnd5e.preAdvancementManagerComplete", validate);
   installRitualistZoneHooks();
   installJuggernautRegenerationHooks();
   installRitualistSpiritHooks();
@@ -1205,97 +1233,26 @@ function installHooks() {
 
   installMidiQolHooks(getMidiHookHandlers());
 
+  const prerequisiteValidators = prerequisiteValidatorChain();
   Hooks.on("preCreateItem", (item, _data, options, userId) => {
     if (!enabled()) return true;
-    if (validateCrusherPrerequisites(item, userId) === false) return false;
-    if (validateLeaderPrerequisites(item, userId) === false) return false;
-    if (validateDeathKnightPrerequisites(item, userId) === false) return false;
-    if (validateHereticPrerequisites(item, userId) === false) return false;
-    if (validateForestLordPrerequisites(item, userId) === false) return false;
-    if (validateAberrantPrerequisites(item, userId) === false) return false;
-    if (validateWitchBladePrerequisites(item, userId) === false) return false;
-    if (validateJuggernautPrerequisites(item, userId) === false) return false;
-    if (validateSoulEaterPrerequisites(item, userId) === false) return false;
-    if (validateGuardianPrerequisites(item, userId) === false) return false;
-    if (validateCrusaderPrerequisites(item, userId) === false) return false;
-    if (validateFeyWarriorPrerequisites(item, userId) === false) return false;
-    if (validateGhostWalkerPrerequisites(item, userId) === false) return false;
-    if (validateBlinkerPrerequisites(item, userId) === false) return false;
-    if (validateFallenPriestPrerequisites(item, userId) === false) return false;
-    if (validatePlagueDoctorPrerequisites(item, userId) === false) return false;
-    if (validateInsectLordPrerequisites(item, userId) === false) return false;
-    if (validateGamblerPrerequisites(item, userId) === false) return false;
-    if (validateKeeperPrerequisites(item, userId) === false) return false;
-    if (validateBloodMagePrerequisites(item, userId) === false) return false;
-    if (validateOnmyojiPrerequisites(item, userId) === false) return false;
-    if (validateRitualistPrerequisites(item, userId) === false) return false;
-    if (validateDarkWarriorPrerequisites(item, userId) === false) return false;
-    if (validateDevilWorshipperPrerequisites(item, userId) === false) return false;
-    if (validateNethereseArcanistPrerequisites(item, userId) === false) return false;
-    if (validateSpiritVesselPrerequisites(item, userId) === false) return false;
-    if (validateOraclePrerequisites(item, userId) === false) return false;
-    if (validateDemonologistPrerequisites(item, userId) === false) return false;
-    if (validateSanguinistPrerequisites(item, userId) === false) return false;
-    if (validateKeeperSubclassPrerequisites(item, options, userId) === false) return false;
-    if (validateSpiritVesselSubclassPrerequisites(item, options, userId) === false) return false;
-    if (validateSchoolOfSteelPrerequisites(item, userId) === false) return false;
-    if (validateTechniquePrerequisites(item, options, userId) === false) return false;
-    if (validateLeaderFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateDeathKnightFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateHereticFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateForestLordFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateAberrantFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateWitchBladeFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateJuggernautFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateSoulEaterFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateGuardianFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateCrusaderFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateFeyWarriorFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateGhostWalkerFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateBlinkerFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateFallenPriestFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validatePlagueDoctorFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateInsectLordFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateGamblerFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateKeeperFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateBloodMageFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateOnmyojiFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateRitualistFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateDarkWarriorFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateDevilWorshipperFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateNethereseArcanistFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateSpiritVesselFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateOracleFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateDemonologistFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateSanguinistFeaturePrerequisites(item, options, userId) === false) return false;
-    if (validateSchoolOfSteelFeaturePrerequisites(item, options, userId) === false) return false;
+    if (prerequisiteValidators.some(validate => validate(item, options, userId) === false)) return false;
     prepareMassiveWeaponProficiency(item);
     return true;
   });
+  const reportMigration = reportFailure("Imported item migration failed");
+  const reportProficiency = reportFailure("Massive weapon proficiency update failed");
   Hooks.on("createItem", item => {
     const actor = item.parent;
     if (!actor) return;
-    if (enabled()) void migrateOwnedItems(actor).catch(error => console.error(`${MODULE_ID} | Imported item migration failed`, error));
+    if (enabled()) reportMigration(migrateOwnedItems(actor));
     if (item.type === "class" && itemIdentifier(item) === "crusher") {
-      if (isAutomationAuthority(actor)) void updateOwnedMassiveWeaponProficiency(actor);
+      if (isAutomationAuthority(actor)) reportProficiency(updateOwnedMassiveWeaponProficiency(actor));
     }
-    scheduleSteelGiantSync(actor);
-    scheduleMysticalPowerSync(actor);
-    scheduleNatureMagicSync(actor);
-    schedulePassiveSync(actor);
+    scheduleItemSyncs(actor);
   });
-  Hooks.on("updateItem", item => {
-    scheduleSteelGiantSync(item.parent);
-    scheduleMysticalPowerSync(item.parent);
-    scheduleNatureMagicSync(item.parent);
-    schedulePassiveSync(item.parent);
-  });
-  Hooks.on("deleteItem", item => {
-    scheduleSteelGiantSync(item.parent);
-    scheduleMysticalPowerSync(item.parent);
-    scheduleNatureMagicSync(item.parent);
-    schedulePassiveSync(item.parent);
-  });
+  Hooks.on("updateItem", item => scheduleItemSyncs(item.parent));
+  Hooks.on("deleteItem", item => scheduleItemSyncs(item.parent));
   Hooks.on("updateActor", actor => schedulePassiveSync(actor));
   Hooks.on("createToken", token => schedulePassiveSync(token.actor));
   Hooks.on("canvasReady", () => {
@@ -1303,32 +1260,33 @@ function installHooks() {
   });
   Hooks.on("createActiveEffect", effect => scheduleSteelGiantSync(actorFromEffect(effect)));
   Hooks.on("updateActiveEffect", effect => scheduleSteelGiantSync(actorFromEffect(effect)));
+  const reportCombat = reportFailure("Combat automation failed");
   Hooks.on("deleteActiveEffect", effect => {
     scheduleSteelGiantSync(actorFromEffect(effect));
-    void clearForestRootStateFromEffect(effect);
+    reportCombat(clearForestRootStateFromEffect(effect));
   });
   Hooks.on("updateCombat", (combat, changes) => {
     if (!enabled() || !isForwardTurn(combat, changes)) return;
     const previousActor = previousCombatActor(combat);
     const currentActor = combat.combatant?.actor;
     if (previousActor) {
-      void endLeaderTurn(previousActor);
-      void endForestTurn(previousActor, combat);
+      reportCombat(endLeaderTurn(previousActor));
+      reportCombat(endForestTurn(previousActor, combat));
     }
     if (currentActor) {
-      void beginLeaderTurn(currentActor);
-      void beginForestTurn(currentActor, combat);
-      void beginSpiritVesselTurn(currentActor);
-      void beginDemonologistTurn(currentActor);
+      reportCombat(beginLeaderTurn(currentActor));
+      reportCombat(beginForestTurn(currentActor, combat));
+      reportCombat(beginSpiritVesselTurn(currentActor));
+      reportCombat(beginDemonologistTurn(currentActor));
     }
   });
   Hooks.on("deleteCombat", combat => {
     if (!enabled()) return;
     for (const combatant of combat.combatants ?? []) {
       if (combatant.actor) {
-        void clearLeaderCombatState(combatant.actor);
-        void clearForestCombatState(combatant.actor);
-        void clearSoulShard(combatant.actor);
+        reportCombat(clearLeaderCombatState(combatant.actor));
+        reportCombat(clearForestCombatState(combatant.actor));
+        reportCombat(clearSoulShard(combatant.actor));
       }
     }
   });

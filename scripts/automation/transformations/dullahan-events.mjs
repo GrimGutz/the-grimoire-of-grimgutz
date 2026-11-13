@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,automationData,automationAction,notify} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,notify,reportFailure} from "../shared/helpers.mjs";
 import {automationActors} from "../effects/temporary-effects.mjs";
 import {isGmAuthority,requestGm} from "../shared/gm-requests.mjs";
 import {dullahanHas,dullahanAvailable,dullahanState,dullahanPactWaives,patchDullahan,syncDullahan} from "./dullahan.mjs";
@@ -17,7 +17,7 @@ export async function noticeDullahanTimers(actor){if(!enabled()||!isGmAuthority(
 export async function endDullahanBurn(effect){if(!enabled()||!isGmAuthority())return;const burn=effect.getFlag?.(MODULE_ID,"dullahanBurn");if(!burn)return;const token=await fromUuid(burn.targetTokenUuid);if(token)await syncDullahanBurnLight(token);
   if(burn.concentrationUuid){const concentration=await fromUuid(burn.concentrationUuid);if(concentration&&![...automationActors()].some(a=>[...(a.effects??[])].some(e=>e.getFlag?.(MODULE_ID,"dullahanBurn")?.concentrationUuid===burn.concentrationUuid)))await concentration.parent.endConcentration(concentration);}
 }
-export function installDullahanHooks(){const report=p=>{if(p?.catch)void p.catch(error=>console.error(`${MODULE_ID} | Dullahan automation`,error));};
+export function installDullahanHooks(){const report = reportFailure("Dullahan automation");
   const intercept=activity=>{if(!enabled()||!activity)return;const f=automationData(activity);if(f.dullahanResolved||f.leaderResolved||f.auraPulse||automationAction(activity)!=="dullahan-control")return;
     if(!dullahanAvailable(activity.actor,activity.item)){notify("Дуллахан: ступень, подавление или требуемый бонус не позволяют применить способность.","warn");return false;}report(controlDullahan(activity.actor,activity));return false;};
   Hooks.on("dnd5e.preUseActivity",intercept);Hooks.on("midi-qol.preTargetingV2",({workflow})=>intercept(workflow?.activity));

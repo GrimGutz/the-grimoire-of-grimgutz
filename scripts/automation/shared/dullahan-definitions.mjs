@@ -20,4 +20,4 @@ export const DULLAHAN_FEATURES=[
   ["mists","Туманы Отчуждения",4,114,["mists","mist-report","end-mists"]],
   ["pawn","Безголовый Пешка",4,114,["pawn","end-pawn"],true]
 ].map(([id,name,level,page,operations=[],flaw=false,requires=null])=>({id,key:`dullahan-${id}`,name,level,page,operations,flaw,requires,img:DULLAHAN_ICON}));
-export const dullahanUnlockedTier=level=>Math.max(1,Math.min(4,Math.ceil(Number(level)/5)));
+export {unlockedTier as dullahanUnlockedTier} from "./transformation-core.mjs";

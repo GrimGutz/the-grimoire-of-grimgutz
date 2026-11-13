@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,automationData,automationAction,findFeature,notify} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,findFeature,notify,reportFailure} from "../shared/helpers.mjs";
 import {isGmAuthority,requestGm,registerGmRequest} from "../shared/gm-requests.mjs";
 import {automationActors} from "../effects/temporary-effects.mjs";
 import {registerAutomationEvent,runAutomationEvent} from "../shared/event-ledger.mjs";
@@ -48,7 +48,7 @@ export async function observeHagBroomDrop(actor,_changes,options){if(!enabled()|
   const record={id:`hag-broom-explosion:${actor.uuid}`,kind:"hag-event",operation:"broom-explosion",name:"Оживлённая Метла: взрыв",sceneId:state.sceneId,sourceActorUuid:owner.uuid,sourceTokenUuid:state.sourceTokenUuid,sourceItemUuid:state.sourceItemUuid,broomTokenUuid,dc:state.dc};return runAutomationEvent(record,()=>runHagRecord(record),{queued:!canvas.ready||canvas.scene?.id!==record.sceneId});
 }
 export async function finishHagRemoveCurse(workflow){if(!enabled()||!isGmAuthority()||workflow?.aborted||workflow.item?.type!=="spell"||workflow.item.system.identifier!=="remove-curse")return;for(const t of workflow.targets??[])await applyNativeOnce(t.actor,{requestId:`hag-remove:${workflow.id}:${t.document?.uuid??t.uuid}`,action:"hag-remove-curse",activityUuid:workflow.activity.uuid},async()=>true,async()=>{await removeHagCurses(t.actor);return true;});}
-export function installHagHooks(){const report=p=>{if(p?.catch)void p.catch(e=>console.error(`${MODULE_ID} | Hag automation`,e));};
+export function installHagHooks(){const report = reportFailure("Hag automation");
   const intercept=activity=>{if(!enabled()||!activity)return;const f=automationData(activity);if(f.hagResolved||f.leaderResolved||f.auraPulse||automationAction(activity)!=="hag-control")return;if(!hagAvailable(activity.actor,activity.item)){notify("Ведьма: не открыта ступень, отсутствует предварительный бонус либо особенность подавлена.","warn");return false;}report(controlHag(activity.actor,activity));return false;};
   Hooks.on("dnd5e.preUseActivity",intercept);Hooks.on("midi-qol.preTargetingV2",({workflow})=>intercept(workflow?.activity));
   Hooks.on("midi-qol.postCheckSaves",async w=>{await finishHagSaves(w);await offerHagJinx(w);});Hooks.on("midi-qol.RollComplete",finishHagRemoveCurse);

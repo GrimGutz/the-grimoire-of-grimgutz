@@ -14,4 +14,4 @@ export const DK_FEATURES=[
   ["outcast","Отверженный",4,107,["exhaustion","declare"],true]
 ].map(([id,name,level,page,operations=[],flaw=false])=>({id,key:`deathknight-${id}`,name,level,page,operations,flaw,img:DK_ICON}));
 export const DK_SPECIALISTS=[ ["artillery","Артиллерист"], ["sapper","Сапёр"], ["warrior","Воин"], ["defender","Защитник"], ["assassin","Убийца"] ].map(([id,name])=>({id,name,key:`deathknight-skeleton-${id}`}));
-export const dkUnlockedTier=n=>Math.max(1,Math.min(4,Math.ceil(Number(n)/5)));
+export {unlockedTier as dkUnlockedTier} from "./transformation-core.mjs";

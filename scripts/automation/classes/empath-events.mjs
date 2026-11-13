@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,automationData,automationAction,notify} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,notify,reportFailure} from "../shared/helpers.mjs";
 import {empathEffects,empathEffectData,empathMask} from "../shared/empath-state.mjs";
 import {empathAvailable} from "../shared/empath-state.mjs";
 import {controlEmpath,empathGm} from "./empath-actions.mjs";
@@ -65,7 +65,7 @@ export async function observeEmpathDamage({actor,amount,event}){if(!enabled()||!
 onConfirmedDamage(observeEmpathDamage);
 onPrepareAttack(async({actor})=>empathEffects(actor).filter(effect=>{const d=empathEffectData(effect);return d.feature==="wave"&&d.mask==="sorrow";}).map(effect=>({kind:"attack-disadvantage",effectUuid:effect.uuid,name:"Волна чувств: Печаль"})));
 export async function removeEmpathConcentration(effect){if(!enabled()||!isGmAuthority())return;for(const actor of automationActors())for(const own of empathEffects(actor))if(empathEffectData(own).concentrationUuid===effect.uuid)await own.delete();}
-export function installEmpathHooks(){const report=promise=>{if(promise?.catch)void promise.catch(error=>console.error(`${MODULE_ID} | Empath automation`,error));};
+export function installEmpathHooks(){const report = reportFailure("Empath automation");
   const intercept=activity=>{if(blockEmpathActivity(activity)===false){notify("Активный эффект Эмпата запрещает это действие.","warn");return false;}
     if(!enabled()||automationData(activity).leaderResolved||automationData(activity).auraPulse||automationData(activity).empathResolved||automationAction(activity)!=="empath-control")return;
     if(!empathAvailable(activity.actor,activity.item))return false;report(controlEmpath(activity.actor,activity));return false;};

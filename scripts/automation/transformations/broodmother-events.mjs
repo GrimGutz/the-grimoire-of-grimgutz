@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,automationData,automationAction,findFeature,notify} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,findFeature,notify,reportFailure} from "../shared/helpers.mjs";
 import {broodmotherState,broodmotherHas,broodmotherAvailable,broodmotherTransformationLevel,broodmotherChange} from "./broodmother.mjs";
 import {controlBroodmother,broodmotherContempt} from "./broodmother-actions.mjs";
 import {prepareBroodmotherSpell,prepareBroodmotherSpellSave,prepareBroodmotherPoisonSave} from "./broodmother-combat.mjs";
@@ -79,7 +79,7 @@ onConfirmedDamage(async({actor,amount,event})=>{
     for(const a of automationActors())for(const e of [...(a.effects??[])])if(e.getFlag?.(MODULE_ID,"broodmotherCondition")?.kind==="rage"&&e.getFlag(MODULE_ID,"broodmotherCondition").killerUuid===target.uuid)await e.delete();
   }
 });
-export function installBroodmotherHooks(){const report=p=>{if(p?.catch)void p.catch(e=>console.error(`${MODULE_ID} | Broodmother automation`,e));};
+export function installBroodmotherHooks(){const report = reportFailure("Broodmother automation");
   const intercept=activity=>{if(!enabled()||!activity)return;const flags=automationData(activity),op=flags.broodmotherOperation;
     if(flags.leaderResolved||flags.auraPulse||flags.broodmotherResolved)return;
     if(broodmotherState(activity.actor).mimicControl&&!["mimic-end","mimic-explode"].includes(op)){notify("Сейчас контролируется мимик: исходное тело не действует. Завершите управление через Мимикрию.","warn");return false;}

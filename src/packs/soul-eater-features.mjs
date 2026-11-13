@@ -69,7 +69,7 @@ export const soulEaterDocuments = [
   soulEaterFeature({
     key: "soul-absorption",
     name: "Поглощение души",
-    img: "icons/magic/unholy/orb-colllecting-energy-green.webp",
+    img: "icons/magic/unholy/orb-collecting-energy-green.webp",
     level: 2,
     description: `
       <p>После того как вы успешно нанесли противнику урон с помощью Разрыва души, вы можете поглотить вырванную энергию без действия и получить преимущество на следующий спасбросок или проверку умения.</p>

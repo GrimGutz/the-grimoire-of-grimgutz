@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,automationData,automationAction,findFeature,notify} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,findFeature,notify,reportFailure} from "../shared/helpers.mjs";
 import {dkHas,dkState,dkPatch,dkTransformationLevel,dkAvailable,dkAnchor} from "./deathknight.mjs";
 import {controlDeathknight} from "./deathknight-actions.mjs";
 import {dkLevelEffects,dkLevelData,addDeathLevels,healDeathLevels,tickDeathLevels,dkCreatureType} from "./deathknight-levels.mjs";
@@ -69,7 +69,7 @@ onPrepareDamage(async({actor,attacker,target,activity,data})=>{
   if(!ally&&!await confirmOwner(dkGm(actor),"Убийца: преимущество","Именно эта атака имеет преимущество? Без преимущества и союзника в 5 футах дополнительные 2к6 не применяются."))return null;
   const roll=await new Roll(`${data.critical?4:2}d6`).evaluate();await roll.toMessage({speaker:ChatMessage.getSpeaker({actor}),flavor:"Скелет-Убийца"});return {bonuses:[{value:Number(roll.total),name:"Убийца: условный дополнительный урон"}]};
 });
-export function installDeathknightHooks(){const report=p=>{if(p?.catch)void p.catch(e=>console.error(`${MODULE_ID} | Death knight transformation`,e));};const intercept=activity=>{
+export function installDeathknightHooks(){const report = reportFailure("Death knight transformation");const intercept=activity=>{
   if(!enabled()||!activity)return;const flags=automationData(activity);if(flags.deathknightResolved||flags.leaderResolved||flags.auraPulse)return;if(automationAction(activity)!=="deathknight-control")return;
   if(!dkAvailable(activity.actor,activity.item)){notify("Трансформация Рыцарь Смерти: не открыта ступень, подавлена особенность или отсутствует Якорь.","warn");return false;}report(controlDeathknight(activity.actor,activity));return false;
   };

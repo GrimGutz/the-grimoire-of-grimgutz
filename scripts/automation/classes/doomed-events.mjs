@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,automationData,automationAction,findFeature,notify} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,findFeature,notify,reportFailure} from "../shared/helpers.mjs";
 import {doomedLevel,doomedState,doomedCurseActive,doomedGiftActive,doomedEmpowered} from "../shared/doomed-state.mjs";
 import {doomedCritical,doomedMaximum} from "../shared/doomed-definitions.mjs";
 import {syncDoomed,doomedAvailable,prepareDoomedRest,doomedRestCompleted} from "./doomed.mjs";
@@ -84,7 +84,7 @@ export function handleDoomedInitiative(message){if(!enabled()||!isGmAuthority()|
 export async function endDoomedInvisibility(workflow){const actor=workflow?.actor,activity=workflow?.activity;if(!enabled()||!isGmAuthority()||workflow.aborted||!actor||!(activity?.type==="attack"||activity?.item?.type==="spell"))return;
   for(const effect of activeBenefits(actor)){const data=benefitData(effect);if(data.kind==="doomed-invisibility"&&!(data.doomedShadow?.empowered&&doomedEmpowered(actor,"shadow")))await effect.delete();}
 }
-export function installDoomedHooks(){const report=promise=>{if(promise?.catch)void promise.catch(error=>console.error(`${MODULE_ID} | Doomed automation`,error));};
+export function installDoomedHooks(){const report = reportFailure("Doomed automation");
   const intercept=activity=>{if(blockDoomedActivity(activity)===false)return false;if(!enabled()||automationData(activity).leaderResolved||automationData(activity).auraPulse||automationAction(activity)!=="doomed-control")return;
     if(!doomedAvailable(activity.actor,activity.item))return false;report(controlDoomed(activity.actor,activity));return false;};
   Hooks.on("midi-qol.preTargetingV2",({workflow})=>intercept(workflow?.activity));Hooks.on("dnd5e.preUseActivity",intercept);

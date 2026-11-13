@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled} from "../shared/helpers.mjs";
+import {enabled,reportFailure} from "../shared/helpers.mjs";
 import {isGmAuthority} from "../shared/gm-requests.mjs";
 import {arkaneHas,arkaneSnapshot} from "./arkane.mjs";
 import {arkaneExpense,arkaneGm,arkanePlaceable,previewArkaneCircle} from "./arkane-use.mjs";
@@ -63,7 +63,7 @@ export async function applyArkaneMovement(token,changes,options){if(!enabled()||
     if(before.turn&&record.input.turn!==before.turn){record.id=record.id.slice(0,-record.input.turn.length)+before.turn;record.input.turn=before.turn;record.input.needsTurnReview=true;}
     await runArkaneStormRecord(record);
   }}
-export function installArkaneStormHooks(){const report=promise=>void promise.catch(error=>console.error(`${MODULE_ID} | Arkane storm`,error));
+export function installArkaneStormHooks(){const report = reportFailure("Arkane storm");
   Hooks.on("preUpdateToken",captureArkaneMovement);
   Hooks.on("updateToken",(token,changes,options)=>report(applyArkaneMovement(token,changes,options)));
   Hooks.on("updateCombat",(combat,changes)=>{if(!enabled()||!isGmAuthority()||!isForwardTurn(combat,changes))return;const snapshot=combatTurnSnapshot(combat),target=snapshot.current.token;if(target?.parent)for(const zone of zones(target.parent)){const record=arkaneStormRecord(zone,target,combat);if(record)report(runArkaneStormRecord(record));}});

@@ -152,6 +152,14 @@ export function activityActor(activity) {
   return activity?.actor ?? activityItem(activity)?.actor;
 }
 
+/** Actor an Active Effect belongs to: its parent Actor, or the Actor owning its parent Item. */
+export function actorFromEffect(effect) {
+  const parent = effect?.parent;
+  if (parent?.documentName === "Actor") return parent;
+  if (parent?.documentName === "Item") return parent.actor ?? null;
+  return null;
+}
+
 export function itemIdentifier(item) {
   return String(item?.system?.identifier ?? "").toLowerCase();
 }
@@ -172,6 +180,17 @@ export function findFeature(actor, key) {
 
 export function notify(message, type = "info") {
   ui.notifications?.[type]?.(message);
+}
+
+/**
+ * Fire-and-forget reporter for hook callbacks: logs a rejected automation
+ * promise under `label` instead of leaving an unhandled rejection. Values that
+ * are not promises are ignored.
+ */
+export function reportFailure(label) {
+  return promise => {
+    if (promise?.catch) void promise.catch(error => console.error(`${MODULE_ID} | ${label}`, error));
+  };
 }
 
 export function isAutomationAuthority(actor) {

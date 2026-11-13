@@ -1,6 +1,6 @@
 import { MODULE_ID } from "./constants.mjs";
 import { automationActors, isEffectActive } from "../effects/temporary-effects.mjs";
-import { enabled, findFeature, itemIdentifier, notify } from "./helpers.mjs";
+import { enabled, findFeature, itemIdentifier, notify, reportFailure } from "./helpers.mjs";
 import { auraFeature } from "./aura-definitions.mjs";
 import { tokensInAuraTemplate } from "./aura-templates.mjs";
 import { feetToSceneUnits, tokenSceneDistance } from "./spatial.mjs";
@@ -184,7 +184,7 @@ export async function handleAuraMeleeAttack(workflow) {
 
 export function installAuraEventHooks(context) {
   const engine = installedEngine = createAuraEventEngine(context);
-  const report = promise => void promise.catch(error => console.error(`${MODULE_ID} | Aura event failed`, error));
+  const report = reportFailure("Aura event failed");
   Hooks.once("ready", () => { for (const actor of automationActors()) engine.seed(actor); });
   Hooks.on("createActor", actor => engine.seed(actor));
   Hooks.on("createToken", token => { if (token.actor) engine.seed(token.actor); });

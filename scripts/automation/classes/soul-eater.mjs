@@ -3,6 +3,7 @@ import {
   automationData,
   findFeature,
   hasFeature,
+  isAutomationAuthority,
   itemIdentifier,
   notify
 } from "../shared/helpers.mjs";
@@ -106,7 +107,10 @@ export async function activateSoulShard(actor) {
   return true;
 }
 
+// deleteCombat fires on every client: only the automation authority may delete,
+// otherwise the GM and the owning player both try and the second delete fails.
 export async function clearSoulShard(actor) {
+  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
   const effect = soulShardEffect(actor);
-  if (effect && actor?.isOwner) await effect.delete();
+  if (effect) await effect.delete();
 }

@@ -21,4 +21,4 @@ export const ILLITHID_FEATURES=[
   ["melody","Телекинетическая Мелодия",4,8,["melody","release"]],
   ["call","Зов Старшего",4,8,["call"],true]
 ].map(([id,name,level,page,operations=[],flaw=false,requires=null])=>({id,key:`illithid-${id}`,name,level,page,operations,flaw,requires,img:ILLITHID_ICON}));
-export const illithidUnlockedTier=n=>Math.max(1,Math.min(4,Math.ceil(Number(n)/5)));
+export {unlockedTier as illithidUnlockedTier} from "./transformation-core.mjs";

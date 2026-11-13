@@ -1,16 +1,17 @@
-import {MODULE_ID,SETTINGS} from "../shared/constants.mjs";
+import {MODULE_ID} from "../shared/constants.mjs";
 import {enabled,automationData,findFeature,isAutomationAuthority,notify} from "../shared/helpers.mjs";
-import {ILLITHID_FEATURES,ILLITHID_RULE_DEFAULTS,ILLITHID_ABILITIES,illithidUnlockedTier} from "../shared/illithid-definitions.mjs";
+import {ILLITHID_FEATURES,ILLITHID_RULE_DEFAULTS,ILLITHID_ABILITIES} from "../shared/illithid-definitions.mjs";
 import {baseAbilityValue} from "../shared/dnd5e.mjs";
 import {flaggedPassiveEffectData,syncFlaggedPassiveEffects} from "../effects/passive-helpers.mjs";
 import {isEffectActive} from "../effects/temporary-effects.mjs";
-import {serialMutation} from "../shared/transactions.mjs";
-export const ilState=a=>a?.getFlag?.(MODULE_ID,"illithidState")??{};
-export const ilPatch=(a,p)=>serialMutation(`illithid-state:${a.uuid}`,()=>a.setFlag(MODULE_ID,"illithidState",{...structuredClone(ilState(a)),...p}));
+import {characterLevel,transformationTier,transformationState,effectChange,enforcesTransformationPrerequisites,advancementSurvivors,isDuplicateGrant,rejectDuplicateBoons} from "../shared/transformation-core.mjs";
+const ilStore=transformationState("illithidState","illithid-state");
+export const ilState=ilStore.read;
+export const ilPatch=ilStore.patch;
 export const ilRules=a=>Object.fromEntries(Object.entries(ILLITHID_RULE_DEFAULTS).map(([k,v])=>[k,ilState(a)[k]??v]));
-export const ilCharLevel=a=>[...(a?.items??[])].filter(i=>i.type==="class").reduce((n,i)=>n+Number(i.system.levels??0),0);
-export function ilLevel(a){const max=Math.max(0,...[...(a?.items??[])].filter(i=>automationData(i).transformation==="illithid").map(i=>Number(automationData(i).transformationLevel??(i.system?.identifier==="illithid-transformation"?1:0)))),n=ilCharLevel(a);return Math.min(max,n?illithidUnlockedTier(n):4);}
-export const ilCanCast=a=>ilState(a).spellcastingConfirmed===true||[...(a?.items??[])].some(i=>i.type==="spell"||i.type==="class"&&i.system?.spellcasting?.progression&&i.system.spellcasting.progression!=="none");
+export const ilCharLevel=characterLevel;
+export const ilLevel=a=>transformationTier(a,"illithid");
+export const ilCanCast=(a,items=a?.items??[])=>ilState(a).spellcastingConfirmed===true||[...items].some(i=>i.type==="spell"||i.type==="class"&&i.system?.spellcasting?.progression&&i.system.spellcasting.progression!=="none");
 export function ilHas(a,id){const r=ILLITHID_FEATURES.find(r=>r.id===id),i=r&&findFeature(a,r.key);return Boolean(i&&!i.isSuppressed&&ilLevel(a)>=r.level&&(!r.requires||(id==="spellcasting"?ilCanCast(a):ilHas(a,r.requires))));}
 export const ilDC=a=>8+Number(a?.system?.attributes?.prof??0)+Number(a?.system?.abilities?.int?.mod??0);
 export const ilAvailable=(a,i)=>!i?.isSuppressed&&(i?.system?.identifier==="illithid-transformation"?ilLevel(a)>0:ILLITHID_FEATURES.some(r=>r.key===i?.system?.identifier&&ilHas(a,r.id)));
@@ -32,6 +33,6 @@ export async function syncIllithid(a){if(!enabled()||!isAutomationAuthority(a)||
   await syncFlaggedPassiveEffects(a,syncing,MODULE_ID,"illithidPassive",illithidPassiveDefinitions);
   if(ilHas(a,"appearance")&&(a.statuses?.has?.("unconscious")||a.concentration?.effects?.size)&&ilState(a).appearance!=="true")await ilPatch(a,{appearance:"true"});
 }
-export function validateIllithidItem(i,_d,_o,userId){if(userId!==game.user.id||!enabled()||!game.settings.get(MODULE_ID,SETTINGS.STRICT_PREREQUISITES)||i.system?.identifier!=="illithid-transformation"||!i.parent)return;if(ilCharLevel(i.parent)<10||baseAbilityValue(i.parent,"int")<15){notify("Иллитид: требуется Интеллект 15 и 10-й уровень персонажа.","warn");return false;}}
-export function validateIllithidAdvancement(manager,_u,toCreate,_up,toDelete){if(!enabled())return;const removed=new Set(toDelete),owned=[...(manager.actor.items??[])].filter(i=>!removed.has(i.id)),all=[...owned,...toCreate];for(const d of toCreate){const f=automationData(d);if(!f.illithidBoon)continue;if(owned.some(i=>i.system?.identifier===d.system?.identifier)||toCreate.filter(i=>i.system?.identifier===d.system?.identifier).length>1){notify(`«${d.name}» уже получено.`,"warn");return false;}if(d.system.identifier==="illithid-supreme"&&!all.some(i=>i.system?.identifier==="illithid-spellcasting")){notify("Высшая Псионика требует Псионического Колдовства.","warn");return false;}if(d.system.identifier==="illithid-spellcasting"&&!ilCanCast({...manager.actor,items:all})){notify("Псионическое Колдовство требует способности накладывать заклинания; нестандартный источник подтверждает GM.","warn");return false;}}}
+export function validateIllithidItem(i,_d,_o,userId){if(!enforcesTransformationPrerequisites(i,userId,"illithid-transformation"))return;if(ilCharLevel(i.parent)<10||baseAbilityValue(i.parent,"int")<15){notify("Иллитид: требуется Интеллект 15 и 10-й уровень персонажа.","warn");return false;}}
+export function validateIllithidAdvancement(manager,_u,toCreate,_up,toDelete){if(!enabled())return;const owned=advancementSurvivors(manager,toDelete),all=[...owned,...toCreate];for(const d of toCreate){const f=automationData(d);if(!f.illithidBoon)continue;if(isDuplicateGrant(d,owned,toCreate)){notify(`«${d.name}» уже получено.`,"warn");return false;}if(d.system.identifier==="illithid-supreme"&&!all.some(i=>i.system?.identifier==="illithid-spellcasting")){notify("Высшая Псионика требует Псионического Колдовства.","warn");return false;}if(d.system.identifier==="illithid-spellcasting"&&!ilCanCast(manager.actor,all)){notify("Псионическое Колдовство требует способности накладывать заклинания; нестандартный источник подтверждает GM.","warn");return false;}}}
 export const inspectIllithid=a=>({level:ilLevel(a),dc:ilLevel(a)?ilDC(a):null,additionalType:ilHas(a,"form")?"aberration":null,telepathy:ilHas(a,"mind")?{feet:120,minimumIntelligence:7}:null,hungerDays:ilHungerDays(a),hungerDeathDue:ilHungerDays(a)>0&&ILLITHID_ABILITIES.some(k=>Number(a.system.abilities[k].value)<=0),refugeActive:Boolean(ilRefuge(a)),rules:ilRules(a),state:structuredClone(ilState(a)),unavailable:ILLITHID_FEATURES.filter(r=>findFeature(a,r.key)&&!ilHas(a,r.id)).map(r=>r.id)});

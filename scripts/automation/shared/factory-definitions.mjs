@@ -9,4 +9,4 @@ export const FACTORY_FEATURES=[
   ["deus","Deus Ex Machanicus",4,36],["immortal","Машина бессмертна!",4,37,["transfer","restore-body"],false,"modified"],["perfection","Воплощение совершенства",4,37],["ascension","Вознесение Омниссии",4,37,["ascend","end-ascension","lightning-bolt","dominate-construct"]],["withdrawal","Абстиненция",4,38,[],true]
 ].map(([id,name,level,page,operations=[],flaw=false,requires=null])=>({id,key:`factory-${id}`,name,level,page,operations,flaw,requires,img:FACTORY_ICON}));
 export const FACTORY_MATERIALS={clay:"Глина",wood:"Дерево",flesh:"Плоть",stone:"Камень",iron:"Железо",crystal:"Кристалл",adamantine:"Адамантин",mithral:"Мифрил"};
-export const factoryUnlockedTier=n=>Math.max(1,Math.min(4,Math.ceil(Number(n)/5)));
+export {unlockedTier as factoryUnlockedTier} from "./transformation-core.mjs";

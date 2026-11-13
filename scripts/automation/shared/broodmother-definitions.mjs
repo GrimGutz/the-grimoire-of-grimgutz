@@ -20,4 +20,4 @@ export const BROODMOTHER_FEATURES=[
   ["toxicologist","Токсиколог",4,82,acid,[],false,"quill"],
   ["contempt","Материнское презрение",4,82,BROODMOTHER_ICON,["contempt"],true]
 ].map(([id,name,level,page,img,operations=[],flaw=false,requires=null])=>({id,key:`broodmother-${id}`,name,level,page,img,operations,flaw,requires}));
-export const broodmotherUnlockedTier=level=>Math.max(1,Math.min(4,Math.ceil(Number(level)/5)));
+export {unlockedTier as broodmotherUnlockedTier} from "./transformation-core.mjs";

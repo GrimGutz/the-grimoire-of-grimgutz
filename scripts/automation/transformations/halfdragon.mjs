@@ -1,23 +1,24 @@
-import {MODULE_ID,SETTINGS} from "../shared/constants.mjs";
+import {MODULE_ID} from "../shared/constants.mjs";
 import {enabled,automationData,findFeature,isAutomationAuthority,notify} from "../shared/helpers.mjs";
 import {baseAbilityValue} from "../shared/dnd5e.mjs";
-import {HALFDRAGON_FEATURES,HALFDRAGON_ANCESTRIES,halfdragonUnlockedTier} from "../shared/halfdragon-definitions.mjs";
+import {HALFDRAGON_FEATURES,HALFDRAGON_ANCESTRIES} from "../shared/halfdragon-definitions.mjs";
 import {flaggedPassiveEffectData,syncFlaggedPassiveEffects} from "../effects/passive-helpers.mjs";
 import {isEffectActive} from "../effects/temporary-effects.mjs";
 import {feetToSceneUnits} from "../shared/spatial.mjs";
-import {serialMutation} from "../shared/transactions.mjs";
-export const hdState=actor=>actor?.getFlag?.(MODULE_ID,"halfdragonState")??{};
+import {characterLevel,transformationTier,transformationState,effectChange,enforcesTransformationPrerequisites,advancementSurvivors,isDuplicateGrant,rejectDuplicateBoons} from "../shared/transformation-core.mjs";
+const hdStore=transformationState("halfdragonState","halfdragon-state");
+export const hdState=hdStore.read;
 export const hdRules=actor=>({breathRecovery:"sr",roarRecovery:"sr",livingHpMode:"roll",graspSeconds:60,...hdState(actor)});
-export const hdPatch=(actor,patch)=>serialMutation(`halfdragon-state:${actor.uuid}`,()=>actor.setFlag(MODULE_ID,"halfdragonState",{...structuredClone(hdState(actor)),...patch}));
-export const hdCharLevel=actor=>[...(actor?.items??[])].filter(i=>i.type==="class").reduce((n,i)=>n+Number(i.system.levels??0),0);
-export function hdLevel(actor){const max=Math.max(0,...[...(actor?.items??[])].filter(i=>automationData(i).transformation==="halfdragon").map(i=>Number(automationData(i).transformationLevel??(i.system?.identifier==="halfdragon-transformation"?1:0)))),level=hdCharLevel(actor);return Math.min(max,level?halfdragonUnlockedTier(level):4);}
+export const hdPatch=hdStore.patch;
+export const hdCharLevel=characterLevel;
+export const hdLevel=actor=>transformationTier(actor,"halfdragon");
 export const hdHas=(actor,id)=>{const r=HALFDRAGON_FEATURES.find(r=>r.id===id),i=r&&findFeature(actor,r.key);return Boolean(i&&!i.isSuppressed&&hdLevel(actor)>=r.level);};
 export const hdAncestry=actor=>HALFDRAGON_ANCESTRIES.find(r=>r.id===hdState(actor).ancestry)??null;
 export const hdDC=actor=>8+Number(actor?.system?.attributes?.prof??0)+Number(actor?.system?.abilities?.con?.mod??0);
 export const hdPool=actor=>findFeature(actor,"halfdragon-breath");
 export const hdPoolMaximum=actor=>hdCharLevel(actor)+(hdHas(actor,"empowered")?hdLevel(actor):0);
 export const hdAvailable=(actor,item)=>!item?.isSuppressed&&(item?.system?.identifier==="halfdragon-transformation"?hdLevel(actor)>0:HALFDRAGON_FEATURES.some(r=>r.key===item?.system?.identifier&&hdHas(actor,r.id)));
-export const hdChange=(key,value,type="add",phase="initial")=>({key,value:String(value),type,phase,priority:20});
+export const hdChange=effectChange;
 export const hdArmorType=item=>item.system?.type?.value??item.system?.armor?.type??"";
 export const hdWorn=actor=>[...(actor?.items??[])].filter(i=>i.type==="equipment"&&i.system?.equipped);
 export const hdArmored=actor=>hdWorn(actor).some(i=>["light","medium","heavy"].includes(hdArmorType(i)));
@@ -40,6 +41,6 @@ export async function syncHalfdragon(actor){if(!enabled()||!isAutomationAuthorit
   const pool=hdPool(actor);if(pool){const current=Number(pool.system.uses.max),old=pool.getFlag?.(MODULE_ID,"halfdragonManagedMaximum")??1,next=hdPoolMaximum(actor);if(current===old&&current!==next)await pool.update({"system.uses.max":String(next),[`flags.${MODULE_ID}.halfdragonManagedMaximum`]:next});}
   if(hdHas(actor,"appearance")&&(actor.statuses?.has?.("unconscious")||actor.concentration?.effects?.size)&&hdState(actor).appearance!=="true")await hdPatch(actor,{appearance:"true"});
 }
-export function validateHalfdragonItem(item,_data,_options,userId){if(userId!==game.user.id||!enabled()||!game.settings.get(MODULE_ID,SETTINGS.STRICT_PREREQUISITES)||item.system?.identifier!=="halfdragon-transformation"||!item.parent)return;if(hdCharLevel(item.parent)<13||baseAbilityValue(item.parent,"con")<16){notify("Дракон: требуется 13-й уровень персонажа и Телосложение16.","warn");return false;}}
-export function validateHalfdragonAdvancement(manager,_updates,toCreate,_toUpdate,toDelete){if(!enabled())return;const deleted=new Set(toDelete),owned=[...(manager.actor.items??[])].filter(i=>!deleted.has(i.id));for(const d of toCreate)if(automationData(d).halfdragonBoon&&(owned.some(i=>i.system?.identifier===d.system?.identifier)||toCreate.filter(i=>i.system?.identifier===d.system?.identifier).length>1)){notify(`«${d.name}» уже получено.`,"warn");return false;}}
+export function validateHalfdragonItem(item,_data,_options,userId){if(!enforcesTransformationPrerequisites(item,userId,"halfdragon-transformation"))return;if(hdCharLevel(item.parent)<13||baseAbilityValue(item.parent,"con")<16){notify("Дракон: требуется 13-й уровень персонажа и Телосложение 16.","warn");return false;}}
+export function validateHalfdragonAdvancement(manager,_updates,toCreate,_toUpdate,toDelete){if(!enabled())return;return rejectDuplicateBoons(manager,toCreate,toDelete,d=>automationData(d).halfdragonBoon);}
 export const inspectHalfdragon=actor=>({level:hdLevel(actor),dc:hdLevel(actor)?hdDC(actor):null,ancestry:hdAncestry(actor),additionalType:hdHas(actor,"form")?"dragon":null,poolMaximum:hdPoolMaximum(actor),guardActive:hdGuardActive(actor),wingGearReady:hdWingGearReady(actor),rules:hdRules(actor),state:structuredClone(hdState(actor)),unavailable:HALFDRAGON_FEATURES.filter(r=>findFeature(actor,r.key)&&!hdHas(actor,r.id)).map(r=>r.id)});

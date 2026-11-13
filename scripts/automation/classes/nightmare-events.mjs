@@ -1,7 +1,7 @@
 import {MODULE_ID} from "../shared/constants.mjs";
 import {NIGHTMARE_FEARS,nightmareMaximumHP} from "../shared/nightmare-definitions.mjs";
 import {nightmareLevel,nightmareFears,nightmareFearData,nightmareFrightened,nightmarePool,nightmarePoints,nightmareResourceState} from "../shared/nightmare-state.mjs";
-import {enabled,automationData,automationAction} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,reportFailure} from "../shared/helpers.mjs";
 import {nightmareAvailable,changeNightmarePoints,nightmareRestCompleted} from "./nightmare.mjs";
 import {controlNightmare} from "./nightmare-actions.mjs";
 import {triggerNightmareFear,nightmareTargetEpoch} from "./nightmare-fears.mjs";
@@ -100,7 +100,7 @@ export function applyNightmareHealingBan(actor,_amount,updates){if(enabled()&&ni
 export async function endNightmareBlindSpot(workflow){if(!enabled()||!isGmAuthority()||workflow?.aborted||!(workflow?.activity?.type==="attack"||workflow?.activity?.item?.type==="spell")||automationData(workflow.activity).auraPulse)return;
   for(const effect of [...(workflow.actor?.concentration?.effects??[])])if(effect.getFlag?.(MODULE_ID,"nightmareBlindSpot"))await workflow.actor.endConcentration(effect);}
 onPrepareAttack(async({target,activity})=>activity.attack?.type?.value==="ranged"?nightmareFears(target.actor).filter(effect=>nightmareFearData(effect).manifested&&nightmareFearData(effect).fear==="hoplo").map(effect=>({kind:"attack-advantage",effectUuid:effect.uuid,name:"Гоплофобия"})):[]);
-export function installNightmareHooks(){const report=promise=>{if(promise?.catch)void promise.catch(error=>console.error(`${MODULE_ID} | Nightmare automation`,error));};
+export function installNightmareHooks(){const report = reportFailure("Nightmare automation");
   const intercept=activity=>{if(blockNightmareActivity(activity)===false)return false;if(!enabled()||automationData(activity).leaderResolved||automationData(activity).auraPulse)return;
     const action=automationAction(activity);if(action==="nightmare-summon-control"){report(controlNightmareSummon(activity.actor,activity));return false;}
     if(action!=="nightmare-control")return;if(!nightmareAvailable(activity.actor,activity.item))return false;report(controlNightmare(activity.actor,activity));return false;};

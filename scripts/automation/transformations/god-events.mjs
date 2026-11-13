@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,automationData,automationAction,findFeature,notify} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,findFeature,notify,reportFailure} from "../shared/helpers.mjs";
 import {godHas,godFunctional,godState,patchGod,godAvailable,godDC,godDomain,godAlignment,syncGod} from "./god.mjs";
 import {godGm,godPulse,applyGodHealing} from "./god-use.mjs";
 import {godDawn,godRecover} from "./god-choices.mjs";
@@ -50,7 +50,7 @@ registerGmRequest("god-recover",async(actor,_data,{requestId})=>{if(!enabled()||
 });
 export function observeGodHp(actor,_changes,options){if(enabled()&&isGmAuthority()&&options?.[MODULE_ID]?.godDropId&&Number(actor.system.attributes.hp.value)===0)return requestGm("god-recover",actor,{}, {requestId:`god-drop:${actor.uuid}:${options[MODULE_ID].godDropId}`,timeoutMs:180000});}
 export async function refreshGodMercyRecipient(actor){if(!enabled()||!isGmAuthority())return;const sources=new Set([...(actor?.effects??[])].map(e=>e.getFlag?.(MODULE_ID,"godMercy")?.sourceActorUuid).filter(Boolean));if(godState(actor).mercies)sources.add(actor.uuid);for(const uuid of sources){const source=await fromUuid(uuid);if(source)await syncGodMercies(source);}}
-export function installGodHooks(){const report=p=>{if(p?.catch)void p.catch(e=>console.error(`${MODULE_ID} | God automation`,e));};
+export function installGodHooks(){const report = reportFailure("God automation");
   const intercept=activity=>{if(!enabled()||!activity)return;const f=automationData(activity);if(f.godResolved||f.leaderResolved||f.auraPulse||automationAction(activity)!=="god-control")return;if(!godAvailable(activity.actor,activity.item)){notify("Божество: недоступная ступень, подавление либо апатия.","warn");return false;}report(controlGod(activity.actor,activity));return false;};
   Hooks.on("dnd5e.preUseActivity",intercept);Hooks.on("midi-qol.preTargetingV2",({workflow})=>intercept(workflow?.activity));Hooks.on("midi-qol.postCheckSaves",finishGodSaves);Hooks.on("midi-qol.prePreambleComplete",prepareGodCounter);Hooks.on("midi-qol.prePreambleComplete",blockGodResurrection);
   Hooks.on("updateCombat",(c,changes)=>report(handleGodTurn(c,changes)));Hooks.on("preUpdateActor",captureGodHp);Hooks.on("updateActor",(a,c,o)=>{report(observeGodHp(a,c,o));if(enabled()&&isGmAuthority()&&godState(a).mercies)report(syncGodMercies(a));});

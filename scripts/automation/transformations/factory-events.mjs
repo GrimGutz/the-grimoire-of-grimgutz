@@ -1,5 +1,5 @@
 import {MODULE_ID} from "../shared/constants.mjs";
-import {enabled,automationData,automationAction,findFeature,notify} from "../shared/helpers.mjs";
+import {enabled,automationData,automationAction,findFeature,notify,reportFailure} from "../shared/helpers.mjs";
 import {factoryState,patchFactory,factoryRecords,factoryContext,factoryHas,factoryAddicted,factoryAvailable,factoryRegeneration,factoryAugment,factoryAscended} from "./factory.mjs";
 import {syncFactory} from "./factory-passives.mjs";
 import {controlFactory,rechargeFactoryArc} from "./factory-actions.mjs";
@@ -67,7 +67,7 @@ export async function factoryDamageEvent({actor,amount,event}){if(!enabled()||!i
   if(child?.material==="crystal"&&types.length===1&&types[0]==="radiant")await applyNativeOnce(actor,{requestId:`factory-crystal:${event.workflowId}:${target.uuid}`,action:"factory-crystal",activityUuid:event.activityUuid},async()=>true,async()=>{const targets=[...(target.parent.tokens??[])].filter(t=>t.actor&&t.uuid!==target.uuid&&inFeet(target,t,20,target.parent));if(!targets.length)return true;return factoryPulse(target,actor.items.find(i=>i.getFlag?.(MODULE_ID,"managedSummonFeature")==="factory-material"),targets,{damage:[{formula:String(amount),type:"radiant"}],requestId:`${event.key}:crystal`,metadata:{factoryReflection:true}});});
 }
 onConfirmedDamage(factoryDamageEvent);
-export function installFactoryHooks(){const report=p=>{if(p?.catch)void p.catch(error=>console.error(`${MODULE_ID} | Factory automation`,error));};
+export function installFactoryHooks(){const report = reportFailure("Factory automation");
   const intercept=activity=>{if(!enabled()||!activity)return;const flags=automationData(activity);if(flags.factoryResolved||flags.leaderResolved||flags.auraPulse)return;
     if(activity.item?.getFlag?.(MODULE_ID,"factoryInstalled")&&!factoryAvailable(activity.actor,activity.item)){notify("Улучшение Фабрики не установлено, подавлено или временно отключено.","warn");return false;}
     const action=automationAction(activity);if(action==="factory-homunculus"){report(controlFactoryHomunculus(activity.actor,activity));return false;}

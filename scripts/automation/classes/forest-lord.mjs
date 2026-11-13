@@ -1,5 +1,6 @@
 import { FLAGS, MODULE_ID } from "../shared/constants.mjs";
 import {
+  actorFromEffect,
   findFeature,
   hasFeature,
   isAutomationAuthority,
@@ -407,16 +408,11 @@ export async function markForestRootFireDamage(token, { damageItem }, { automati
   }
 }
 
-function actorFromEffect(effect) {
-  if (effect?.parent instanceof Actor) return effect.parent;
-  if (effect?.parent instanceof Item) return effect.parent.actor;
-  return null;
-}
-
+// deleteActiveEffect fires on every client; only the authority clears the flags.
 export async function clearForestRootStateFromEffect(effect) {
   if (!effect?.getFlag(MODULE_ID, FLAGS.FOREST_ROOT_EFFECT)) return;
   const actor = actorFromEffect(effect);
-  if (!actor?.isOwner) return;
+  if (!actor?.isOwner || !isAutomationAuthority(actor)) return;
   if (actor.getFlag(MODULE_ID, FLAGS.FOREST_ROOT_FIRE_BLOCK)) {
     await actor.unsetFlag(MODULE_ID, FLAGS.FOREST_ROOT_FIRE_BLOCK);
   }

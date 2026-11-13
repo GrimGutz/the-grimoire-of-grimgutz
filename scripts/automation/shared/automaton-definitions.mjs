@@ -26,5 +26,5 @@ export const AUTOMATON_FEATURES = [
   ["coils", "Реактивные катушки", 4, 30, gear, ["coils", "coils-release"]],
   ["vulnerability", "Уязвимость к Анти-Магии", 4, 30, furnace, ["antimagic-enter", "antimagic-exit", "dispel"], true]
 ].map(([id, name, level, page, img, operations = [], flaw = false]) => ({id, key: `automaton-${id}`, name, level, page, img, operations, flaw}));
-export const automatonUnlockedTier = level => Math.max(1, Math.min(4, Math.ceil(Number(level) / 5)));
+export {unlockedTier as automatonUnlockedTier} from "./transformation-core.mjs";
 export const automatonSpellIdentity = item => String(item?.system?.identifier || item?.name || "").normalize("NFKC").trim().toLowerCase();
