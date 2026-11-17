@@ -1,5 +1,6 @@
 import { MODULE_ID } from "./constants.mjs";
 import { notify } from "./helpers.mjs";
+import { t } from "./i18n.mjs";
 
 const handlers = new Map();
 const pending = new Map();
@@ -20,6 +21,10 @@ const resultReply = (result, requestId) =>
 export function registerGmRequest(type, handler) {
   handlers.set(type, handler);
 }
+/** Every registered request type (the forged-request audit test sends each one). */
+export function registeredGmRequests() {
+  return [...handlers.keys()];
+}
 export function gmRequestResult(requestId) {
   return replies.get(requestId) ?? { requestId, status: "pending" };
 }
@@ -38,7 +43,7 @@ export async function receiveGmRequest(payload, senderUserId) {
     waiting.resolve(payload.result);
     if (waiting.timedOut)
       notify(
-        payload.result.status === "success" ? "Отложенный запрос выполнен." : "Отложенный запрос завершился ошибкой.",
+        payload.result.status === "success" ? t("Requests.DelayedSuccess") : t("Requests.DelayedFailure"),
         payload.result.status === "success" ? "info" : "warn"
       );
     return;
@@ -53,7 +58,7 @@ export async function receiveGmRequest(payload, senderUserId) {
     response = (async () => {
       const owner = await fromUuid(payload.ownerUuid);
       if (!owner || (!requester.isGM && !owner.testUserPermission?.(requester, "OWNER"))) {
-        return { status: "failed", error: "Нет прав на владельца запроса.", requestId: payload.requestId };
+        return { status: "failed", error: t("Requests.NoOwnerPermission"), requestId: payload.requestId };
       }
       try {
         return resultReply(
@@ -113,7 +118,7 @@ export async function requestGm(type, owner, data, { timeoutMs = 15000, requestI
     return localRequests.get(key);
   }
   const gm = game.users?.activeGM;
-  if (!gm) return { requestId, status: "failed", error: "Нужен активный GM." };
+  if (!gm) return { requestId, status: "failed", error: t("Requests.NeedGM") };
   installGmRequests();
   return new Promise(resolve => {
     const waiting = { gmId: gm.id, resolve, timedOut: false };
@@ -122,10 +127,7 @@ export async function requestGm(type, owner, data, { timeoutMs = 15000, requestI
       const result = { status: "pending", requestId };
       replies.set(requestId, result);
       resolve(result);
-      notify(
-        `Запрос ${requestId} ещё не подтверждён. Расход не возвращён автоматически; результат можно проверить через диагностику.`,
-        "warn"
-      );
+      notify(t("Requests.Pending", { id: requestId }), "warn");
     }, timeoutMs);
     pending.set(requestId, waiting);
     game.socket.emit(`module.${MODULE_ID}`, { type, requestId, ownerUuid: owner.uuid, userId: game.user.id, data });

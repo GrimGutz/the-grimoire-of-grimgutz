@@ -10,7 +10,8 @@ import { appendCalculatedBonus } from "../shared/combat-benefits.mjs";
 import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
 import { onPrepareDamage, onConfirmedDamage } from "../shared/damage-events.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
-const attackKey = (workflowId, target) => `${workflowId}:${target.uuid}`;
+import { flagKey } from "../shared/flag-write.mjs";
+const attackKey = (workflowId, target) => flagKey(`${workflowId}:${target.uuid}`);
 export function dullahanWeaponDie(activity) {
   const base = activity?.damage?.includeBase ? activity.item?.system?.damage?.base : activity?.damage?.parts?.[0];
   return !base?.custom?.enabled && Number(base?.denomination) > 0 ? Number(base.denomination) : 0;

@@ -4,11 +4,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ClassicLevel } from "classic-level";
 import { linkDocumentDescriptions } from "./link-descriptions.mjs";
+import { packOperations } from "./pack-records.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const packsRoot = path.join(root, "packs");
+const defaultPacksRoot = path.join(root, "packs");
 
-const packs = [
+export const PACKS = [
   {
     name: "classes",
     source: "../src/packs/classes.mjs"
@@ -40,10 +41,10 @@ const packs = [
   }
 ];
 
-function assertInsidePacks(target) {
+function assertInside(packsRoot, target) {
   const relative = path.relative(packsRoot, target);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) {
-    throw new Error(`Refusing to modify a path outside packs/: ${target}`);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error(`Refusing to modify a path outside ${packsRoot}: ${target}`);
   }
 }
 
@@ -66,100 +67,74 @@ function validateRecords({ name, documents, folders }) {
   }
 }
 
-function documentCollection(pack) {
-  return pack.documentType === "Actor" ? "actors" : "items";
-}
-
-function storedDocument(pack, document) {
-  if (pack.documentType !== "Actor") return document;
-  const { _embeddedItems, ...stored } = document;
-  return {
-    ...stored,
-    items: (_embeddedItems ?? []).map(item => item._id)
-  };
-}
-
-const loadedPacks = [];
-for (const pack of packs) {
-  const source = await import(new URL(pack.source, import.meta.url));
-  loadedPacks.push({
-    ...pack,
-    documents: source.documents ?? [],
-    folders: source.folders ?? []
-  });
-}
-
-const linksAdded = linkDocumentDescriptions(loadedPacks);
-console.log(`Linked descriptions: ${linksAdded} references`);
-
-// Refuse the entire build before deleting anything if Foundry still holds a pack.
-// Opening and closing may rotate LevelDB service logs, but does not change records.
-for (const pack of loadedPacks) {
-  const target = path.join(packsRoot, pack.name);
-  assertInsidePacks(target);
-  validateRecords(pack);
-  if (!existsSync(target)) continue;
-  const probe = new ClassicLevel(target, { valueEncoding: "json", createIfMissing: false });
-  try {
-    await probe.open();
-  } catch (error) {
-    throw new Error(
-      `Pack ${pack.name} is unavailable. Close the Foundry world before building. No packs were replaced.`,
-      { cause: error }
-    );
-  } finally {
-    await probe.close().catch(() => {});
+/** Every pack's documents and folders from `src/packs`, with description links resolved. */
+export async function loadPacks({ log = console.log } = {}) {
+  const loadedPacks = [];
+  for (const pack of PACKS) {
+    const source = await import(new URL(pack.source, import.meta.url));
+    loadedPacks.push({
+      ...pack,
+      documents: source.documents ?? [],
+      folders: source.folders ?? []
+    });
   }
+  const linksAdded = linkDocumentDescriptions(loadedPacks);
+  log(`Linked descriptions: ${linksAdded} references`);
+  for (const pack of loadedPacks) validateRecords(pack);
+  return loadedPacks;
 }
 
-for (const pack of loadedPacks) {
-  const target = path.join(packsRoot, pack.name);
-  assertInsidePacks(target);
+/**
+ * Write `loadedPacks` as LevelDB compendiums under `packsRoot` (default: this
+ * checkout's packs/, which the local Foundry install reads).
+ */
+export async function buildPacks({ packsRoot = defaultPacksRoot, loadedPacks, log = console.log } = {}) {
+  loadedPacks ??= await loadPacks({ log });
 
-  const { documents, folders } = pack;
-  validateRecords({
-    name: pack.name,
-    documents,
-    folders
-  });
+  // Refuse the entire build before deleting anything if Foundry still holds a pack.
+  // Opening and closing may rotate LevelDB service logs, but does not change records.
+  for (const pack of loadedPacks) {
+    const target = path.join(packsRoot, pack.name);
+    assertInside(packsRoot, target);
+    if (!existsSync(target)) continue;
+    const probe = new ClassicLevel(target, { valueEncoding: "json", createIfMissing: false });
+    try {
+      await probe.open();
+    } catch (error) {
+      throw new Error(
+        `Pack ${pack.name} is unavailable. Close the Foundry world before building. No packs were replaced.`,
+        { cause: error }
+      );
+    } finally {
+      await probe.close().catch(() => {});
+    }
+  }
 
-  await rm(target, {
-    recursive: true,
-    force: true
-  });
-  await mkdir(target, {
-    recursive: true
-  });
+  for (const pack of loadedPacks) {
+    const target = path.join(packsRoot, pack.name);
+    assertInside(packsRoot, target);
 
-  const db = new ClassicLevel(target, {
-    valueEncoding: "json"
-  });
-  await db.open();
+    const { documents, folders } = pack;
+    const operations = packOperations(pack);
+    await rm(target, {
+      recursive: true,
+      force: true
+    });
+    await mkdir(target, {
+      recursive: true
+    });
 
-  const operations = [
-    ...folders.map(folder => ({
-      type: "put",
-      key: `!folders!${folder._id}`,
-      value: folder
-    })),
-    ...documents.map(document => ({
-      type: "put",
-      key: `!${documentCollection(pack)}!${document._id}`,
-      value: storedDocument(pack, document)
-    })),
-    ...(pack.documentType === "Actor"
-      ? documents.flatMap(document =>
-          (document._embeddedItems ?? []).map(item => ({
-            type: "put",
-            key: `!actors.items!${document._id}.${item._id}`,
-            value: item
-          }))
-        )
-      : [])
-  ];
+    const db = new ClassicLevel(target, {
+      valueEncoding: "json"
+    });
+    await db.open();
 
-  await db.batch(operations);
-  await db.close();
+    await db.batch(operations);
+    await db.close();
 
-  console.log(`Built ${pack.name}: ${documents.length} documents, ${folders.length} folders`);
+    log(`Built ${pack.name}: ${documents.length} documents, ${folders.length} folders`);
+  }
+  return loadedPacks;
 }
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await buildPacks();

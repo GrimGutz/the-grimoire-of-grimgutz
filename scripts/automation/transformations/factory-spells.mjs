@@ -6,6 +6,7 @@ import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { applyNativeOnce, nativeApplicationReply } from "../shared/native-applications.mjs";
 import { useNativeUtility } from "../shared/native-actions.mjs";
 import { registerGmRequest, requestGm, isGmAuthority } from "../shared/gm-requests.mjs";
+import { flagKey } from "../shared/flag-write.mjs";
 export async function castFactorySpell(actor, activity, source, record, requestId, operation) {
   const id =
     operation === "lightning-bolt"
@@ -86,7 +87,7 @@ registerGmRequest("factory-drive", async (actor, data, { requestId }) => {
   const activity = await fromUuid(data.activityUuid);
   if (activity?.actor?.uuid !== actor.uuid || activity.item?.type !== "spell" || !data.workflowId) return false;
   const old = nativeApplicationReply(actor, requestId);
-  if (old) return { ...old, drive: factoryState(actor).driveClaims?.[data.workflowId] };
+  if (old) return { ...old, drive: factoryState(actor).driveClaims?.[flagKey(data.workflowId)] };
   const slots = Object.entries(actor.system.spells ?? {})
     .map(([key, s]) => ({
       key,
@@ -129,11 +130,13 @@ registerGmRequest("factory-drive", async (actor, data, { requestId }) => {
         after: Number(actor.system.spells[slot.key].value)
       };
       if (claim.after !== claim.before - 1) return { status: "needs-review" };
-      await patchFactory(actor, { driveClaims: { ...factoryState(actor).driveClaims, [data.workflowId]: claim } });
+      await patchFactory(actor, {
+        driveClaims: { ...factoryState(actor).driveClaims, [flagKey(data.workflowId)]: claim }
+      });
       return true;
     },
     async () => true
-  ).then(reply => ({ ...reply, drive: factoryState(actor).driveClaims?.[data.workflowId] }));
+  ).then(reply => ({ ...reply, drive: factoryState(actor).driveClaims?.[flagKey(data.workflowId)] }));
 });
 export async function prepareFactoryDrive(workflow) {
   if (
@@ -156,7 +159,7 @@ export async function prepareFactoryDrive(workflow) {
 }
 registerGmRequest("factory-drive-cancel", async (actor, data) => {
   if (!enabled() || !isGmAuthority()) return false;
-  const c = factoryState(actor).driveClaims?.[data.workflowId];
+  const c = factoryState(actor).driveClaims?.[flagKey(data.workflowId)];
   if (!c || c.refunded || c.value != null) return false;
   // A changed slot or a damage roll already prepared is an ambiguous outcome,
   // not permission to refund somebody else's later expenditure.
@@ -164,7 +167,7 @@ registerGmRequest("factory-drive-cancel", async (actor, data) => {
     return { status: "needs-review" };
   await actor.update({ [`system.spells.${c.slot}.value`]: c.before });
   await patchFactory(actor, {
-    driveClaims: { ...factoryState(actor).driveClaims, [data.workflowId]: { ...c, refunded: true } }
+    driveClaims: { ...factoryState(actor).driveClaims, [flagKey(data.workflowId)]: { ...c, refunded: true } }
   });
   return true;
 });

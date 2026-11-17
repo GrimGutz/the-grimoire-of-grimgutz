@@ -5,6 +5,8 @@ import { isEffectActive, temporaryEffectTiming } from "../effects/temporary-effe
 import { calculatedDamage, commitCalculatedDamage } from "../midi/damage-packet.mjs";
 import { sourceTokenForActor, tokenDistance } from "./zones.mjs";
 import { feetToSceneUnits } from "./spatial.mjs";
+import { requireToken } from "./request-validation.mjs";
+import { t } from "./i18n.mjs";
 
 export function validateSummonActivityUse(activity) {
   if (!enabled()) return true;
@@ -32,9 +34,18 @@ export function validateSummonActivityUse(activity) {
 registerGmRequest("spirit-protection", async (spirit, data) => {
   if (!spirit.getFlag(MODULE_ID, "summoned") || spirit.getFlag(MODULE_ID, "summonLifecycle")?.controlled === false)
     throw Error("Дух недоступен для защиты.");
-  const target = await fromUuid(data.targetUuid);
-  if (!target) throw Error("Цель защиты не найдена.");
-  const amount = Math.max(1, Math.min(10, Number(data.amount)));
+  const token = await requireToken(data.targetTokenUuid, { message: "Цель защиты не найдена." });
+  const spiritToken = [...(token.parent?.tokens ?? [])].find(candidate => candidate.actor?.uuid === spirit.uuid);
+  if (!spiritToken || !token.disposition || token.disposition !== spiritToken.disposition)
+    throw Error(t("Requests.SpiritAlly"));
+  const target = token.actor;
+  // Rolled here: an amount sent by the client could be anything.
+  const roll = await new Roll("1d10").evaluate();
+  await roll.toMessage({
+    speaker: ChatMessage.getSpeaker({ actor: spirit }),
+    flavor: "Дух защиты: снижение следующего урона"
+  });
+  const amount = Math.max(1, Math.min(10, Number(roll.total)));
   await target.createEmbeddedDocuments("ActiveEffect", [
     {
       name: "Дух защиты",
@@ -51,17 +62,12 @@ registerGmRequest("spirit-protection", async (spirit, data) => {
 });
 
 export async function useSummonProtection(spirit) {
-  const target = [...(game.user?.targets ?? [])][0]?.actor;
+  const target = [...(game.user?.targets ?? [])].find(token => token?.actor);
   if (!target) {
     notify("Выберите союзника, которому предстоит получить урон.", "warn");
     return false;
   }
-  const roll = await new Roll("1d10").evaluate();
-  await roll.toMessage({
-    speaker: ChatMessage.getSpeaker({ actor: spirit }),
-    flavor: "Дух защиты: снижение следующего урона"
-  });
-  return requestGm("spirit-protection", spirit, { targetUuid: target.uuid, amount: roll.total });
+  return requestGm("spirit-protection", spirit, { targetTokenUuid: target.document?.uuid ?? target.uuid });
 }
 
 export async function applySummonProtection(token, { workflow, damageItem }) {

@@ -1,6 +1,7 @@
 import { MODULE_ID } from "./constants.mjs";
 import { enabled, notify } from "./helpers.mjs";
 import { isGmAuthority } from "./gm-requests.mjs";
+import { t } from "./i18n.mjs";
 
 const resolvers = new Map();
 let journalPromise;
@@ -23,7 +24,16 @@ async function journal() {
   return journalPromise;
 }
 
-export function createEventLedger({ read, write, authority = isGmAuthority }) {
+const FINISHED = ["completed", "skipped", "cancelled", "reviewed"];
+/**
+ * Records kept per state. The whole list is one journal flag rewritten on every
+ * event, so it must stay small: the newest finished, unresolved and queued
+ * events are kept; older ones are dropped (queued and unresolved ones with a
+ * console warning, since they were never confirmed).
+ */
+export const LEDGER_LIMITS = Object.freeze({ finished: 200, review: 200, queued: 200 });
+
+export function createEventLedger({ read, write, authority = isGmAuthority, isStale = () => false }) {
   let chain = Promise.resolve();
   const serial = operation => {
     const next = chain.catch(() => {}).then(() => (authority() ? operation() : { status: "forbidden" }));
@@ -31,11 +41,26 @@ export function createEventLedger({ read, write, authority = isGmAuthority }) {
     return next;
   };
   const save = async records => {
-    const completed = records.filter(event => ["completed", "skipped", "cancelled"].includes(event.state)).slice(-500);
-    await write([
-      ...records.filter(event => !["completed", "skipped", "cancelled"].includes(event.state)),
-      ...completed
+    for (const event of records)
+      if (event.state === "running" && isStale(event)) {
+        // Started by a GM session that ended: the outcome is unknown, never replayed.
+        event.state = "needs-review";
+        event.error ??= t("Ledger.Interrupted");
+      }
+    const newest = (states, limit) => records.filter(event => states.includes(event.state)).slice(-limit);
+    const kept = new Set([
+      ...records.filter(event => event.state === "running"),
+      ...newest(["queued"], LEDGER_LIMITS.queued),
+      ...newest(["needs-review"], LEDGER_LIMITS.review),
+      ...newest(FINISHED, LEDGER_LIMITS.finished)
     ]);
+    const dropped = records.filter(event => !kept.has(event) && !FINISHED.includes(event.state));
+    if (dropped.length)
+      console.warn(
+        `${MODULE_ID} | Automation log is full; dropped ${dropped.length} unresolved event(s):`,
+        dropped.map(event => `${event.kind}:${event.id}`)
+      );
+    await write(records.filter(event => kept.has(event)));
   };
   async function execute(record, operation) {
     // Native Midi can invoke another automation event while resolving this one.
@@ -79,10 +104,18 @@ export function createEventLedger({ read, write, authority = isGmAuthority }) {
     },
     resolve(id, decision, operation) {
       return serial(async () => {
-        if (!["apply", "skip"].includes(decision)) throw Error("Неверное решение очереди.");
+        if (!["apply", "skip", "dismiss"].includes(decision)) throw Error("Неверное решение очереди.");
         const records = await read(),
           record = records.find(event => event.id === id);
         if (!record) throw Error("Событие не найдено.");
+        if (decision === "dismiss") {
+          // The GM checked an unresolved event by hand; it leaves the review list.
+          if (record.state !== "needs-review" && !(record.state === "running" && isStale(record)))
+            return { status: record.state, eventId: id };
+          record.state = "reviewed";
+          await save(records);
+          return { status: "reviewed", eventId: id };
+        }
         if (record.state !== "queued") return { status: record.state, eventId: id };
         if (decision === "skip") {
           record.state = "skipped";
@@ -104,7 +137,8 @@ const ledger = createEventLedger({
   read: async () => structuredClone((await journal()).getFlag(MODULE_ID, "events") ?? []),
   write: async records => {
     await (await journal()).setFlag(MODULE_ID, "events", records);
-  }
+  },
+  isStale: event => event.sessionId !== sessionId
 });
 
 export function registerAutomationEvent(kind, resolver) {
@@ -119,7 +153,7 @@ export async function listAutomationEvents() {
       ? {
           ...event,
           state: "needs-review",
-          error: event.error ?? "Выполнение прервано перезагрузкой или сменой GM; автоматического повтора нет."
+          error: event.error ?? t("Ledger.Interrupted")
         }
       : event
   );
@@ -132,19 +166,18 @@ export async function runAutomationEvent(record, operation, options) {
     operation,
     options
   );
-  if (result.status === "queued")
-    notify("Срабатывание сохранено в панели Гримуара. GM должен открыть его сцену и подтвердить результат.", "warn");
+  if (result.status === "queued") notify(t("Ledger.Queued"), "warn");
   return result;
 }
 export async function resolvePendingAutomation(id, decision) {
-  if (!isGmAuthority() || !game.user?.isGM || !enabled())
-    throw Error("Очередью управляет только активный GM при включённой автоматизации.");
+  if (!isGmAuthority() || !game.user?.isGM || !enabled()) throw Error(t("Ledger.GmOnly"));
   const record = (await listAutomationEvents()).find(event => event.id === id);
   if (!record) throw Error("Событие не найдено.");
+  if (decision === "dismiss") return ledger.resolve(id, decision);
   if (record.version != null && record.version !== 1)
     throw Error("Версия события не поддерживается; требуется ручная проверка.");
   if (decision === "apply" && (!canvas?.ready || canvas.scene?.id !== record.sceneId))
-    throw Error("Сначала откройте сцену события.");
+    throw Error(t("Ledger.OpenScene"));
   return ledger.resolve(id, decision, entry => {
     const resolve = resolvers.get(entry.kind);
     if (!resolve) throw Error("Нет обработчика события; требуется ручная проверка.");

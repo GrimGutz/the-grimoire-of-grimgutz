@@ -67,8 +67,8 @@ test("each content validator is registered exactly once", async () => {
   const advancements = subscriptions
     .filter(([name]) => name === "dnd5e.preAdvancementManagerComplete")
     .map(([, callback]) => callback);
-  assert.equal(items.length, 19, "18 content validators and one prerequisite chain");
-  assert.equal(advancements.length, 13, "12 content validators and one generic advancement validator");
+  assert.equal(items.length, 24, "23 content validators and one prerequisite chain");
+  assert.equal(advancements.length, 18, "17 content validators and one generic advancement validator");
   for (const validate of [hag.validateHagItem, illithid.validateIllithidItem, master.validateMasterItem])
     assert.equal(items.filter(c => c === validate).length, 1);
   for (const validate of [

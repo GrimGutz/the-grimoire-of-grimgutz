@@ -4,10 +4,10 @@
 
 Это консервативный статический реестр, не сертификат живой проверки: регистрация функции доказывает её наличие, но не полноту правила. «Требует исправления» также означает отсутствие подтверждённой связи с runtime: сначала проверять конкретную способность, не создавать пустой эффект. «Частично» включает намеренно сохраняемые решения игрока/GM. Нативные поля проверены валидатором; ссылки на тесты указывают проверяемый механизм, не обещают отдельный игровой сценарий каждой карточки.
 
-- автоматизировано: 307
-- частично: 580
-- обоснованно вручную: 178
-- требует исправления: 363
+- автоматизировано: 341
+- частично: 595
+- обоснованно вручную: 185
+- требует исправления: 402
 
 Полные основания и замечания: [AUTOMATION_COVERAGE.json](AUTOMATION_COVERAGE.json).
 
@@ -79,6 +79,11 @@
 | transformations / Трансформация: Ведьма | частично | module:hag-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Дракон | частично | module:halfdragon-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
 | transformations / Трансформация: Иллитид | частично | module:illithid-control, dnd5e:Advancement | tests/registrations.test.mjs, tests/progression.test.mjs |
+| transformations / Трансформация: Миконид | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| transformations / Трансформация: Псикер | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| transformations / Трансформация: Сфинкс | автоматизировано | dnd5e:Advancement | tests/progression.test.mjs |
+| transformations / Трансформация: Вендиго | частично | dnd5e:Advancement | tests/progression.test.mjs |
+| transformations / Трансформация: Бездна | частично | dnd5e:Advancement | tests/progression.test.mjs |
 | features / Стиль огромного оружия | частично | module:toggle-gwm | tests/registrations.test.mjs |
 | features / Раскалывание | частично | module:set-style-cleaving | tests/registrations.test.mjs |
 | features / Сокрушение | частично | module:set-style-crushing | tests/registrations.test.mjs |
@@ -931,6 +936,96 @@
 | features / Зондирование Мыслей | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
 | features / Телекинетическая Мелодия | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
 | features / Зов Старшего | частично | module:illithid-control, runtime:transformations/illithid-actions | tests/registrations.test.mjs, tests/illithid.test.mjs |
+| features / Выживание Слабейшего | требует исправления | — | нужна отдельная проверка |
+| features / Форма Растения | обоснованно вручную | — | нужна отдельная проверка |
+| features / Мирная Натура | требует исправления | — | нужна отдельная проверка |
+| features / Споры Общения | требует исправления | — | нужна отдельная проверка |
+| features / Алхимик Природы | автоматизировано | dnd5e:utility, dnd5e:heal, dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Плодотворная Жатва | автоматизировано | dnd5e:heal | tools/validate.mjs |
+| features / Возвращение к Корням | требует исправления | — | нужна отдельная проверка |
+| features / Светобоязнь | требует исправления | — | нужна отдельная проверка |
+| features / Симбиотические Споры | автоматизировано | dnd5e:heal, dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Слуги Спор | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| features / Жрец Гнили | частично | dnd5e:save | tools/validate.mjs |
+| features / Оживляющая Жатва | требует исправления | — | нужна отдельная проверка |
+| features / Зов Дикой Природы | требует исправления | — | нужна отдельная проверка |
+| features / Эпидемия Спор | автоматизировано | dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Объятия Эдема | частично | dnd5e:utility, dnd5e:heal | tools/validate.mjs |
+| features / Регенерация | частично | dnd5e:heal | tools/validate.mjs |
+| features / Летучие Споры | частично | dnd5e:utility, dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Пирофобия | требует исправления | — | нужна отдельная проверка |
+| features / Псионическое Пробуждение | частично | dnd5e:attack, module:psyker-pool | tools/validate.mjs, tests/registrations.test.mjs |
+| features / Форма Псикера | требует исправления | — | нужна отдельная проверка |
+| features / Диссонантный Шёпот | требует исправления | — | нужна отдельная проверка |
+| features / Ментальная Крепость | автоматизировано | dnd5e:heal | tools/validate.mjs |
+| features / Разрыв Разума | автоматизировано | dnd5e:save | tools/validate.mjs |
+| features / Гиппокампическая Статика | автоматизировано | dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Команда | автоматизировано | dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Безумие | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| features / Фантазмальная Сила | автоматизировано | dnd5e:save, dnd5e:utility | tools/validate.mjs |
+| features / Псионическое Дробление | автоматизировано | dnd5e:save, dnd5e:utility, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Разрушитель Нервов | автоматизировано | dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Ментальное Пространство | требует исправления | — | нужна отдельная проверка |
+| features / Ожесточённые Чувства | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| features / Изменение Снов | автоматизировано | dnd5e:save | tools/validate.mjs |
+| features / Пожирание Разумности | частично | dnd5e:save, module:psyker-pool | tools/validate.mjs, tests/registrations.test.mjs |
+| features / Полярность | автоматизировано | dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Высшая Псионика | требует исправления | — | нужна отдельная проверка |
+| features / Безумие (ступень 4) | требует исправления | — | нужна отдельная проверка |
+| features / Голос Сквозь Время | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| features / Чудовищная Форма | обоснованно вручную | — | нужна отдельная проверка |
+| features / Межплановая Связь | требует исправления | — | нужна отдельная проверка |
+| features / Временное Осознание | требует исправления | — | нужна отдельная проверка |
+| features / Третий Глаз | требует исправления | — | нужна отдельная проверка |
+| features / Непостижимый | требует исправления | — | нужна отдельная проверка |
+| features / Божественный Арканум | требует исправления | — | нужна отдельная проверка |
+| features / Божественное Поручение | требует исправления | — | нужна отдельная проверка |
+| features / Временной Потенциал | требует исправления | — | нужна отдельная проверка |
+| features / Величественный Рёв | автоматизировано | dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Моргание | обоснованно вручную | — | нужна отдельная проверка |
+| features / Мастерство Божественного Арканума | требует исправления | — | нужна отдельная проверка |
+| features / Загадай-ка | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| features / Разрыв Времени | автоматизировано | dnd5e:save | tools/validate.mjs |
+| features / Высшая Власть | автоматизировано | dnd5e:save | tools/validate.mjs |
+| features / Стойкость Стража | требует исправления | — | нужна отдельная проверка |
+| features / Вознесение Божественного Арканума | требует исправления | — | нужна отдельная проверка |
+| features / Небесная Ошибка | частично | dnd5e:utility | tools/validate.mjs |
+| features / Пожирание | автоматизировано | dnd5e:heal, dnd5e:utility | tools/validate.mjs |
+| features / Форма нежити | автоматизировано | dnd5e:attack | tools/validate.mjs |
+| features / Бесконечный Голод | требует исправления | — | нужна отдельная проверка |
+| features / Хищник | требует исправления | — | нужна отдельная проверка |
+| features / Преследователь | требует исправления | — | нужна отдельная проверка |
+| features / Смертельный Прыжок | обоснованно вручную | — | нужна отдельная проверка |
+| features / Обострённые Чувства | требует исправления | — | нужна отдельная проверка |
+| features / Отвратительная Внешность | требует исправления | — | нужна отдельная проверка |
+| features / Мимикрия | требует исправления | — | нужна отдельная проверка |
+| features / Теневой Преследователь | обоснованно вручную | — | нужна отдельная проверка |
+| features / Кровавое Пирование | автоматизировано | dnd5e:heal, dnd5e:utility | tools/validate.mjs |
+| features / Инстинкт Убийцы | обоснованно вручную | — | нужна отдельная проверка |
+| features / Сердце Льда | требует исправления | — | нужна отдельная проверка |
+| features / Теневой Кукловод | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| features / Оборотень | обоснованно вручную | — | нужна отдельная проверка |
+| features / Пищевое Безумие | частично | dnd5e:heal | tools/validate.mjs |
+| features / Зловещий Вой | автоматизировано | dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Безумный Голод | требует исправления | — | нужна отдельная проверка |
+| features / Курирование Глифов | частично | dnd5e:attack, dnd5e:utility, module:void-pool | tools/validate.mjs, tests/registrations.test.mjs |
+| features / Аберрантная Форма | требует исправления | — | нужна отдельная проверка |
+| features / Межплановая Связь | требует исправления | — | нужна отдельная проверка |
+| features / Зенит Точки Судьбы | автоматизировано | dnd5e:save | tools/validate.mjs |
+| features / Всевидящее Око | требует исправления | — | нужна отдельная проверка |
+| features / Пустотелое Тело | автоматизировано | dnd5e:save | tools/validate.mjs |
+| features / Бормочущий Рот | частично | dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Отвратительная Внешность | требует исправления | — | нужна отдельная проверка |
+| features / Маниакальное Просветление | частично | module:void-pool | tests/registrations.test.mjs |
+| features / Чернильный Лик | требует исправления | — | нужна отдельная проверка |
+| features / Лужи Ужаса | автоматизировано | dnd5e:save, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Странное Тело | требует исправления | — | нужна отдельная проверка |
+| features / Одержимость | требует исправления | — | нужна отдельная проверка |
+| features / Отсутствующая Нирвана | частично | module:void-pool | tests/registrations.test.mjs |
+| features / Немигающий Глаз | требует исправления | — | нужна отдельная проверка |
+| features / Тёмное Пространство | автоматизировано | dnd5e:save, dnd5e:utility, dnd5e:ActiveEffect | tools/validate.mjs, tests/passives.test.mjs |
+| features / Терминус | автоматизировано | dnd5e:utility | tools/validate.mjs |
+| features / Зовущая Бездна | автоматизировано | dnd5e:utility | tools/validate.mjs |
 | features / Убийственное намерение | обоснованно вручную | — | нужна отдельная проверка |
 | features / Форма убийцы (1-й уровень) | обоснованно вручную | — | нужна отдельная проверка |
 | features / Тёмный порыв | обоснованно вручную | — | нужна отдельная проверка |

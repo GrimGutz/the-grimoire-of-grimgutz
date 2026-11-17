@@ -7,6 +7,7 @@ import { serialMutation } from "../shared/transactions.mjs";
 import { onPrepareDamage } from "../shared/damage-events.mjs";
 import { appendCalculatedBonus } from "../shared/combat-benefits.mjs";
 import { calculatedDamage } from "../midi/damage-packet.mjs";
+import { flagKey } from "../shared/flag-write.mjs";
 export const factoryIsUnarmed = activity =>
   activity?.type === "attack" &&
   (activity.attack?.type?.classification === "unarmed" ||
@@ -40,7 +41,7 @@ registerGmRequest("factory-damage", (actor, data) =>
     const activity = await fromUuid(data.activityUuid),
       target = await fromUuid(data.targetUuid);
     if (activity?.actor?.uuid !== actor.uuid || !target?.actor) return false;
-    const key = `${data.workflowId}:${target.uuid}`,
+    const key = flagKey(`${data.workflowId}:${target.uuid}`),
       previous = factoryState(actor).damageClaims?.[key];
     if (previous) return previous;
     const melee = activity.type === "attack" && activity.attack?.type?.value === "melee",
@@ -49,7 +50,7 @@ registerGmRequest("factory-damage", (actor, data) =>
         activity.item?.getFlag?.(MODULE_ID, "factoryInstalled")?.augmentId === "fangs" &&
         factoryAugment(actor, "fangs") &&
         factoryAugment(actor, "blood"),
-      drive = activity.item?.type === "spell" && factoryState(actor).driveClaims?.[data.workflowId];
+      drive = activity.item?.type === "spell" && factoryState(actor).driveClaims?.[flagKey(data.workflowId)];
     if (!charged && !fangs && (!drive || drive.refunded)) return { status: "success", bonuses: [] };
     await patchFactory(actor, {
       damageClaims: { ...factoryState(actor).damageClaims, [key]: { status: "needs-review" } }
@@ -77,7 +78,7 @@ registerGmRequest("factory-damage", (actor, data) =>
         );
         value = result.value;
         await patchFactory(actor, {
-          driveClaims: { ...factoryState(actor).driveClaims, [data.workflowId]: { ...drive, value } }
+          driveClaims: { ...factoryState(actor).driveClaims, [flagKey(data.workflowId)]: { ...drive, value } }
         });
       }
       const saved = data.saved && activity.type === "save";
@@ -112,7 +113,7 @@ export async function applyFactoryDamage(token, { workflow, damageItem }) {
   )
     return;
   const target = token.document ?? token,
-    key = `${workflow.id}:${target.uuid}`;
+    key = flagKey(`${workflow.id}:${target.uuid}`);
   if (damageItem.grimgutzFactoryDamage === key) return;
   if (
     workflow.activity.type === "attack" &&
@@ -122,7 +123,7 @@ export async function applyFactoryDamage(token, { workflow, damageItem }) {
   if (
     !factoryAugment(workflow.actor, "charged") &&
     !factoryAugment(workflow.actor, "fangs") &&
-    !factoryState(workflow.actor).driveClaims?.[workflow.id]
+    !factoryState(workflow.actor).driveClaims?.[flagKey(workflow.id)]
   )
     return;
   const saved = [...(workflow.saves ?? [])].some(t => (t.document?.uuid ?? t.uuid) === target.uuid),

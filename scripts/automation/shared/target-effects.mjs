@@ -2,6 +2,22 @@ import { FLAGS, MODULE_ID } from "./constants.mjs";
 import { temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { notify } from "./helpers.mjs";
 import { registerGmRequest, requestGm } from "./gm-requests.mjs";
+import { actorOnScene, requireOwned, requireTokens } from "./request-validation.mjs";
+import { t } from "./i18n.mjs";
+
+// Effects a player may ask the GM to put on creatures they do not own. The GM
+// rebuilds every effect from its recipe; the request carries only the key, the
+// source item and the target tokens.
+const recipes = new Map();
+
+/**
+ * Allow `key` to be applied through the GM. `build(sourceActor, sourceItem)`
+ * returns the applyTargetEffect parameters (without targets), or null when the
+ * item cannot produce this effect.
+ */
+export function registerTargetEffect(key, build) {
+  recipes.set(key, build);
+}
 
 function escapeHtml(value) {
   const text = String(value ?? "");
@@ -112,25 +128,16 @@ export async function applyTargetEffect({
     return false;
   }
   if (!game.user?.isGM && usableTargets.some(token => !token.actor.isOwner)) {
+    if (!recipes.has(key) || ignoreImmunity) {
+      notify(t("TargetEffects.GmOnly"), "warn");
+      return false;
+    }
     const result = await requestGm("target-effects", sourceActor, {
-      sourceItemUuid: sourceItem?.uuid,
-      targetUuids: usableTargets.map(token => token.actor.uuid),
       key,
-      name,
-      img,
-      status,
-      statusLabel,
-      description,
-      changes,
-      duration,
-      repeatSave,
-      ignoreImmunity,
-      flags,
-      replace,
-      title,
-      saveText,
-      note
+      sourceItemUuid: sourceItem?.uuid,
+      targetUuids: usableTargets.map(token => token.document?.uuid ?? token.uuid)
     });
+    if (result.status === "failed") notify(result.error ?? t("TargetEffects.NotApplied"), "warn");
     return result.status === "success";
   }
 
@@ -195,15 +202,23 @@ export async function applyTargetEffect({
   return applied.length > 0;
 }
 
-registerGmRequest("target-effects", async (sourceActor, data, { requesterId }) => {
-  if (data.ignoreImmunity && !game.users.get(requesterId)?.isGM)
-    throw Error("Игнорирование иммунитета требует подтверждения GM.");
-  const targets = [];
-  for (const uuid of data.targetUuids) {
-    const actor = await fromUuid(uuid);
-    if (actor) targets.push({ actor, name: actor.name });
-  }
-  const sourceItem = data.sourceItemUuid ? await fromUuid(data.sourceItemUuid) : null;
-  const success = await applyTargetEffect({ ...data, sourceActor, sourceItem, targets });
+registerGmRequest("target-effects", async (sourceActor, data) => {
+  const recipe = recipes.get(data.key);
+  if (!recipe) throw Error(t("TargetEffects.NotAllowed"));
+  const sourceItem = await requireOwned(data.sourceItemUuid, sourceActor, t("TargetEffects.SourceNotOwned"));
+  const parameters = recipe(sourceActor, sourceItem);
+  if (!parameters) throw Error(t("TargetEffects.SourceCannot"));
+  const targets = await requireTokens(data.targetUuids, { max: 20 });
+  const scene = targets[0].parent;
+  if (targets.some(token => token.parent?.id !== scene?.id) || !actorOnScene(sourceActor, scene))
+    throw Error(t("TargetEffects.OtherScene"));
+  const success = await applyTargetEffect({
+    ...parameters,
+    key: data.key,
+    ignoreImmunity: false,
+    sourceActor,
+    sourceItem,
+    targets
+  });
   return { status: success ? "success" : "failed" };
 });

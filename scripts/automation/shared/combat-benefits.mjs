@@ -7,6 +7,7 @@ import { tokenSceneDistance, feetToSceneUnits } from "./spatial.mjs";
 import { commitCalculatedDamage } from "../midi/damage-packet.mjs";
 import { isAuraIncapacitated, isAuraDefeated } from "./aura-conditions.mjs";
 import { onGmAuthority } from "./authority.mjs";
+import { flagKey, newestEntries, replaceFlag } from "./flag-write.mjs";
 
 export const benefitData = effect =>
   effect?.getFlag?.(MODULE_ID, "combatBenefit") ?? effect?.flags?.[MODULE_ID]?.combatBenefit;
@@ -323,8 +324,11 @@ registerGmRequest("commit-attack-benefits", async (actor, data) => {
       if (bonus.presenceKind === "insightful") {
         const source = await fromUuid(bonus.sourceActorUuid);
         const claims = source.getFlag(MODULE_ID, "insightfulPresenceClaims") ?? {};
-        claims[bonus.protectedTarget] = data.workflowId;
-        await source.setFlag(MODULE_ID, "insightfulPresenceClaims", claims);
+        await replaceFlag(
+          source,
+          "insightfulPresenceClaims",
+          newestEntries({ ...claims, [flagKey(bonus.protectedTarget)]: data.workflowId }, 50)
+        );
       }
       await consumeBenefit(effect, data.key);
     }

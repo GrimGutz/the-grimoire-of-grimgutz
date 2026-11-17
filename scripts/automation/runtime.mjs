@@ -80,6 +80,8 @@ import {
   installJuggernautRegenerationHooks,
   configureJuggernautRegeneration
 } from "./classes/juggernaut-regeneration.mjs";
+import { i18nKey } from "./shared/i18n.mjs";
+import { lastSelfTest, registerQuenchBatch, runSelfTest } from "./self-test.mjs";
 import { installRitualistSpiritHooks, chooseRitualistSpiritRecipients } from "./classes/ritualist-spirits.mjs";
 import { applyWeaponBuffReach } from "./shared/weapon-buffs.mjs";
 import { syncUniqueSummons, summonRequestResult } from "./shared/summons.mjs";
@@ -1342,8 +1344,8 @@ export function getMidiHookHandlers() {
 
 export function registerAutomation() {
   game.settings.register(MODULE_ID, SETTINGS.AUTOMATION, {
-    name: "Автоматизация правил престиж-классов",
-    hint: "Включает интеграцию всех престиж-классов Гриммуара с dnd5e, Midi-QOL и активными эффектами.",
+    name: i18nKey("Settings.Automation.Name"),
+    hint: i18nKey("Settings.Automation.Hint"),
     scope: "world",
     config: true,
     type: Boolean,
@@ -1351,8 +1353,8 @@ export function registerAutomation() {
     restricted: true
   });
   game.settings.register(MODULE_ID, SETTINGS.STRICT_PREREQUISITES, {
-    name: "Проверять требования престиж-классов",
-    hint: "Если включено, модуль запрещает добавлять престиж-классы, их особенности, специализации и техники персонажам, которые не выполняют требования. По умолчанию выключено, чтобы Мастер мог сам решать допуск.",
+    name: i18nKey("Settings.StrictPrerequisites.Name"),
+    hint: i18nKey("Settings.StrictPrerequisites.Hint"),
     scope: "world",
     config: true,
     type: Boolean,
@@ -1361,7 +1363,13 @@ export function registerAutomation() {
   });
   installHooks();
   registerAutomationPanel(getAutomationActionHandlers());
+  Hooks.once("quenchReady", quench => registerQuenchBatch(quench, selfTestOptions));
 }
+
+const selfTestOptions = () => ({
+  synchronize: actor => actorSynchronizer.synchronize(actor),
+  actionHandlers: getAutomationActionHandlers()
+});
 
 export function exposeApi() {
   const module = game.modules.get(MODULE_ID);
@@ -1375,6 +1383,11 @@ export function exposeApi() {
     endInsectBloodDrain,
     inspectAutomation: actorOrUuid =>
       inspectActorAutomation(actorOrUuid, { actionHandlers: getAutomationActionHandlers() }),
+    /** Actors whose sync the loop guard paused (see shared/actor-sync.mjs). */
+    pausedSyncs: () => actorSynchronizer.pausedActors(),
+    /** In-world checks against the real Foundry and D&D5e (GM only; see self-test.mjs). */
+    runSelfTest: () => runSelfTest(selfTestOptions()),
+    lastSelfTest,
     resolvePendingAutomation,
     openAutomationPanel,
     summonRequestResult,

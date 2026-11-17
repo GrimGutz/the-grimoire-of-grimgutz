@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "scope": "static-source-inventory",
   "summary": {
-    "automatic": 307,
-    "partial": 580,
-    "manual": 178,
-    "review": 363
+    "automatic": 341,
+    "partial": 595,
+    "manual": 185,
+    "review": 402
   },
   "records": [
     {
@@ -953,6 +953,76 @@
         "tests/progression.test.mjs"
       ],
       "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "transformations",
+      "id": "3631477b8a59a570",
+      "name": "Трансформация: Миконид",
+      "key": "myconid-transformation",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "transformations",
+      "id": "36a6ba2f0baead3c",
+      "name": "Трансформация: Псикер",
+      "key": "psyker-transformation",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " ступень и Сл считаются автоматически. Пси-очки — использования Псионического Пробуждения: максимум = уровень + ступень, каждые 10 минут игрового времени восстанавливается 1 очко, активности других бонусов сами списывают"
+    },
+    {
+      "pack": "transformations",
+      "id": "97a018b5546dde4a",
+      "name": "Трансформация: Сфинкс",
+      "key": "sphinx-transformation",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "transformations",
+      "id": "e720e99bf5cc3620",
+      "name": "Трансформация: Вендиго",
+      "key": "vendigo-transformation",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " ступень и Сл считаются автоматически. Пожирание и Кровавое Пирование дают временные хиты и метку «усилен», которая снимается сама, когда временные хиты кончаются; эффекты «Усилено» на карточках применяются по этой метке"
+    },
+    {
+      "pack": "transformations",
+      "id": "55558245b9c71921",
+      "name": "Трансформация: Бездна",
+      "key": "void-transformation",
+      "status": "partial",
+      "entries": [
+        "dnd5e:Advancement"
+      ],
+      "checks": [
+        "tests/progression.test.mjs"
+      ],
+      "note": " ступень и Сл считаются автоматически. Точки Судьбы хранятся на персонаже: активности получения добавляют их (до 3, с Маниакальным Просветлением до 5), способности «потребляет все Точки Судьбы» обнуляют запас и пишут в ч"
     },
     {
       "pack": "features",
@@ -12153,6 +12223,1127 @@
         "tests/illithid.test.mjs"
       ],
       "note": " Естественная 1 проверяется по активной к20, а не отброшенной кости. Один силовой Midi-пульс по уровню персонажа, с адресным обходом иммунитета/сопротивления. Событие другой сцены сохраняется в очереди, не разыгрывается "
+    },
+    {
+      "pack": "features",
+      "id": "f376ec3eb4d81533",
+      "name": "Выживание Слабейшего",
+      "key": "myconid-survival",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "bada6f5b1453e3ba",
+      "name": "Форма Растения",
+      "key": "myconid-plant",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Характеристики (до 16) — пассивный эффект; тип существа отметьте вручную."
+    },
+    {
+      "pack": "features",
+      "id": "4c08085bdc161657",
+      "name": "Мирная Натура",
+      "key": "myconid-peace",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "6507cfb6527ec031",
+      "name": "Споры Общения",
+      "key": "myconid-rapport",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "e56e0b8ded766f32",
+      "name": "Алхимик Природы",
+      "key": "myconid-alchemist",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:utility",
+        "dnd5e:heal",
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "9a710fdfc70de81c",
+      "name": "Плодотворная Жатва",
+      "key": "myconid-harvest",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:heal"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "f879352701019388",
+      "name": "Возвращение к Корням",
+      "key": "myconid-roots",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "648d51ad31cbc87c",
+      "name": "Светобоязнь",
+      "key": "myconid-photophobia",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "232fb51d72f88a57",
+      "name": "Симбиотические Споры",
+      "key": "myconid-symbiotic",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:heal",
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "f5a660f532a478bc",
+      "name": "Слуги Спор",
+      "key": "myconid-servants",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "29d11b0764fe0012",
+      "name": "Жрец Гнили",
+      "key": "myconid-rot",
+      "status": "partial",
+      "entries": [
+        "dnd5e:save"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": " Использование и спасбросок цели автоматические; половины урона распределяйте вручную."
+    },
+    {
+      "pack": "features",
+      "id": "69a78cce62d86c27",
+      "name": "Оживляющая Жатва",
+      "key": "myconid-reanimating",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "d43f70a8d58da3b7",
+      "name": "Зов Дикой Природы",
+      "key": "myconid-wild",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "357c3f49da009a9e",
+      "name": "Эпидемия Спор",
+      "key": "myconid-epidemic",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "e37fb06f2a2ab3fc",
+      "name": "Объятия Эдема",
+      "key": "myconid-eden",
+      "status": "partial",
+      "entries": [
+        "dnd5e:utility",
+        "dnd5e:heal"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": " Концентрация, длительность и лечение раунда — на карточке; бонус (половина ступени) добавляйте к броскам вручную."
+    },
+    {
+      "pack": "features",
+      "id": "23ee89103a541a19",
+      "name": "Регенерация",
+      "key": "myconid-regeneration",
+      "status": "partial",
+      "entries": [
+        "dnd5e:heal"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": " Примените в начале хода; пропуск после урона огнём или некротикой отслеживайте вручную."
+    },
+    {
+      "pack": "features",
+      "id": "ecde37b8b36dd63b",
+      "name": "Летучие Споры",
+      "key": "myconid-floating",
+      "status": "partial",
+      "entries": [
+        "dnd5e:utility",
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": " Базовая детонация 4d8; накопленные d8 добавьте к броску урона вручную."
+    },
+    {
+      "pack": "features",
+      "id": "b5a85195d0a2b293",
+      "name": "Пирофобия",
+      "key": "myconid-pyrophobia",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "98bc3ed27aabf6fd",
+      "name": "Псионическое Пробуждение",
+      "key": "psyker-awakening",
+      "status": "partial",
+      "entries": [
+        "dnd5e:attack",
+        "module:psyker-pool"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "5fce7a8e6686afed",
+      "name": "Форма Псикера",
+      "key": "psyker-form",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "84568e6c58b6d732",
+      "name": "Диссонантный Шёпот",
+      "key": "psyker-whisper",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "af4b54d32aae776f",
+      "name": "Ментальная Крепость",
+      "key": "psyker-fortress",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:heal"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "37099b92c3c8de7f",
+      "name": "Разрыв Разума",
+      "key": "psyker-rip",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "bbd4cbc4448b8c80",
+      "name": "Гиппокампическая Статика",
+      "key": "psyker-static",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "685356bb3560f81e",
+      "name": "Команда",
+      "key": "psyker-command",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "ffce0ad18dcd882c",
+      "name": "Безумие",
+      "key": "psyker-madness",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "8ec95067e62ceb19",
+      "name": "Фантазмальная Сила",
+      "key": "psyker-phantasm",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a2703ccd8d177bf8",
+      "name": "Псионическое Дробление",
+      "key": "psyker-crush",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:utility",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "1fa9ba4d2f2bf0d6",
+      "name": "Разрушитель Нервов",
+      "key": "psyker-nerve",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "316829df5c676b3a",
+      "name": "Ментальное Пространство",
+      "key": "psyker-mindspace",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "c94679e2aa65e157",
+      "name": "Ожесточённые Чувства",
+      "key": "psyker-feelings",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a9a1ec2393e43278",
+      "name": "Изменение Снов",
+      "key": "psyker-dream",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "e7afe3a08bed1dc9",
+      "name": "Пожирание Разумности",
+      "key": "psyker-devour",
+      "status": "partial",
+      "entries": [
+        "dnd5e:save",
+        "module:psyker-pool"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "41f0b76c3c34421e",
+      "name": "Полярность",
+      "key": "psyker-polarity",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "17def94afdddf38d",
+      "name": "Высшая Псионика",
+      "key": "psyker-superior",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "772df10d054b121d",
+      "name": "Безумие (ступень 4)",
+      "key": "psyker-insanity",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "b945dfbd2a8d2e14",
+      "name": "Голос Сквозь Время",
+      "key": "sphinx-voice",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "74ea0b97bd43a9e6",
+      "name": "Чудовищная Форма",
+      "key": "sphinx-form",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Характеристики (до 22) и скорость полёта — пассивный эффект; тип существа отметьте на листе вручную."
+    },
+    {
+      "pack": "features",
+      "id": "244fc54f975060a0",
+      "name": "Межплановая Связь",
+      "key": "sphinx-bond",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "a0ed85abadf5ab4c",
+      "name": "Временное Осознание",
+      "key": "sphinx-awareness",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "90cb798f8c4a05e6",
+      "name": "Третий Глаз",
+      "key": "sphinx-eye",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "566f0d12dcd37f82",
+      "name": "Непостижимый",
+      "key": "sphinx-inscrutable",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "67e6949a35d20643",
+      "name": "Божественный Арканум",
+      "key": "sphinx-arcanum",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "9aabcbe33e99d38a",
+      "name": "Божественное Поручение",
+      "key": "sphinx-mandate",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "6ef0e1a549781a3f",
+      "name": "Временной Потенциал",
+      "key": "sphinx-potential",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "cbf6a650997f8e5e",
+      "name": "Величественный Рёв",
+      "key": "sphinx-roar",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "0d592dd8781cca5a",
+      "name": "Моргание",
+      "key": "sphinx-blink",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Перемещение токена выполняется вручную."
+    },
+    {
+      "pack": "features",
+      "id": "c963d24efe9f6e59",
+      "name": "Мастерство Божественного Арканума",
+      "key": "sphinx-mastery",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "609497fa61b9dfe9",
+      "name": "Загадай-ка",
+      "key": "sphinx-riddle",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "5a3767c3119a2775",
+      "name": "Разрыв Времени",
+      "key": "sphinx-rift",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "876e8b2fba736579",
+      "name": "Высшая Власть",
+      "key": "sphinx-authority",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "547774fb30daf4e6",
+      "name": "Стойкость Стража",
+      "key": "sphinx-fortitude",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "43d85f5a21855bb9",
+      "name": "Вознесение Божественного Арканума",
+      "key": "sphinx-ascension",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "e4ec77e56fd46ded",
+      "name": "Небесная Ошибка",
+      "key": "sphinx-error",
+      "status": "partial",
+      "entries": [
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": " Бросок урона на карточке; естественную 1 против магии отмечает игрок или GM, урон применяется вручную без учёта сопротивлений."
+    },
+    {
+      "pack": "features",
+      "id": "0af8ce90b4843607",
+      "name": "Пожирание",
+      "key": "vendigo-devour",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:heal",
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "7868467d214ee851",
+      "name": "Форма нежити",
+      "key": "vendigo-undead",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:attack"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "c57bd61ded6dccd0",
+      "name": "Бесконечный Голод",
+      "key": "vendigo-hunger",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "cf001420c0dd7e15",
+      "name": "Хищник",
+      "key": "vendigo-predator",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "dea51065cd90eadf",
+      "name": "Преследователь",
+      "key": "vendigo-stalker",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "a10e762a0b49c43e",
+      "name": "Смертельный Прыжок",
+      "key": "vendigo-leap",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Эффект Прыжка (утроенная дальность) учитывайте вручную."
+    },
+    {
+      "pack": "features",
+      "id": "1044c09ad2daf20f",
+      "name": "Обострённые Чувства",
+      "key": "vendigo-senses",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "d48ad74a52dc1f2d",
+      "name": "Отвратительная Внешность",
+      "key": "vendigo-appearance",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "bf2b197c1b0447ce",
+      "name": "Мимикрия",
+      "key": "vendigo-mimicry",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "ff5ea3a9594f1575",
+      "name": "Теневой Преследователь",
+      "key": "vendigo-shadow",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Использования по ступени; перемещение токена вручную."
+    },
+    {
+      "pack": "features",
+      "id": "3a99ec9ad8784b49",
+      "name": "Кровавое Пирование",
+      "key": "vendigo-feast",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:heal",
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "8797a7c0f2857ee6",
+      "name": "Инстинкт Убийцы",
+      "key": "vendigo-instinct",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Дополнительную кость добавляйте к урону вручную."
+    },
+    {
+      "pack": "features",
+      "id": "c498287aafa8e8b5",
+      "name": "Сердце Льда",
+      "key": "vendigo-heart",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "f3ac81927d95f9e6",
+      "name": "Теневой Кукловод",
+      "key": "vendigo-puppeteer",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "e5922b4487c914e4",
+      "name": "Оборотень",
+      "key": "vendigo-shapeshifter",
+      "status": "manual",
+      "entries": [],
+      "checks": [],
+      "note": " Форму выбирает игрок, превращение выполняется вручную."
+    },
+    {
+      "pack": "features",
+      "id": "7e2ce00553ad5504",
+      "name": "Пищевое Безумие",
+      "key": "vendigo-frenzy",
+      "status": "partial",
+      "entries": [
+        "dnd5e:heal"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": " Отдельная активность Пожирания с 2d8 и переброской 1–2; бонус при попадании начисляйте вручную."
+    },
+    {
+      "pack": "features",
+      "id": "169625f98936d2b7",
+      "name": "Зловещий Вой",
+      "key": "vendigo-howl",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "a6186d30d2d51acd",
+      "name": "Безумный Голод",
+      "key": "vendigo-madness",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "f7f61bb69287cc25",
+      "name": "Курирование Глифов",
+      "key": "void-glyphs",
+      "status": "partial",
+      "entries": [
+        "dnd5e:attack",
+        "dnd5e:utility",
+        "module:void-pool"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "4a8431ac7db42ae4",
+      "name": "Аберрантная Форма",
+      "key": "void-aberrant",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "d5e803cc094bc72a",
+      "name": "Межплановая Связь",
+      "key": "void-bond",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "2d196832de49514c",
+      "name": "Зенит Точки Судьбы",
+      "key": "void-zenith",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "fb4ff05004f77f0f",
+      "name": "Всевидящее Око",
+      "key": "void-eye",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "66c6513ac3633855",
+      "name": "Пустотелое Тело",
+      "key": "void-hollow",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "ef5ee1680f1102da",
+      "name": "Бормочущий Рот",
+      "key": "void-mouth",
+      "status": "partial",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": " Штраф −2 за потреблённую точку применяйте к спасброску вручную."
+    },
+    {
+      "pack": "features",
+      "id": "882048a7f7f0f2ec",
+      "name": "Отвратительная Внешность",
+      "key": "void-appearance",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "014b5fb810a52945",
+      "name": "Маниакальное Просветление",
+      "key": "void-manic",
+      "status": "partial",
+      "entries": [
+        "module:void-pool"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "611b34ebe3afa72f",
+      "name": "Чернильный Лик",
+      "key": "void-ink",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "dbf06b383f1dd7c8",
+      "name": "Лужи Ужаса",
+      "key": "void-pools",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "b85bcb4f1a3acf03",
+      "name": "Странное Тело",
+      "key": "void-strange",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "61ca346b5607616e",
+      "name": "Одержимость",
+      "key": "void-obsession",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "81aea75ccd4f0481",
+      "name": "Отсутствующая Нирвана",
+      "key": "void-nirvana",
+      "status": "partial",
+      "entries": [
+        "module:void-pool"
+      ],
+      "checks": [
+        "tests/registrations.test.mjs"
+      ],
+      "note": " Добавление точки и потребление — на карточке; 1d8 за каждую потреблённую точку добавьте к урону вручную."
+    },
+    {
+      "pack": "features",
+      "id": "932a5d66c4d5ab72",
+      "name": "Немигающий Глаз",
+      "key": "void-unblinking",
+      "status": "review",
+      "entries": [],
+      "checks": [],
+      "note": "Не установлена связь с обработчиком; требуется точечная проверка, не создание эффекта по догадке"
+    },
+    {
+      "pack": "features",
+      "id": "ac6f6b14e144011d",
+      "name": "Тёмное Пространство",
+      "key": "void-darkspace",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:save",
+        "dnd5e:utility",
+        "dnd5e:ActiveEffect"
+      ],
+      "checks": [
+        "tools/validate.mjs",
+        "tests/passives.test.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "93cd3ee3a58b1fd5",
+      "name": "Терминус",
+      "key": "void-terminus",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
+    },
+    {
+      "pack": "features",
+      "id": "c6f452a8c6eb54de",
+      "name": "Зовущая Бездна",
+      "key": "void-calling",
+      "status": "automatic",
+      "entries": [
+        "dnd5e:utility"
+      ],
+      "checks": [
+        "tools/validate.mjs"
+      ],
+      "note": "Нативные данные/обработчик есть; игровая проверка не заменяется регистрацией"
     },
     {
       "pack": "features",

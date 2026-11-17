@@ -27,7 +27,12 @@ test("descriptors have unique ids and only known kinds", () => {
       "god",
       "hag",
       "halfdragon",
-      "illithid"
+      "illithid",
+      "myconid",
+      "psyker",
+      "sphinx",
+      "vendigo",
+      "void"
     ]
   );
   assert.equal(contentOfKind("class").length + contentOfKind("transformation").length, CONTENT.length);

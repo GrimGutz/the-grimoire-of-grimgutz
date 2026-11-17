@@ -17,6 +17,7 @@ import { chooseSceneTokens } from "./owner-prompts.mjs";
 import { serialMutation } from "./transactions.mjs";
 import { leaderReceipt, leaderReceiptData } from "./leader-receipts.mjs";
 import { calculatedDamage } from "../midi/damage-packet.mjs";
+import { flagKey } from "./flag-write.mjs";
 
 const confirmed = new Set(),
   listeners = new Set(),
@@ -206,7 +207,7 @@ registerGmRequest("prepare-damage-event", (actor, data, context) => {
       if (prepared.size > 500) prepared.delete(prepared.keys().next().value);
       if (cardUuid) {
         const pending = card.getFlag(MODULE_ID, "preparedDamageEvents") ?? {};
-        await card.setFlag(MODULE_ID, "preparedDamageEvents", { ...pending, [data.key]: result.context });
+        await card.setFlag(MODULE_ID, "preparedDamageEvents", { ...pending, [flagKey(data.key)]: result.context });
       }
       return result;
     });
@@ -254,7 +255,7 @@ registerGmRequest("confirm-damage-event", async (actor, data) => {
   const event = data.event,
     cached = prepared.get(event?.key)?.context;
   const card = event?.itemCardUuid && (await fromUuid(event.itemCardUuid));
-  const context = cached ?? card?.getFlag(MODULE_ID, "preparedDamageEvents")?.[event?.key];
+  const context = cached ?? card?.getFlag(MODULE_ID, "preparedDamageEvents")?.[flagKey(event?.key)];
   const target = context && (await fromUuid(context.targetTokenUuid));
   if (
     !context ||

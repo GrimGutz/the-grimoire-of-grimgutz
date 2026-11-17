@@ -1,64 +1,77 @@
+// Before `npm run build` replaces packs/: report compendium records that differ
+// from what src/packs would build — edits made inside Foundry to an unlocked
+// compendium, which a rebuild would discard. packs/ is not tracked in git, so
+// the comparison is against the sources, not a committed copy.
 import { cp, mkdtemp, rm } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { execFileSync } from "node:child_process";
-import { ClassicLevel } from "classic-level";
+import { loadPacks } from "./build-packs.mjs";
+import { hydrateRecords, packOperations, readPackRecords } from "./pack-records.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const temp = await mkdtemp(path.join(os.tmpdir(), "grimgutz-pack-audit-"));
-const temporaryRoot = path.resolve(os.tmpdir());
-const relative = path.relative(temporaryRoot, path.resolve(temp));
-if (relative.startsWith("..") || path.isAbsolute(relative) || !path.basename(temp).startsWith("grimgutz-pack-audit-"))
-  throw Error("Unexpected audit directory; refusing cleanup.");
-const packs = ["classes", "subclasses", "transformations", "features", "equipment", "spells", "bestiary"];
-function normalize(value) {
-  if (Array.isArray(value)) return value.map(normalize);
-  if (value && typeof value === "object")
-    return Object.fromEntries(
-      Object.keys(value)
-        .sort()
-        .filter(key => !["_stats", "_migration"].includes(key))
-        .map(key => [key, normalize(value[key])])
-    );
-  return value;
-}
-async function records(directory) {
-  const db = new ClassicLevel(directory, { valueEncoding: "json", createIfMissing: false, readOnly: true });
-  try {
-    await db.open();
-    return new Map(await db.iterator().all());
-  } finally {
-    await db.close();
+
+const IGNORED = new Set(["_stats", "_migration", "sort"]);
+/**
+ * Path of the first field the sources define that the live record changed, or
+ * null. Foundry migrates compendium records when a world opens them (adds
+ * defaults, turns "60" into 60), so fields only the live record has and
+ * type-only changes are not edits; a changed value is.
+ */
+function firstDifference(built, live, at = "") {
+  // A field the sources leave unset gets Foundry's default (e.g. the bag icon).
+  if (built === undefined || built === null) return null;
+  if (Array.isArray(built)) {
+    if (!Array.isArray(live) || live.length !== built.length) return at || "(array)";
+    for (const [index, entry] of built.entries()) {
+      const difference = firstDifference(entry, live[index], `${at}[${index}]`);
+      if (difference) return difference;
+    }
+    return null;
   }
+  if (built && typeof built === "object") {
+    for (const [key, value] of Object.entries(built)) {
+      if (IGNORED.has(key)) continue;
+      const difference = firstDifference(value, live?.[key], at ? `${at}.${key}` : key);
+      if (difference) return difference;
+    }
+    return null;
+  }
+  return String(built ?? "") === String(live ?? "") ? null : at;
 }
+const byId = ({ documents, folders }) => new Map([...documents, ...folders].map(record => [record._id, record]));
+
 try {
-  const archive = path.join(temp, "head.tar");
-  execFileSync("git", ["archive", "--format=tar", `--output=${archive}`, "HEAD", "packs"], { cwd: root });
-  execFileSync("tar", ["-xf", archive, "-C", temp]);
-  // LevelDB can rotate/compact files on open despite a nominal readOnly option.
-  // Audit a disposable copy, never the user's actual compendium directories.
-  await cp(path.join(root, "packs"), path.join(temp, "live-packs"), { recursive: true });
   const differences = [];
-  for (const pack of packs) {
-    const head = await records(path.join(temp, "packs", pack)),
-      live = await records(path.join(temp, "live-packs", pack));
-    for (const key of new Set([...head.keys(), ...live.keys()])) {
-      if (JSON.stringify(normalize(head.get(key))) !== JSON.stringify(normalize(live.get(key))))
-        differences.push({ pack, key, name: live.get(key)?.name ?? head.get(key)?.name });
+  for (const pack of await loadPacks({ log: () => {} })) {
+    const directory = path.join(root, "packs", pack.name);
+    if (!existsSync(directory)) continue;
+    // LevelDB may rewrite files on open: audit a disposable copy without the LOCK Foundry holds.
+    const copy = path.join(temp, pack.name);
+    await cp(directory, copy, { recursive: true, filter: source => path.basename(source) !== "LOCK" });
+    const live = byId(hydrateRecords(await readPackRecords(copy), pack.documentType ?? "Item"));
+    const built = byId(
+      hydrateRecords(
+        packOperations(pack).map(operation => [operation.key, operation.value]),
+        pack.documentType ?? "Item"
+      )
+    );
+    for (const id of new Set([...live.keys(), ...built.keys()])) {
+      const field = !live.has(id)
+        ? "(missing locally)"
+        : !built.has(id)
+          ? "(only local)"
+          : firstDifference(built.get(id), live.get(id));
+      if (field) differences.push({ pack: pack.name, id, name: live.get(id)?.name ?? built.get(id)?.name, field });
     }
   }
   if (differences.length) {
-    console.error(
-      "Local compendium content differs from Git HEAD. Review/preserve these records before rebuilding:",
-      differences
-    );
+    console.error("Local compendium records differ from src/packs. Preserve these edits before rebuilding:");
+    console.table(differences);
     process.exitCode = 1;
-  } else
-    console.log(
-      "Pack audit passed: logical content matches Git HEAD; only database compaction/service metadata changed."
-    );
+  } else console.log("Pack audit passed: local compendiums match what src/packs builds.");
 } finally {
-  // temp is mkdtemp-created and its resolved location was checked above.
   await rm(temp, { recursive: true, force: true });
 }

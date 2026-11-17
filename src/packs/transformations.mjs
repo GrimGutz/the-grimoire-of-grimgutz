@@ -1,3 +1,4 @@
+import { dataTransformationDocuments } from "./data-transformations.mjs";
 import { hollowTransformationDocuments } from "./hollow-transformation.mjs";
 import { murderspawnTransformationDocuments } from "./murderspawn-transformation.mjs";
 import {arkaneTransformationDocuments} from "./arkane-transformation.mjs";
@@ -27,5 +28,6 @@ export const documents = [
   ...godTransformationDocuments,
   ...hagTransformationDocuments,
   ...halfdragonTransformationDocuments,
-  ...illithidTransformationDocuments
+  ...illithidTransformationDocuments,
+  ...dataTransformationDocuments
 ];

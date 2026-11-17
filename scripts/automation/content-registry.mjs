@@ -19,6 +19,7 @@ import { GOD_CONTENT } from "./transformations/god-content.mjs";
 import { HAG_CONTENT } from "./transformations/hag-content.mjs";
 import { HALFDRAGON_CONTENT } from "./transformations/halfdragon-content.mjs";
 import { ILLITHID_CONTENT } from "./transformations/illithid-content.mjs";
+import { DATA_TRANSFORMATION_CONTENT } from "./transformations/data-content.mjs";
 
 export const CONTENT = Object.freeze([
   MASTER_CONTENT,
@@ -38,7 +39,8 @@ export const CONTENT = Object.freeze([
   GOD_CONTENT,
   HAG_CONTENT,
   HALFDRAGON_CONTENT,
-  ILLITHID_CONTENT
+  ILLITHID_CONTENT,
+  ...DATA_TRANSFORMATION_CONTENT
 ]);
 
 /** Descriptors of one kind ("class" or "transformation"), in registry order. */

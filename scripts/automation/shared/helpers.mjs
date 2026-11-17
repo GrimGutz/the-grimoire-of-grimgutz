@@ -192,11 +192,13 @@ export function hasFeature(actor, key) {
   );
 }
 
+/** Whether `item` is the module feature `key` (by automation flag or identifier). */
+export function isFeature(item, key) {
+  return Boolean(item) && (automationData(item).feature === key || itemIdentifier(item) === key);
+}
+
 export function findFeature(actor, key) {
-  return actor?.items?.find(item => {
-    const data = automationData(item);
-    return data.feature === key || itemIdentifier(item) === key;
-  });
+  return actor?.items?.find(item => isFeature(item, key));
 }
 
 export function notify(message, type = "info") {
@@ -214,9 +216,31 @@ export function reportFailure(label) {
   };
 }
 
+/**
+ * The one connected user that runs automation for `actor`: the active GM, or
+ * without a GM a single active owner — the player whose character it is, else
+ * the owner with the lowest user id. Every client computes the same user, so
+ * an actor owned by several players is not synchronized on all of them.
+ */
+export function automationAuthorityUser(actor) {
+  const activeGM = game.users?.activeGM;
+  if (activeGM) return activeGM;
+  if (!actor?.testUserPermission) return null;
+  const owners = [...(game.users ?? [])].filter(user => user.active && actor.testUserPermission(user, "OWNER"));
+  return (
+    owners.find(user => user.character?.uuid === actor.uuid) ??
+    owners.sort((a, b) => String(a.id).localeCompare(String(b.id)))[0] ??
+    null
+  );
+}
+
 export function isAutomationAuthority(actor) {
   const activeGM = game.users?.activeGM;
-  return activeGM ? activeGM.id === game.user.id : actor?.isOwner;
+  if (activeGM) return activeGM.id === game.user.id;
+  if (!actor?.isOwner) return false;
+  const user = automationAuthorityUser(actor);
+  // Documents without permission data (none in Foundry itself) keep the owner rule.
+  return user ? user.id === game.user.id : true;
 }
 
 export function itemUses(item) {

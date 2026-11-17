@@ -17,6 +17,7 @@ import { godLevel } from "../scripts/automation/transformations/god.mjs";
 import { ilLevel } from "../scripts/automation/transformations/illithid.mjs";
 import { hdLevel } from "../scripts/automation/transformations/halfdragon.mjs";
 import { hagLevel } from "../scripts/automation/transformations/hag.mjs";
+import { DATA_TRANSFORMATION_KITS } from "../scripts/automation/transformations/data-content.mjs";
 
 const byUuid = new Map(features.map(feature => [`Compendium.${MODULE_ID}.features.Item.${feature._id}`, feature]));
 for (const root of transformations)
@@ -53,7 +54,8 @@ for (const root of transformations)
       god: godLevel,
       hag: hagLevel,
       halfdragon: hdLevel,
-      illithid: ilLevel
+      illithid: ilLevel,
+      ...Object.fromEntries(DATA_TRANSFORMATION_KITS.map(kit => [kit.definition.id, kit.level]))
     }[root.flags[MODULE_ID].transformation];
     for (const characterLevel of [1, 5, 6, 10, 11, 15, 16, 20]) {
       const items = grants

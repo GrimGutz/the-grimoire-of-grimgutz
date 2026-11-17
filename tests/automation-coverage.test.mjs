@@ -35,13 +35,19 @@ test("coverage inventories all authored cards and actual NPC embedded items, not
 
 test("empty passive templates are retained only for the spell-source resistance service", async () => {
   const { documents } = await import("../src/packs/features.mjs");
-  for (const item of documents)
+  for (const item of documents) {
+    // Effects an activity applies to its targets (condition markers) are not passive templates.
+    const applied = new Set(
+      Object.values(item.system?.activities ?? {}).flatMap(activity => (activity.effects ?? []).map(entry => entry._id))
+    );
     for (const effect of item.effects ?? []) {
       if ((effect.system?.changes ?? effect.changes ?? []).length || effect.statuses?.length) continue;
+      if (applied.has(effect._id) && effect.transfer === false) continue;
       assert.equal(
         item.system.identifier,
         "fortified-soul",
         `${item.name}: empty passive effect without a service role`
       );
     }
+  }
 });

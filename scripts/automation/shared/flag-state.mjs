@@ -1,5 +1,6 @@
 import { MODULE_ID } from "./constants.mjs";
 import { serialMutation } from "./transactions.mjs";
+import { replaceFlag } from "./flag-write.mjs";
 
 /**
  * Object-valued module flag with serialized read-modify-write.
@@ -22,7 +23,8 @@ export function flagState(flag, lock = flag, fallback = () => ({})) {
     serialMutation(`${lock}:${document.uuid}`, async () => {
       const current = structuredClone(read(document));
       const next = typeof changes === "function" ? (changes(current) ?? current) : { ...current, ...changes };
-      await document.setFlag(MODULE_ID, flag, next);
+      // Replace, not merge: keys removed from `next` must disappear from the stored state.
+      await replaceFlag(document, flag, next);
       return next;
     });
   return { read, patch };

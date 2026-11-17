@@ -5,6 +5,7 @@ import {
   automationData,
   enabled,
   findFeature,
+  isFeature,
   isAutomationAuthority,
   itemIdentifier,
   itemUses,
@@ -12,7 +13,7 @@ import {
 } from "../shared/helpers.mjs";
 import { abilityMod, clamp } from "../shared/dnd5e.mjs";
 import { choiceDialog } from "../shared/dialogs.mjs";
-import { applyTargetEffect } from "../shared/target-effects.mjs";
+import { applyTargetEffect, registerTargetEffect } from "../shared/target-effects.mjs";
 import { isEffectActive, temporaryEffectTiming } from "../effects/temporary-effects.mjs";
 import { flaggedPassiveEffectData, syncFlaggedPassiveEffects } from "../effects/passive-helpers.mjs";
 import { effectKey } from "../shared/system-paths.mjs";
@@ -519,38 +520,64 @@ async function showSpiritSave(actor, title, saveAbility, extra = "") {
   );
 }
 
-async function applySpiritTargetCondition(
-  actor,
-  {
-    featureKey,
-    key,
-    title,
-    name,
-    status,
-    statusLabel,
-    saveAbility,
-    duration = {},
-    repeatSave = null,
-    note = "",
-    description = ""
-  }
-) {
+const SPIRIT_CONDITIONS = {
+  "spirit-vessel-aberration-charmed": actor => ({
+    featureKey: "spirit-aberration",
+    title: "Телепатическое очарование",
+    name: "Очарован: Телепатическое очарование",
+    status: "charmed",
+    statusLabel: "Очарован",
+    saveAbility: "Мудрость",
+    note: "Цель должна недавно общаться с вами телепатически. Эффект не имеет фиксированной длительности: снимите его вручную, когда вы причините цели вред или перестанете поддерживать эффект.",
+    description:
+      "<p>Цель очарована Сосудом духа после провала спасброска Мудрости. Снимите эффект вручную, если Сосуд причинит цели вред или перестанет поддерживать эффект.</p>"
+  }),
+  "spirit-vessel-fey-charmed": () => ({
+    featureKey: "spirit-fey",
+    title: "Очарование феи",
+    name: "Очарован: Очарование феи",
+    status: "charmed",
+    statusLabel: "Очарован",
+    saveAbility: "Харизма",
+    duration: { seconds: 86400 },
+    note: "Цель должна видеть вас. Лимиты целей и 24-часовая невосприимчивость после успеха/окончания эффекта отслеживаются вручную.",
+    description:
+      "<p>Цель очарована Сосудом духа на 24 часа после провала спасброска Харизмы, пока Сосуд не умрёт, не перейдёт на другой план или не окончит эффект.</p>"
+  }),
+  "spirit-vessel-undead-frightened": actor => ({
+    featureKey: "spirit-undead",
+    title: "Ужасающая старость",
+    name: "Испуган: Ужасающая старость",
+    status: "frightened",
+    statusLabel: "Испуган",
+    saveAbility: "Мудрость",
+    duration: { seconds: 60 },
+    repeatSave: { ability: "wis", dc: spiritVesselSaveDC(actor), event: "turnEnd" },
+    note: "В конце хода цели GM автоматически бросает повторный спасбросок; успех снимает испуг. Старение при провале на 5+ и 24-часовая невосприимчивость отслеживаются вручную.",
+    description:
+      "<p>Цель испугана Сосудом духа на 1 минуту после провала спасброска Мудрости. Повторяйте спасбросок в конце каждого хода цели.</p>"
+  })
+};
+
+/** applyTargetEffect parameters for a Spirit Vessel condition from `feature`, or null if it cannot cause it. */
+function spiritConditionEffect(key, actor, feature) {
+  const { featureKey, saveAbility, ...condition } = SPIRIT_CONDITIONS[key](actor);
+  const valid = isFeature(feature, featureKey) || (feature && feature === spiritFeature(actor));
+  if (!valid) return null;
+  return {
+    ...condition,
+    img: feature.img,
+    saveText: `${saveAbility} СЛ ${spiritVesselSaveDC(actor)}; выбирайте только цели, провалившие спасбросок.`
+  };
+}
+for (const key of Object.keys(SPIRIT_CONDITIONS))
+  registerTargetEffect(key, (actor, feature) => spiritConditionEffect(key, actor, feature));
+
+async function applySpiritTargetCondition(actor, key) {
+  const { featureKey, saveAbility, title, note } = SPIRIT_CONDITIONS[key](actor);
   const feature = findFeature(actor, featureKey) ?? spiritFeature(actor);
-  const applied = await applyTargetEffect({
-    sourceActor: actor,
-    sourceItem: feature,
-    key,
-    name,
-    img: feature?.img,
-    status,
-    statusLabel,
-    duration,
-    repeatSave,
-    title,
-    saveText: `${saveAbility} СЛ ${spiritVesselSaveDC(actor)}; выбирайте только цели, провалившие спасбросок.`,
-    note,
-    description
-  });
+  const effect = spiritConditionEffect(key, actor, feature);
+  const applied = effect ? await applyTargetEffect({ ...effect, sourceActor: actor, sourceItem: feature, key }) : false;
   if (!applied) await showSpiritSave(actor, title, saveAbility, note);
   return applied;
 }
@@ -591,49 +618,13 @@ export async function handleSpiritVesselAction(actor, activity, action) {
     case "activate-spirit-flow":
       return activateSpiritFlow(actor);
     case "spirit-vessel-aberration-charm":
-      return applySpiritTargetCondition(actor, {
-        featureKey: "spirit-aberration",
-        key: "spirit-vessel-aberration-charmed",
-        title: "Телепатическое очарование",
-        name: "Очарован: Телепатическое очарование",
-        status: "charmed",
-        statusLabel: "Очарован",
-        saveAbility: "Мудрость",
-        note: "Цель должна недавно общаться с вами телепатически. Эффект не имеет фиксированной длительности: снимите его вручную, когда вы причините цели вред или перестанете поддерживать эффект.",
-        description:
-          "<p>Цель очарована Сосудом духа после провала спасброска Мудрости. Снимите эффект вручную, если Сосуд причинит цели вред или перестанет поддерживать эффект.</p>"
-      });
+      return applySpiritTargetCondition(actor, "spirit-vessel-aberration-charmed");
     case "spirit-vessel-fey-charm":
-      return applySpiritTargetCondition(actor, {
-        featureKey: "spirit-fey",
-        key: "spirit-vessel-fey-charmed",
-        title: "Очарование феи",
-        name: "Очарован: Очарование феи",
-        status: "charmed",
-        statusLabel: "Очарован",
-        saveAbility: "Харизма",
-        duration: { seconds: 86400 },
-        note: "Цель должна видеть вас. Лимиты целей и 24-часовая невосприимчивость после успеха/окончания эффекта отслеживаются вручную.",
-        description:
-          "<p>Цель очарована Сосудом духа на 24 часа после провала спасброска Харизмы, пока Сосуд не умрёт, не перейдёт на другой план или не окончит эффект.</p>"
-      });
+      return applySpiritTargetCondition(actor, "spirit-vessel-fey-charmed");
     case "spirit-vessel-fiend-flames":
       return activateFiendFlames(actor);
     case "spirit-vessel-undead-frighten":
-      return applySpiritTargetCondition(actor, {
-        featureKey: "spirit-undead",
-        key: "spirit-vessel-undead-frightened",
-        title: "Ужасающая старость",
-        name: "Испуган: Ужасающая старость",
-        status: "frightened",
-        statusLabel: "Испуган",
-        saveAbility: "Мудрость",
-        duration: { seconds: 60 },
-        repeatSave: { ability: "wis", dc: spiritVesselSaveDC(actor), event: "turnEnd" },
-        note: "В конце хода цели GM автоматически бросает повторный спасбросок; успех снимает испуг. Старение при провале на 5+ и 24-часовая невосприимчивость отслеживаются вручную.",
-        description:
-          "<p>Цель испугана Сосудом духа на 1 минуту после провала спасброска Мудрости. Повторяйте спасбросок в конце каждого хода цели.</p>"
-      });
+      return applySpiritTargetCondition(actor, "spirit-vessel-undead-frightened");
     default:
       return false;
   }

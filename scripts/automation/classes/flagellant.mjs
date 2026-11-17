@@ -21,6 +21,7 @@ import { serialMutation } from "../shared/transactions.mjs";
 import { applyNativeOnce } from "../shared/native-applications.mjs";
 import { askOwner, confirmOwner } from "../shared/owner-prompts.mjs";
 import { effectKey } from "../shared/system-paths.mjs";
+import { flagKey, newestEntries, replaceFlag } from "../shared/flag-write.mjs";
 
 export const flagellantLevel = actor => classLevel(actor, "flagellant");
 export const flagellantTotalLevel = actor =>
@@ -163,15 +164,22 @@ export function validateFlagellantItem(item, _data, _options, userId) {
     }
   }
 }
+/** Price receipts kept per actor: enough to answer retried requests, not the whole campaign. */
+const PRICE_CLAIMS_KEPT = 150;
 export async function payFlagellantPrice(actor, amount, { id, sourceItem } = {}) {
   if (!enabled() || !isGmAuthority() || !id || !sourceItem)
     throw Error("Цена силы требует активного GM и идентификатора применения.");
   return serialMutation(`flagellant-price:${actor.uuid}`, async () => {
     const claims = actor.getFlag(MODULE_ID, "flagellantPriceClaims") ?? {},
-      previous = claims[id];
+      key = flagKey(id),
+      previous = claims[key];
     if (previous) return previous;
     const plan = flagellantPricePlan(actor, amount);
-    await actor.setFlag(MODULE_ID, "flagellantPriceClaims", { ...claims, [id]: { status: "needs-review", amount } });
+    await replaceFlag(
+      actor,
+      "flagellantPriceClaims",
+      newestEntries({ ...claims, [key]: { status: "needs-review", amount } }, PRICE_CLAIMS_KEPT)
+    );
     if (plan.mode === "maximum" && plan.ok) {
       const debts = [
           ...flagellantMaxDebts(actor),
@@ -188,12 +196,10 @@ export async function payFlagellantPrice(actor, amount, { id, sourceItem } = {})
     } else if (plan.mode === "hp" && plan.after !== undefined)
       await actor.update({ "system.attributes.hp.value": plan.after }, { [MODULE_ID]: { flagellantPrice: id } });
     const result = { status: "success", ...plan };
-    await actor.setFlag(
-      MODULE_ID,
+    await replaceFlag(
+      actor,
       "flagellantPriceClaims",
-      Object.fromEntries(
-        Object.entries({ ...actor.getFlag(MODULE_ID, "flagellantPriceClaims"), [id]: result }).slice(-150)
-      )
+      newestEntries({ ...actor.getFlag(MODULE_ID, "flagellantPriceClaims"), [key]: result }, PRICE_CLAIMS_KEPT)
     );
     return result;
   });

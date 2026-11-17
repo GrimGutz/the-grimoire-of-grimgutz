@@ -36,7 +36,7 @@ const foundryGlobals = Object.fromEntries(
 );
 
 export default [
-  { ignores: ["node_modules/**", "packs/**", "tmp/**", "assets/**", "docs/**"] },
+  { ignores: ["node_modules/**", "packs/**", "dist/**", "tmp/**", "assets/**", "docs/**"] },
   js.configs.recommended,
   {
     files: ["**/*.mjs"],

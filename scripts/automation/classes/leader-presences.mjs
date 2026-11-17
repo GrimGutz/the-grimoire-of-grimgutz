@@ -21,6 +21,7 @@ import { calculatedDamage } from "../midi/damage-packet.mjs";
 import { syncLeaderPassiveEffects } from "./leader.mjs";
 import { leaderDistance } from "./leader-stratagems.mjs";
 import { isGmAuthority } from "../shared/gm-requests.mjs";
+import { flagKey, replaceFlag } from "../shared/flag-write.mjs";
 
 function sources(scene, target, key) {
   return [...(scene?.tokens ?? [])].filter(source => presenceApplies(source, target, key));
@@ -91,7 +92,7 @@ onPrepareAttack(async ({ attacker, target, data }) => {
   const source = strongest(sources(scene, target, "insightful-presence"), () => 3);
   if (source) {
     const claims = source.actor.getFlag(MODULE_ID, "insightfulPresenceClaims") ?? {};
-    if (!claims[target.uuid]) {
+    if (!claims[flagKey(target.uuid)]) {
       const existing = activeBenefits(attacker.actor).find(
         effect =>
           effect.getFlag(MODULE_ID, "combatBenefit")?.presenceKind === "insightful" &&
@@ -347,12 +348,18 @@ export function installLeaderPresenceHooks() {
     const targetUuid = combat.combatant.token?.uuid;
     for (const actor of automationActors()) {
       const claims = actor.getFlag(MODULE_ID, "insightfulPresenceClaims");
-      if (claims)
-        void actor.setFlag(
-          MODULE_ID,
-          "insightfulPresenceClaims",
-          Object.fromEntries(Object.entries(claims).filter(([key]) => key !== targetUuid))
-        );
+      if (!claims) continue;
+      // The claim ends when the protected creature's turn starts. Values that are
+      // not workflow ids are entries stored nested by the old uuid-keyed format.
+      const kept = Object.fromEntries(
+        Object.entries(claims).filter(([key, value]) => key !== flagKey(targetUuid) && typeof value === "string")
+      );
+      if (Object.keys(kept).length === Object.keys(claims).length) continue;
+      void (
+        Object.keys(kept).length
+          ? replaceFlag(actor, "insightfulPresenceClaims", kept)
+          : actor.unsetFlag(MODULE_ID, "insightfulPresenceClaims")
+      ).catch(error => console.error(`${MODULE_ID} | Insightful presence claim reset failed`, error));
     }
     void combat.combatant.actor.unsetFlag(MODULE_ID, "tacticalPresenceClaims");
   });

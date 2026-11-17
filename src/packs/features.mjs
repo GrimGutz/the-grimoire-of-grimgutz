@@ -1,3 +1,4 @@
+import { dataTransformationFeatureDocuments, dataTransformationFolders } from "./data-transformations.mjs";
 import {illithidDocuments,illithidFolders} from "./illithid-features.mjs";
 import {halfdragonDocuments,halfdragonFolders} from "./halfdragon-features.mjs";
 import { feature, folder, idFor, utilityActivity } from "../common.mjs";
@@ -104,6 +105,7 @@ export const folders = [
   ...hagFolders,
   ...halfdragonFolders,
   ...illithidFolders,
+  ...dataTransformationFolders,
   ...schoolOfSteelFolders,
   ...murderspawnFeatureFolders,
   ...hollowFeatureFolders
@@ -475,6 +477,7 @@ export const documents = configureAreaActivities([
   ...hagDocuments,
   ...halfdragonDocuments,
   ...illithidDocuments,
+  ...dataTransformationFeatureDocuments,
   ...murderspawnFeatureDocuments,
   ...hollowFeatureDocuments
 ]);

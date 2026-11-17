@@ -2,3 +2,9 @@ node_modules/
 npm-debug.log*
 *.zip
 
+# Built from src/ by npm run build (and by the release workflow).
+# Foundry rewrites these LevelDB files whenever a world opens them.
+packs/
+
+# Release output of npm run release.
+dist/

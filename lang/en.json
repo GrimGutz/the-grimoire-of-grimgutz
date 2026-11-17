@@ -1,0 +1,128 @@
+{
+  "GRIMGUTZ": {
+    "Settings": {
+      "Automation": {
+        "Name": "Prestige class rules automation",
+        "Hint": "Integrates every Grimoire prestige class with dnd5e, Midi-QOL and active effects."
+      },
+      "StrictPrerequisites": {
+        "Name": "Enforce prestige class prerequisites",
+        "Hint": "When enabled, the module refuses to add prestige classes, their features, specializations and techniques to characters who do not meet the prerequisites. Off by default so the GM decides admission."
+      },
+      "Panel": {
+        "Name": "Grimoire automation panel",
+        "Label": "Open panel",
+        "Hint": "Auras, zones, summons, bonuses and the GM event queue."
+      }
+    },
+    "Panel": {
+      "Title": "Grimoire — automation",
+      "HeaderButton": "Grimoire",
+      "HeaderButtonLong": "Grimoire panel",
+      "Intro": "{actor}. Refreshing does not change any documents.",
+      "Refresh": "Refresh",
+      "AllActors": "All accessible characters",
+      "NoAccess": "You cannot inspect this character.",
+      "Unavailable": "Unavailable",
+      "HiddenSource": "Hidden source / target",
+      "Columns": {
+        "Ability": "Ability / source",
+        "Targets": "Targets",
+        "Expiry": "Duration / remaining",
+        "State": "State"
+      },
+      "Category": {
+        "Bonuses": "Limited bonuses",
+        "Auras": "Auras / presences",
+        "Effects": "Effects",
+        "Presences": "Leader presences",
+        "Summons": "Summons",
+        "BloodDrain": "Blood drain",
+        "Unconfirmed": "Unconfirmed uses",
+        "Unavailable": "Unavailable abilities",
+        "AuraIndicators": "Aura indicators",
+        "Zones": "Zones"
+      },
+      "NoTimer": "No timer",
+      "Seconds": "{seconds} s",
+      "Available": "Available",
+      "AwaitingConfirmation": "Waiting for the roll / damage to be confirmed",
+      "Dash": "Dash: +{movement} {units} of movement; running long jump {jump} ft. Move manually.",
+      "SaveNeedsReview": "Saving throw needs review",
+      "NoAllies": "No allies chosen",
+      "WhilePresence": "While the presence lasts",
+      "LeaderIncapacitated": "The Leader is incapacitated",
+      "ActiveLink": "Active link",
+      "WhileConditions": "While the conditions hold",
+      "OncePerRound": "Once per round",
+      "DrainChecks": "Distance and target eligibility are checked",
+      "ManualReview": "Manual review, never retried automatically",
+      "ExpenseConfirmed": "Cost confirmed; the result needs review",
+      "ExpenseUnconfirmed": "Midi did not confirm the cost or the result",
+      "Area": "Area",
+      "WhileSource": "While the source is active",
+      "ZoneHidden": "Hidden from players; its rules still apply",
+      "ZoneAvailable": "Available",
+      "Buttons": {
+        "Recipients": "Recipients",
+        "End": "End",
+        "DeleteArea": "Delete area",
+        "Manage": "Manage",
+        "StopDrain": "Stop",
+        "Apply": "Resolve",
+        "Skip": "Skip",
+        "Checked": "Checked"
+      },
+      "Queue": {
+        "Title": "Event queue (GM)",
+        "Intro": "Another scene: open it first. An unknown outcome is reviewed by hand and never retried automatically.",
+        "Empty": "No pending events."
+      },
+      "State": {
+        "queued": "Waiting for the GM",
+        "running": "Running / check after a reload",
+        "needs-review": "Needs review",
+        "completed": "Completed",
+        "skipped": "Skipped",
+        "cancelled": "Cancelled",
+        "reviewed": "Checked by the GM"
+      }
+    },
+    "Requests": {
+      "NeedGM": "An active GM is required.",
+      "NoOwnerPermission": "You do not own the actor this request is for.",
+      "Pending": "Request {id} is not confirmed yet. The cost was not refunded automatically; check the result in diagnostics.",
+      "DelayedSuccess": "A delayed request completed.",
+      "DelayedFailure": "A delayed request failed.",
+      "NotOwned": "A document in the request does not belong to the actor.",
+      "TokenMissing": "The request's token was not found.",
+      "TargetsMissing": "The request's targets were not found on the scene.",
+      "ZoneOwnToken": "A zone can only be centred on the owner's token.",
+      "ZoneRadius": "Invalid zone radius.",
+      "SpiritAlly": "The spirit only protects an ally on its own scene."
+    },
+    "TargetEffects": {
+      "GmOnly": "The GM applies this effect to creatures you do not own.",
+      "NotApplied": "The effect was not applied.",
+      "NotAllowed": "This effect cannot be applied at a player's request.",
+      "SourceNotOwned": "The effect's source does not belong to the actor.",
+      "SourceCannot": "This source cannot apply that effect.",
+      "OtherScene": "The targets must be on the source's scene."
+    },
+    "Ledger": {
+      "Queued": "The trigger was saved in the Grimoire panel. The GM must open its scene and confirm the result.",
+      "Interrupted": "Interrupted by a reload or a GM change; it is never retried automatically.",
+      "GmOnly": "Only the active GM can manage the queue, with automation enabled.",
+      "NotFound": "Event not found.",
+      "OpenScene": "Open the event's scene first."
+    },
+    "Transformations": {
+      "Requirements": "{name} requires {requirements}.",
+      "Duplicate": "“{name}” is already granted.",
+      "Requires": "“{name}” requires “{required}”.",
+      "PoolShort": "{pool}: {cost} needed, {value} available.",
+      "PoolConsumed": "{item}: spent {spent} ({pool}); {left} left.",
+      "PoolGained": "{pool}: +{amount}, now {left} of {max}."
+    }
+  }
+}

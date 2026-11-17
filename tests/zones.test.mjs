@@ -56,6 +56,21 @@ beforeEach(() => {
   globalThis.ui = { notifications: { warn() {} } };
 });
 
+// A canvas token of the owner on the zone scene, resolvable by uuid like a real TokenDocument.
+function originToken({ x = 0, y = 0, hidden = false } = {}) {
+  const document = {
+    documentName: "Token",
+    uuid: `Scene.player-scene.Token.origin${++sequence}`,
+    parent: scene,
+    actor: owner,
+    hidden
+  };
+  const placeable = { center: { x, y }, document };
+  document.object = placeable;
+  documents.set(document.uuid, document);
+  return placeable;
+}
+
 test("zone temporary HP never replace a higher existing total", async () => {
   const high = {
     uuid: "Actor.high",
@@ -99,13 +114,14 @@ test("Region zones expire and disappear when their source is deleted", async () 
 test("zone creation converts feet and hidden indicators stay hidden on another GM scene", async () => {
   const result = await createCircleTemplate({
     actor: owner,
-    originToken: { center: { x: 100, y: 100 }, document: { hidden: true } },
+    originToken: originToken({ x: 100, y: 100, hidden: true }),
     radius: 30,
     label: "Zone",
     seconds: 60
   });
   assert.ok(Math.abs(result.distance - 9.144) < 0.00001);
   assert.equal(result.hidden, true);
+  assert.deepEqual([result.x, result.y], [100, 100]);
   canvas.scene = { id: "other-gm-scene" };
   game.time.worldTime = 59;
   await cleanupZoneTemplates();
@@ -138,7 +154,7 @@ test("failed concentration rolls back its zone and confirmed resource expense", 
   owner.beginConcentrating = async () => undefined;
   const result = await createCircleTemplate({
     actor: owner,
-    originToken: { center: { x: 0, y: 0 } },
+    originToken: originToken(),
     radius: 30,
     label: "Zone",
     seconds: 60,
@@ -150,10 +166,46 @@ test("failed concentration rolls back its zone and confirmed resource expense", 
   assert.equal(resource.system.uses.spent, 1);
 });
 
+test("a forged zone request cannot place another creature's zone or add automation flags", async () => {
+  const stranger = {
+    documentName: "Token",
+    uuid: "Scene.player-scene.Token.npc",
+    parent: scene,
+    actor: { uuid: "Actor.npc" }
+  };
+  documents.set(stranger.uuid, stranger);
+  const { receiveGmRequest } = await import("../scripts/automation/shared/gm-requests.mjs");
+  const player = { id: "player", isGM: false };
+  const emitted = [];
+  game.users = Object.assign([game.user, player], {
+    activeGM: game.user,
+    get: id => (id === "player" ? player : game.user)
+  });
+  game.socket = { emit: (_channel, payload) => emitted.push(payload.result) };
+  owner.testUserPermission = () => true;
+  const send = data =>
+    receiveGmRequest(
+      { type: "create-circle-zone", requestId: `forged${++sequence}`, ownerUuid: owner.uuid, userId: "player", data },
+      "player"
+    );
+  await send({ sceneId: scene.id, originTokenUuid: stranger.uuid, template: { radius: 30 } });
+  const own = originToken({ x: 50, y: 50 });
+  await send({
+    sceneId: scene.id,
+    originTokenUuid: own.document.uuid,
+    template: { radius: 30, flags: { [MODULE_ID]: { periodicZone: { damage: "10d10" } } }, x: 9999 }
+  });
+  assert.equal(emitted[0].status, "failed");
+  assert.equal(emitted[1].status, "success");
+  assert.equal(scene.templates.length, 1);
+  assert.equal(scene.templates[0].flags[MODULE_ID].periodicZone, undefined);
+  assert.equal(scene.templates[0].x, 50);
+});
+
 test("lost concentration removes its zone; public summaries never name hidden targets", async () => {
   const template = await createCircleTemplate({
     actor: owner,
-    originToken: { center: { x: 0, y: 0 } },
+    originToken: originToken(),
     radius: 30,
     label: "Zone",
     seconds: 60

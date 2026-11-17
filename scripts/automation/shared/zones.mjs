@@ -1,11 +1,13 @@
 import { MODULE_ID } from "./constants.mjs";
-import { feetToSceneUnits, tokenSceneDistance } from "./spatial.mjs";
+import { feetToSceneUnits, tokenCenterPoint, tokenSceneDistance } from "./spatial.mjs";
+import { boundedNumber, boundedText, requireToken } from "./request-validation.mjs";
 import { isGmAuthority, registerGmRequest, requestGm } from "./gm-requests.mjs";
 import { isEffectActive } from "../effects/temporary-effects.mjs";
 import { summonConcentrationActivity } from "./summon-lifecycle.mjs";
 import { itemUses, notify } from "./helpers.mjs";
 import { inspiringTemporaryHp } from "./leader-presence-definitions.mjs";
 import { sceneZone, sceneZones } from "./scene-zones.mjs";
+import { t } from "./i18n.mjs";
 
 const zoneOperations = new Map();
 registerGmRequest("create-circle-zone", (owner, data, context) => {
@@ -19,6 +21,40 @@ registerGmRequest("create-circle-zone", (owner, data, context) => {
     .catch(() => {});
   return operation;
 });
+
+const ZONE_COLOR = /^#[0-9a-f]{6}$/i;
+
+/**
+ * The template a circle-zone request may create, built on the GM: a circle of
+ * at most 120 ft centred on the owner's token, labelled and coloured, with no
+ * other module flags. Zone automation flags are added only by the GM code that
+ * validates the ability using the zone.
+ */
+function circleZoneDefinition(owner, scene, requested, originToken) {
+  if (originToken.actor?.uuid !== owner.uuid) throw Error(t("Requests.ZoneOwnToken"));
+  const radius = boundedNumber(requested?.radius, 0, 120, NaN);
+  if (!Number.isFinite(radius)) throw Error(t("Requests.ZoneRadius"));
+  const color = ZONE_COLOR.test(requested?.color ?? "") ? requested.color : "#7f5cff";
+  const center = tokenCenterPoint(originToken.object ?? originToken, scene);
+  return {
+    t: "circle",
+    author: game.user.id,
+    x: center.x,
+    y: center.y,
+    direction: 0,
+    distance: feetToSceneUnits(radius, scene),
+    hidden: Boolean(originToken.hidden),
+    borderColor: color,
+    fillColor: color,
+    flags: {
+      [MODULE_ID]: {
+        zoneTemplate: true,
+        zoneLabel: boundedText(requested?.label, 100),
+        sourceActor: owner.uuid
+      }
+    }
+  };
+}
 
 async function createZoneLocally(owner, data, { requestId }) {
   const scene = game.scenes?.get?.(data.sceneId);
@@ -50,7 +86,12 @@ async function createZoneLocally(owner, data, { requestId }) {
       await resource.update({ "system.uses.spent": itemUses(resource).spent + cost });
       charged = cost;
     }
-    const definition = foundry.utils.deepClone(data.template);
+    const definition = circleZoneDefinition(
+      owner,
+      scene,
+      data.template,
+      await requireToken(data.originTokenUuid, { scene })
+    );
     definition.flags[MODULE_ID].zoneRequestId = requestId;
     if (Number(data.seconds) > 0)
       definition.flags[MODULE_ID].zoneExpiresAt = Number(game.time?.worldTime ?? 0) + Number(data.seconds);
@@ -164,15 +205,6 @@ function sameToken(left, right) {
   return tokenUuid(left) === tokenUuid(right);
 }
 
-function tokenCenter(token) {
-  return (
-    token?.center ?? {
-      x: Number(token?.document?.x ?? 0) + Number(token?.w ?? 0) / 2,
-      y: Number(token?.document?.y ?? 0) + Number(token?.h ?? 0) / 2
-    }
-  );
-}
-
 export function sourceTokenForActor(actor) {
   if (!actor || !canvas?.ready) return null;
   const controlled = canvas.tokens?.controlled?.find(token => token.actor?.uuid === actor.uuid);
@@ -252,28 +284,10 @@ export async function createCircleTemplate({
   if (!scene || !canvas?.ready || !originToken) return null;
 
   try {
-    const center = tokenCenter(originToken);
-    const definition = {
-      t: "circle",
-      author: game.user.id,
-      x: center.x,
-      y: center.y,
-      direction: 0,
-      distance: feetToSceneUnits(radius ?? 0, scene),
-      hidden: Boolean(originToken.document?.hidden),
-      borderColor: color,
-      fillColor: color,
-      flags: {
-        [MODULE_ID]: {
-          zoneTemplate: true,
-          zoneLabel: label,
-          sourceActor: actor?.uuid ?? null
-        }
-      }
-    };
     const result = await requestGm("create-circle-zone", actor, {
       sceneId: scene.id,
-      template: definition,
+      originTokenUuid: originToken.document?.uuid ?? originToken.uuid,
+      template: { radius: Number(radius ?? 0), label, color },
       seconds,
       concentration,
       resource

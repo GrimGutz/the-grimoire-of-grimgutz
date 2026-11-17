@@ -4,12 +4,13 @@ import {
   findFeature,
   isAutomationAuthority,
   itemIdentifier,
+  isFeature,
   itemUses,
   notify
 } from "../shared/helpers.mjs";
 import { abilityMod } from "../shared/dnd5e.mjs";
 import { ownedAreaActivity, useAreaActivity } from "../shared/area-activities.mjs";
-import { applyTargetEffect } from "../shared/target-effects.mjs";
+import { applyTargetEffect, registerTargetEffect } from "../shared/target-effects.mjs";
 
 const crusaderSyncs = new Set();
 
@@ -147,14 +148,10 @@ export async function useCrusaderConsecration(actor, activity = null) {
   return Boolean(await useAreaActivity(chosen));
 }
 
-export async function condemnCrusaderTarget(actor) {
-  if (!validateCrusaderCondemnationUse(actor)) return false;
-  const feature = findFeature(actor, "condemnation");
+function condemnationEffect(actor, feature) {
+  if (!isFeature(feature, "condemnation")) return null;
   const saveDc = crusaderSpellSaveDc(actor);
-  return applyTargetEffect({
-    sourceActor: actor,
-    sourceItem: feature,
-    key: "crusader-condemnation",
+  return {
     name: "Осуждён",
     img: feature?.img,
     statusLabel: "Осуждён",
@@ -163,7 +160,16 @@ export async function condemnCrusaderTarget(actor) {
     saveText: `Мудрость СЛ ${saveDc}; накладывайте эффект только на цели, провалившие спасбросок.`,
     note: "Маркер напоминает: атаки по цели совершаются с преимуществом, цель не получает преимуществ от невидимости и не может использовать телепортацию/экстрапланарное перемещение. Механически эти части проверяются вручную.",
     description: `<p>Осуждённая цель светится тусклым контуром 1 минуту. Атаки по ней совершаются с преимуществом, если атакующий видит цель; цель не получает преимуществ от невидимости и не может использовать телепортацию или экстрапланарное перемещение.</p>`
-  });
+  };
+}
+registerTargetEffect("crusader-condemnation", condemnationEffect);
+
+export async function condemnCrusaderTarget(actor) {
+  if (!validateCrusaderCondemnationUse(actor)) return false;
+  const feature = findFeature(actor, "condemnation");
+  const effect = condemnationEffect(actor, feature);
+  if (!effect) return false;
+  return applyTargetEffect({ ...effect, sourceActor: actor, sourceItem: feature, key: "crusader-condemnation" });
 }
 
 export function validateCrusaderRageUse(actor) {

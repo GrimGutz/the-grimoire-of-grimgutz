@@ -28,6 +28,11 @@ function bounds(token, scene) {
     doc.getCenterPoint?.() ?? { x: Number(doc.x ?? 0) + width / 2, y: Number(doc.y ?? 0) + height / 2 };
   return { x: center.x - width / 2, y: center.y - height / 2, width, height, elevation: Number(doc.elevation ?? 0) };
 }
+/** Centre of a token (placeable or document, on any scene) in scene pixels. */
+export function tokenCenterPoint(token, scene) {
+  const box = bounds(token, scene);
+  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+}
 export function tokenOccupiedPoints(token, scene) {
   const doc = tokenDocument(token),
     grid = sceneGrid(scene);

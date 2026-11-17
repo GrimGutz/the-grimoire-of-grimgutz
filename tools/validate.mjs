@@ -3,10 +3,12 @@ import { access, cp, mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ClassicLevel } from "classic-level";
 import { getAutomationActionHandlers, getMidiHookHandlers } from "../scripts/automation/runtime.mjs";
 import { MIDI_QOL_HOOKS } from "../scripts/automation/midi/hooks.mjs";
 import { compatibilityReport, foundryPaths, installedVersions } from "./environment.mjs";
+import { manifestProblems } from "./manifest.mjs";
+import { hydrateRecords, readPackRecords } from "./pack-records.mjs";
+import { DATA_TRANSFORMATIONS } from "../scripts/automation/transformations/data-transformations.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifest = JSON.parse(await readFile(path.join(root, "module.json"), "utf8"));
@@ -34,6 +36,10 @@ async function readTextFilesRecursive(directory, extension = ".mjs") {
 if (manifest.id !== "the-grimoire-of-grimgutz") {
   errors.push(`Unexpected module ID: ${manifest.id}`);
 }
+errors.push(...manifestProblems(manifest));
+const packageVersion = JSON.parse(await readFile(path.join(root, "package.json"), "utf8")).version;
+if (packageVersion !== manifest.version)
+  errors.push(`package.json version ${packageVersion} differs from module.json ${manifest.version}`);
 
 for (const relativePath of [...(manifest.esmodules ?? []), ...(manifest.styles ?? [])]) {
   try {
@@ -52,6 +58,10 @@ try {
   for (const pack of manifest.packs) {
     const sourcePackPath = path.join(root, pack.path);
     const packPath = path.join(temporaryRoot, pack.name);
+    if (!existsSync(sourcePackPath)) {
+      errors.push(`Pack ${pack.name} is not built: run npm run build`);
+      continue;
+    }
     // A running Foundry holds each pack's LOCK file open (EBUSY on Windows);
     // the copy only needs the data files, and LevelDB recreates its own LOCK.
     await cp(sourcePackPath, packPath, {
@@ -59,34 +69,26 @@ try {
       filter: source => path.basename(source) !== "LOCK"
     });
 
-    const db = new ClassicLevel(packPath, {
-      valueEncoding: "json"
-    });
-
     try {
-      await db.open();
-      let count = 0;
-      const documentPrefix = pack.type === "Actor" ? "!actors!" : "!items!";
-      for await (const [key, value] of db.iterator()) {
-        if (key.startsWith("!actors.items!")) {
-          embeddedIconDocuments.push({
-            pack: pack.name,
-            document: value
-          });
-          continue;
-        }
-        if (!key.startsWith(documentPrefix)) continue;
-        count += 1;
-        allDocuments.set(value._id, {
-          pack: pack.name,
-          document: value
-        });
+      // Embedded items and effects are separate records; rebuild whole documents.
+      const records = await readPackRecords(packPath);
+      const inline = [...records].filter(
+        ([key, value]) =>
+          !key.startsWith("!folders!") && (value.effects ?? []).some(entry => entry && typeof entry === "object")
+      );
+      if (inline.length)
+        errors.push(
+          `Pack ${pack.name}: ${inline.length} documents store effects inline, which Foundry ignores. Run npm run build.`
+        );
+      const { documents } = hydrateRecords(records, pack.type);
+      documentCounts[pack.name] = documents.length;
+      for (const document of documents) {
+        allDocuments.set(document._id, { pack: pack.name, document });
+        if (pack.type === "Actor")
+          for (const item of document.items ?? []) embeddedIconDocuments.push({ pack: pack.name, document: item });
       }
-      documentCounts[pack.name] = count;
     } catch (error) {
       errors.push(`Cannot read pack ${pack.name}: ${error.message}`);
-    } finally {
-      await db.close().catch(() => {});
     }
   }
 } finally {
@@ -98,9 +100,9 @@ try {
 
 if (documentCounts.classes !== 36) errors.push(`Expected 36 prestige classes, got ${documentCounts.classes ?? 0}`);
 if (documentCounts.subclasses !== 17) errors.push(`Expected 17 subclasses, got ${documentCounts.subclasses ?? 0}`);
-if (documentCounts.features !== 888) errors.push(`Expected 888 features, got ${documentCounts.features ?? 0}`);
-if (documentCounts.transformations !== 13)
-  errors.push(`Expected 13 transformations, got ${documentCounts.transformations ?? 0}`);
+if (documentCounts.features !== 978) errors.push(`Expected 978 features, got ${documentCounts.features ?? 0}`);
+if (documentCounts.transformations !== 18)
+  errors.push(`Expected 18 transformations, got ${documentCounts.transformations ?? 0}`);
 if (documentCounts.spells !== 21) errors.push(`Expected 21 spells, got ${documentCounts.spells ?? 0}`);
 if (documentCounts.equipment !== 8) errors.push(`Expected 8 weapons, got ${documentCounts.equipment ?? 0}`);
 if (documentCounts.bestiary !== 30) errors.push(`Expected 30 bestiary actors, got ${documentCounts.bestiary ?? 0}`);
@@ -1075,7 +1077,8 @@ for (const document of transformationDocuments) {
       "god-transformation",
       "hag-transformation",
       "halfdragon-transformation",
-      "illithid-transformation"
+      "illithid-transformation",
+      ...DATA_TRANSFORMATIONS.map(definition => `${definition.id}-transformation`)
     ].includes(document.system.identifier)
   ) {
     errors.push(`Transformations pack must contain only main transformation cards, got: ${document.system.identifier}`);
@@ -1903,12 +1906,12 @@ for (const [path, value] of [
 }
 const demonicMindChanges =
   featuresByIdentifier.get("demonic-mind")?.effects?.flatMap(effect => effect.system?.changes ?? []) ?? [];
-if (!demonicMindChanges.some(change => change.key === "system.traits.dr.value" && change.value === "psychic")) {
+if (!demonicMindChanges.some(change => change.key === "system.traits.dr.value" && String(change.value) === "psychic")) {
   errors.push("Demonic Mind must add psychic resistance");
 }
 if (
   !demonicMindChanges.some(
-    change => change.key === "system.attributes.senses.ranges.telepathy" && change.value === "60"
+    change => change.key === "system.attributes.senses.ranges.telepathy" && String(change.value) === "60"
   )
 ) {
   errors.push("Demonic Mind must add 60 ft telepathy");
@@ -2133,7 +2136,8 @@ const primalReflexes = featuresByIdentifier.get("primal-reflexes");
 if (
   !deathRun?.effects?.some(effect =>
     effect.system?.changes?.some(
-      change => change.key === "system.attributes.movement.walk" && change.phase === "final" && change.value === "10"
+      change =>
+        change.key === "system.attributes.movement.walk" && change.phase === "final" && String(change.value) === "10"
     )
   )
 ) {
@@ -2142,7 +2146,8 @@ if (
 if (
   !primalReflexes?.effects?.some(effect =>
     effect.system?.changes?.some(
-      change => change.key === "system.attributes.init.bonus" && change.phase === "final" && change.value === "10"
+      change =>
+        change.key === "system.attributes.init.bonus" && change.phase === "final" && String(change.value) === "10"
     )
   )
 ) {
@@ -2243,8 +2248,8 @@ if (
   !negativeBody?.effects?.some(effect => {
     const changes = effect.system?.changes ?? [];
     return (
-      changes.some(change => change.key === "system.abilities.con.value" && change.value === "2") &&
-      changes.some(change => change.key === "system.abilities.wis.value" && change.value === "1")
+      changes.some(change => change.key === "system.abilities.con.value" && String(change.value) === "2") &&
+      changes.some(change => change.key === "system.abilities.wis.value" && String(change.value) === "1")
     );
   })
 ) {
@@ -2550,7 +2555,9 @@ for (const action of ["school-steel-choose-weapons", "school-steel-bonus-attack"
 const steelMetalist = featuresByIdentifier.get("steel-metalist");
 if (
   !steelMetalist?.effects?.some(effect =>
-    effect.system?.changes?.some(change => change.key === "system.traits.armorProf.value" && change.value === "hvy")
+    effect.system?.changes?.some(
+      change => change.key === "system.traits.armorProf.value" && String(change.value) === "hvy"
+    )
   )
 ) {
   errors.push("Metalist must include heavy armor proficiency passive effect");
@@ -2625,7 +2632,14 @@ for (const [identifier, key] of [
   }
 }
 for (const document of featureDocuments) {
+  // Conditions an activity applies to its targets are not passive effects.
+  const applied = new Set(
+    Object.values(document.system?.activities ?? {}).flatMap(activity =>
+      (activity.effects ?? []).map(entry => entry._id)
+    )
+  );
   for (const effect of document.effects ?? []) {
+    if (applied.has(effect._id) && effect.transfer === false) continue;
     if (effect.flags?.[manifest.id]?.passiveEffect !== true) {
       errors.push(`Passive effect marker is missing: ${document.system.identifier}/${effect.name}`);
     }
