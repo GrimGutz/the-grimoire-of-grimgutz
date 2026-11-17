@@ -25,3 +25,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$GITHUB_REF_NAME" dist/module.json dist/module.zip --title "$GITHUB_REF_NAME" --generate-notes --verify-tag
+      # Lists the version on foundryvtt.com when the repository secret
+      # FOUNDRY_RELEASE_TOKEN holds the package's release token; skipped otherwise.
+      - name: Publish to foundryvtt.com
+        env:
+          FOUNDRY_RELEASE_TOKEN: ${{ secrets.FOUNDRY_RELEASE_TOKEN }}
+        run: node tools/foundry-release.mjs

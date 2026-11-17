@@ -7,16 +7,16 @@
       "name": "Lev"
     }
   ],
-  "version": "0.15.23",
+  "version": "0.16.0",
   "url": "https://github.com/GrimGutz/the-grimoire-of-grimgutz",
   "manifest": "https://github.com/GrimGutz/the-grimoire-of-grimgutz/releases/latest/download/module.json",
-  "download": "https://github.com/GrimGutz/the-grimoire-of-grimgutz/releases/download/v0.15.23/module.zip",
+  "download": "https://github.com/GrimGutz/the-grimoire-of-grimgutz/releases/download/v0.16.0/module.zip",
   "bugs": "https://github.com/GrimGutz/the-grimoire-of-grimgutz/issues",
   "readme": "https://github.com/GrimGutz/the-grimoire-of-grimgutz/blob/main/README.md",
   "socket": true,
   "compatibility": {
     "minimum": "14",
-    "verified": "14.364",
+    "verified": "14.370",
     "maximum": "14.999"
   },
   "esmodules": [
@@ -257,7 +257,8 @@
         "id": "dnd5e",
         "type": "system",
         "compatibility": {
-          "minimum": "5.3.3"
+          "minimum": "5.3.3",
+          "verified": "6.1.0"
         }
       }
     ],

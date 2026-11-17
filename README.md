@@ -174,9 +174,10 @@ npm run check
 
 ## Релиз
 
-1. `npm run bump -- 0.15.24` — меняет версию в `module.json`, `package.json`, `package-lock.json` и ссылку `download`.
-2. Закоммитьте, затем `git tag v0.15.24` и `git push origin main v0.15.24`.
-3. GitHub Actions (`.github/workflows/release.yml`) запускает `npm run check`, собирает релиз и публикует `module.json` и `module.zip`.
+1. `npm run bump -- 0.16.1` — меняет версию в `module.json`, `package.json`, `package-lock.json` и ссылку `download`.
+2. Закоммитьте, затем `git tag v0.16.1` и `git push origin main v0.16.1`.
+3. GitHub Actions (`.github/workflows/release.yml`) запускает `npm run check`, собирает релиз и публикует `module.json` и `module.zip`. Foundry, установивший модуль по ссылке манифеста, увидит новую версию сам.
+4. Если модуль зарегистрирован на foundryvtt.com и его «Package Release Token» сохранён в секрете репозитория `FOUNDRY_RELEASE_TOKEN`, тот же workflow публикует версию на странице пакета (`tools/foundry-release.mjs`). Без секрета этот шаг пропускается.
 
 `npm run release` собирает то же локально в `dist/`: один файл скриптов вместо ~275, packs из `src/` и только используемые файлы из `assets/` (сейчас 224 из 4344). Рабочая копия по-прежнему содержит все файлы.
 
